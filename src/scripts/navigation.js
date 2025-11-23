@@ -38,7 +38,7 @@ export async function showView(viewName) {
     if (viewName === 'guestDocuments' && typeof window.loadGuestDocuments === 'function') window.loadGuestDocuments()
     if (viewName === 'payments' && typeof window.loadPayments === 'function') window.loadPayments()
     if (viewName === 'meals' && typeof window.loadMeals === 'function') window.loadMeals()
-    if (viewName === 'availability' && typeof window.loadAvailabilityCalendar === 'function') window.loadAvailabilityCalendar()
+    if (viewName === 'availability' && typeof window.loadAvailability === 'function') window.loadAvailability()
     if (viewName === 'properties' && typeof window.loadProperties === 'function') window.loadProperties()
     if (viewName === 'performance' && typeof window.initializePerformanceView === 'function') window.initializePerformanceView()
     if (viewName === 'team' && typeof window.loadTeam === 'function') window.loadTeam()
