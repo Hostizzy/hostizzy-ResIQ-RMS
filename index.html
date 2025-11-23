@@ -3517,9 +3517,239 @@
             @keyframes spin {
                 to { transform: rotate(360deg); }
             }
+
+            /* Kanban Board Styles */
+            .kanban-view {
+                display: none;
+                padding: 20px;
+            }
+
+            .kanban-view.active {
+                display: block;
+            }
+
+            .kanban-container {
+                display: flex;
+                gap: 20px;
+                overflow-x: auto;
+                padding-bottom: 20px;
+            }
+
+            .kanban-column {
+                min-width: 320px;
+                max-width: 320px;
+                background: var(--background-alt);
+                border-radius: var(--radius-md);
+                padding: 16px;
+                flex-shrink: 0;
+            }
+
+            .kanban-column-header {
+                font-weight: 700;
+                font-size: 14px;
+                margin-bottom: 16px;
+                padding: 12px;
+                background: var(--surface);
+                border-radius: var(--radius-sm);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .kanban-column-count {
+                background: var(--primary);
+                color: white;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            .kanban-cards {
+                min-height: 100px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .kanban-card {
+                background: var(--surface);
+                border-radius: var(--radius-sm);
+                padding: 16px;
+                box-shadow: var(--shadow);
+                cursor: move;
+                transition: var(--transition);
+                border-left: 4px solid var(--primary);
+            }
+
+            .kanban-card:hover {
+                box-shadow: var(--shadow-md);
+                transform: translateY(-2px);
+            }
+
+            .kanban-card.sortable-ghost {
+                opacity: 0.4;
+            }
+
+            .kanban-card.sortable-drag {
+                opacity: 1;
+                box-shadow: var(--shadow-xl);
+            }
+
+            .kanban-card-booking-id {
+                font-weight: 700;
+                color: var(--primary);
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+
+            .kanban-card-guest {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+
+            .kanban-card-property {
+                font-size: 12px;
+                color: var(--text-secondary);
+                margin-bottom: 8px;
+            }
+
+            .kanban-card-meta {
+                display: flex;
+                gap: 8px;
+                margin-top: 12px;
+                flex-wrap: wrap;
+            }
+
+            .kanban-card-badge {
+                font-size: 11px;
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-weight: 600;
+            }
+
+            /* PWA Install Banner */
+            .pwa-install-banner {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+                color: white;
+                padding: 16px 20px;
+                display: none;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+                z-index: 9999;
+                animation: slideUp 0.4s ease-out;
+            }
+
+            .pwa-install-banner.show {
+                display: flex;
+            }
+
+            .pwa-banner-content {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .pwa-banner-icon {
+                font-size: 32px;
+            }
+
+            .pwa-banner-text h3 {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 700;
+            }
+
+            .pwa-banner-text p {
+                margin: 4px 0 0 0;
+                font-size: 13px;
+                opacity: 0.9;
+            }
+
+            .pwa-banner-actions {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .pwa-banner-button {
+                padding: 10px 20px;
+                border-radius: var(--radius-sm);
+                border: none;
+                font-weight: 700;
+                cursor: pointer;
+                transition: var(--transition);
+                font-size: 14px;
+            }
+
+            .pwa-banner-button.install {
+                background: white;
+                color: var(--primary);
+            }
+
+            .pwa-banner-button.install:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .pwa-banner-button.dismiss {
+                background: transparent;
+                color: white;
+                border: 2px solid rgba(255, 255, 255, 0.5);
+            }
+
+            .pwa-banner-button.dismiss:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            @keyframes slideUp {
+                from {
+                    transform: translateY(100%);
+                }
+                to {
+                    transform: translateY(0);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .pwa-install-banner {
+                    flex-direction: column;
+                    gap: 16px;
+                }
+
+                .pwa-banner-actions {
+                    width: 100%;
+                }
+
+                .pwa-banner-button {
+                    flex: 1;
+                }
+
+                .kanban-column {
+                    min-width: 280px;
+                    max-width: 280px;
+                }
+            }
         </style>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Chart.js for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- SortableJS for drag & drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- jsPDF for PDF exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     
@@ -3546,6 +3776,21 @@
             <div class="toast-message" id="toastMessage">Message here</div>
         </div>
         <button onclick="hideToast()" style="background: none; border: none; cursor: pointer; font-size: 18px;">×</button>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div id="pwaInstallBanner" class="pwa-install-banner">
+        <div class="pwa-banner-content">
+            <div class="pwa-banner-icon">📱</div>
+            <div class="pwa-banner-text">
+                <h3>Install ResIQ App</h3>
+                <p>Add to your home screen for quick access and offline support</p>
+            </div>
+        </div>
+        <div class="pwa-banner-actions">
+            <button class="pwa-banner-button install" onclick="installPWA()">Install</button>
+            <button class="pwa-banner-button dismiss" onclick="dismissPWABanner()">Later</button>
+        </div>
     </div>
 
     <!-- Login Screen -->
@@ -4125,7 +4370,12 @@
 
         <!-- Dashboard View -->
         <div id="dashboardView" class="container">
-            <h2 style="margin-bottom: 24px;">Dashboard Overview</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="margin: 0;">Dashboard Overview</h2>
+                <button class="btn btn-secondary btn-sm" onclick="exportDashboardPDF()" style="display: flex; align-items: center; gap: 8px;">
+                    📄 Export PDF Report
+                </button>
+            </div>
 
             <!-- Enhanced Quick Filters -->
             <div class="quick-filters-container" style="margin-bottom: 24px;">
@@ -4369,6 +4619,9 @@
                             <div class="split-percentage" id="ownerPercentage">0%</div>
                         </div>
                     </div>
+                    <div style="padding: 20px; background: var(--background-alt); border-radius: 8px; margin-top: 16px;">
+                        <canvas id="revenueChart" style="max-height: 250px;"></canvas>
+                    </div>
                 </div>
 
                 <!-- Payment Collection Status -->
@@ -4387,6 +4640,9 @@
                             <div class="split-label">⏳ Pending</div>
                             <div class="split-percentage" id="pendingRate">0%</div>
                         </div>
+                    </div>
+                    <div style="padding: 20px; background: var(--background-alt); border-radius: 8px; margin-top: 16px;">
+                        <canvas id="paymentChart" style="max-height: 250px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -4670,7 +4926,19 @@
                     <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
                 </div>
 
-                <div class="table-container">
+                <!-- View Toggle -->
+                <div style="display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); align-items: center;">
+                    <span style="font-weight: 600; color: var(--text-secondary); font-size: 14px;">View:</span>
+                    <button class="btn btn-sm" id="tableViewBtn" onclick="switchReservationView('table')" style="background: var(--primary); color: white;">
+                        📊 Table
+                    </button>
+                    <button class="btn btn-sm" id="kanbanViewBtn" onclick="switchReservationView('kanban')" style="background: var(--secondary); color: white;">
+                        📋 Kanban Board
+                    </button>
+                </div>
+
+                <!-- Table View -->
+                <div id="tableView" class="table-container">
                     <table>
                         <thead>
                             <tr>
@@ -4692,6 +4960,56 @@
                             <tr><td colspan="10" class="text-center">Loading...</td></tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Kanban View -->
+                <div id="kanbanView" class="kanban-view">
+                    <div class="kanban-container">
+                        <!-- Pending Column -->
+                        <div class="kanban-column">
+                            <div class="kanban-column-header" style="background: var(--warning-light); color: #7f5f01;">
+                                <span>⏳ Pending</span>
+                                <span class="kanban-column-count" id="kanbanPendingCount" style="background: var(--warning);">0</span>
+                            </div>
+                            <div class="kanban-cards" id="kanban-pending" data-status="pending"></div>
+                        </div>
+
+                        <!-- Confirmed Column -->
+                        <div class="kanban-column">
+                            <div class="kanban-column-header" style="background: var(--primary-light); color: var(--primary-dark);">
+                                <span>✅ Confirmed</span>
+                                <span class="kanban-column-count" id="kanbanConfirmedCount">0</span>
+                            </div>
+                            <div class="kanban-cards" id="kanban-confirmed" data-status="confirmed"></div>
+                        </div>
+
+                        <!-- Checked In Column -->
+                        <div class="kanban-column">
+                            <div class="kanban-column-header" style="background: var(--success-light); color: #155724;">
+                                <span>🏠 Checked In</span>
+                                <span class="kanban-column-count" id="kanbanCheckedInCount" style="background: var(--success);">0</span>
+                            </div>
+                            <div class="kanban-cards" id="kanban-checked-in" data-status="checked-in"></div>
+                        </div>
+
+                        <!-- Checked Out Column -->
+                        <div class="kanban-column">
+                            <div class="kanban-column-header" style="background: #e0e7ff; color: #4338ca;">
+                                <span>🎉 Checked Out</span>
+                                <span class="kanban-column-count" id="kanbanCheckedOutCount" style="background: #6366f1;">0</span>
+                            </div>
+                            <div class="kanban-cards" id="kanban-checked-out" data-status="checked-out"></div>
+                        </div>
+
+                        <!-- Cancelled Column -->
+                        <div class="kanban-column">
+                            <div class="kanban-column-header" style="background: var(--danger-light); color: #7f1d1d;">
+                                <span>❌ Cancelled</span>
+                                <span class="kanban-column-count" id="kanbanCancelledCount" style="background: var(--danger);">0</span>
+                            </div>
+                            <div class="kanban-cards" id="kanban-cancelled" data-status="cancelled"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -17280,6 +17598,551 @@
             // You can add a permanent install button in your header or settings
             // that calls installPWA() when clicked
         }
+
+        // =================================================================
+        // ENHANCED UX FEATURES: Kanban, Charts, PDF Export, PWA Banner
+        // =================================================================
+
+        // Global variables for charts and Sortable instances
+        let revenueChartInstance = null;
+        let paymentChartInstance = null;
+        let kanbanSortables = [];
+        let deferredPWAPrompt = null;
+
+        // =================================================================
+        // 1. KANBAN BOARD WITH SORTABLEJS
+        // =================================================================
+
+        function switchReservationView(view) {
+            const tableView = document.getElementById('tableView');
+            const kanbanView = document.getElementById('kanbanView');
+            const tableBtn = document.getElementById('tableViewBtn');
+            const kanbanBtn = document.getElementById('kanbanViewBtn');
+
+            if (view === 'table') {
+                tableView.style.display = 'block';
+                kanbanView.classList.remove('active');
+                tableBtn.style.background = 'var(--primary)';
+                tableBtn.style.color = 'white';
+                kanbanBtn.style.background = 'var(--secondary)';
+                kanbanBtn.style.color = 'white';
+            } else {
+                tableView.style.display = 'none';
+                kanbanView.classList.add('active');
+                tableBtn.style.background = 'var(--secondary)';
+                tableBtn.style.color = 'white';
+                kanbanBtn.style.background = 'var(--primary)';
+                kanbanBtn.style.color = 'white';
+                renderKanbanBoard();
+            }
+        }
+
+        function renderKanbanBoard() {
+            if (!state.reservations) return;
+
+            const statuses = ['pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled'];
+
+            // Clear all columns
+            statuses.forEach(status => {
+                const column = document.getElementById(`kanban-${status}`);
+                if (column) column.innerHTML = '';
+            });
+
+            // Group reservations by status
+            const grouped = {};
+            statuses.forEach(status => grouped[status] = []);
+
+            state.reservations.forEach(reservation => {
+                const status = reservation.status || 'pending';
+                if (grouped[status]) {
+                    grouped[status].push(reservation);
+                }
+            });
+
+            // Render cards for each status
+            statuses.forEach(status => {
+                const column = document.getElementById(`kanban-${status}`);
+                const countEl = document.getElementById(`kanban${status.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')}Count`);
+
+                if (countEl) countEl.textContent = grouped[status].length;
+
+                grouped[status].forEach(reservation => {
+                    const card = createKanbanCard(reservation);
+                    if (column) column.appendChild(card);
+                });
+            });
+
+            // Initialize SortableJS on all columns
+            initKanbanSortable();
+        }
+
+        function createKanbanCard(reservation) {
+            const card = document.createElement('div');
+            card.className = 'kanban-card';
+            card.setAttribute('data-booking-id', reservation.booking_id);
+
+            const borderColors = {
+                'pending': 'var(--warning)',
+                'confirmed': 'var(--primary)',
+                'checked-in': 'var(--success)',
+                'checked-out': '#6366f1',
+                'cancelled': 'var(--danger)'
+            };
+            card.style.borderLeftColor = borderColors[reservation.status] || 'var(--primary)';
+
+            const propertyName = state.properties.find(p => p.id === reservation.property_id)?.name || 'N/A';
+            const checkIn = new Date(reservation.check_in).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            const nights = reservation.nights || 1;
+            const amount = `₹${parseInt(reservation.total_amount || 0).toLocaleString('en-IN')}`;
+
+            card.innerHTML = `
+                <div class="kanban-card-booking-id">${reservation.booking_id}</div>
+                <div class="kanban-card-guest">${reservation.guest_name}</div>
+                <div class="kanban-card-property">${propertyName}</div>
+                <div class="kanban-card-meta">
+                    <span class="kanban-card-badge" style="background: var(--primary-light); color: var(--primary-dark);">
+                        📅 ${checkIn}
+                    </span>
+                    <span class="kanban-card-badge" style="background: var(--success-light); color: #155724;">
+                        🌙 ${nights}N
+                    </span>
+                    <span class="kanban-card-badge" style="background: var(--warning-light); color: #7f5f01;">
+                        💰 ${amount}
+                    </span>
+                </div>
+            `;
+
+            card.onclick = () => openReservationModal(reservation.booking_id);
+            return card;
+        }
+
+        function initKanbanSortable() {
+            // Destroy existing instances
+            kanbanSortables.forEach(sortable => sortable.destroy());
+            kanbanSortables = [];
+
+            const statuses = ['pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled'];
+
+            statuses.forEach(status => {
+                const column = document.getElementById(`kanban-${status}`);
+                if (!column) return;
+
+                const sortable = Sortable.create(column, {
+                    group: 'kanban',
+                    animation: 200,
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag',
+                    onEnd: async function(evt) {
+                        const bookingId = evt.item.getAttribute('data-booking-id');
+                        const newStatus = evt.to.getAttribute('data-status');
+                        await updateReservationStatus(bookingId, newStatus);
+                    }
+                });
+
+                kanbanSortables.push(sortable);
+            });
+        }
+
+        async function updateReservationStatus(bookingId, newStatus) {
+            try {
+                const { error } = await db.from('reservations')
+                    .update({ status: newStatus })
+                    .eq('booking_id', bookingId);
+
+                if (error) throw error;
+
+                // Update local state
+                const reservation = state.reservations.find(r => r.booking_id === bookingId);
+                if (reservation) reservation.status = newStatus;
+
+                showToast(`✅ Booking ${bookingId} moved to ${newStatus}`, 'success');
+                await loadReservations();
+            } catch (error) {
+                console.error('Error updating status:', error);
+                showToast('❌ Failed to update status', 'error');
+                renderKanbanBoard(); // Revert UI
+            }
+        }
+
+        // =================================================================
+        // 2. CHART.JS INTERACTIVE CHARTS
+        // =================================================================
+
+        function initializeCharts() {
+            createRevenueChart();
+            createPaymentChart();
+        }
+
+        function createRevenueChart() {
+            const canvas = document.getElementById('revenueChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            // Destroy existing chart
+            if (revenueChartInstance) {
+                revenueChartInstance.destroy();
+            }
+
+            const hostizzyRevenue = parseFloat(document.getElementById('hostizzyTotal')?.textContent.replace(/[₹,]/g, '') || 0);
+            const ownerRevenue = parseFloat(document.getElementById('ownerTotal')?.textContent.replace(/[₹,]/g, '') || 0);
+
+            revenueChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Hostizzy Revenue', 'Owner Revenue'],
+                    datasets: [{
+                        data: [hostizzyRevenue, ownerRevenue],
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(16, 185, 129, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12, weight: '600' }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ₹' + context.parsed.toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createPaymentChart() {
+            const canvas = document.getElementById('paymentChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            // Destroy existing chart
+            if (paymentChartInstance) {
+                paymentChartInstance.destroy();
+            }
+
+            const collected = parseFloat(document.getElementById('totalCollected')?.textContent.replace(/[₹,]/g, '') || 0);
+            const pending = parseFloat(document.getElementById('pendingCollection')?.textContent.replace(/[₹,]/g, '') || 0);
+
+            paymentChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Collected', 'Pending'],
+                    datasets: [{
+                        label: 'Amount (₹)',
+                        data: [collected, pending],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '₹' + context.parsed.y.toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + (value / 1000) + 'K';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // Update charts when data changes
+            if (revenueChartInstance || paymentChartInstance) {
+                setTimeout(() => {
+                    createRevenueChart();
+                    createPaymentChart();
+                }, 100);
+            }
+        }
+
+        // =================================================================
+        // 3. PDF EXPORT WITH JSPDF
+        // =================================================================
+
+        function exportDashboardPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // Header
+                doc.setFontSize(20);
+                doc.setTextColor(99, 102, 241);
+                doc.text('ResIQ Dashboard Report', 14, 20);
+
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 14, 28);
+
+                // Summary Stats
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Summary Statistics', 14, 40);
+
+                const hostizzyTotal = document.getElementById('hostizzyTotal')?.textContent || '₹0';
+                const ownerTotal = document.getElementById('ownerTotal')?.textContent || '₹0';
+                const totalCollected = document.getElementById('totalCollected')?.textContent || '₹0';
+                const pendingCollection = document.getElementById('pendingCollection')?.textContent || '₹0';
+
+                doc.setFontSize(11);
+                let yPos = 50;
+                doc.text(`Hostizzy Revenue: ${hostizzyTotal}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Owner Revenue: ${ownerTotal}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Payment Collected: ${totalCollected}`, 20, yPos);
+                yPos += 8;
+                doc.text(`Payment Pending: ${pendingCollection}`, 20, yPos);
+
+                // Reservations Table
+                if (state.reservations && state.reservations.length > 0) {
+                    yPos += 15;
+                    doc.setFontSize(14);
+                    doc.text('Recent Reservations', 14, yPos);
+
+                    const tableData = state.reservations.slice(0, 20).map(r => {
+                        const property = state.properties.find(p => p.id === r.property_id);
+                        return [
+                            r.booking_id || '',
+                            r.guest_name || '',
+                            property?.name || 'N/A',
+                            new Date(r.check_in).toLocaleDateString('en-IN'),
+                            r.nights || 0,
+                            `₹${parseInt(r.total_amount || 0).toLocaleString('en-IN')}`,
+                            r.status || ''
+                        ];
+                    });
+
+                    doc.autoTable({
+                        startY: yPos + 5,
+                        head: [['Booking ID', 'Guest', 'Property', 'Check-in', 'Nights', 'Amount', 'Status']],
+                        body: tableData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [99, 102, 241], textColor: 255 },
+                        styles: { fontSize: 8, cellPadding: 3 },
+                        columnStyles: {
+                            0: { cellWidth: 25 },
+                            1: { cellWidth: 30 },
+                            2: { cellWidth: 35 },
+                            3: { cellWidth: 22 },
+                            4: { cellWidth: 15 },
+                            5: { cellWidth: 25 },
+                            6: { cellWidth: 20 }
+                        }
+                    });
+                }
+
+                // Footer
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.getWidth() - 30, doc.internal.pageSize.getHeight() - 10);
+                }
+
+                // Save
+                doc.save(`ResIQ_Dashboard_${new Date().toISOString().split('T')[0]}.pdf`);
+                showToast('✅ PDF exported successfully!', 'success');
+            } catch (error) {
+                console.error('PDF Export Error:', error);
+                showToast('❌ Failed to export PDF', 'error');
+            }
+        }
+
+        // Add export button handler to existing CSV export
+        const originalExportCSV = window.exportCSV;
+        window.exportCSV = function() {
+            // Show option dialog
+            const choice = confirm('Export as PDF? (Cancel for CSV)');
+            if (choice) {
+                exportReservationsPDF();
+            } else {
+                originalExportCSV();
+            }
+        };
+
+        function exportReservationsPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('landscape');
+
+                doc.setFontSize(18);
+                doc.setTextColor(99, 102, 241);
+                doc.text('Reservations Report', 14, 15);
+
+                doc.setFontSize(9);
+                doc.setTextColor(100);
+                doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 14, 22);
+
+                const tableData = (state.reservations || []).map(r => {
+                    const property = state.properties.find(p => p.id === r.property_id);
+                    return [
+                        r.booking_id || '',
+                        r.guest_name || '',
+                        property?.name || 'N/A',
+                        r.booking_source || 'DIRECT',
+                        new Date(r.check_in).toLocaleDateString('en-IN'),
+                        new Date(r.check_out).toLocaleDateString('en-IN'),
+                        r.nights || 0,
+                        `₹${parseInt(r.total_amount || 0).toLocaleString('en-IN')}`,
+                        r.status || ''
+                    ];
+                });
+
+                doc.autoTable({
+                    startY: 28,
+                    head: [['Booking ID', 'Guest', 'Property', 'Source', 'Check-in', 'Check-out', 'Nights', 'Amount', 'Status']],
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [99, 102, 241] },
+                    styles: { fontSize: 8 }
+                });
+
+                doc.save(`Reservations_${new Date().toISOString().split('T')[0]}.pdf`);
+                showToast('✅ PDF exported successfully!', 'success');
+            } catch (error) {
+                console.error('PDF Export Error:', error);
+                showToast('❌ Failed to export PDF', 'error');
+            }
+        }
+
+        // =================================================================
+        // 4. ENHANCED PWA INSTALL BANNER
+        // =================================================================
+
+        function showPWABanner() {
+            const banner = document.getElementById('pwaInstallBanner');
+            if (!banner) return;
+
+            // Check if already installed
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                return;
+            }
+
+            // Check if dismissed recently
+            const dismissed = localStorage.getItem('pwa_banner_dismissed');
+            if (dismissed) {
+                const dismissedTime = parseInt(dismissed);
+                const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+                if (daysSinceDismissed < 7) return; // Don't show for 7 days
+            }
+
+            // Show after 3 seconds
+            setTimeout(() => {
+                banner.classList.add('show');
+            }, 3000);
+        }
+
+        function dismissPWABanner() {
+            const banner = document.getElementById('pwaInstallBanner');
+            if (banner) {
+                banner.classList.remove('show');
+                localStorage.setItem('pwa_banner_dismissed', Date.now().toString());
+            }
+        }
+
+        async function installPWA() {
+            if (!deferredPWAPrompt && window.deferredPrompt) {
+                deferredPWAPrompt = window.deferredPrompt;
+            }
+
+            if (!deferredPWAPrompt) {
+                showToast('❌ Installation not available on this device', 'error');
+                return;
+            }
+
+            try {
+                deferredPWAPrompt.prompt();
+                const { outcome } = await deferredPWAPrompt.userChoice;
+
+                if (outcome === 'accepted') {
+                    showToast('✅ App installed successfully!', 'success');
+                    dismissPWABanner();
+                } else {
+                    showToast('Installation cancelled', 'info');
+                }
+
+                deferredPWAPrompt = null;
+            } catch (error) {
+                console.error('Installation error:', error);
+                showToast('❌ Installation failed', 'error');
+            }
+        }
+
+        // Capture install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPWAPrompt = e;
+            window.deferredPrompt = e;
+            showPWABanner();
+        });
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            showPWABanner();
+
+            // Initialize charts when dashboard loads
+            setTimeout(() => {
+                if (document.getElementById('dashboardView') && !document.getElementById('dashboardView').classList.contains('hidden')) {
+                    initializeCharts();
+                }
+            }, 1000);
+        });
+
+        // Hook into loadDashboard to update charts
+        const originalLoadDashboard = window.loadDashboard;
+        if (originalLoadDashboard) {
+            window.loadDashboard = async function() {
+                await originalLoadDashboard();
+                updateCharts();
+            };
+        }
+
+        // =================================================================
+        // END OF ENHANCED UX FEATURES
+        // =================================================================
     </script>
 
 </body>
