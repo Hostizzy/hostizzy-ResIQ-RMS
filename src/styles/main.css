@@ -1,0 +1,41 @@
+/* Main Stylesheet - Entry Point */
+
+/* Import all styles in order */
+@import './variables.css';
+@import './base.css';
+@import './legacy.css';
+
+/* Import modern Airbnb-inspired design system (overrides legacy for modern look) */
+@import './modern.css';
+
+/* Import enhanced view-specific styles */
+@import './enhanced-views.css';
+
+/* Import PREMIUM DESIGN SYSTEM - Complete Transformation */
+@import './premium-design.css';
+@import './command-palette.css';
+@import './premium-features.css';
+
+/* Import APP-STORE QUALITY PREMIUM SYSTEM - Phase 2 */
+@import './premium-components.css';
+@import './premium-animations.css';
+@import './premium-layouts.css';
+
+/* Note: Premium Design System provides:
+   - Complete visual transformation with modern design
+   - Dark mode support with theme toggle
+   - Command Palette (CMD+K) for power users
+   - Quick Actions floating menu
+   - Glass morphism effects
+   - Premium animations and transitions
+   - Skeleton loaders and empty states
+   - Beautiful gradient backgrounds
+   - Enhanced badge system
+   - Modern notification center
+   - Calendar view for bookings
+   - Revenue forecasting widget
+   - Color theme selector (6 themes)
+   - Data visualization components
+   - Professional color palette
+   - Advanced typography system
+*/

@@ -98,40 +98,60 @@
 
 ### Installation
 
-#### Option 1: Direct File Access
-1. Download all files to your server
-2. Configure Supabase credentials in the app
-3. Open `index.html` in browser
-
-#### Option 2: Using Local Server (Recommended for Development)
+#### 1. Clone the Repository
 ```bash
-# Using Python
-python3 -m http.server 8000
-
-# Using Node.js
-npx http-server
-
-# Using PHP
-php -S localhost:8000
+git clone https://github.com/hostizzy/hostizzy-ResIQ-RMS.git
+cd hostizzy-ResIQ-RMS
 ```
-Open `http://localhost:8000`
+
+#### 2. Install Dependencies
+```bash
+npm install
+```
+
+#### 3. Configure Environment Variables
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and add your Supabase credentials
+# Get these from: https://app.supabase.com/project/_/settings/api
+```
+
+Required environment variables:
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+#### 4. Start Development Server
+```bash
+npm run dev
+# Open http://localhost:3000
+```
+
+#### 5. Build for Production
+```bash
+npm run build
+# Output in dist/ folder
+```
 
 ### Configuration
 
 1. **Supabase Setup**
-   - Create Supabase project
-   - Create tables: `properties`, `reservations`, `guests`, `meals`, `payments`, `team_members`
-   - Update Supabase URL and API key in code
+   - Create Supabase project at https://supabase.com
+   - Run schema setup: See [SUPABASE_SCHEMA_RLS.md](SUPABASE_SCHEMA_RLS.md)
+   - Get API credentials from Settings → API
+   - Add credentials to `.env` file
 
 2. **WhatsApp Integration** (Optional)
    - Sign up for WhatsApp Business API
    - Configure messaging templates
-   - Add API credentials
+   - See [Documentation/PUSH_NOTIFICATIONS_SETUP.md](Documentation/PUSH_NOTIFICATIONS_SETUP.md)
 
-3. **Payment Gateway**
-   - Configure Razorpay/Stripe
-   - Set up webhook listeners
-   - Test payment flow
+3. **Deployment** (Optional)
+   - See [Documentation/DEPLOYMENT_GUIDE.md](Documentation/DEPLOYMENT_GUIDE.md)
+   - Supports Vercel, Netlify, GitHub Pages
 
 ---
 
