@@ -24,6 +24,8 @@ import './scripts/database.js'      // DB operations, IndexedDB
 import './scripts/auth.js'          // Login, logout, session management
 import './scripts/templates.js'     // WhatsApp message templates
 import './scripts/whatsapp.js'      // WhatsApp integration
+import './scripts/invoicing.js'     // GST Invoice generation, PDF export
+import './scripts/communications.js' // Unified communications hub (WhatsApp, Email, SMS)
 
 // Feature modules
 import './scripts/reservations.js'  // Reservation CRUD, modals, filtering

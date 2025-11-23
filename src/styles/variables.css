@@ -1,57 +1,145 @@
-/* CSS Custom Properties (Variables) */
+/* CSS Custom Properties (Variables) - Ocean Breeze Theme */
 :root {
-    /* Colors - Primary */
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --primary-light: #818cf8;
+    /* ===== Brand Colors - Ocean Breeze ===== */
+    /* Primary - Calming Ocean Blue */
+    --primary: #0ea5e9;
+    --primary-dark: #0284c7;
+    --primary-light: #38bdf8;
+    --primary-lighter: #7dd3fc;
+    --primary-subtle: #e0f2fe;
 
-    /* Colors - Secondary */
-    --secondary: #64748b;
+    /* Secondary - Teal Accent */
+    --secondary: #14b8a6;
+    --secondary-dark: #0d9488;
+    --secondary-light: #2dd4bf;
 
-    /* Colors - Status */
+    /* Accent - Warm Coral */
+    --accent: #f59e0b;
+    --accent-dark: #d97706;
+    --accent-light: #fbbf24;
+
+    /* ===== Status Colors (Eye-Friendly) ===== */
     --success: #10b981;
     --success-light: #34d399;
-    --danger: #ef4444;
-    --danger-light: #f87171;
+    --success-subtle: #d1fae5;
+
+    --info: #3b82f6;
+    --info-light: #60a5fa;
+    --info-subtle: #dbeafe;
+
     --warning: #f59e0b;
     --warning-light: #fbbf24;
+    --warning-subtle: #fef3c7;
 
-    /* Colors - Background */
-    --background: #f8fafc;
-    --background-alt: #f1f5f9;
+    --danger: #ef4444;
+    --danger-light: #f87171;
+    --danger-subtle: #fee2e2;
+
+    /* ===== Neutral Colors (Soft & Eye-Friendly) ===== */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+
+    /* ===== Background Colors ===== */
+    --background: #f0f9ff;
+    --background-alt: #e0f2fe;
+    --background-neutral: #f9fafb;
     --surface: #ffffff;
     --surface-elevated: #ffffff;
+    --surface-hover: #f8fafc;
 
-    /* Colors - Text */
+    /* ===== Text Colors ===== */
     --text-primary: #0f172a;
-    --text-secondary: #64748b;
+    --text-secondary: #475569;
     --text-tertiary: #94a3b8;
+    --text-muted: #cbd5e1;
+    --text-on-primary: #ffffff;
 
-    /* Colors - Border */
-    --border: #e2e8f0;
-    --border-light: #f1f5f9;
+    /* ===== Border Colors ===== */
+    --border: #cbd5e1;
+    --border-light: #e2e8f0;
+    --border-lighter: #f1f5f9;
 
-    /* Shadows */
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    /* ===== Shadows (Softer for eyes) ===== */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    /* ===== Gradients (Ocean Breeze Style) ===== */
+    --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
     --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
     --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    --gradient-ocean: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-    --gradient-sunset: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-    --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+    --gradient-ocean: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    --gradient-tropical: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+    --gradient-sunset: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    --gradient-aurora: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 50%, #ec4899 100%);
+    --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 
-    /* Border Radius */
+    /* ===== Border Radius ===== */
+    --radius-xs: 4px;
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-full: 9999px;
 
-    /* Transitions */
+    /* ===== Spacing Scale ===== */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    --spacing-3xl: 64px;
+
+    /* ===== Typography ===== */
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
+    --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+
+    --text-xs: 0.75rem;      /* 12px */
+    --text-sm: 0.875rem;     /* 14px */
+    --text-base: 1rem;       /* 16px */
+    --text-lg: 1.125rem;     /* 18px */
+    --text-xl: 1.25rem;      /* 20px */
+    --text-2xl: 1.5rem;      /* 24px */
+    --text-3xl: 1.875rem;    /* 30px */
+    --text-4xl: 2.25rem;     /* 36px */
+
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* ===== Transitions & Animations ===== */
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* ===== Z-Index Scale ===== */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+
+    /* ===== Component Specific ===== */
+    --navbar-height: 64px;
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 80px;
+    --mobile-nav-height: 60px;
 }
