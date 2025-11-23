@@ -32,6 +32,7 @@ import './scripts/reservations.js'  // Reservation CRUD, modals, filtering
 import './scripts/payments.js'      // Payment CRUD, multi-entry, reminders
 import './scripts/guests.js'        // Guest management, KYC documents
 import './scripts/properties.js'    // Property management, iCal sync
+import './scripts/availability.js'  // Calendar view, blocked dates, availability
 import './scripts/home.js'          // Home screen stats, recent activity, greeting
 
 // Auxiliary modules
