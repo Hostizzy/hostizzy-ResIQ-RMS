@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ResIQ">
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="description" content="ResIQ - Modern Property Management System. Manage reservations, guests, payments, invoicing, and operations.">
+    <title>ResIQ - Property Management System</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="/assets/logo-192.png">
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Critical inline styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
+        .loading-screen {
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%); z-index: 99999;
+        }
+        .loading-content { text-align: center; color: white; }
+        .loading-spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        .view-container { display: none; }
+        .view-container.active { display: block; }
+
+        /* Hamburger menu */
+        .hamburger-menu {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .hamburger-menu:hover {
+            background: var(--background-alt, #f0f9ff);
+        }
+        .hamburger-menu span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--text-primary, #1e293b);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        @media (max-width: 1024px) {
+            .hamburger-menu { display: flex; }
+            .sidebar-modern {
+                position: fixed !important;
+                left: -300px;
+                transition: left 0.3s ease-in-out;
+                z-index: 1001;
+                height: 100vh;
+            }
+            .sidebar-modern.open {
+                left: 0;
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== LOADING SCREEN ========== -->
+<div id="loadingScreen" class="loading-screen">
+    <div class="loading-content">
+        <img src="assets/logo.png" alt="ResIQ" style="height: 80px; margin-bottom: 24px; filter: brightness(0) invert(1);">
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 20px; font-size: 14px; opacity: 0.9;">Loading ResIQ...</p>
+    </div>
+</div>
+
+<!-- ========== LOGIN SCREEN ========== -->
+<div id="loginScreen" class="login-screen hidden">
+    <div class="login-card-modern animate-slide-in">
+        <div class="login-logo-modern">
+            <img src="assets/logo.png" alt="ResIQ">
+            <h1>ResIQ</h1>
+            <p>Property Management System</p>
+        </div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group-modern">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" class="form-input-modern" placeholder="admin@hostizzy.com" autocomplete="email" required>
+            </div>
+            <div class="form-group-modern">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" class="form-input-modern" placeholder="Enter your password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn-modern btn-modern-primary" style="width: 100%; margin-top: 8px;">
+                <span>Sign In</span>
+                <span>→</span>
+            </button>
+        </form>
+        <p style="text-align: center; margin-top: 24px; font-size: 12px; color: var(--text-tertiary);">Secured by Hostizzy</p>
+    </div>
+</div>
+
+<!-- ========== SIDEBAR OVERLAY (Mobile/Tablet) ========== -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ========== MAIN APP ========== -->
+<div id="mainApp" class="app-container-modern hidden">
+
+    <!-- ========== SIDEBAR (Collapsible) ========== -->
+    <aside class="sidebar-modern" id="sidebar">
+        <div class="sidebar-modern-header">
+            <div class="sidebar-modern-logo" onclick="navigateTo('home')">
+                <img src="assets/logo.png" alt="ResIQ">
+                <div class="sidebar-modern-logo-text">
+                    <h2>ResIQ</h2>
+                    <p>Property Management</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-modern-nav">
+            <div class="sidebar-modern-section">
+                <div class="sidebar-modern-section-title">Main</div>
+                <a class="sidebar-modern-item active" data-view="home" onclick="navigateTo('home')">
+                    <span class="sidebar-modern-item-icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a class="sidebar-modern-item" data-view="dashboard" onclick="navigateTo('dashboard')">
+                    <span class="sidebar-modern-item-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="sidebar-modern-section">
+                <div class="sidebar-modern-section-title">Operations</div>
+                <a class="sidebar-modern-item" data-view="reservations" onclick="navigateTo('reservations')">
+                    <span class="sidebar-modern-item-icon">📅</span>
+                    <span>Reservations</span>
+                    <span class="sidebar-modern-item-badge" id="reservationsBadge" style="display: none;">0</span>
+                </a>
+                <a class="sidebar-modern-item" data-view="availability" onclick="navigateTo('availability')">
+                    <span class="sidebar-modern-item-icon">🗓️</span>
+                    <span>Availability</span>
+                </a>
+                <a class="sidebar-modern-item" data-view="guests" onclick="navigateTo('guests')">
+                    <span class="sidebar-modern-item-icon">👥</span>
+                    <span>Guests</span>
+                </a>
+                <a class="sidebar-modern-item" data-view="documents" onclick="navigateTo('documents')">
+                    <span class="sidebar-modern-item-icon">📋</span>
+                    <span>Documents</span>
+                    <span class="sidebar-modern-item-badge" id="documentsBadge" style="display: none;">0</span>
+                </a>
+            </div>
+
+            <div class="sidebar-modern-section">
+                <div class="sidebar-modern-section-title">Financial</div>
+                <a class="sidebar-modern-item" data-view="payments" onclick="navigateTo('payments')">
+                    <span class="sidebar-modern-item-icon">💰</span>
+                    <span>Payments</span>
+                </a>
+                <a class="sidebar-modern-item" data-view="invoices" onclick="navigateTo('invoices')">
+                    <span class="sidebar-modern-item-icon">🧾</span>
+                    <span>Invoices</span>
+                </a>
+            </div>
+
+            <div class="sidebar-modern-section">
+                <div class="sidebar-modern-section-title">Communication</div>
+                <a class="sidebar-modern-item" data-view="communications" onclick="navigateTo('communications')">
+                    <span class="sidebar-modern-item-icon">📱</span>
+                    <span>Communications</span>
+                </a>
+            </div>
+
+            <div class="sidebar-modern-section">
+                <div class="sidebar-modern-section-title">Management</div>
+                <a class="sidebar-modern-item" data-view="properties" onclick="navigateTo('properties')">
+                    <span class="sidebar-modern-item-icon">🏘️</span>
+                    <span>Properties</span>
+                </a>
+                <a class="sidebar-modern-item" data-view="team" onclick="navigateTo('team')">
+                    <span class="sidebar-modern-item-icon">👨‍💼</span>
+                    <span>Team</span>
+                </a>
+                <a class="sidebar-modern-item" data-view="settings" onclick="navigateTo('settings')">
+                    <span class="sidebar-modern-item-icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-modern-footer">
+            <div class="sidebar-modern-user" onclick="handleLogout()">
+                <div class="sidebar-modern-user-avatar" id="userAvatar">U</div>
+                <div class="sidebar-modern-user-info">
+                    <h4 id="userName">User</h4>
+                    <p id="userEmail">user@hostizzy.com</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content-modern">
+
+        <!-- ========== HOME VIEW (Categorized Icons) ========== -->
+        <div id="homeView" class="view-container active">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <div>
+                            <h1 id="greetingTitle">Good Morning!</h1>
+                            <p id="greetingSubtitle">Welcome back to ResIQ</p>
+                        </div>
+                    </div>
+                    <div class="main-header-actions">
+                        <div class="search-bar-modern">
+                            <span class="search-bar-modern-icon">🔍</span>
+                            <input type="text" placeholder="Search..." id="globalSearch">
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-body-modern">
+                <!-- Quick Stats Row -->
+                <div class="home-stats-row">
+                    <div class="home-stat-card" onclick="navigateTo('reservations')">
+                        <div class="home-stat-icon">📅</div>
+                        <div class="home-stat-value" id="homeStatReservations">0</div>
+                        <div class="home-stat-label">Active Reservations</div>
+                    </div>
+                    <div class="home-stat-card" onclick="navigateTo('payments')">
+                        <div class="home-stat-icon">💰</div>
+                        <div class="home-stat-value" id="homeStatRevenue">₹0</div>
+                        <div class="home-stat-label">Monthly Revenue</div>
+                    </div>
+                    <div class="home-stat-card" onclick="navigateTo('guests')">
+                        <div class="home-stat-icon">👥</div>
+                        <div class="home-stat-value" id="homeStatGuests">0</div>
+                        <div class="home-stat-label">Total Guests</div>
+                    </div>
+                    <div class="home-stat-card" onclick="navigateTo('documents')">
+                        <div class="home-stat-icon">📋</div>
+                        <div class="home-stat-value" id="homeStatPending">0</div>
+                        <div class="home-stat-label">Pending KYC</div>
+                    </div>
+                </div>
+
+                <!-- OPERATIONS CATEGORY -->
+                <div style="margin-bottom: var(--spacing-xl);">
+                    <h2 style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); margin-bottom: var(--spacing-md);">
+                        Operations
+                    </h2>
+                    <div class="home-icon-grid">
+                        <div class="home-icon-item" onclick="navigateTo('reservations')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);">
+                                <span class="home-icon">📅</span>
+                            </div>
+                            <span class="home-icon-label">Reservations</span>
+                        </div>
+                        <div class="home-icon-item" onclick="navigateTo('availability')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                                <span class="home-icon">🗓️</span>
+                            </div>
+                            <span class="home-icon-label">Availability</span>
+                        </div>
+                        <div class="home-icon-item" onclick="navigateTo('guests')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                <span class="home-icon">👥</span>
+                            </div>
+                            <span class="home-icon-label">Guests</span>
+                        </div>
+                        <div class="home-icon-item" onclick="navigateTo('documents')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                                <span class="home-icon">📋</span>
+                            </div>
+                            <span class="home-icon-label">Documents</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FINANCIAL CATEGORY -->
+                <div style="margin-bottom: var(--spacing-xl);">
+                    <h2 style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); margin-bottom: var(--spacing-md);">
+                        Financial
+                    </h2>
+                    <div class="home-icon-grid">
+                        <div class="home-icon-item" onclick="navigateTo('dashboard')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);">
+                                <span class="home-icon">📊</span>
+                            </div>
+                            <span class="home-icon-label">Dashboard</span>
+                        </div>
+                        <div class="home-icon-item" onclick="navigateTo('payments')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                                <span class="home-icon">💰</span>
+                            </div>
+                            <span class="home-icon-label">Payments</span>
+                        </div>
+                        <div class="home-icon-item" onclick="navigateTo('invoices')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                                <span class="home-icon">🧾</span>
+                            </div>
+                            <span class="home-icon-label">Invoices</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMMUNICATION CATEGORY -->
+                <div style="margin-bottom: var(--spacing-xl);">
+                    <h2 style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); margin-bottom: var(--spacing-md);">
+                        Communication
+                    </h2>
+                    <div class="home-icon-grid">
+                        <div class="home-icon-item" onclick="navigateTo('communications')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);">
+                                <span class="home-icon">📱</span>
+                            </div>
+                            <span class="home-icon-label">Messages</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MANAGEMENT CATEGORY -->
+                <div style="margin-bottom: var(--spacing-xl);">
+                    <h2 style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); margin-bottom: var(--spacing-md);">
+                        Management
+                    </h2>
+                    <div class="home-icon-grid">
+                        <div class="home-icon-item" onclick="navigateTo('properties')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
+                                <span class="home-icon">🏘️</span>
+                            </div>
+                            <span class="home-icon-label">Properties</span>
+                        </div>
+                        <div class="home-icon-item" onclick="navigateTo('team')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                                <span class="home-icon">👨‍💼</span>
+                            </div>
+                            <span class="home-icon-label">Team</span>
+                        </div>
+                        <div class="home-icon-item" onclick="navigateTo('settings')">
+                            <div class="home-icon-wrapper" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);">
+                                <span class="home-icon">⚙️</span>
+                            </div>
+                            <span class="home-icon-label">Settings</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card-modern">
+                    <div class="card-modern-header">
+                        <h3>Recent Activity</h3>
+                        <p>Latest updates from your properties</p>
+                    </div>
+                    <div class="card-modern-body">
+                        <div id="recentActivity">
+                            <div class="empty-state-modern">
+                                <div class="empty-state-modern-icon">📋</div>
+                                <h3>No recent activity</h3>
+                                <p>Activity will appear here as you use the app</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== DASHBOARD VIEW ========== -->
+        <div id="dashboardView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Dashboard</h1>
+                            <p>Overview of your property management</p>
+                        </div>
+                    </div>
+                    <div class="main-header-actions">
+                        <button class="btn-modern btn-modern-primary" onclick="openNewReservationModal()">
+                            <span>➕</span>
+                            <span>New Reservation</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-body-modern">
+                <!-- Stats will be loaded by dashboard.js -->
+                <div class="stats-grid-modern" id="dashboardStats"></div>
+
+                <!-- Charts will be loaded by dashboard.js -->
+                <div id="dashboardCharts"></div>
+
+                <!-- Recent reservations will be loaded by dashboard.js -->
+                <div id="dashboardRecentReservations"></div>
+            </div>
+        </div>
+
+        <!-- ========== RESERVATIONS VIEW ========== -->
+        <div id="reservationsView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Reservations</h1>
+                            <p>Manage all your bookings</p>
+                        </div>
+                    </div>
+                    <div class="main-header-actions">
+                        <button class="btn-modern btn-modern-secondary btn-modern-sm">
+                            <span>📥</span>
+                            <span>Export</span>
+                        </button>
+                        <button class="btn-modern btn-modern-primary" onclick="openNewReservationModal()">
+                            <span>➕</span>
+                            <span>New Reservation</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-body-modern">
+                <!-- Filters -->
+                <div class="filters-bar-modern" id="reservationsFilters"></div>
+
+                <!-- Reservations Table will be loaded by reservations.js -->
+                <div id="reservationsTableContainer"></div>
+            </div>
+        </div>
+
+        <!-- ========== AVAILABILITY (CALENDAR) VIEW ========== -->
+        <div id="availabilityView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Availability Calendar</h1>
+                            <p>View and manage property availability</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-body-modern">
+                <!-- Calendar Controls -->
+                <div class="calendar-controls">
+                    <div class="calendar-nav">
+                        <button class="btn-modern btn-modern-ghost btn-modern-sm" onclick="window.previousMonth()">
+                            ← Previous
+                        </button>
+                        <h2 class="calendar-month-display" id="currentMonthYear">January 2024</h2>
+                        <button class="btn-modern btn-modern-ghost btn-modern-sm" onclick="window.nextMonth()">
+                            Next →
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: var(--spacing-sm);">
+                        <button class="btn-modern btn-modern-secondary btn-modern-sm" onclick="window.goToToday()">
+                            Today
+                        </button>
+                        <select class="form-input-modern" id="calendarPropertyFilter"
+                                onchange="window.filterCalendarByProperty(this.value)"
+                                style="width: auto;">
+                            <option value="all">All Properties</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="calendar-container">
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                    <div class="calendar-legend" id="calendarLegend"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== GUESTS VIEW ========== -->
+        <div id="guestsView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Guests</h1>
+                            <p>Manage guest profiles</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="main-body-modern" id="guestsContainer">
+                <!-- Guests content will be loaded by guests.js -->
+            </div>
+        </div>
+
+        <!-- ========== DOCUMENTS (KYC) VIEW ========== -->
+        <div id="documentsView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Documents (KYC)</h1>
+                            <p>Verify guest documents</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="main-body-modern" id="documentsContainer">
+                <!-- Documents content will be loaded by guests.js -->
+            </div>
+        </div>
+
+        <!-- ========== PAYMENTS VIEW ========== -->
+        <div id="paymentsView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Payments</h1>
+                            <p>Track payments and transactions</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="main-body-modern" id="paymentsContainer">
+                <!-- Payments content will be loaded by payments.js -->
+            </div>
+        </div>
+
+        <!-- ========== INVOICES VIEW ========== -->
+        <div id="invoicesView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Invoices</h1>
+                            <p>GST-compliant invoicing</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="main-body-modern" id="invoicesContainer">
+                <!-- Invoices content will be loaded by invoicing.js -->
+            </div>
+        </div>
+
+        <!-- ========== COMMUNICATIONS VIEW ========== -->
+        <div id="communicationsView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Communications</h1>
+                            <p>Unified messaging center</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="main-body-modern" id="communicationsContainer">
+                <!-- Communications content will be loaded by communications.js -->
+            </div>
+        </div>
+
+        <!-- ========== PROPERTIES VIEW ========== -->
+        <div id="propertiesView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Properties</h1>
+                            <p>Manage your properties</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="main-body-modern" id="propertiesContainer">
+                <!-- Properties content will be loaded by properties.js -->
+            </div>
+        </div>
+
+        <!-- ========== TEAM VIEW ========== -->
+        <div id="teamView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Team</h1>
+                            <p>Manage team members</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="main-body-modern" id="teamContainer">
+                <!-- Team content will be loaded here -->
+            </div>
+        </div>
+
+        <!-- ========== SETTINGS VIEW ========== -->
+        <div id="settingsView" class="view-container">
+            <header class="main-header-modern">
+                <div class="main-header-content">
+                    <div class="main-header-title" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <button class="btn-back-modern" onclick="navigateTo('home')">← Back</button>
+                        <div>
+                            <h1>Settings</h1>
+                            <p>Configure your account</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="main-body-modern" id="settingsContainer">
+                <!-- Settings content will be loaded here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========== MOBILE BOTTOM NAV ========== -->
+    <nav class="mobile-bottom-nav">
+        <a class="mobile-nav-item active" onclick="navigateTo('home')">
+            <span class="mobile-nav-icon">🏠</span>
+            <span class="mobile-nav-label">Home</span>
+        </a>
+        <a class="mobile-nav-item" onclick="navigateTo('reservations')">
+            <span class="mobile-nav-icon">📅</span>
+            <span class="mobile-nav-label">Bookings</span>
+        </a>
+        <a class="mobile-nav-item fab-item" onclick="openQuickActions()">
+            <span class="mobile-nav-icon fab-icon">+</span>
+        </a>
+        <a class="mobile-nav-item" onclick="navigateTo('communications')">
+            <span class="mobile-nav-icon">📱</span>
+            <span class="mobile-nav-label">Messages</span>
+        </a>
+        <a class="mobile-nav-item" onclick="navigateTo('settings')">
+            <span class="mobile-nav-icon">⚙️</span>
+            <span class="mobile-nav-label">More</span>
+        </a>
+    </nav>
+
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- Date Details Modal -->
+<div id="dateDetailsModal" class="modal-modern" style="display: none;">
+    <div class="modal-modern-content" style="max-width: 600px;">
+        <div class="modal-modern-header">
+            <h3 class="modal-date-header" id="modalDate">Date Details</h3>
+            <button class="modal-modern-close" onclick="this.closest('.modal-modern').style.display='none'">×</button>
+        </div>
+        <div class="modal-modern-body" id="modalDateContent">
+            <!-- Content will be dynamically loaded -->
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast-modern"></div>
+
+<!-- Load Modules -->
+<script type="module" src="/src/main.js"></script>
+
+<!-- Core App Logic -->
+<script>
+let currentView = 'home';
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Check for existing session
+    const userData = localStorage.getItem('currentUser');
+
+    if (userData) {
+        // User already logged in, skip login screen
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateGreeting();
+            loadHomeStats();
+        }, 500);
+    } else {
+        // Show login screen
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }, 1000);
+    }
+});
+
+// ==========================================
+// GREETING
+// ==========================================
+
+function updateGreeting() {
+    const hour = new Date().getHours();
+    const greetingTitle = document.getElementById('greetingTitle');
+    const greetingSubtitle = document.getElementById('greetingSubtitle');
+
+    if (!greetingTitle || !greetingSubtitle) return;
+
+    if (hour < 12) {
+        greetingTitle.textContent = 'Good Morning!';
+        greetingSubtitle.textContent = 'Start your day with ResIQ';
+    } else if (hour < 18) {
+        greetingTitle.textContent = 'Good Afternoon!';
+        greetingSubtitle.textContent = 'Manage your properties efficiently';
+    } else {
+        greetingTitle.textContent = 'Good Evening!';
+        greetingSubtitle.textContent = 'Review today\'s progress';
+    }
+}
+
+// ==========================================
+// AUTHENTICATION
+// ==========================================
+
+async function handleLogin(e) {
+    e.preventDefault();
+
+    // Use auth.js login function if available
+    if (typeof window.login === 'function') {
+        await window.login();
+    } else {
+        // Fallback basic login
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+
+        const email = document.getElementById('loginEmail').value;
+        document.getElementById('userEmail').textContent = email;
+        document.getElementById('userName').textContent = email.split('@')[0];
+        document.getElementById('userAvatar').textContent = email[0].toUpperCase();
+
+        localStorage.setItem('currentUser', JSON.stringify({ email }));
+
+        loadHomeStats();
+    }
+
+    // Haptic feedback
+    if ('vibrate' in navigator) navigator.vibrate(10);
+}
+
+function handleLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Use auth.js logout if available
+        if (typeof window.logout === 'function') {
+            window.logout();
+        } else {
+            // Fallback logout
+            localStorage.removeItem('currentUser');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        if ('vibrate' in navigator) navigator.vibrate([10, 20, 10]);
+    }
+}
+
+// ==========================================
+// SIDEBAR TOGGLE
+// ==========================================
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+    } else {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+    }
+
+    if ('vibrate' in navigator) navigator.vibrate(5);
+}
+
+// ==========================================
+// NAVIGATION
+// ==========================================
+
+function navigateTo(viewName) {
+    // Close sidebar on mobile
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+
+    // Hide all views
+    document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+
+    // Show selected view
+    const view = document.getElementById(viewName + 'View');
+    if (view) {
+        view.classList.add('active');
+        currentView = viewName;
+
+        // Update sidebar active state
+        document.querySelectorAll('.sidebar-modern-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.view === viewName) {
+                item.classList.add('active');
+            }
+        });
+
+        // Update mobile nav active state
+        document.querySelectorAll('.mobile-nav-item:not(.fab-item)').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Haptic feedback
+        if ('vibrate' in navigator) navigator.vibrate(5);
+
+        // Scroll to top
+        window.scrollTo(0, 0);
+
+        // Load view data
+        loadViewData(viewName);
+    }
+}
+
+// ==========================================
+// VIEW DATA LOADING
+// ==========================================
+
+async function loadViewData(viewName) {
+    try {
+        switch(viewName) {
+            case 'home':
+                await loadHomeStats();
+                break;
+            case 'dashboard':
+                if (typeof window.loadDashboard === 'function') {
+                    await window.loadDashboard();
+                }
+                break;
+            case 'reservations':
+                if (typeof window.loadReservations === 'function') {
+                    await window.loadReservations();
+                }
+                break;
+            case 'availability':
+                if (typeof window.loadAvailability === 'function') {
+                    await window.loadAvailability();
+                }
+                break;
+            case 'guests':
+                if (typeof window.loadGuests === 'function') {
+                    await window.loadGuests();
+                }
+                break;
+            case 'documents':
+                if (typeof window.loadDocuments === 'function') {
+                    await window.loadDocuments();
+                }
+                break;
+            case 'payments':
+                if (typeof window.loadPayments === 'function') {
+                    await window.loadPayments();
+                }
+                break;
+            case 'invoices':
+                if (typeof window.loadInvoices === 'function') {
+                    await window.loadInvoices();
+                }
+                break;
+            case 'communications':
+                if (typeof window.loadCommunications === 'function') {
+                    await window.loadCommunications();
+                }
+                break;
+            case 'properties':
+                if (typeof window.loadProperties === 'function') {
+                    await window.loadProperties();
+                }
+                break;
+            case 'team':
+                if (typeof window.loadTeam === 'function') {
+                    await window.loadTeam();
+                }
+                break;
+            case 'settings':
+                if (typeof window.loadSettings === 'function') {
+                    await window.loadSettings();
+                }
+                break;
+        }
+    } catch (error) {
+        console.error(`Error loading ${viewName}:`, error);
+        showToast(`Failed to load ${viewName}`, 'error');
+    }
+}
+
+// ==========================================
+// HOME STATS
+// ==========================================
+
+async function loadHomeStats() {
+    try {
+        // Use home.js function if available
+        if (typeof window.updateHomeScreenStats === 'function') {
+            await window.updateHomeScreenStats();
+            return;
+        }
+
+        // Fallback: Load basic stats
+        if (typeof window.db === 'undefined') return;
+
+        const reservations = await window.db.getReservations();
+        const activeReservations = reservations.filter(r =>
+            r.status === 'confirmed' || r.status === 'checked-in'
+        );
+
+        // Update stat cards
+        const statReservations = document.getElementById('homeStatReservations');
+        if (statReservations) {
+            statReservations.textContent = activeReservations.length;
+        }
+
+        // Calculate monthly revenue (current month)
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        const monthlyRevenue = reservations
+            .filter(r => {
+                const checkin = new Date(r.checkin_date);
+                return checkin.getMonth() === currentMonth &&
+                       checkin.getFullYear() === currentYear &&
+                       r.status !== 'cancelled';
+            })
+            .reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+
+        const statRevenue = document.getElementById('homeStatRevenue');
+        if (statRevenue) {
+            statRevenue.textContent = '₹' + Math.round(monthlyRevenue).toLocaleString('en-IN');
+        }
+
+        // Unique guests count
+        const uniqueGuests = new Set(reservations.map(r => r.guest_email)).size;
+        const statGuests = document.getElementById('homeStatGuests');
+        if (statGuests) {
+            statGuests.textContent = uniqueGuests;
+        }
+
+        // Pending KYC (placeholder)
+        const statPending = document.getElementById('homeStatPending');
+        if (statPending) {
+            statPending.textContent = '0';
+        }
+
+    } catch (error) {
+        console.error('Error loading home stats:', error);
+    }
+}
+
+// ==========================================
+// PLACEHOLDER FUNCTIONS
+// ==========================================
+
+function openNewReservationModal() {
+    showToast('New Reservation feature coming soon!', 'info');
+    if ('vibrate' in navigator) navigator.vibrate(10);
+}
+
+function openQuickActions() {
+    showToast('Quick Actions menu coming soon!', 'info');
+    if ('vibrate' in navigator) navigator.vibrate(10);
+}
+
+// ==========================================
+// TOAST NOTIFICATION
+// ==========================================
+
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.className = 'toast-modern toast-' + type;
+    toast.style.display = 'block';
+
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3000);
+}
+</script>
+
+</body>
+</html>
