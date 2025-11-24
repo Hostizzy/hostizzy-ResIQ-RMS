@@ -3679,8 +3679,9 @@
         <aside class="sidebar">
             <!-- Main Navigation Menu -->
             <div class="sidebar-menu">
-                <div class="sidebar-title">Navigation</div>
-                
+                <!-- PRIMARY CATEGORY: Core Operations -->
+                <div class="sidebar-title">Core Operations</div>
+
                 <!-- Dashboard -->
                 <a class="sidebar-item active" onclick="showView('dashboard')">
                     <span class="sidebar-item-icon">📊</span>
@@ -3699,6 +3700,15 @@
                     <span class="sidebar-item-label">Guests</span>
                 </a>
 
+                <!-- Properties -->
+                <a class="sidebar-item" onclick="showView('properties')">
+                    <span class="sidebar-item-icon">🏘️</span>
+                    <span class="sidebar-item-label">Properties</span>
+                </a>
+
+                <!-- PRIMARY CATEGORY: Financial -->
+                <div class="sidebar-title" style="margin-top: 24px;">Financial</div>
+
                 <!-- Payments -->
                 <a class="sidebar-item" onclick="showView('payments')">
                     <span class="sidebar-item-icon">💰</span>
@@ -3711,22 +3721,22 @@
                     <span class="sidebar-item-label">Invoices</span>
                 </a>
 
+                <!-- PRIMARY CATEGORY: Communication -->
+                <div class="sidebar-title" style="margin-top: 24px;">Communication</div>
+
                 <!-- Communications -->
                 <a class="sidebar-item" onclick="showView('communications')">
                     <span class="sidebar-item-icon">📱</span>
                     <span class="sidebar-item-label">Communications</span>
                 </a>
 
+                <!-- PRIMARY CATEGORY: Operations -->
+                <div class="sidebar-title" style="margin-top: 24px;">Operations</div>
+
                 <!-- Meals -->
                 <a class="sidebar-item" onclick="showView('meals')">
                     <span class="sidebar-item-icon">🍽️</span>
                     <span class="sidebar-item-label">Meals</span>
-                </a>
-
-                <!-- Properties -->
-                <a class="sidebar-item" onclick="showView('properties')">
-                    <span class="sidebar-item-icon">🏘️</span>
-                    <span class="sidebar-item-label">Properties</span>
                 </a>
 
                 <!-- Documents -->
@@ -3735,16 +3745,19 @@
                     <span class="sidebar-item-label">Documents</span>
                 </a>
 
-                <!-- Performance -->
-                <a class="sidebar-item" onclick="showView('performance')">
-                    <span class="sidebar-item-icon">📈</span>
-                    <span class="sidebar-item-label">Analytics</span>
-                </a>
-
                 <!-- Availability -->
                 <a class="sidebar-item" onclick="showView('availability')">
                     <span class="sidebar-item-icon">📆</span>
                     <span class="sidebar-item-label">Availability</span>
+                </a>
+
+                <!-- PRIMARY CATEGORY: Analytics & Management -->
+                <div class="sidebar-title" style="margin-top: 24px;">Analytics & Management</div>
+
+                <!-- Performance -->
+                <a class="sidebar-item" onclick="showView('performance')">
+                    <span class="sidebar-item-icon">📈</span>
+                    <span class="sidebar-item-label">Analytics</span>
                 </a>
 
                 <!-- Team -->
@@ -3797,6 +3810,9 @@
             </div>
 
             <div class="mobile-sidebar-menu">
+                <!-- PRIMARY CATEGORY: Core Operations -->
+                <div style="padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px;">Core Operations</div>
+
                 <!-- Dashboard -->
                 <a class="mobile-sidebar-link active" onclick="showView('dashboard'); closeMobileSidebar();">
                     <span class="mobile-sidebar-icon">📊</span>
@@ -3815,6 +3831,15 @@
                     <span class="mobile-sidebar-text">Guests</span>
                 </a>
 
+                <!-- Properties -->
+                <a class="mobile-sidebar-link" onclick="showView('properties'); closeMobileSidebar();">
+                    <span class="mobile-sidebar-icon">🏘️</span>
+                    <span class="mobile-sidebar-text">Properties</span>
+                </a>
+
+                <!-- PRIMARY CATEGORY: Financial -->
+                <div style="padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-top: 12px;">Financial</div>
+
                 <!-- Payments -->
                 <a class="mobile-sidebar-link" onclick="showView('payments'); closeMobileSidebar();">
                     <span class="mobile-sidebar-icon">💰</span>
@@ -3827,22 +3852,22 @@
                     <span class="mobile-sidebar-text">Invoices</span>
                 </a>
 
+                <!-- PRIMARY CATEGORY: Communication -->
+                <div style="padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-top: 12px;">Communication</div>
+
                 <!-- Communications -->
                 <a class="mobile-sidebar-link" onclick="showView('communications'); closeMobileSidebar();">
                     <span class="mobile-sidebar-icon">📱</span>
                     <span class="mobile-sidebar-text">Communications</span>
                 </a>
 
+                <!-- PRIMARY CATEGORY: Operations -->
+                <div style="padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-top: 12px;">Operations</div>
+
                 <!-- Meals -->
                 <a class="mobile-sidebar-link" onclick="showView('meals'); closeMobileSidebar();">
                     <span class="mobile-sidebar-icon">🍽️</span>
                     <span class="mobile-sidebar-text">Meals</span>
-                </a>
-
-                <!-- Properties -->
-                <a class="mobile-sidebar-link" onclick="showView('properties'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">🏘️</span>
-                    <span class="mobile-sidebar-text">Properties</span>
                 </a>
 
                 <!-- Documents -->
@@ -3851,16 +3876,19 @@
                     <span class="mobile-sidebar-text">Documents</span>
                 </a>
 
-                <!-- Analytics -->
-                <a class="mobile-sidebar-link" onclick="showView('performance'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📈</span>
-                    <span class="mobile-sidebar-text">Analytics</span>
-                </a>
-
                 <!-- Availability -->
                 <a class="mobile-sidebar-link" onclick="showView('availability'); closeMobileSidebar();">
                     <span class="mobile-sidebar-icon">📆</span>
                     <span class="mobile-sidebar-text">Availability</span>
+                </a>
+
+                <!-- PRIMARY CATEGORY: Analytics & Management -->
+                <div style="padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-top: 12px;">Analytics & Management</div>
+
+                <!-- Analytics -->
+                <a class="mobile-sidebar-link" onclick="showView('performance'); closeMobileSidebar();">
+                    <span class="mobile-sidebar-icon">📈</span>
+                    <span class="mobile-sidebar-text">Analytics</span>
                 </a>
 
                 <!-- Team -->
@@ -3944,91 +3972,153 @@
                 ">👋</div>
             </div>
 
-            <!-- Quick Stats Cards Grid -->
-            <div style="
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-                gap: 16px;
-                margin-bottom: 32px;
-            ">
-                <!-- Dashboard Card -->
-                <div class="icon-card" onclick="showView('dashboard')" style="animation: cardPop 0.5s ease-out 0.1s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        📊
+            <!-- CATEGORY SECTION: Core Operations -->
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-bottom: 16px;">Core Operations</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                    <!-- Dashboard Card -->
+                    <div class="icon-card" onclick="showView('dashboard')" style="animation: cardPop 0.5s ease-out 0.1s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            📊
+                        </div>
+                        <div class="icon-card-title">Dashboard</div>
+                        <div class="icon-card-stat" id="homeStatReservations">--</div>
+                        <div class="icon-card-label">Total Bookings</div>
                     </div>
-                    <div class="icon-card-title">Dashboard</div>
-                    <div class="icon-card-stat" id="homeStatReservations">--</div>
-                    <div class="icon-card-label">Total Bookings</div>
-                </div>
 
-                <!-- Reservations Card -->
-                <div class="icon-card" onclick="showView('reservations')" style="animation: cardPop 0.5s ease-out 0.2s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        📅
+                    <!-- Reservations Card -->
+                    <div class="icon-card" onclick="showView('reservations')" style="animation: cardPop 0.5s ease-out 0.2s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            📅
+                        </div>
+                        <div class="icon-card-title">Reservations</div>
+                        <div class="icon-card-stat" id="homeStatActive">--</div>
+                        <div class="icon-card-label">Active Now</div>
                     </div>
-                    <div class="icon-card-title">Reservations</div>
-                    <div class="icon-card-stat" id="homeStatActive">--</div>
-                    <div class="icon-card-label">Active Now</div>
-                </div>
 
-                <!-- Payments Card -->
-                <div class="icon-card" onclick="showView('payments')" style="animation: cardPop 0.5s ease-out 0.3s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                        💰
+                    <!-- Guests Card -->
+                    <div class="icon-card" onclick="showView('guests')" style="animation: cardPop 0.5s ease-out 0.3s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                            👥
+                        </div>
+                        <div class="icon-card-title">Guests</div>
+                        <div class="icon-card-stat" id="homeStatGuests">--</div>
+                        <div class="icon-card-label">Total Guests</div>
                     </div>
-                    <div class="icon-card-title">Payments</div>
-                    <div class="icon-card-stat" id="homeStatPending">--</div>
-                    <div class="icon-card-label">Pending</div>
-                </div>
 
-                <!-- Availability Card -->
-                <div class="icon-card" onclick="showView('availability')" style="animation: cardPop 0.5s ease-out 0.4s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                        🗓️
+                    <!-- Properties Card -->
+                    <div class="icon-card" onclick="showView('properties')" style="animation: cardPop 0.5s ease-out 0.4s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
+                            🏠
+                        </div>
+                        <div class="icon-card-title">Properties</div>
+                        <div class="icon-card-stat" id="homeStatProperties">--</div>
+                        <div class="icon-card-label">Total Properties</div>
                     </div>
-                    <div class="icon-card-title">Availability</div>
-                    <div class="icon-card-stat" id="homeStatUpcoming">--</div>
-                    <div class="icon-card-label">Upcoming</div>
                 </div>
+            </div>
 
-                <!-- Properties Card -->
-                <div class="icon-card" onclick="showView('properties')" style="animation: cardPop 0.5s ease-out 0.5s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
-                        🏠
+            <!-- CATEGORY SECTION: Financial -->
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-bottom: 16px;">Financial</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                    <!-- Payments Card -->
+                    <div class="icon-card" onclick="showView('payments')" style="animation: cardPop 0.5s ease-out 0.5s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            💰
+                        </div>
+                        <div class="icon-card-title">Payments</div>
+                        <div class="icon-card-stat" id="homeStatPending">--</div>
+                        <div class="icon-card-label">Pending</div>
                     </div>
-                    <div class="icon-card-title">Properties</div>
-                    <div class="icon-card-stat" id="homeStatProperties">--</div>
-                    <div class="icon-card-label">Total Properties</div>
+
+                    <!-- Invoices Card -->
+                    <div class="icon-card" onclick="showView('invoices')" style="animation: cardPop 0.5s ease-out 0.6s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                            🧾
+                        </div>
+                        <div class="icon-card-title">Invoices</div>
+                        <div class="icon-card-stat" id="homeStatRevenue">--</div>
+                        <div class="icon-card-label">This Month</div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Guests Card -->
-                <div class="icon-card" onclick="showView('guests')" style="animation: cardPop 0.5s ease-out 0.6s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
-                        👥
+            <!-- CATEGORY SECTION: Communication -->
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-bottom: 16px;">Communication</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                    <!-- Communications Card -->
+                    <div class="icon-card" onclick="showView('communications')" style="animation: cardPop 0.5s ease-out 0.7s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            📱
+                        </div>
+                        <div class="icon-card-title">Communications</div>
+                        <div class="icon-card-stat">--</div>
+                        <div class="icon-card-label">Messages Sent</div>
                     </div>
-                    <div class="icon-card-title">Guests</div>
-                    <div class="icon-card-stat" id="homeStatGuests">--</div>
-                    <div class="icon-card-label">Total Guests</div>
                 </div>
+            </div>
 
-                <!-- Performance Card -->
-                <div class="icon-card" onclick="showView('performance')" style="animation: cardPop 0.5s ease-out 0.7s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-                        📈
+            <!-- CATEGORY SECTION: Operations -->
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-bottom: 16px;">Operations</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                    <!-- Availability Card -->
+                    <div class="icon-card" onclick="showView('availability')" style="animation: cardPop 0.5s ease-out 0.8s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                            🗓️
+                        </div>
+                        <div class="icon-card-title">Availability</div>
+                        <div class="icon-card-stat" id="homeStatUpcoming">--</div>
+                        <div class="icon-card-label">Upcoming</div>
                     </div>
-                    <div class="icon-card-title">Performance</div>
-                    <div class="icon-card-stat" id="homeStatRevenue">--</div>
-                    <div class="icon-card-label">This Month</div>
+
+                    <!-- Meals Card -->
+                    <div class="icon-card" onclick="showView('meals')" style="animation: cardPop 0.5s ease-out 0.9s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            🍽️
+                        </div>
+                        <div class="icon-card-title">Meals</div>
+                        <div class="icon-card-stat">--</div>
+                        <div class="icon-card-label">Today's Orders</div>
+                    </div>
+
+                    <!-- Guest Documents Card -->
+                    <div class="icon-card" onclick="showView('guestDocuments')" style="animation: cardPop 0.5s ease-out 1.0s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                            📋
+                        </div>
+                        <div class="icon-card-title">Documents</div>
+                        <div class="icon-card-stat" id="homeStatDocuments">--</div>
+                        <div class="icon-card-label">Pending Review</div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Guest Documents Card -->
-                <div class="icon-card" onclick="showView('guestDocuments')" style="animation: cardPop 0.5s ease-out 0.8s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                        📋
+            <!-- CATEGORY SECTION: Analytics & Management -->
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-bottom: 16px;">Analytics & Management</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                    <!-- Performance Card -->
+                    <div class="icon-card" onclick="showView('performance')" style="animation: cardPop 0.5s ease-out 1.1s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                            📈
+                        </div>
+                        <div class="icon-card-title">Analytics</div>
+                        <div class="icon-card-stat">--</div>
+                        <div class="icon-card-label">View Reports</div>
                     </div>
-                    <div class="icon-card-title">Documents</div>
-                    <div class="icon-card-stat" id="homeStatDocuments">--</div>
-                    <div class="icon-card-label">Pending Review</div>
+
+                    <!-- Team Card -->
+                    <div class="icon-card" onclick="showView('team')" style="animation: cardPop 0.5s ease-out 1.2s both;">
+                        <div class="icon-card-icon" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                            👨‍💼
+                        </div>
+                        <div class="icon-card-title">Team</div>
+                        <div class="icon-card-stat">--</div>
+                        <div class="icon-card-label">Members</div>
+                    </div>
                 </div>
             </div>
 
@@ -5138,28 +5228,198 @@
                 <h2>🧾 Invoices</h2>
                 <button class="btn btn-primary" onclick="window.openInvoiceGenerationModal && window.openInvoiceGenerationModal()">+ Generate Invoice</button>
             </div>
+
+            <!-- Invoice Statistics -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 12px;">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Total Invoices</div>
+                    <div style="font-size: 28px; font-weight: 700;" id="invoiceStatTotal">0</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 20px; border-radius: 12px;">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Pending</div>
+                    <div style="font-size: 28px; font-weight: 700;" id="invoiceStatPending">0</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 20px; border-radius: 12px;">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">This Month</div>
+                    <div style="font-size: 28px; font-weight: 700;" id="invoiceStatMonth">₹0</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" class="input" placeholder="Search by booking ID or guest name..." style="flex: 1; min-width: 200px;" id="invoiceSearchInput">
+                    <select class="input" style="width: 150px;" id="invoiceStatusFilter">
+                        <option value="">All Status</option>
+                        <option value="paid">Paid</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="window.filterInvoices && window.filterInvoices()">🔍 Filter</button>
+                    <button class="btn btn-secondary" onclick="window.exportInvoices && window.exportInvoices()">📥 Export</button>
+                </div>
+            </div>
+
+            <!-- Invoices List -->
             <div class="card">
-                <!-- Invoices list will be populated by invoicing.js -->
                 <div id="invoicesList">
                     <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
                         Loading invoices...
                     </div>
                 </div>
             </div>
+
+            <!-- Invoice Features Info -->
+            <div class="card" style="margin-top: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h4 style="margin-bottom: 12px;">📋 Invoice Features</h4>
+                <ul style="list-style: none; padding: 0; line-height: 1.8;">
+                    <li>✅ GST-compliant invoices with CGST/SGST breakdown</li>
+                    <li>✅ Automatic invoice numbering (INV-YYYY-XXXX format)</li>
+                    <li>✅ PDF generation with professional templates</li>
+                    <li>✅ Payment tracking and balance calculations</li>
+                    <li>✅ Email invoice to guests directly</li>
+                </ul>
+            </div>
         </div>
 
         <!-- Communications View -->
         <div id="communicationsView" class="container hidden">
             <div class="card-header">
-                <h2>📱 Communications</h2>
+                <h2>📱 Communications Hub</h2>
                 <button class="btn btn-primary" onclick="window.openSendMessageModal && window.openSendMessageModal()">+ Send Message</button>
             </div>
+
+            <!-- Communication Channels -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 12px; cursor: pointer;" onclick="showView('communications')">
+                    <div style="font-size: 32px; margin-bottom: 8px;">📱</div>
+                    <div style="font-weight: 600;">WhatsApp</div>
+                    <div style="font-size: 12px; opacity: 0.9;">Quick & Reliable</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 20px; border-radius: 12px; cursor: pointer;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">📧</div>
+                    <div style="font-weight: 600;">Email</div>
+                    <div style="font-size: 12px; opacity: 0.9;">Professional</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 20px; border-radius: 12px; cursor: pointer;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">💬</div>
+                    <div style="font-weight: 600;">SMS</div>
+                    <div style="font-size: 12px; opacity: 0.9;">Universal</div>
+                </div>
+            </div>
+
+            <!-- WhatsApp Business API Setup Guide -->
+            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                <h3 style="margin-bottom: 16px;">📱 WhatsApp Business API Integration</h3>
+                <p style="margin-bottom: 16px; opacity: 0.95;">Follow these steps to integrate WhatsApp Business API for automated messaging:</p>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                    <h4 style="margin-bottom: 8px;">Step 1: Create WhatsApp Business Account</h4>
+                    <ol style="margin-left: 20px; line-height: 1.8;">
+                        <li>Visit <a href="https://business.facebook.com" target="_blank" style="color: white; text-decoration: underline;">Facebook Business Manager</a></li>
+                        <li>Create or select your business account</li>
+                        <li>Navigate to WhatsApp Accounts section</li>
+                        <li>Click "Add WhatsApp Account" and follow the setup wizard</li>
+                    </ol>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                    <h4 style="margin-bottom: 8px;">Step 2: Choose API Provider</h4>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li><strong>Twilio</strong> - Popular choice, easy integration (<a href="https://www.twilio.com/whatsapp" target="_blank" style="color: white; text-decoration: underline;">twilio.com/whatsapp</a>)</li>
+                        <li><strong>MessageBird</strong> - Good pricing, reliable (<a href="https://www.messagebird.com/whatsapp" target="_blank" style="color: white; text-decoration: underline;">messagebird.com</a>)</li>
+                        <li><strong>Meta Cloud API</strong> - Direct from Meta, free tier available (<a href="https://developers.facebook.com/docs/whatsapp" target="_blank" style="color: white; text-decoration: underline;">developers.facebook.com</a>)</li>
+                        <li><strong>Gupshup</strong> - India-focused, competitive pricing (<a href="https://www.gupshup.io/whatsapp-business-api" target="_blank" style="color: white; text-decoration: underline;">gupshup.io</a>)</li>
+                    </ul>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                    <h4 style="margin-bottom: 8px;">Step 3: Get API Credentials</h4>
+                    <ol style="margin-left: 20px; line-height: 1.8;">
+                        <li>Sign up with your chosen provider</li>
+                        <li>Verify your business and phone number</li>
+                        <li>Get your API credentials (Account SID, Auth Token, Phone Number ID)</li>
+                        <li>Note down the webhook URL for receiving messages</li>
+                    </ol>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                    <h4 style="margin-bottom: 8px;">Step 4: Create Message Templates</h4>
+                    <p style="margin-bottom: 8px;">WhatsApp requires pre-approved templates for business-initiated messages:</p>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li>Booking confirmation template</li>
+                        <li>Payment reminder template</li>
+                        <li>Check-in instructions template</li>
+                        <li>Thank you message template</li>
+                    </ul>
+                    <p style="margin-top: 12px; font-size: 13px; opacity: 0.9;">Templates must be approved by WhatsApp (usually 24-48 hours).</p>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 8px;">
+                    <h4 style="margin-bottom: 8px;">Step 5: Configure ResIQ Settings</h4>
+                    <ol style="margin-left: 20px; line-height: 1.8;">
+                        <li>Go to Settings → Integrations → WhatsApp</li>
+                        <li>Enter your API credentials</li>
+                        <li>Test the connection</li>
+                        <li>Map your message templates</li>
+                        <li>Start sending messages!</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Current Implementation Note -->
+            <div class="card" style="margin-bottom: 24px; background: #f59e0b; color: white;">
+                <h4 style="margin-bottom: 12px;">⚠️ Current Implementation</h4>
+                <p style="line-height: 1.6;">
+                    Currently, ResIQ uses WhatsApp Web links for messaging. This opens WhatsApp Web/App with pre-filled messages.
+                    For automated API-based messaging, follow the integration steps above and update the configuration in Settings.
+                </p>
+            </div>
+
+            <!-- Communication Filters -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" class="input" placeholder="Search messages..." style="flex: 1; min-width: 200px;" id="commSearchInput">
+                    <select class="input" style="width: 150px;" id="commChannelFilter">
+                        <option value="">All Channels</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="email">Email</option>
+                        <option value="sms">SMS</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="window.filterCommunications && window.filterCommunications()">🔍 Filter</button>
+                    <button class="btn btn-secondary" onclick="window.exportCommunications && window.exportCommunications()">📥 Export</button>
+                </div>
+            </div>
+
+            <!-- Communications History -->
             <div class="card">
-                <!-- Communications history will be populated by communications.js -->
+                <h3 style="margin-bottom: 16px;">Communication History</h3>
                 <div id="communicationsList">
                     <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
                         Loading communications...
                     </div>
+                </div>
+            </div>
+
+            <!-- Message Templates -->
+            <div class="card" style="margin-top: 16px;">
+                <h4 style="margin-bottom: 16px;">💬 Quick Message Templates</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <button class="btn btn-secondary" style="text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">Booking Confirmation</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Send confirmation details</div>
+                    </button>
+                    <button class="btn btn-secondary" style="text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">Payment Reminder</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Remind about pending payment</div>
+                    </button>
+                    <button class="btn btn-secondary" style="text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">Check-in Instructions</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Share arrival details</div>
+                    </button>
+                    <button class="btn btn-secondary" style="text-align: left; padding: 12px;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">Thank You Message</div>
+                        <div style="font-size: 12px; opacity: 0.8;">Post-checkout gratitude</div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -5169,21 +5429,387 @@
             <div class="card-header">
                 <h2>⚙️ Settings</h2>
             </div>
-            <div class="card">
-                <h3 style="margin-bottom: 16px;">Application Settings</h3>
-                <div class="form-group">
-                    <label>Company Name</label>
-                    <input type="text" class="input" placeholder="Your Company Name">
+
+            <!-- Settings Navigation Tabs -->
+            <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+                <button class="btn btn-primary" id="settingsTabGeneral" onclick="showSettingsTab('general')" style="border-radius: 20px;">Company Info</button>
+                <button class="btn btn-secondary" id="settingsTabBilling" onclick="showSettingsTab('billing')" style="border-radius: 20px;">Billing & Tax</button>
+                <button class="btn btn-secondary" id="settingsTabIntegrations" onclick="showSettingsTab('integrations')" style="border-radius: 20px;">Integrations</button>
+                <button class="btn btn-secondary" id="settingsTabNotifications" onclick="showSettingsTab('notifications')" style="border-radius: 20px;">Notifications</button>
+                <button class="btn btn-secondary" id="settingsTabSecurity" onclick="showSettingsTab('security')" style="border-radius: 20px;">Security</button>
+                <button class="btn btn-secondary" id="settingsTabPreferences" onclick="showSettingsTab('preferences')" style="border-radius: 20px;">Preferences</button>
+            </div>
+
+            <!-- General Settings Tab -->
+            <div id="settingsContentGeneral" class="settings-tab-content">
+                <div class="card">
+                    <h3 style="margin-bottom: 16px;">🏢 Company Information</h3>
+                    <div class="form-group">
+                        <label>Company Legal Name</label>
+                        <input type="text" class="input" id="settingCompanyName" placeholder="e.g., Hostsphere India Private Limited">
+                    </div>
+                    <div class="form-group">
+                        <label>Trading Name / Brand Name</label>
+                        <input type="text" class="input" id="settingTradeName" placeholder="e.g., Hostizzy">
+                    </div>
+                    <div class="form-group">
+                        <label>Business Address</label>
+                        <textarea class="input" id="settingAddress" rows="3" placeholder="Full business address"></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" class="input" id="settingCity" placeholder="City">
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <input type="text" class="input" id="settingState" placeholder="State">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>PIN Code</label>
+                            <input type="text" class="input" id="settingPincode" placeholder="PIN Code">
+                        </div>
+                        <div class="form-group">
+                            <label>Country</label>
+                            <input type="text" class="input" id="settingCountry" value="India" placeholder="Country">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Contact Email</label>
+                            <input type="email" class="input" id="settingEmail" placeholder="contact@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Phone</label>
+                            <input type="tel" class="input" id="settingPhone" placeholder="+91 XXXXXXXXXX">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Website</label>
+                        <input type="url" class="input" id="settingWebsite" placeholder="https://www.example.com">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveGeneralSettings()">💾 Save Company Info</button>
                 </div>
-                <div class="form-group">
-                    <label>Contact Email</label>
-                    <input type="email" class="input" placeholder="contact@example.com">
+            </div>
+
+            <!-- Billing & Tax Settings Tab -->
+            <div id="settingsContentBilling" class="settings-tab-content hidden">
+                <div class="card">
+                    <h3 style="margin-bottom: 16px;">💰 Billing & Tax Information</h3>
+                    <div class="form-group">
+                        <label>GSTIN (GST Identification Number)</label>
+                        <input type="text" class="input" id="settingGSTIN" placeholder="22AAAAA0000A1Z5" maxlength="15">
+                        <small style="color: var(--text-secondary);">15-character alphanumeric GST number</small>
+                    </div>
+                    <div class="form-group">
+                        <label>PAN Number</label>
+                        <input type="text" class="input" id="settingPAN" placeholder="AAAAA0000A" maxlength="10">
+                        <small style="color: var(--text-secondary);">10-character PAN card number</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Default GST Rate (%)</label>
+                        <input type="number" class="input" id="settingGSTRate" value="18" min="0" max="100" step="0.5">
+                        <small style="color: var(--text-secondary);">Default GST rate for hospitality services (typically 18%)</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Invoice Prefix</label>
+                        <input type="text" class="input" id="settingInvoicePrefix" value="INV" placeholder="INV">
+                        <small style="color: var(--text-secondary);">Prefix for invoice numbers (e.g., INV-2025-0001)</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Currency</label>
+                        <select class="input" id="settingCurrency">
+                            <option value="INR" selected>₹ INR - Indian Rupee</option>
+                            <option value="USD">$ USD - US Dollar</option>
+                            <option value="EUR">€ EUR - Euro</option>
+                            <option value="GBP">£ GBP - British Pound</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="settingAutoInvoice" style="margin-right: 8px;">
+                            Automatically generate invoices on booking confirmation
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveBillingSettings()">💾 Save Billing Settings</button>
                 </div>
-                <div class="form-group">
-                    <label>GSTIN</label>
-                    <input type="text" class="input" placeholder="GST Identification Number">
+            </div>
+
+            <!-- Integrations Settings Tab -->
+            <div id="settingsContentIntegrations" class="settings-tab-content hidden">
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 16px;">📱 WhatsApp Integration</h3>
+                    <div class="form-group">
+                        <label>WhatsApp Business Phone Number</label>
+                        <input type="tel" class="input" id="settingWhatsAppPhone" placeholder="+91 XXXXXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp API Provider</label>
+                        <select class="input" id="settingWhatsAppProvider">
+                            <option value="">None (Use WhatsApp Web)</option>
+                            <option value="twilio">Twilio</option>
+                            <option value="messagebird">MessageBird</option>
+                            <option value="meta">Meta Cloud API</option>
+                            <option value="gupshup">Gupshup</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>API Account SID / App ID</label>
+                        <input type="text" class="input" id="settingWhatsAppSID" placeholder="Account SID or App ID">
+                    </div>
+                    <div class="form-group">
+                        <label>API Auth Token / Secret</label>
+                        <input type="password" class="input" id="settingWhatsAppToken" placeholder="Authentication Token">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="settingWhatsAppEnabled" style="margin-right: 8px;">
+                            Enable WhatsApp API Integration
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="testWhatsAppConnection()">🔗 Test Connection</button>
+                    <button class="btn btn-primary" onclick="saveWhatsAppSettings()">💾 Save</button>
                 </div>
-                <button class="btn btn-primary" style="margin-top: 16px;">Save Settings</button>
+
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 16px;">📧 Email Integration</h3>
+                    <div class="form-group">
+                        <label>Email Service Provider</label>
+                        <select class="input" id="settingEmailProvider">
+                            <option value="">Default (mailto:)</option>
+                            <option value="smtp">SMTP Server</option>
+                            <option value="sendgrid">SendGrid</option>
+                            <option value="ses">Amazon SES</option>
+                            <option value="mailgun">Mailgun</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>From Email Address</label>
+                        <input type="email" class="input" id="settingEmailFrom" placeholder="noreply@yourdomain.com">
+                    </div>
+                    <div class="form-group">
+                        <label>From Name</label>
+                        <input type="text" class="input" id="settingEmailFromName" placeholder="Hostizzy Reservations">
+                    </div>
+                    <button class="btn btn-primary" onclick="testEmailConnection()">🔗 Test Email</button>
+                    <button class="btn btn-primary" onclick="saveEmailSettings()">💾 Save</button>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 16px;">💬 SMS Integration</h3>
+                    <div class="form-group">
+                        <label>SMS Provider</label>
+                        <select class="input" id="settingSMSProvider">
+                            <option value="">None</option>
+                            <option value="twilio">Twilio</option>
+                            <option value="aws-sns">Amazon SNS</option>
+                            <option value="msg91">MSG91 (India)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>API Key / Account SID</label>
+                        <input type="text" class="input" id="settingSMSKey" placeholder="API Key">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="settingSMSEnabled" style="margin-right: 8px;">
+                            Enable SMS Integration
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSMSSettings()">💾 Save</button>
+                </div>
+            </div>
+
+            <!-- Notifications Settings Tab -->
+            <div id="settingsContentNotifications" class="settings-tab-content hidden">
+                <div class="card">
+                    <h3 style="margin-bottom: 16px;">🔔 Notification Preferences</h3>
+
+                    <h4 style="margin: 24px 0 12px 0;">Booking Notifications</h4>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifyNewBooking" checked style="margin-right: 8px;">
+                            New booking received
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifyBookingUpdate" checked style="margin-right: 8px;">
+                            Booking updated or cancelled
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifyCheckIn" checked style="margin-right: 8px;">
+                            Guest check-in
+                        </label>
+                    </div>
+
+                    <h4 style="margin: 24px 0 12px 0;">Payment Notifications</h4>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifyPaymentReceived" checked style="margin-right: 8px;">
+                            Payment received
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifyPaymentPending" checked style="margin-right: 8px;">
+                            Payment reminders for pending payments
+                        </label>
+                    </div>
+
+                    <h4 style="margin: 24px 0 12px 0;">System Notifications</h4>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifyDailyDigest" style="margin-right: 8px;">
+                            Daily digest report
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="notifyWeeklyReport" checked style="margin-right: 8px;">
+                            Weekly performance report
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveNotificationSettings()">💾 Save Notification Settings</button>
+                </div>
+            </div>
+
+            <!-- Security Settings Tab -->
+            <div id="settingsContentSecurity" class="settings-tab-content hidden">
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 16px;">🔒 Security Settings</h3>
+
+                    <h4 style="margin-bottom: 12px;">Change Password</h4>
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" class="input" id="currentPassword" placeholder="Enter current password">
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" class="input" id="newPassword" placeholder="Enter new password">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" class="input" id="confirmPassword" placeholder="Confirm new password">
+                    </div>
+                    <button class="btn btn-primary" onclick="changePassword()">🔑 Change Password</button>
+                </div>
+
+                <div class="card" style="margin-bottom: 16px;">
+                    <h4 style="margin-bottom: 12px;">Two-Factor Authentication</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 16px;">Add an extra layer of security to your account</p>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enable2FA" style="margin-right: 8px;">
+                            Enable Two-Factor Authentication
+                        </label>
+                    </div>
+                    <button class="btn btn-secondary" onclick="setup2FA()">Setup 2FA</button>
+                </div>
+
+                <div class="card">
+                    <h4 style="margin-bottom: 12px;">Session Management</h4>
+                    <div class="form-group">
+                        <label>Auto-logout after inactivity (minutes)</label>
+                        <input type="number" class="input" id="sessionTimeout" value="30" min="5" max="120">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSecuritySettings()">💾 Save Security Settings</button>
+                </div>
+            </div>
+
+            <!-- Preferences Settings Tab -->
+            <div id="settingsContentPreferences" class="settings-tab-content hidden">
+                <div class="card">
+                    <h3 style="margin-bottom: 16px;">🎨 Application Preferences</h3>
+
+                    <div class="form-group">
+                        <label>Date Format</label>
+                        <select class="input" id="settingDateFormat">
+                            <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2025)</option>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2025)</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD (2025-12-31)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Time Format</label>
+                        <select class="input" id="settingTimeFormat">
+                            <option value="12">12-hour (3:30 PM)</option>
+                            <option value="24">24-hour (15:30)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Timezone</label>
+                        <select class="input" id="settingTimezone">
+                            <option value="Asia/Kolkata" selected>Asia/Kolkata (IST)</option>
+                            <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                            <option value="Europe/London">Europe/London (GMT)</option>
+                            <option value="America/New_York">America/New_York (EST)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Language</label>
+                        <select class="input" id="settingLanguage">
+                            <option value="en" selected>English</option>
+                            <option value="hi">हिंदी (Hindi)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Theme</label>
+                        <select class="input" id="settingTheme">
+                            <option value="light" selected>Light</option>
+                            <option value="dark">Dark (Coming Soon)</option>
+                            <option value="auto">Auto (System)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="settingCompactView" style="margin-right: 8px;">
+                            Compact view (show more data in less space)
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="settingAnimations" checked style="margin-right: 8px;">
+                            Enable animations
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="savePreferenceSettings()">💾 Save Preferences</button>
+                </div>
+            </div>
+
+            <!-- System Info -->
+            <div class="card" style="margin-top: 24px; background: var(--background); border: 1px solid var(--border);">
+                <h4 style="margin-bottom: 12px;">ℹ️ System Information</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px;">
+                    <div>
+                        <div style="color: var(--text-secondary);">Version</div>
+                        <div style="font-weight: 600;">ResIQ v2.0.0</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-secondary);">Last Updated</div>
+                        <div style="font-weight: 600;">January 2025</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-secondary);">Database Status</div>
+                        <div style="font-weight: 600; color: var(--success);">🟢 Connected</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-secondary);">Storage Used</div>
+                        <div style="font-weight: 600;">--</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -7281,6 +7907,92 @@
             if (viewName === 'team') loadTeam();
 
         }
+
+        // Settings Tab Management
+        function showSettingsTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.settings-tab-content').forEach(el => el.classList.add('hidden'));
+
+            // Show selected tab content
+            const tabContent = document.getElementById(`settingsContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (tabContent) {
+                tabContent.classList.remove('hidden');
+            }
+
+            // Update tab button states
+            document.querySelectorAll('[id^="settingsTab"]').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+
+            const activeTab = document.getElementById(`settingsTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (activeTab) {
+                activeTab.classList.remove('btn-secondary');
+                activeTab.classList.add('btn-primary');
+            }
+        }
+
+        // Settings Save Functions (placeholders - implement as needed)
+        function saveGeneralSettings() {
+            // TODO: Implement save logic
+            alert('General settings saved! (Feature in development)');
+        }
+
+        function saveBillingSettings() {
+            // TODO: Implement save logic
+            alert('Billing settings saved! (Feature in development)');
+        }
+
+        function saveWhatsAppSettings() {
+            // TODO: Implement save logic
+            alert('WhatsApp settings saved! (Feature in development)');
+        }
+
+        function testWhatsAppConnection() {
+            // TODO: Implement connection test
+            alert('Testing WhatsApp connection... (Feature in development)');
+        }
+
+        function saveEmailSettings() {
+            // TODO: Implement save logic
+            alert('Email settings saved! (Feature in development)');
+        }
+
+        function testEmailConnection() {
+            // TODO: Implement email test
+            alert('Testing email connection... (Feature in development)');
+        }
+
+        function saveSMSSettings() {
+            // TODO: Implement save logic
+            alert('SMS settings saved! (Feature in development)');
+        }
+
+        function saveNotificationSettings() {
+            // TODO: Implement save logic
+            alert('Notification settings saved! (Feature in development)');
+        }
+
+        function changePassword() {
+            // TODO: Implement password change
+            alert('Password change feature coming soon!');
+        }
+
+        function setup2FA() {
+            // TODO: Implement 2FA setup
+            alert('2FA setup feature coming soon!');
+        }
+
+        function saveSecuritySettings() {
+            // TODO: Implement save logic
+            alert('Security settings saved! (Feature in development)');
+        }
+
+        function savePreferenceSettings() {
+            // TODO: Implement save logic
+            alert('Preference settings saved! (Feature in development)');
+        }
+
         function renderBookingTypeBreakdown(reservations, targetId) {
         const bookingTypes = {};
 
