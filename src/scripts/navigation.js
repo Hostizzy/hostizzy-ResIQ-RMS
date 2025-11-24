@@ -12,7 +12,17 @@
  */
 export async function showView(viewName) {
     document.querySelectorAll('.container').forEach(el => el.classList.add('hidden'))
-    document.getElementById(`${viewName}View`).classList.remove('hidden')
+
+    const viewElement = document.getElementById(`${viewName}View`)
+    if (!viewElement) {
+        console.error(`View not found: ${viewName}View`)
+        // Fallback to home if view doesn't exist
+        const homeElement = document.getElementById('homeView')
+        if (homeElement) homeElement.classList.remove('hidden')
+        return
+    }
+
+    viewElement.classList.remove('hidden')
 
     document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => {
         link.classList.remove('active')
@@ -42,6 +52,9 @@ export async function showView(viewName) {
     if (viewName === 'properties' && typeof window.loadProperties === 'function') window.loadProperties()
     if (viewName === 'performance' && typeof window.initializePerformanceView === 'function') window.initializePerformanceView()
     if (viewName === 'team' && typeof window.loadTeam === 'function') window.loadTeam()
+    if (viewName === 'invoices' && typeof window.loadInvoices === 'function') window.loadInvoices()
+    if (viewName === 'communications' && typeof window.loadCommunications === 'function') window.loadCommunications()
+    if (viewName === 'settings' && typeof window.loadSettings === 'function') window.loadSettings()
 }
 
 /**
