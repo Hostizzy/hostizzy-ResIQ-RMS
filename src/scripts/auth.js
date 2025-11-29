@@ -36,8 +36,11 @@ export async function login() {
             localStorage.setItem('currentUser', JSON.stringify(user))
 
             // Update UI
-            document.getElementById('loginScreen').classList.add('hidden')
-            document.getElementById('mainApp').classList.remove('hidden')
+            const loginScreen = document.getElementById('loginScreen')
+            const mainApp = document.getElementById('mainApp')
+
+            if (loginScreen) loginScreen.classList.add('hidden')
+            if (mainApp) mainApp.classList.remove('hidden')
 
             // Update user email displays
             updateUserEmailDisplay(user.email)
