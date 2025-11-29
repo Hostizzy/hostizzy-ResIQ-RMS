@@ -527,6 +527,104 @@ export function getChannelLabel(channel) {
     return labels[channel] || channel
 }
 
+// ============================================
+// LOAD COMMUNICATIONS VIEW
+// ============================================
+
+export async function loadCommunications() {
+    try {
+        showLoading('Loading communications...')
+
+        const communications = await getAllCommunications({ limit: 100 })
+
+        // Render communications list
+        renderCommunicationsList(communications)
+
+        hideLoading()
+
+    } catch (error) {
+        console.error('Load communications error:', error)
+        hideLoading()
+        showToast('Error', 'Failed to load communications', '❌')
+    }
+}
+
+function renderCommunicationsList(communications) {
+    const tableBody = document.getElementById('communicationsTableBody')
+    if (!tableBody) {
+        console.warn('Communications table body not found')
+        return
+    }
+
+    if (!communications || communications.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Communications Yet</div>
+                    <div style="font-size: 14px;">Start sending messages to your guests</div>
+                </td>
+            </tr>
+        `
+        return
+    }
+
+    tableBody.innerHTML = communications.map(comm => {
+        const statusColors = {
+            pending: 'var(--warning)',
+            sent: 'var(--info)',
+            delivered: 'var(--success)',
+            failed: 'var(--danger)',
+            read: 'var(--primary)'
+        }
+
+        const statusColor = statusColors[comm.status] || 'var(--text-secondary)'
+        const channelIcon = getChannelIcon(comm.message_type)
+        const channelLabel = getChannelLabel(comm.message_type)
+
+        return `
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">${channelIcon}</span>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-primary);">${channelLabel}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">${formatDate(comm.sent_at || comm.created_at)}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-weight: 500;">${comm.recipient_name}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">${comm.recipient_contact}</div>
+                </td>
+                <td>
+                    <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${comm.subject || comm.message_body.substring(0, 50)}${comm.message_body.length > 50 ? '...' : ''}
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <span class="badge" style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
+                        ${comm.status}
+                    </span>
+                </td>
+                <td style="text-align: center; font-size: 13px; color: var(--text-secondary);">
+                    ${comm.booking_id || '-'}
+                </td>
+                <td style="text-align: center;">
+                    <button class="btn btn-sm btn-secondary" onclick="window.viewCommunication('${comm.id}')" title="View Details">
+                        👁️
+                    </button>
+                    ${comm.status === 'failed' ? `
+                        <button class="btn btn-sm btn-warning" onclick="window.retryCommunication('${comm.id}')" title="Retry">
+                            🔄
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `
+    }).join('')
+}
+
 // Make functions globally available
 if (typeof window !== 'undefined') {
     window.sendCommunication = sendCommunication
@@ -535,6 +633,7 @@ if (typeof window !== 'undefined') {
     window.sendBulkCommunication = sendBulkCommunication
     window.getChannelIcon = getChannelIcon
     window.getChannelLabel = getChannelLabel
+    window.loadCommunications = loadCommunications
 }
 
 export { CHANNELS }

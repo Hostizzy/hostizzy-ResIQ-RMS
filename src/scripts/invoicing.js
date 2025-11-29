@@ -477,12 +477,102 @@ export async function deleteInvoice(invoice_id) {
     }
 }
 
+// ============================================
+// LOAD INVOICES VIEW
+// ============================================
+
+export async function loadInvoices() {
+    try {
+        showLoading('Loading invoices...')
+
+        const invoices = await listInvoices()
+
+        // Render invoices table
+        renderInvoicesTable(invoices)
+
+        hideLoading()
+
+    } catch (error) {
+        console.error('Load invoices error:', error)
+        hideLoading()
+        showToast('Error', 'Failed to load invoices', '❌')
+    }
+}
+
+function renderInvoicesTable(invoices) {
+    const tableBody = document.getElementById('invoicesTableBody')
+    if (!tableBody) {
+        console.warn('Invoices table body not found')
+        return
+    }
+
+    if (!invoices || invoices.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Invoices Yet</div>
+                    <div style="font-size: 14px;">Generate invoices from the Payments view</div>
+                </td>
+            </tr>
+        `
+        return
+    }
+
+    tableBody.innerHTML = invoices.map(invoice => {
+        const statusColors = {
+            pending: 'var(--warning)',
+            paid: 'var(--success)',
+            overdue: 'var(--danger)',
+            cancelled: 'var(--text-tertiary)'
+        }
+
+        const statusColor = statusColors[invoice.status] || 'var(--text-secondary)'
+
+        return `
+            <tr>
+                <td>
+                    <div style="font-weight: 600; color: var(--text-primary);">${invoice.invoice_number}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">${formatDate(invoice.invoice_date)}</div>
+                </td>
+                <td>
+                    <div style="font-weight: 500;">${invoice.guest_name}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">${invoice.booking_id || '-'}</div>
+                </td>
+                <td style="text-align: right; font-weight: 600;">
+                    ₹${invoice.grand_total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </td>
+                <td style="text-align: center;">
+                    <span class="badge" style="background: ${statusColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
+                        ${invoice.status}
+                    </span>
+                </td>
+                <td style="text-align: center; font-size: 13px; color: var(--text-secondary);">
+                    ${formatDate(invoice.due_date)}
+                </td>
+                <td style="text-align: center;">
+                    <button class="btn btn-sm btn-secondary" onclick="window.downloadInvoice('${invoice.id}')" title="Download PDF">
+                        📥
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="window.viewInvoice('${invoice.id}')" title="View Details">
+                        👁️
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="window.deleteInvoice('${invoice.id}').then(() => window.loadInvoices())" title="Delete">
+                        🗑️
+                    </button>
+                </td>
+            </tr>
+        `
+    }).join('')
+}
+
 // Make functions globally available
 if (typeof window !== 'undefined') {
     window.generateInvoice = generateInvoice
     window.listInvoices = listInvoices
     window.getInvoice = getInvoice
     window.deleteInvoice = deleteInvoice
+    window.loadInvoices = loadInvoices
 }
 
 export { COMPANY_DETAILS }

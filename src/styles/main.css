@@ -3,9 +3,8 @@
 /* Import all styles in order */
 @import './variables.css';
 @import './base.css';
-@import './legacy.css';
 
-/* Import modern Airbnb-inspired design system (overrides legacy for modern look) */
+/* Import modern Airbnb-inspired design system */
 @import './modern.css';
 
 /* Import enhanced view-specific styles */

@@ -42,6 +42,7 @@ import './scripts/pwa.js'             // PWA installation, service worker
 import './scripts/sync.js'            // Online/offline sync
 import './scripts/dashboard.js'       // Dashboard rendering, metrics, filters
 import './scripts/analytics.js'       // Charts, reports, visualizations
+import './scripts/settings.js'        // Settings management, preferences, configuration
 
 // Premium Features - NEW!
 import './scripts/command-palette.js'  // Command Palette (CMD+K)

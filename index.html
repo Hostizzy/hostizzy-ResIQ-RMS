@@ -3531,6 +3531,11 @@
             }
         </style>
     </div>
+
+    <!-- Modular JavaScript Entry Point -->
+    <script type="module" src="/src/main.js"></script>
+
+    <!-- Supabase CDN (Fallback - will be replaced by module version) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -3581,57 +3586,6 @@
 
     <!-- Main App -->
     <div id="mainApp" class="hidden">
-        <!-- Mobile Header -->
-        <div id="mobileHeader" class="mobile-header hidden">
-            <div class="mobile-header-content">
-                <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
-                <img src="assets/logo.png" alt="ResIQ" class="mobile-logo">
-                <span id="mobileUserEmail" style="font-size: 12px; color: var(--text-secondary);"></span>
-            </div>
-        </div>
-
-        <!-- Mobile Sidebar -->
-        <div id="mobileSidebar" class="mobile-sidebar">
-            <div class="mobile-sidebar-header">
-                <img src="assets/logo.png" alt="ResIQ" class="mobile-logo" style="margin-bottom: 8px;">
-                <div id="sidebarUserEmail" style="font-size: 13px; color: var(--text-secondary);"></div>
-            </div>
-            <div class="mobile-sidebar-menu">
-                <a class="mobile-sidebar-link active" onclick="showViewMobile('dashboard')">
-                    <span style="margin-right: 12px;">📊</span> Dashboard
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('reservations')">
-                    <span style="margin-right: 12px;">📅</span> Reservations
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('guestDocuments')">
-                    <span style="margin-right: 12px;">📋</span> Documents
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('payments')">
-                    <span style="margin-right: 12px;">💰</span> Payments
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('meals')">
-                    <span style="margin-right: 12px;">🍽️</span> Meals
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('availability')">
-                    <span style="margin-right: 12px;">🗓️</span> Availability
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('properties')">
-                    <span style="margin-right: 12px;">🏠</span> Properties
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('performance')">
-                    <span style="margin-right: 12px;">📊</span> Performance
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('team')">
-                    <span style="margin-right: 12px;">👥</span> Team
-                </a>
-                <a class="mobile-sidebar-link" onclick="logout()" style="margin-top: 20px; color: var(--danger);">
-                    <span style="margin-right: 12px;">🚪</span> Logout
-                </a>
-            </div>
-        </div>
-
-        <!-- Mobile Overlay -->
-        <div id="mobileOverlay" class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
         <!-- Pull to Refresh Indicator -->
         <div class="pull-to-refresh-indicator" id="pullToRefreshIndicator">
