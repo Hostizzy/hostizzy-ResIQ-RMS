@@ -41,10 +41,15 @@ export async function login() {
 
             // Update user email displays
             updateUserEmailDisplay(user.email)
-            document.querySelector('.mobile-nav').classList.remove('hidden')
-            document.getElementById('mobileHeader').classList.remove('hidden')
-            document.getElementById('mobileUserEmail').textContent = user.email
-            document.getElementById('sidebarUserEmail').textContent = user.email
+
+            const mobileNav = document.querySelector('.mobile-nav')
+            if (mobileNav) mobileNav.classList.remove('hidden')
+
+            const mobileHeader = document.getElementById('mobileHeader')
+            if (mobileHeader) mobileHeader.classList.remove('hidden')
+
+            const sidebarUserEmail = document.getElementById('sidebarUserEmail')
+            if (sidebarUserEmail) sidebarUserEmail.textContent = user.email
 
             // Hide Performance view for staff
             if (user.role === 'staff') {

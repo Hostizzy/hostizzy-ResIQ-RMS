@@ -3740,7 +3740,7 @@
         </aside>
 
         <!-- Mobile Top Header -->
-        <div class="mobile-header">
+        <div class="mobile-header" id="mobileHeader">
             <div class="mobile-header-content">
                 <!-- Hamburger Menu Button -->
                 <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
@@ -3760,7 +3760,8 @@
         <!-- Mobile Sidebar (Hamburger Menu) -->
         <aside class="mobile-sidebar" id="mobileSidebar">
             <div class="mobile-sidebar-header">
-                ☰ Menu
+                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">☰ Menu</div>
+                <div id="sidebarUserEmail" style="font-size: 12px; color: var(--text-secondary);"></div>
             </div>
 
             <div class="mobile-sidebar-menu">
