@@ -394,6 +394,7 @@ export async function loadPropertyPerformance() {
 if (typeof window !== 'undefined') {
     window.renderPaymentMethodChart = renderPaymentMethodChart
     window.renderChannelDistribution = renderChannelDistribution
+    window.renderChannelPerformance = renderChannelDistribution // Alias for backward compatibility
     window.renderBookingTypeBreakdown = renderBookingTypeBreakdown
     window.sortPropertiesBy = sortPropertiesBy
     window.updateTopPropertiesStats = updateTopPropertiesStats

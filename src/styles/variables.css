@@ -8,6 +8,13 @@
     --primary-lighter: #7dd3fc;
     --primary-subtle: #e0f2fe;
 
+    /* Brand color aliases for premium components */
+    --brand-primary: #6366F1;
+    --brand-primary-dark: #4F46E5;
+    --brand-primary-light: #818CF8;
+    --brand-secondary: #EC4899;
+    --brand-accent: #14B8A6;
+
     /* Secondary - Teal Accent */
     --secondary: #14b8a6;
     --secondary-dark: #0d9488;
@@ -46,6 +53,18 @@
     --gray-700: #374151;
     --gray-800: #1f2937;
     --gray-900: #111827;
+
+    /* Neutral palette aliases for premium components */
+    --neutral-50: #f9fafb;
+    --neutral-100: #f3f4f6;
+    --neutral-200: #e5e7eb;
+    --neutral-300: #d1d5db;
+    --neutral-400: #9ca3af;
+    --neutral-500: #6b7280;
+    --neutral-600: #4b5563;
+    --neutral-700: #374151;
+    --neutral-800: #1f2937;
+    --neutral-900: #111827;
 
     /* ===== Background Colors ===== */
     --background: #f0f9ff;
@@ -118,12 +137,18 @@
     --text-3xl: 1.875rem;    /* 30px */
     --text-4xl: 2.25rem;     /* 36px */
 
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
     --line-height-tight: 1.25;
     --line-height-normal: 1.5;
     --line-height-relaxed: 1.75;
 
     /* ===== Transitions & Animations ===== */
     --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);

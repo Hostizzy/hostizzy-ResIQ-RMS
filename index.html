@@ -4703,7 +4703,12 @@
         <div id="reservationsView" class="container hidden">
             <div class="card-header">
                 <h2>Reservations</h2>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <!-- View Toggle -->
+                    <div class="btn-group" style="margin-right: auto;">
+                        <button id="tableViewBtn" class="btn btn-sm btn-primary" onclick="switchReservationView('table')">📋 Table</button>
+                        <button id="kanbanViewBtn" class="btn btn-sm btn-secondary" onclick="switchReservationView('kanban')">📊 Kanban</button>
+                    </div>
                     <button class="btn btn-success btn-sm" onclick="openImportModal()">📤 Import CSV</button>
                     <button class="btn btn-secondary btn-sm" onclick="exportCSV()">📥 Export CSV</button>
                     <button class="btn btn-primary" onclick="openReservationModal()">+ New Reservation</button>
@@ -4774,6 +4779,11 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Kanban Board View -->
+            <div id="kanbanBoardContainer" class="hidden" style="margin-top: 24px;">
+                <!-- Kanban board will be rendered here by premium-views.js -->
             </div>
         </div>
 
@@ -10342,6 +10352,35 @@
             } catch (error) {
                 console.error('Reservations error:', error);
                 showToast('Error', 'Failed to load reservations', '❌');
+            }
+        }
+
+        // Switch between Table and Kanban views for Reservations
+        function switchReservationView(view) {
+            const tableContainer = document.querySelector('#reservationsView .card');
+            const kanbanContainer = document.getElementById('kanbanBoardContainer');
+            const tableViewBtn = document.getElementById('tableViewBtn');
+            const kanbanViewBtn = document.getElementById('kanbanViewBtn');
+
+            if (view === 'table') {
+                tableContainer.classList.remove('hidden');
+                kanbanContainer.classList.add('hidden');
+                tableViewBtn.classList.remove('btn-secondary');
+                tableViewBtn.classList.add('btn-primary');
+                kanbanViewBtn.classList.remove('btn-primary');
+                kanbanViewBtn.classList.add('btn-secondary');
+            } else if (view === 'kanban') {
+                tableContainer.classList.add('hidden');
+                kanbanContainer.classList.remove('hidden');
+                tableViewBtn.classList.remove('btn-primary');
+                tableViewBtn.classList.add('btn-secondary');
+                kanbanViewBtn.classList.remove('btn-secondary');
+                kanbanViewBtn.classList.add('btn-primary');
+
+                // Render Kanban board
+                if (window.renderKanbanBoard) {
+                    window.renderKanbanBoard();
+                }
             }
         }
 
