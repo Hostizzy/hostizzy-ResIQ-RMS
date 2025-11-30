@@ -5159,119 +5159,170 @@
             </div>
             <div id="propertiesGrid" class="stats-grid"></div>
         </div>
-        <!-- Performance View -->
+        <!-- Performance View - REDESIGNED -->
         <div id="performanceView" class="container hidden">
-            <h2 style="margin-bottom: 24px;">📊 Property Performance Analysis</h2>
-            
-        <!-- Filters -->
-        <div class="card">
-            <div class="filters" style="align-items: center; flex-wrap: wrap;">
-                <div class="filter-item" style="flex: 1; min-width: 200px;">
-                    <label style="margin-bottom: 4px;">Select Property</label>
-                    <select id="performancePropertyFilter" onchange="loadPropertyPerformance()">
-                        <option value="">🏠 All Properties</option>
-                    </select>
-                </div>
-                
-                <div class="filter-item" style="min-width: 180px;">
-                    <label style="margin-bottom: 4px;">Time Period</label>
-                    <select id="performanceDateRange" onchange="handleDateRangeChange()">
-                        <option value="all_time">All Time</option>
-                        <option value="last30">Last 30 Days</option>
-                        <option value="last90">Last 90 Days</option>
-                        <option value="custom">Custom Range</option>
-                    </select>
-                </div>
-                
-                <div class="filter-item" id="customDateRangeFields" style="display: none; min-width: 140px;">
-                    <label style="margin-bottom: 4px;">From</label>
-                    <input type="date" id="performanceStartDate" onchange="loadPropertyPerformance()">
-                </div>
-                
-                <div class="filter-item" id="customDateRangeFieldsTo" style="display: none; min-width: 140px;">
-                    <label style="margin-bottom: 4px;">To</label>
-                    <input type="date" id="performanceEndDate" onchange="loadPropertyPerformance()">
-                </div>
-                
-                <div class="filter-item" style="min-width: 160px;">
-                    <label style="margin-bottom: 4px;">Filter by Month</label>
-                    <select id="performanceMonthFilter" onchange="loadPropertyPerformance()">
-                        <option value="">All Months</option>
-                    </select>
-                </div>
-                
-                <button class="btn btn-secondary btn-sm" onclick="exportPerformanceReport()" style="align-self: flex-end; margin-top: 20px;">
-                    📥 Export
-                </button>
+            <!-- Header with gradient -->
+            <div style="margin-bottom: 32px;">
+                <h2 style="margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 32px;">📊</span>
+                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        Analytics Dashboard
+                    </span>
+                </h2>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-left: 44px;">
+                    Comprehensive property performance metrics, scoring, and intelligent insights
+                </p>
             </div>
-            
-            <div id="filterSummary" style="margin-top: 12px; padding: 8px 12px; background: var(--background); border-radius: 6px; font-size: 13px; color: var(--text-secondary);">
-                <!-- Will show active filters -->
-            </div>
-        </div>
 
-            <!-- Key Metrics -->
-            <div id="performanceMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <!-- Filters with modern design -->
+            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
+                <div style="padding: 20px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
+                        <div style="flex: 1; min-width: 220px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
+                                🏠 Property Selection
+                            </label>
+                            <select id="performancePropertyFilter" onchange="loadPropertyPerformance()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
+
+                        <div style="min-width: 200px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
+                                📅 Time Period
+                            </label>
+                            <select id="performanceDateRange" onchange="handleDateRangeChange()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
+                                <option value="all_time">All Time</option>
+                                <option value="last30" selected>Last 30 Days</option>
+                                <option value="last90">Last 90 Days</option>
+                                <option value="this_month">This Month</option>
+                                <option value="last_month">Last Month</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+
+                        <div id="customDateRangeFields" style="display: none; min-width: 160px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">From</label>
+                            <input type="date" id="performanceStartDate" onchange="loadPropertyPerformance()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                        </div>
+
+                        <div id="customDateRangeFieldsTo" style="display: none; min-width: 160px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">To</label>
+                            <input type="date" id="performanceEndDate" onchange="loadPropertyPerformance()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                        </div>
+
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-primary" onclick="loadPropertyPerformance()" style="padding: 10px 24px;">
+                                🔍 Analyze
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportPerformanceReport()" style="padding: 10px 24px;">
+                                📥 Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Score Card -->
+            <div id="performanceScoreCard" class="card" style="margin-bottom: 24px; display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                 <!-- Will be populated by JS -->
             </div>
 
-            <!-- Payment Information -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">💰 Payment & Revenue Breakdown</h3>
-                </div>
-                <div id="performancePaymentInfo"></div>
+            <!-- Key Metrics with Trends -->
+            <div id="performanceMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <!-- Will be populated by JS -->
             </div>
 
-        <!-- Analytics Grid (2x2) -->
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px;">
-            <!-- Payment Methods Distribution -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">💳 Payment Methods</h3>
-                </div>
-                <div id="performancePaymentMethods"></div>
+            <!-- Smart Insights -->
+            <div id="performanceInsights" class="card" style="margin-bottom: 24px; display: none; background: linear-gradient(135deg, #10b98115 0%, #059669 15 100%); border-left: 4px solid #10b981;">
+                <!-- Will be populated by JS -->
             </div>
 
-            <!-- Top Properties by Revenue -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">🏆 Top Properties</h3>
+            <!-- Property Comparison Tool -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 class="card-title" style="margin: 0;">⚖️ Property Comparison</h3>
+                    <div style="display: flex; gap: 12px;">
+                        <select id="compareProperty1" onchange="updatePropertyComparison()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+                            <option value="">Select Property 1</option>
+                        </select>
+                        <span style="align-self: center; color: var(--text-secondary);">vs</span>
+                        <select id="compareProperty2" onchange="updatePropertyComparison()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+                            <option value="">Select Property 2</option>
+                        </select>
+                    </div>
                 </div>
-                <div id="performanceTopProperties" style="max-height: 400px; overflow-y: auto;"></div>
+                <div id="performanceComparisonContent" style="padding: 20px;">
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        Select two properties above to compare their performance
+                    </div>
+                </div>
             </div>
 
-            <!-- Booking Type Breakdown -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">🎪 Booking Types</h3>
+            <!-- Interactive Charts Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <!-- Revenue Trend Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📈 Revenue Trend</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="revenueTrendChart" style="max-height: 300px;"></canvas>
+                    </div>
                 </div>
-                <div id="performanceBookingTypes"></div>
+
+                <!-- Booking Source Distribution -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📊 Booking Sources</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="bookingSourceChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
             </div>
 
-            <!-- Channel Performance -->
+            <!-- Additional Charts Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <!-- Payment Methods Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">💳 Payment Methods</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="paymentMethodsChart" style="max-height: 280px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Booking Types Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🎪 Booking Types</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="bookingTypesChart" style="max-height: 280px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property Performance Leaderboard -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">🏆 Property Performance Leaderboard</h3>
+                </div>
+                <div id="performanceLeaderboard" style="padding: 20px;">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Monthly Performance Table -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">📊 Booking Channels</h3>
+                    <h3 class="card-title">📅 Monthly Performance Breakdown</h3>
                 </div>
-                <div id="performanceChannels" style="max-height: 400px; overflow-y: auto;"></div>
-            </div>
-        </div>
-
-            <!-- Monthly Trends -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">📈 Monthly Performance Trend</h3>
+                <div style="padding: 20px; overflow-x: auto;">
+                    <div id="monthlyPerformanceTable"></div>
                 </div>
-                <div id="performanceMonthlyTrend"></div>
-            </div>
-
-            <!-- Property Comparison (if multiple selected) -->
-            <div class="card" id="performanceComparison" style="display: none;">
-                <div class="card-header">
-                    <h3 class="card-title">⚖️ Property Comparison</h3>
-                </div>
-                <div id="performanceComparisonContent"></div>
             </div>
         </div>
 
