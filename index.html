@@ -4240,6 +4240,10 @@
                             <span class="sidebar-item-icon">👨‍💼</span>
                             <span class="sidebar-item-label">Team</span>
                         </a>
+                        <a class="sidebar-item" onclick="showView('communication')">
+                            <span class="sidebar-item-icon">💬</span>
+                            <span class="sidebar-item-label">Communication</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -4870,6 +4874,142 @@
                 opacity: 1;
                 transform: scale(1);
             }
+        }
+
+        /* Settings View Styles */
+        .settings-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .settings-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            margin-bottom: -2px;
+        }
+
+        .settings-tab:hover {
+            color: var(--text-primary);
+            background: var(--background);
+        }
+
+        .settings-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .settings-panel {
+            display: none;
+        }
+
+        .settings-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .settings-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: .3s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        .switch input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Integration Cards */
+        .integration-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .integration-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .integration-header h4 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: white;
         }
         </style>
 
@@ -6139,6 +6279,328 @@
                 <div id="guestDocumentsList">
                     <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
                         Loading documents...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settingsView" class="container hidden">
+            <div class="card-header">
+                <h2>⚙️ Settings</h2>
+            </div>
+
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" onclick="switchSettingsTab('general')">General</button>
+                <button class="settings-tab" onclick="switchSettingsTab('business')">Business Info</button>
+                <button class="settings-tab" onclick="switchSettingsTab('notifications')">Notifications</button>
+                <button class="settings-tab" onclick="switchSettingsTab('integrations')">Integrations</button>
+                <button class="settings-tab" onclick="switchSettingsTab('advanced')">Advanced</button>
+            </div>
+
+            <!-- General Settings -->
+            <div id="settings-general" class="settings-panel active">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">🏢 General Settings</h3>
+
+                    <div class="form-group">
+                        <label>Business Name</label>
+                        <input type="text" id="businessName" placeholder="Your Business Name">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Currency</label>
+                        <select id="currencySelect">
+                            <option value="INR">₹ INR - Indian Rupee</option>
+                            <option value="USD">$ USD - US Dollar</option>
+                            <option value="EUR">€ EUR - Euro</option>
+                            <option value="GBP">£ GBP - British Pound</option>
+                            <option value="AED">د.إ AED - UAE Dirham</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Time Zone</label>
+                        <select id="timezoneSelect">
+                            <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                            <option value="America/New_York">America/New_York (EST)</option>
+                            <option value="Europe/London">Europe/London (GMT)</option>
+                            <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date Format</label>
+                        <select id="dateFormatSelect">
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveGeneralSettings()">💾 Save General Settings</button>
+                </div>
+            </div>
+
+            <!-- Business Info Settings -->
+            <div id="settings-business" class="settings-panel">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">📇 Business Information</h3>
+
+                    <div class="form-group">
+                        <label>Contact Email</label>
+                        <input type="email" id="businessEmail" placeholder="contact@yourbusiness.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="tel" id="businessPhone" placeholder="+91 1234567890">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Business Address</label>
+                        <textarea id="businessAddress" rows="3" placeholder="Full business address"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tax/GST Number</label>
+                        <input type="text" id="businessGST" placeholder="GST Number">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Website</label>
+                        <input type="url" id="businessWebsite" placeholder="https://www.yourbusiness.com">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveBusinessSettings()">💾 Save Business Info</button>
+                </div>
+            </div>
+
+            <!-- Notifications Settings -->
+            <div id="settings-notifications" class="settings-panel">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">🔔 Notification Preferences</h3>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Email Notifications</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Receive email updates for bookings and payments</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="emailNotifications" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>WhatsApp Notifications</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Get WhatsApp alerts for important updates</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="whatsappNotifications" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Payment Reminders</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Auto-send payment reminder to guests</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="paymentReminders" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Booking Confirmations</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Auto-send booking confirmation to guests</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="bookingConfirmations" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Daily Summary</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Receive daily summary of bookings and revenue</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="dailySummary">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveNotificationSettings()">💾 Save Notification Settings</button>
+                </div>
+            </div>
+
+            <!-- Integrations Settings -->
+            <div id="settings-integrations" class="settings-panel">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">🔌 Integrations</h3>
+
+                    <div class="integration-card">
+                        <div class="integration-header">
+                            <div>
+                                <h4>📧 Email Integration</h4>
+                                <p style="font-size: 13px; color: var(--text-secondary);">Connect your email for automated communications</p>
+                            </div>
+                            <span class="badge badge-warning">Not Connected</span>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="alert('Email integration coming soon!')">Configure</button>
+                    </div>
+
+                    <div class="integration-card">
+                        <div class="integration-header">
+                            <div>
+                                <h4>💬 WhatsApp Business API</h4>
+                                <p style="font-size: 13px; color: var(--text-secondary);">Send automated WhatsApp messages to guests</p>
+                            </div>
+                            <span class="badge badge-warning">Not Connected</span>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="alert('WhatsApp integration coming soon!')">Configure</button>
+                    </div>
+
+                    <div class="integration-card">
+                        <div class="integration-header">
+                            <div>
+                                <h4>💳 Payment Gateway</h4>
+                                <p style="font-size: 13px; color: var(--text-secondary);">Accept online payments from guests</p>
+                            </div>
+                            <span class="badge badge-warning">Not Connected</span>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="alert('Payment gateway integration coming soon!')">Configure</button>
+                    </div>
+
+                    <div class="integration-card">
+                        <div class="integration-header">
+                            <div>
+                                <h4>📆 Calendar Sync</h4>
+                                <p style="font-size: 13px; color: var(--text-secondary);">Sync with Google Calendar, Airbnb, Booking.com</p>
+                            </div>
+                            <span class="badge badge-warning">Not Connected</span>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="alert('Calendar sync coming soon!')">Configure</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Settings -->
+            <div id="settings-advanced" class="settings-panel">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">🔧 Advanced Settings</h3>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Enable PWA Mode</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Install app on home screen for offline access</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="pwaMode" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Auto Backup</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Automatically backup data to cloud</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="autoBackup" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Developer Mode</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Enable advanced debugging features</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="developerMode">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+
+                    <h4 style="margin-bottom: 16px; color: var(--text-primary);">Data Management</h4>
+
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                        <button class="btn btn-secondary" onclick="exportAllData()">📥 Export All Data</button>
+                        <button class="btn btn-secondary" onclick="importData()">📤 Import Data</button>
+                    </div>
+
+                    <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+
+                    <h4 style="margin-bottom: 16px; color: var(--danger);">Danger Zone</h4>
+
+                    <div style="background: rgba(239, 68, 68, 0.1); padding: 16px; border-radius: 8px; border-left: 3px solid var(--danger);">
+                        <p style="font-size: 14px; margin-bottom: 12px;">⚠️ Clearing data will permanently delete all your reservations, guests, payments, and settings. This action cannot be undone.</p>
+                        <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Communication View -->
+        <div id="communicationView" class="container hidden">
+            <div class="card-header">
+                <h2>💬 Communication Center</h2>
+                <button class="btn btn-primary" onclick="openComposeModal()">✉️ Compose Message</button>
+            </div>
+
+            <!-- Communication Tabs -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="filter-chip active" onclick="filterCommunications('all')">All Messages</button>
+                    <button class="filter-chip" onclick="filterCommunications('whatsapp')">💬 WhatsApp</button>
+                    <button class="filter-chip" onclick="filterCommunications('email')">📧 Email</button>
+                    <button class="filter-chip" onclick="filterCommunications('sms')">📱 SMS</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="margin-bottom: 16px;">⚡ Quick Templates</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <button class="btn btn-secondary" onclick="sendTemplate('booking-confirmation')">
+                        ✅ Booking Confirmation
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendTemplate('payment-reminder')">
+                        💰 Payment Reminder
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendTemplate('check-in')">
+                        🔑 Check-in Details
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendTemplate('check-out')">
+                        👋 Check-out Thank You
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendTemplate('review-request')">
+                        ⭐ Review Request
+                    </button>
+                    <button class="btn btn-secondary" onclick="sendTemplate('custom')">
+                        ✏️ Custom Message
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message History -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">📬 Recent Messages</h3>
+                <div id="messageHistory">
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                        <h3 style="margin-bottom: 8px;">No messages yet</h3>
+                        <p>Start communicating with your guests using the quick templates above</p>
                     </div>
                 </div>
             </div>
@@ -7896,13 +8358,6 @@
         }
 
         // Mobile Navigation
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('mobileSidebar');
-            const overlay = document.getElementById('mobileOverlay');
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
         function showViewMobile(viewName) {
             showView(viewName);
             toggleMobileSidebar();
@@ -8357,7 +8812,209 @@
             if (viewName === 'performance') initializePerformanceView();
             if (viewName === 'businessIntelligence') loadBusinessIntelligence();
             if (viewName === 'team') loadTeam();
+            if (viewName === 'settings') loadSettings();
+            if (viewName === 'communication') loadCommunication();
 
+        }
+
+        // Settings Functions
+        function switchSettingsTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.settings-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update panels
+            document.querySelectorAll('.settings-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`settings-${tabName}`).classList.add('active');
+        }
+
+        function loadSettings() {
+            // Load saved settings from localStorage
+            try {
+                const businessName = localStorage.getItem('businessName');
+                const currency = localStorage.getItem('currency') || 'INR';
+                const timezone = localStorage.getItem('timezone') || 'Asia/Kolkata';
+                const dateFormat = localStorage.getItem('dateFormat') || 'DD/MM/YYYY';
+
+                if (businessName) document.getElementById('businessName').value = businessName;
+                if (currency) document.getElementById('currencySelect').value = currency;
+                if (timezone) document.getElementById('timezoneSelect').value = timezone;
+                if (dateFormat) document.getElementById('dateFormatSelect').value = dateFormat;
+
+                // Load business info
+                const businessEmail = localStorage.getItem('businessEmail');
+                const businessPhone = localStorage.getItem('businessPhone');
+                const businessAddress = localStorage.getItem('businessAddress');
+                const businessGST = localStorage.getItem('businessGST');
+                const businessWebsite = localStorage.getItem('businessWebsite');
+
+                if (businessEmail) document.getElementById('businessEmail').value = businessEmail;
+                if (businessPhone) document.getElementById('businessPhone').value = businessPhone;
+                if (businessAddress) document.getElementById('businessAddress').value = businessAddress;
+                if (businessGST) document.getElementById('businessGST').value = businessGST;
+                if (businessWebsite) document.getElementById('businessWebsite').value = businessWebsite;
+
+                // Load notification settings
+                const emailNotif = localStorage.getItem('emailNotifications') !== 'false';
+                const whatsappNotif = localStorage.getItem('whatsappNotifications') !== 'false';
+                const paymentRem = localStorage.getItem('paymentReminders') !== 'false';
+                const bookingConf = localStorage.getItem('bookingConfirmations') !== 'false';
+                const dailySum = localStorage.getItem('dailySummary') === 'true';
+
+                document.getElementById('emailNotifications').checked = emailNotif;
+                document.getElementById('whatsappNotifications').checked = whatsappNotif;
+                document.getElementById('paymentReminders').checked = paymentRem;
+                document.getElementById('bookingConfirmations').checked = bookingConf;
+                document.getElementById('dailySummary').checked = dailySum;
+
+                // Load advanced settings
+                document.getElementById('pwaMode').checked = true;
+                document.getElementById('autoBackup').checked = localStorage.getItem('autoBackup') !== 'false';
+                document.getElementById('developerMode').checked = localStorage.getItem('developerMode') === 'true';
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        function saveGeneralSettings() {
+            try {
+                localStorage.setItem('businessName', document.getElementById('businessName').value);
+                localStorage.setItem('currency', document.getElementById('currencySelect').value);
+                localStorage.setItem('timezone', document.getElementById('timezoneSelect').value);
+                localStorage.setItem('dateFormat', document.getElementById('dateFormatSelect').value);
+
+                showToast('✅ Settings Saved', 'General settings saved successfully', '⚙️');
+            } catch (error) {
+                showToast('❌ Error', 'Failed to save settings', '⚠️');
+            }
+        }
+
+        function saveBusinessSettings() {
+            try {
+                localStorage.setItem('businessEmail', document.getElementById('businessEmail').value);
+                localStorage.setItem('businessPhone', document.getElementById('businessPhone').value);
+                localStorage.setItem('businessAddress', document.getElementById('businessAddress').value);
+                localStorage.setItem('businessGST', document.getElementById('businessGST').value);
+                localStorage.setItem('businessWebsite', document.getElementById('businessWebsite').value);
+
+                showToast('✅ Settings Saved', 'Business info saved successfully', '📇');
+            } catch (error) {
+                showToast('❌ Error', 'Failed to save business info', '⚠️');
+            }
+        }
+
+        function saveNotificationSettings() {
+            try {
+                localStorage.setItem('emailNotifications', document.getElementById('emailNotifications').checked);
+                localStorage.setItem('whatsappNotifications', document.getElementById('whatsappNotifications').checked);
+                localStorage.setItem('paymentReminders', document.getElementById('paymentReminders').checked);
+                localStorage.setItem('bookingConfirmations', document.getElementById('bookingConfirmations').checked);
+                localStorage.setItem('dailySummary', document.getElementById('dailySummary').checked);
+
+                showToast('✅ Settings Saved', 'Notification preferences saved', '🔔');
+            } catch (error) {
+                showToast('❌ Error', 'Failed to save notification settings', '⚠️');
+            }
+        }
+
+        function exportAllData() {
+            try {
+                const data = {
+                    reservations: window.reservations || [],
+                    guests: window.guests || [],
+                    properties: window.properties || [],
+                    payments: window.payments || [],
+                    meals: window.meals || [],
+                    exportDate: new Date().toISOString()
+                };
+
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `resiq-backup-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+
+                URL.revokeObjectURL(url);
+                showToast('✅ Export Complete', 'Data exported successfully', '📥');
+            } catch (error) {
+                showToast('❌ Error', 'Failed to export data', '⚠️');
+            }
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                try {
+                    const file = e.target.files[0];
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+
+                    if (confirm('⚠️ This will replace all existing data. Continue?')) {
+                        if (data.reservations) localStorage.setItem('reservations', JSON.stringify(data.reservations));
+                        if (data.guests) localStorage.setItem('guests', JSON.stringify(data.guests));
+                        if (data.properties) localStorage.setItem('properties', JSON.stringify(data.properties));
+                        if (data.payments) localStorage.setItem('payments', JSON.stringify(data.payments));
+                        if (data.meals) localStorage.setItem('meals', JSON.stringify(data.meals));
+
+                        showToast('✅ Import Complete', 'Data imported successfully. Refreshing...', '📤');
+                        setTimeout(() => location.reload(), 2000);
+                    }
+                } catch (error) {
+                    showToast('❌ Error', 'Failed to import data', '⚠️');
+                }
+            };
+            input.click();
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Are you ABSOLUTELY sure? This will delete ALL your data permanently!')) {
+                if (confirm('⚠️ Final confirmation: Delete everything?')) {
+                    localStorage.clear();
+                    showToast('✅ Data Cleared', 'All data has been cleared. Refreshing...', '🗑️');
+                    setTimeout(() => location.reload(), 2000);
+                }
+            }
+        }
+
+        // Communication Functions
+        function loadCommunication() {
+            // Future implementation for loading message history
+            console.log('Communication view loaded');
+        }
+
+        function openComposeModal() {
+            showToast('Coming Soon', 'Message composition feature coming soon!', '✉️');
+        }
+
+        function filterCommunications(type) {
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            showToast('Filter Applied', `Showing ${type} messages`, '🔍');
+        }
+
+        function sendTemplate(templateType) {
+            const templates = {
+                'booking-confirmation': '✅ Booking confirmed!',
+                'payment-reminder': '💰 Payment reminder',
+                'check-in': '🔑 Check-in details',
+                'check-out': '👋 Thank you for staying',
+                'review-request': '⭐ Please leave a review',
+                'custom': '✏️ Custom message'
+            };
+
+            showToast('Template Selected', templates[templateType] || 'Template selected', '📝');
         }
         function renderBookingTypeBreakdown(reservations, targetId) {
         const bookingTypes = {};
@@ -19805,32 +20462,6 @@
             if (banner && !isInstalled) {
                 banner.style.display = 'block';
             }
-        }
-
-        // Install PWA
-        async function installPWA() {
-            if (!deferredPrompt) {
-                console.log('❌ No install prompt available');
-                return;
-            }
-
-            // Show the install prompt
-            deferredPrompt.prompt();
-
-            // Wait for user response
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response: ${outcome}`);
-
-            if (outcome === 'accepted') {
-                console.log('✅ PWA installed');
-                isInstalled = true;
-            }
-
-            // Clear the prompt
-            deferredPrompt = null;
-            
-            // Hide banner
-            document.getElementById('pwaInstallBanner').style.display = 'none';
         }
 
         // Dismiss install banner
