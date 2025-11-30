@@ -462,6 +462,104 @@
             font-weight: 700;
         }
 
+        /* Global Search */
+        .navbar-search {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 24px;
+            position: relative;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            font-size: 16px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 40px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            background: var(--background);
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .search-clear:hover {
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .search-result-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .search-result-item:hover {
+            background: var(--background);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .search-result-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
         .navbar-menu {
             display: flex;
             gap: 16px;
@@ -1327,7 +1425,12 @@
         .sidebar-item.active {
             background: var(--primary);
             color: white;
-            border-left: 2px solid var(--primary-dark);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+            transform: translateX(2px);
+        }
+
+        .sidebar-item.active .sidebar-item-icon {
+            transform: scale(1.1);
         }
 
         .sidebar-item-icon {
@@ -1340,6 +1443,61 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        /* Sidebar Categories */
+        .sidebar-category {
+            margin: 8px 0;
+        }
+
+        .sidebar-category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .sidebar-category-header:hover {
+            background: var(--background-alt);
+        }
+
+        .sidebar-category-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .sidebar-category-arrow {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-category.collapsed .sidebar-category-arrow {
+            transform: rotate(-90deg);
+        }
+
+        .sidebar-category-items {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 0 0 0 8px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+        }
+
+        .sidebar-category-items.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .sidebar-category .sidebar-item {
+            padding: 10px 12px;
+            margin: 2px 0;
         }
 
         .sidebar-footer {
@@ -1897,6 +2055,7 @@
             .mobile-nav-item.active {
                 color: var(--primary);
                 font-weight: 600;
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
             }
 
             .mobile-nav-item.active::before {
@@ -1905,17 +2064,97 @@
                 top: 0;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 32px;
+                width: 40px;
                 height: 3px;
-                background: var(--primary);
-                border-radius: 0 0 3px 3px;
+                background: var(--gradient-primary);
+                border-radius: 0 0 6px 6px;
+                box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            }
+
+            .mobile-nav-item.active .mobile-nav-icon {
+                transform: scale(1.1);
             }
             
             .mobile-nav-icon {
                 font-size: 20px;
-                margin-bottom: 4px;
             }
-            
+
+            .mobile-nav-label {
+                font-size: 11px;
+            }
+
+            /* Floating Action Button (FAB) */
+            .mobile-nav-fab {
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: var(--gradient-primary);
+                border: 4px solid white;
+                box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                margin: -28px 0 0 0;
+                flex-shrink: 0;
+                animation: fabPulse 2s ease-in-out infinite;
+            }
+
+            .mobile-nav-fab::before {
+                content: '';
+                position: absolute;
+                top: -4px;
+                left: -4px;
+                right: -4px;
+                bottom: -4px;
+                border-radius: 50%;
+                background: var(--primary);
+                opacity: 0;
+                animation: fabRipple 2s ease-in-out infinite;
+                z-index: -1;
+            }
+
+            @keyframes fabPulse {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            @keyframes fabRipple {
+                0% {
+                    opacity: 0;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.3;
+                    transform: scale(1.2);
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(1.4);
+                }
+            }
+
+            .mobile-nav-fab:hover {
+                animation: none;
+                transform: scale(1.1);
+                box-shadow: 0 12px 24px rgba(99, 102, 241, 0.5);
+            }
+
+            .mobile-nav-fab:active {
+                transform: scale(0.95);
+            }
+
+            .mobile-nav-fab-icon {
+                font-size: 24px;
+                filter: brightness(0) invert(1);
+            }
+
             .mobile-header {
                 display: block;
             }
@@ -3879,6 +4118,16 @@
                     <img src="assets/logo-132.png" alt="ResIQ" class="navbar-logo">
                 </div>
 
+                <!-- Global Search Bar -->
+                <div class="navbar-search">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="globalSearch" class="search-input" placeholder="Search bookings, guests, properties..." onkeyup="handleGlobalSearch(event)">
+                        <button class="search-clear" id="searchClear" onclick="clearGlobalSearch()" style="display: none;">✕</button>
+                    </div>
+                    <div class="search-results" id="searchResults" style="display: none;"></div>
+                </div>
+
                 <!-- Spacer -->
                 <div style="flex: 1;"></div>
 
@@ -3912,79 +4161,91 @@
         <aside class="sidebar">
             <!-- Main Navigation Menu -->
             <div class="sidebar-menu">
-                <div class="sidebar-title">Navigation</div>
-                
+                <!-- Home -->
+                <a class="sidebar-item" onclick="showView('home')">
+                    <span class="sidebar-item-icon">🏠</span>
+                    <span class="sidebar-item-label">Home</span>
+                </a>
+
                 <!-- Dashboard -->
                 <a class="sidebar-item active" onclick="showView('dashboard')">
                     <span class="sidebar-item-icon">📊</span>
                     <span class="sidebar-item-label">Dashboard</span>
                 </a>
 
-                <!-- Reservations -->
-                <a class="sidebar-item" onclick="showView('reservations')">
-                    <span class="sidebar-item-icon">📅</span>
-                    <span class="sidebar-item-label">Reservations</span>
-                </a>
+                <!-- Operations Category -->
+                <div class="sidebar-category">
+                    <div class="sidebar-category-header" onclick="toggleSidebarCategory('operations')">
+                        <span class="sidebar-category-title">🎯 Operations</span>
+                        <span class="sidebar-category-arrow">▼</span>
+                    </div>
+                    <div class="sidebar-category-items" id="sidebar-operations" style="display: block;">
+                        <a class="sidebar-item" onclick="showView('reservations')">
+                            <span class="sidebar-item-icon">📅</span>
+                            <span class="sidebar-item-label">Reservations</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('guests')">
+                            <span class="sidebar-item-icon">👥</span>
+                            <span class="sidebar-item-label">Guests</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('meals')">
+                            <span class="sidebar-item-icon">🍽️</span>
+                            <span class="sidebar-item-label">Meals</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('availability')">
+                            <span class="sidebar-item-icon">📆</span>
+                            <span class="sidebar-item-label">Availability</span>
+                        </a>
+                    </div>
+                </div>
 
-                <!-- Guests -->
-                <a class="sidebar-item" onclick="showView('guests')">
-                    <span class="sidebar-item-icon">👥</span>
-                    <span class="sidebar-item-label">Guests</span>
-                </a>
+                <!-- Finance & Analytics Category -->
+                <div class="sidebar-category">
+                    <div class="sidebar-category-header" onclick="toggleSidebarCategory('finance')">
+                        <span class="sidebar-category-title">💼 Finance & Analytics</span>
+                        <span class="sidebar-category-arrow">▼</span>
+                    </div>
+                    <div class="sidebar-category-items" id="sidebar-finance" style="display: block;">
+                        <a class="sidebar-item" onclick="showView('payments')">
+                            <span class="sidebar-item-icon">💰</span>
+                            <span class="sidebar-item-label">Payments</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('performance')">
+                            <span class="sidebar-item-icon">📈</span>
+                            <span class="sidebar-item-label">Analytics</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('businessIntelligence')">
+                            <span class="sidebar-item-icon">🧠</span>
+                            <span class="sidebar-item-label">Business Intelligence</span>
+                        </a>
+                    </div>
+                </div>
 
-                <!-- Payments -->
-                <a class="sidebar-item" onclick="showView('payments')">
-                    <span class="sidebar-item-icon">💰</span>
-                    <span class="sidebar-item-label">Payments</span>
-                </a>
-
-                <!-- Meals -->
-                <a class="sidebar-item" onclick="showView('meals')">
-                    <span class="sidebar-item-icon">🍽️</span>
-                    <span class="sidebar-item-label">Meals</span>
-                </a>
-
-                <!-- Properties -->
-                <a class="sidebar-item" onclick="showView('properties')">
-                    <span class="sidebar-item-icon">🏘️</span>
-                    <span class="sidebar-item-label">Properties</span>
-                </a>
-
-                <!-- Documents -->
-                <a class="sidebar-item" onclick="showView('guestDocuments')">
-                    <span class="sidebar-item-icon">📄</span>
-                    <span class="sidebar-item-label">Documents</span>
-                </a>
-
-                <!-- Performance -->
-                <a class="sidebar-item" onclick="showView('performance')">
-                    <span class="sidebar-item-icon">📈</span>
-                    <span class="sidebar-item-label">Analytics</span>
-                </a>
-
-                <!-- Business Intelligence -->
-                <a class="sidebar-item" onclick="showView('businessIntelligence')">
-                    <span class="sidebar-item-icon">🧠</span>
-                    <span class="sidebar-item-label">Business Intelligence</span>
-                </a>
-
-                <!-- Availability -->
-                <a class="sidebar-item" onclick="showView('availability')">
-                    <span class="sidebar-item-icon">📆</span>
-                    <span class="sidebar-item-label">Availability</span>
-                </a>
-
-                <!-- Team -->
-                <a class="sidebar-item" onclick="showView('team')">
-                    <span class="sidebar-item-icon">👨‍💼</span>
-                    <span class="sidebar-item-label">Team</span>
-                </a>
+                <!-- Management Category -->
+                <div class="sidebar-category">
+                    <div class="sidebar-category-header" onclick="toggleSidebarCategory('management')">
+                        <span class="sidebar-category-title">⚙️ Management</span>
+                        <span class="sidebar-category-arrow">▼</span>
+                    </div>
+                    <div class="sidebar-category-items" id="sidebar-management" style="display: block;">
+                        <a class="sidebar-item" onclick="showView('properties')">
+                            <span class="sidebar-item-icon">🏘️</span>
+                            <span class="sidebar-item-label">Properties</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('guestDocuments')">
+                            <span class="sidebar-item-icon">📄</span>
+                            <span class="sidebar-item-label">Documents</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('team')">
+                            <span class="sidebar-item-icon">👨‍💼</span>
+                            <span class="sidebar-item-label">Team</span>
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- Sidebar Footer (Settings & Support) -->
             <div class="sidebar-footer">
-                <div class="sidebar-title" style="padding: 0 16px;">More</div>
-                
                 <!-- Settings -->
                 <a class="sidebar-item" onclick="showView('settings')">
                     <span class="sidebar-item-icon">⚙️</span>
@@ -4114,27 +4375,23 @@
             <div class="mobile-nav-items">
                 <a class="mobile-nav-item" onclick="showView('home')">
                     <div class="mobile-nav-icon">🏠</div>
-                    <div>Home</div>
+                    <div class="mobile-nav-label">Home</div>
                 </a>
                 <a class="mobile-nav-item" onclick="showView('reservations')">
                     <div class="mobile-nav-icon">📅</div>
-                    <div>Bookings</div>
+                    <div class="mobile-nav-label">Bookings</div>
                 </a>
-                <a class="mobile-nav-item" onclick="showView('guests')">
-                    <div class="mobile-nav-icon">👥</div>
-                    <div>Guests</div>
-                </a>
-                <a class="mobile-nav-item" onclick="showView('meals')">
-                    <div class="mobile-nav-icon">🍽️</div>
-                    <div>Meals</div>
-                </a>
+                <!-- Floating Action Button (FAB) -->
+                <button class="mobile-nav-fab" onclick="openReservationModal()" title="New Booking">
+                    <div class="mobile-nav-fab-icon">➕</div>
+                </button>
                 <a class="mobile-nav-item" onclick="showView('payments')">
                     <div class="mobile-nav-icon">💰</div>
-                    <div>Payments</div>
+                    <div class="mobile-nav-label">Payments</div>
                 </a>
-                <a class="mobile-nav-item" onclick="showView('performance')">
-                    <div class="mobile-nav-icon">📈</div>
-                    <div>Performance</div>
+                <a class="mobile-nav-item" onclick="showView('guestDocuments')">
+                    <div class="mobile-nav-icon">📄</div>
+                    <div class="mobile-nav-label">Documents</div>
                 </a>
             </div>
         </div>
@@ -4142,216 +4399,457 @@
         <!-- Home Screen / Icon Dashboard -->
         <div id="homeView" class="container hidden" style="animation: fadeIn 0.6s ease-out;">
             <!-- Welcome Header -->
-            <div style="
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 16px;
-                padding: 32px;
-                margin-bottom: 32px;
-                color: white;
-                position: relative;
-                overflow: hidden;
-            ">
+            <div class="home-welcome-header">
                 <div style="position: relative; z-index: 1;">
-                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;" id="greetingTime">Good Morning</div>
-                    <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 4px;" id="greetingUser">Welcome Back!</h1>
-                    <p style="opacity: 0.9; font-size: 14px;">Here's your business overview</p>
+                    <div class="home-greeting-time" id="greetingTime">Good Morning</div>
+                    <h1 class="home-greeting-user" id="greetingUser">Welcome Back!</h1>
+                    <p class="home-greeting-subtitle">Here's what's happening today</p>
                 </div>
-                <div style="
-                    position: absolute;
-                    right: -20px;
-                    bottom: -20px;
-                    font-size: 120px;
-                    opacity: 0.1;
-                ">👋</div>
+                <div class="home-welcome-icon">👋</div>
             </div>
 
-            <!-- Quick Stats Cards Grid -->
-            <div style="
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-                gap: 16px;
-                margin-bottom: 32px;
-            ">
-                <!-- Dashboard Card -->
-                <div class="icon-card" onclick="showView('dashboard')" style="animation: cardPop 0.5s ease-out 0.1s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        📊
-                    </div>
-                    <div class="icon-card-title">Dashboard</div>
-                    <div class="icon-card-stat" id="homeStatReservations">--</div>
-                    <div class="icon-card-label">Total Bookings</div>
+            <!-- Today's Overview - Priority Stats -->
+            <div class="home-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">📊 Today's Overview</h2>
                 </div>
-
-                <!-- Reservations Card -->
-                <div class="icon-card" onclick="showView('reservations')" style="animation: cardPop 0.5s ease-out 0.2s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        📅
+                <div class="today-stats-grid">
+                    <div class="today-stat-card">
+                        <div class="today-stat-value" id="homeStatActive">--</div>
+                        <div class="today-stat-label">Active Bookings</div>
+                        <div class="today-stat-icon">📅</div>
                     </div>
-                    <div class="icon-card-title">Reservations</div>
-                    <div class="icon-card-stat" id="homeStatActive">--</div>
-                    <div class="icon-card-label">Active Now</div>
-                </div>
-
-                <!-- Payments Card -->
-                <div class="icon-card" onclick="showView('payments')" style="animation: cardPop 0.5s ease-out 0.3s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                        💰
+                    <div class="today-stat-card">
+                        <div class="today-stat-value" id="homeStatPending">--</div>
+                        <div class="today-stat-label">Pending Payments</div>
+                        <div class="today-stat-icon">💰</div>
                     </div>
-                    <div class="icon-card-title">Payments</div>
-                    <div class="icon-card-stat" id="homeStatPending">--</div>
-                    <div class="icon-card-label">Pending</div>
-                </div>
-
-                <!-- Availability Card -->
-                <div class="icon-card" onclick="showView('availability')" style="animation: cardPop 0.5s ease-out 0.4s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-                        🗓️
+                    <div class="today-stat-card">
+                        <div class="today-stat-value" id="homeStatDocuments">--</div>
+                        <div class="today-stat-label">Documents to Review</div>
+                        <div class="today-stat-icon">📋</div>
                     </div>
-                    <div class="icon-card-title">Availability</div>
-                    <div class="icon-card-stat" id="homeStatUpcoming">--</div>
-                    <div class="icon-card-label">Upcoming</div>
-                </div>
-
-                <!-- Properties Card -->
-                <div class="icon-card" onclick="showView('properties')" style="animation: cardPop 0.5s ease-out 0.5s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
-                        🏠
+                    <div class="today-stat-card">
+                        <div class="today-stat-value" id="homeStatRevenue">--</div>
+                        <div class="today-stat-label">Revenue (Month)</div>
+                        <div class="today-stat-icon">💵</div>
                     </div>
-                    <div class="icon-card-title">Properties</div>
-                    <div class="icon-card-stat" id="homeStatProperties">--</div>
-                    <div class="icon-card-label">Total Properties</div>
-                </div>
-
-                <!-- Guests Card -->
-                <div class="icon-card" onclick="showView('guests')" style="animation: cardPop 0.5s ease-out 0.6s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
-                        👥
-                    </div>
-                    <div class="icon-card-title">Guests</div>
-                    <div class="icon-card-stat" id="homeStatGuests">--</div>
-                    <div class="icon-card-label">Total Guests</div>
-                </div>
-
-                <!-- Performance Card -->
-                <div class="icon-card" onclick="showView('performance')" style="animation: cardPop 0.5s ease-out 0.7s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-                        📈
-                    </div>
-                    <div class="icon-card-title">Performance</div>
-                    <div class="icon-card-stat" id="homeStatRevenue">--</div>
-                    <div class="icon-card-label">This Month</div>
-                </div>
-
-                <!-- Guest Documents Card -->
-                <div class="icon-card" onclick="showView('guestDocuments')" style="animation: cardPop 0.5s ease-out 0.8s both;">
-                    <div class="icon-card-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                        📋
-                    </div>
-                    <div class="icon-card-title">Documents</div>
-                    <div class="icon-card-stat" id="homeStatDocuments">--</div>
-                    <div class="icon-card-label">Pending Review</div>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div style="
-                background: white;
-                border-radius: 16px;
-                padding: 24px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                margin-bottom: 32px;
-            ">
-                <h3 style="margin-bottom: 16px; font-size: 18px; font-weight: 600;">⚡ Quick Actions</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                    <button class="btn btn-primary" onclick="openReservationModal()" style="justify-content: center;">
-                        ➕ New Booking
+            <!-- Quick Actions - Prominent -->
+            <div class="home-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">⚡ Quick Actions</h2>
+                </div>
+                <div class="quick-actions-grid">
+                    <button class="quick-action-card" onclick="openReservationModal()">
+                        <div class="quick-action-icon" style="background: var(--gradient-primary);">➕</div>
+                        <div class="quick-action-title">New Booking</div>
+                        <div class="quick-action-desc">Create reservation</div>
                     </button>
-                    <button class="btn btn-secondary" onclick="openMultiPaymentModal()" style="justify-content: center;">
-                        💰 Add Payments
+                    <button class="quick-action-card" onclick="openMultiPaymentModal()">
+                        <div class="quick-action-icon" style="background: var(--gradient-success);">💰</div>
+                        <div class="quick-action-title">Add Payment</div>
+                        <div class="quick-action-desc">Record transaction</div>
                     </button>
-                    <button class="btn btn-secondary" onclick="openPropertyModal()" style="justify-content: center;">
-                        🏠 Add Property
+                    <button class="quick-action-card" onclick="showView('guestDocuments')">
+                        <div class="quick-action-icon" style="background: var(--gradient-danger);">📄</div>
+                        <div class="quick-action-title">Review Docs</div>
+                        <div class="quick-action-desc">Check documents</div>
                     </button>
+                    <button class="quick-action-card" onclick="openPropertyModal()">
+                        <div class="quick-action-icon" style="background: var(--gradient-purple);">🏠</div>
+                        <div class="quick-action-title">Add Property</div>
+                        <div class="quick-action-desc">New property</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Operations Category -->
+            <div class="home-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">🎯 Operations</h2>
+                    <span class="home-section-subtitle">Daily management</span>
+                </div>
+                <div class="category-grid">
+                    <div class="category-card" onclick="showView('reservations')">
+                        <div class="category-card-icon" style="background: var(--gradient-success);">📅</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Reservations</div>
+                            <div class="category-card-stat" id="homeStatReservations">-- bookings</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('guests')">
+                        <div class="category-card-icon" style="background: var(--gradient-ocean);">👥</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Guests</div>
+                            <div class="category-card-stat" id="homeStatGuests">-- guests</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('meals')">
+                        <div class="category-card-icon" style="background: var(--gradient-warning);">🍽️</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Meals</div>
+                            <div class="category-card-stat">Meal planning</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('availability')">
+                        <div class="category-card-icon" style="background: var(--gradient-primary);">📆</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Availability</div>
+                            <div class="category-card-stat" id="homeStatUpcoming">-- upcoming</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finance Category -->
+            <div class="home-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">💼 Finance & Analytics</h2>
+                    <span class="home-section-subtitle">Track performance</span>
+                </div>
+                <div class="category-grid">
+                    <div class="category-card" onclick="showView('payments')">
+                        <div class="category-card-icon" style="background: var(--gradient-warning);">💰</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Payments</div>
+                            <div class="category-card-stat">Payment tracking</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('performance')">
+                        <div class="category-card-icon" style="background: var(--gradient-purple);">📈</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Analytics</div>
+                            <div class="category-card-stat">Performance metrics</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('businessIntelligence')">
+                        <div class="category-card-icon" style="background: var(--gradient-primary);">🧠</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Business Intelligence</div>
+                            <div class="category-card-stat">Deep insights</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Category -->
+            <div class="home-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">⚙️ Management</h2>
+                    <span class="home-section-subtitle">Settings & admin</span>
+                </div>
+                <div class="category-grid">
+                    <div class="category-card" onclick="showView('properties')">
+                        <div class="category-card-icon" style="background: var(--gradient-danger);">🏠</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Properties</div>
+                            <div class="category-card-stat" id="homeStatProperties">-- properties</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('guestDocuments')">
+                        <div class="category-card-icon" style="background: var(--gradient-danger);">📋</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Documents</div>
+                            <div class="category-card-stat">Document review</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('team')">
+                        <div class="category-card-icon" style="background: var(--gradient-ocean);">👨‍💼</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Team</div>
+                            <div class="category-card-stat">Team management</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
                 </div>
             </div>
 
             <!-- Recent Activity -->
-            <div style="
-                background: white;
-                border-radius: 16px;
-                padding: 24px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            ">
-                <h3 style="margin-bottom: 16px; font-size: 18px; font-weight: 600;">🕐 Recent Activity</h3>
-                <div id="recentActivityList" style="font-size: 14px; color: #64748b;">
-                    Loading activity...
+            <div class="home-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">🕐 Recent Activity</h2>
+                </div>
+                <div class="recent-activity-card">
+                    <div id="recentActivityList" class="recent-activity-list">
+                        Loading activity...
+                    </div>
                 </div>
             </div>
         </div>
 
         <style>
-        .icon-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        /* Home View Styles */
+        .home-welcome-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            color: white;
             position: relative;
             overflow: hidden;
         }
 
-        .icon-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .icon-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-        }
-
-        .icon-card:hover::before {
-            opacity: 1;
-        }
-
-        .icon-card-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            margin: 0 auto 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .icon-card-title {
+        .home-greeting-time {
             font-size: 14px;
-            font-weight: 600;
-            color: #0f172a;
+            opacity: 0.9;
             margin-bottom: 8px;
         }
 
-        .icon-card-stat {
+        .home-greeting-user {
             font-size: 28px;
             font-weight: 700;
-            color: #0f172a;
+            margin: 0 0 4px 0;
+        }
+
+        .home-greeting-subtitle {
+            opacity: 0.9;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .home-welcome-icon {
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            font-size: 120px;
+            opacity: 0.1;
+        }
+
+        .home-section {
+            margin-bottom: 28px;
+        }
+
+        .home-section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .home-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .home-section-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* Today's Overview Stats */
+        .today-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .today-stat-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px 16px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            border-left: 3px solid var(--primary);
+        }
+
+        .today-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
             margin-bottom: 4px;
         }
 
-        .icon-card-label {
+        .today-stat-label {
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .today-stat-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 24px;
+            opacity: 0.2;
+        }
+
+        /* Quick Actions */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .quick-action-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px 16px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .quick-action-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .quick-action-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .quick-action-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+        }
+
+        .category-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+
+        .category-card:active {
+            transform: scale(0.98);
+        }
+
+        .category-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .category-card-content {
+            flex: 1;
+        }
+
+        .category-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .category-card-stat {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .category-card-arrow {
+            font-size: 24px;
+            color: var(--text-tertiary);
+            font-weight: 300;
+        }
+
+        /* Recent Activity */
+        .recent-activity-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .recent-activity-list {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .home-welcome-header {
+                padding: 24px 20px;
+            }
+
+            .home-greeting-user {
+                font-size: 24px;
+            }
+
+            .home-welcome-icon {
+                font-size: 80px;
+            }
+
+            .today-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .home-section {
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .category-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @keyframes fadeIn {
@@ -4363,19 +4861,14 @@
             }
         }
 
-        @media (max-width: 768px) {
-            .icon-card {
-                padding: 20px 16px;
+        @keyframes cardPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
             }
-            
-            .icon-card-icon {
-                width: 56px;
-                height: 56px;
-                font-size: 28px;
-            }
-            
-            .icon-card-stat {
-                font-size: 24px;
+            to {
+                opacity: 1;
+                transform: scale(1);
             }
         }
         </style>
@@ -7711,16 +8204,136 @@
             }
         }
 
+        // Sidebar Category Toggle
+        function toggleSidebarCategory(categoryId) {
+            const categoryElement = document.getElementById(`sidebar-${categoryId}`).parentElement;
+            const itemsElement = document.getElementById(`sidebar-${categoryId}`);
+            const isCollapsed = itemsElement.style.display === 'none';
+
+            if (isCollapsed) {
+                itemsElement.style.display = 'block';
+                categoryElement.classList.remove('collapsed');
+            } else {
+                itemsElement.style.display = 'none';
+                categoryElement.classList.add('collapsed');
+            }
+        }
+
+        // Global Search
+        function handleGlobalSearch(event) {
+            const searchInput = document.getElementById('globalSearch');
+            const searchResults = document.getElementById('searchResults');
+            const searchClear = document.getElementById('searchClear');
+            const query = searchInput.value.toLowerCase().trim();
+
+            // Show/hide clear button
+            searchClear.style.display = query ? 'block' : 'none';
+
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            // Search across reservations, guests, and properties
+            const results = [];
+
+            // Search reservations
+            if (window.reservations) {
+                window.reservations.forEach(reservation => {
+                    if (reservation.guest_name?.toLowerCase().includes(query) ||
+                        reservation.property_name?.toLowerCase().includes(query) ||
+                        reservation.booking_id?.toLowerCase().includes(query)) {
+                        results.push({
+                            type: 'reservation',
+                            title: `${reservation.guest_name} - ${reservation.property_name}`,
+                            meta: `Booking #${reservation.booking_id} | ${reservation.status}`,
+                            action: () => {
+                                showView('reservations');
+                                clearGlobalSearch();
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Search guests
+            if (window.guests) {
+                window.guests.forEach(guest => {
+                    if (guest.name?.toLowerCase().includes(query) ||
+                        guest.email?.toLowerCase().includes(query) ||
+                        guest.phone?.toLowerCase().includes(query)) {
+                        results.push({
+                            type: 'guest',
+                            title: guest.name,
+                            meta: `${guest.email || ''} ${guest.phone || ''}`,
+                            action: () => {
+                                showView('guests');
+                                clearGlobalSearch();
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Search properties
+            if (window.properties) {
+                window.properties.forEach(property => {
+                    if (property.name?.toLowerCase().includes(query) ||
+                        property.location?.toLowerCase().includes(query)) {
+                        results.push({
+                            type: 'property',
+                            title: property.name,
+                            meta: `${property.location || ''} | ${property.property_type || ''}`,
+                            action: () => {
+                                showView('properties');
+                                clearGlobalSearch();
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Display results
+            if (results.length > 0) {
+                searchResults.innerHTML = results.slice(0, 8).map(result => `
+                    <div class="search-result-item" onclick='${result.action.toString()}()'>
+                        <div class="search-result-title">${result.title}</div>
+                        <div class="search-result-meta">${result.meta}</div>
+                    </div>
+                `).join('');
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.innerHTML = '<div class="search-result-item"><div class="search-result-title">No results found</div></div>';
+                searchResults.style.display = 'block';
+            }
+        }
+
+        function clearGlobalSearch() {
+            const searchInput = document.getElementById('globalSearch');
+            const searchResults = document.getElementById('searchResults');
+            const searchClear = document.getElementById('searchClear');
+
+            searchInput.value = '';
+            searchResults.style.display = 'none';
+            searchClear.style.display = 'none';
+        }
+
         // View Management
         async function showView(viewName) {
             document.querySelectorAll('.container').forEach(el => el.classList.add('hidden'));
             document.getElementById(`${viewName}View`).classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => {
+
+            // Remove active state from all navigation items
+            document.querySelectorAll('.nav-link, .mobile-nav-item, .sidebar-item').forEach(link => {
                 link.classList.remove('active');
             });
-            
-            if (event && event.target) event.target.classList.add('active');
+
+            // Add active state to matching navigation items
+            document.querySelectorAll(`[onclick*="showView('${viewName}')"]`).forEach(link => {
+                if (link.classList.contains('sidebar-item') || link.classList.contains('mobile-nav-item')) {
+                    link.classList.add('active');
+                }
+            });
             
             // Save current view to localStorage for persistence on refresh
             try {
