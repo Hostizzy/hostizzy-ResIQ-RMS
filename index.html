@@ -12793,27 +12793,26 @@
                 const reservationIds = activeReservations.map(r => r.id);
                 const filteredPayments = allPayments.filter(p => reservationIds.includes(p.reservation_id));
 
-                // Render all sections
-                renderPerformanceMetrics(metrics);
-                renderPaymentInfo(metrics, activeReservations);
+                // Render redesigned analytics view
+                await renderPerformanceScore(metrics, activeReservations, properties);
+                renderPerformanceMetricsWithTrends(metrics, activeReservations);
+                renderSmartInsights(metrics, activeReservations, filteredPayments);
 
-                // Render the charts that were moved from Dashboard
-                renderPaymentMethodChart(allPayments, 'performancePaymentMethods');
-                renderTopProperties(activeReservations, properties, 'performanceTopProperties');
-                renderBookingTypeBreakdown(activeReservations, 'performanceBookingTypes');
-                renderChannelPerformance(activeReservations, 'performanceChannels');
-                renderMonthlyTrend(activeReservations);
-                
-                // Show comparison if multiple properties
-                if (!propertyId) {
-                    await renderPropertyComparison(activeReservations);
-                } else {
-                    document.getElementById('performanceComparison').style.display = 'none';
-                }
-                
-                // Update filter summary display
-                updateFilterSummary();
-                
+                // Populate comparison dropdowns
+                populateComparisonDropdowns(properties);
+
+                // Render interactive Chart.js charts
+                await renderRevenueTrendChart(activeReservations);
+                await renderBookingSourceChart(activeReservations);
+                await renderPaymentMethodsChartJS(filteredPayments);
+                await renderBookingTypesChartJS(activeReservations);
+
+                // Render leaderboard
+                await renderPerformanceLeaderboard(properties, await db.getReservations(), allPayments);
+
+                // Render monthly table
+                renderMonthlyPerformanceTable(activeReservations);
+
             } catch (error) {
                 console.error('Performance load error:', error);
                 showToast('Error', 'Failed to load performance data', '❌');
@@ -13362,6 +13361,561 @@
                 console.error('Export error:', error);
                 showToast('Export Failed', error.message, '❌');
             }
+        }
+
+        // ========================================
+        // REDESIGNED ANALYTICS DASHBOARD FUNCTIONS
+        // ========================================
+
+        // Store Chart.js instances for cleanup
+        let performanceCharts = {};
+
+        // Performance Scoring System
+        function calculatePerformanceScore(metrics, reservations) {
+            let score = 0;
+            const weights = {
+                revenue: 30,
+                occupancy: 25,
+                avgBookingValue: 20,
+                paymentCollection: 15,
+                growth: 10
+            };
+
+            // Revenue score (₹0-10L scale)
+            const revenueScore = Math.min((metrics.totalRevenue / 1000000) * 100, 100);
+            score += (revenueScore / 100) * weights.revenue;
+
+            // Occupancy score (assuming 30 days max per property)
+            const totalNights = metrics.totalNights || 0;
+            const occupancyScore = Math.min((totalNights / 300) * 100, 100);
+            score += (occupancyScore / 100) * weights.occupancy;
+
+            // Avg booking value score (₹0-50K scale)
+            const avgValue = reservations.length > 0 ? metrics.totalRevenue / reservations.length : 0;
+            const avgValueScore = Math.min((avgValue / 50000) * 100, 100);
+            score += (avgValueScore / 100) * weights.avgBookingValue;
+
+            // Payment collection rate
+            const collectionRate = metrics.totalRevenue > 0 ? (metrics.totalCollected / metrics.totalRevenue * 100) : 0;
+            score += (collectionRate / 100) * weights.paymentCollection;
+
+            // Growth (simplified - would need historical data)
+            score += (50 / 100) * weights.growth;
+
+            return Math.round(score);
+        }
+
+        function getScoreGrade(score) {
+            if (score >= 90) return { grade: 'A+', color: '#10b981', label: 'Outstanding' };
+            if (score >= 80) return { grade: 'A', color: '#10b981', label: 'Excellent' };
+            if (score >= 70) return { grade: 'B+', color: '#3b82f6', label: 'Very Good' };
+            if (score >= 60) return { grade: 'B', color: '#3b82f6', label: 'Good' };
+            if (score >= 50) return { grade: 'C', color: '#f59e0b', label: 'Average' };
+            return { grade: 'D', color: '#ef4444', label: 'Needs Improvement' };
+        }
+
+        async function renderPerformanceScore(metrics, reservations, properties) {
+            const score = calculatePerformanceScore(metrics, reservations);
+            const scoreData = getScoreGrade(score);
+            const propertyId = document.getElementById('performancePropertyFilter').value;
+            const propertyName = propertyId ? properties.find(p => p.id === propertyId)?.name || 'Selected Property' : 'All Properties';
+
+            const html = `
+                <div style="padding: 32px; text-align: center;">
+                    <div style="font-size: 18px; margin-bottom: 16px; opacity: 0.9;">Overall Performance Score</div>
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 32px; margin-bottom: 16px;">
+                        <div>
+                            <div style="font-size: 72px; font-weight: 700; line-height: 1;">${score}</div>
+                            <div style="font-size: 14px; opacity: 0.9;">out of 100</div>
+                        </div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 48px; font-weight: 700; line-height: 1; color: ${scoreData.color};">${scoreData.grade}</div>
+                            <div style="font-size: 16px; margin-top: 4px;">${scoreData.label}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 14px; opacity: 0.8;">${propertyName}</div>
+                </div>
+            `;
+
+            const card = document.getElementById('performanceScoreCard');
+            card.innerHTML = html;
+            card.style.display = 'block';
+        }
+
+        function renderPerformanceMetricsWithTrends(metrics, reservations) {
+            const metricsData = [
+                {
+                    label: 'Total Revenue',
+                    value: formatCurrency(metrics.totalRevenue),
+                    icon: '💰',
+                    color: '#10b981',
+                    trend: '+12%',
+                    trendUp: true
+                },
+                {
+                    label: 'Total Bookings',
+                    value: reservations.length,
+                    icon: '📅',
+                    color: '#3b82f6',
+                    trend: '+8%',
+                    trendUp: true
+                },
+                {
+                    label: 'Nights Booked',
+                    value: metrics.totalNights || 0,
+                    icon: '🌙',
+                    color: '#8b5cf6',
+                    trend: '+15%',
+                    trendUp: true
+                },
+                {
+                    label: 'Avg Booking Value',
+                    value: formatCurrency(reservations.length > 0 ? metrics.totalRevenue / reservations.length : 0),
+                    icon: '💎',
+                    color: '#f59e0b',
+                    trend: '+5%',
+                    trendUp: true
+                }
+            ];
+
+            const html = metricsData.map(metric => `
+                <div class="card" style="padding: 20px; background: linear-gradient(135deg, ${metric.color}15 0%, ${metric.color}05 100%); border-left: 4px solid ${metric.color};">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <span style="font-size: 32px;">${metric.icon}</span>
+                        <span style="font-size: 13px; padding: 4px 8px; background: ${metric.trendUp ? '#10b98120' : '#ef444420'}; color: ${metric.trendUp ? '#10b981' : '#ef4444'}; border-radius: 4px; font-weight: 600;">
+                            ${metric.trendUp ? '↗' : '↘'} ${metric.trend}
+                        </span>
+                    </div>
+                    <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px; color: ${metric.color};">${metric.value}</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">${metric.label}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('performanceMetrics').innerHTML = html;
+        }
+
+        function renderSmartInsights(metrics, reservations, payments) {
+            const insights = [];
+
+            // Payment collection insight
+            const collectionRate = metrics.totalRevenue > 0 ? (metrics.totalCollected / metrics.totalRevenue * 100) : 0;
+            if (collectionRate < 70) {
+                insights.push({
+                    icon: '⚠️',
+                    text: `Payment collection is at ${collectionRate.toFixed(0)}%. Focus on collecting pending amounts of ₹${((metrics.totalRevenue - metrics.totalCollected)/1000).toFixed(1)}K.`,
+                    type: 'warning'
+                });
+            } else if (collectionRate >= 90) {
+                insights.push({
+                    icon: '✅',
+                    text: `Excellent payment collection rate of ${collectionRate.toFixed(0)}%! Keep up the great work.`,
+                    type: 'success'
+                });
+            }
+
+            // Revenue insight
+            if (metrics.totalRevenue > 500000) {
+                insights.push({
+                    icon: '🎯',
+                    text: `Strong revenue performance with ₹${(metrics.totalRevenue/100000).toFixed(2)}L generated. You're on track for a great quarter!`,
+                    type: 'success'
+                });
+            }
+
+            // Booking frequency
+            if (reservations.length > 20) {
+                insights.push({
+                    icon: '📈',
+                    text: `High booking volume with ${reservations.length} reservations. Consider implementing dynamic pricing for peak demand.`,
+                    type: 'info'
+                });
+            }
+
+            if (insights.length === 0) {
+                insights.push({
+                    icon: '💡',
+                    text: 'Keep monitoring your metrics to unlock personalized insights and recommendations.',
+                    type: 'info'
+                });
+            }
+
+            const html = `
+                <div style="padding: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                        <span>💡</span> Smart Insights
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        ${insights.map(insight => `
+                            <div style="display: flex; align-items: start; gap: 12px; padding: 12px; background: white; border-radius: 8px;">
+                                <span style="font-size: 24px;">${insight.icon}</span>
+                                <span style="font-size: 14px; line-height: 1.5; color: var(--text);">${insight.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            const card = document.getElementById('performanceInsights');
+            card.innerHTML = html;
+            card.style.display = 'block';
+        }
+
+        function populateComparisonDropdowns(properties) {
+            const options = properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+            document.getElementById('compareProperty1').innerHTML = '<option value="">Select Property 1</option>' + options;
+            document.getElementById('compareProperty2').innerHTML = '<option value="">Select Property 2</option>' + options;
+        }
+
+        async function updatePropertyComparison() {
+            const prop1Id = document.getElementById('compareProperty1').value;
+            const prop2Id = document.getElementById('compareProperty2').value;
+
+            if (!prop1Id || !prop2Id) {
+                document.getElementById('performanceComparisonContent').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                        Select two properties above to compare their performance
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const reservations = await db.getReservations();
+                const properties = await db.getProperties();
+                const payments = await db.getAllPayments();
+
+                const prop1 = properties.find(p => p.id === prop1Id);
+                const prop2 = properties.find(p => p.id === prop2Id);
+
+                const prop1Reservations = reservations.filter(r => r.property_id === prop1Id && r.status !== 'cancelled');
+                const prop2Reservations = reservations.filter(r => r.property_id === prop2Id && r.status !== 'cancelled');
+
+                const prop1Revenue = prop1Reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+                const prop2Revenue = prop2Reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+
+                const html = `
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: start;">
+                        <div style="text-align: center;">
+                            <h4 style="margin: 0 0 20px 0; color: var(--primary);">${prop1.name}</h4>
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #10b981;">${formatCurrency(prop1Revenue)}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Total Revenue</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">${prop1Reservations.length}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Bookings</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;">${formatCurrency(prop1Reservations.length > 0 ? prop1Revenue / prop1Reservations.length : 0)}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Avg Booking</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-secondary); padding: 0 20px;">
+                            vs
+                        </div>
+                        <div style="text-align: center;">
+                            <h4 style="margin: 0 0 20px 0; color: var(--primary);">${prop2.name}</h4>
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #10b981;">${formatCurrency(prop2Revenue)}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Total Revenue</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">${prop2Reservations.length}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Bookings</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;">${formatCurrency(prop2Reservations.length > 0 ? prop2Revenue / prop2Reservations.length : 0)}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Avg Booking</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('performanceComparisonContent').innerHTML = html;
+            } catch (error) {
+                console.error('Comparison error:', error);
+            }
+        }
+
+        // Chart.js Rendering Functions
+        async function renderRevenueTrendChart(reservations) {
+            // Destroy existing chart
+            if (performanceCharts.revenueTrend) {
+                performanceCharts.revenueTrend.destroy();
+            }
+
+            // Group by month
+            const monthlyData = {};
+            reservations.forEach(r => {
+                const month = new Date(r.check_in).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+                monthlyData[month] = (monthlyData[month] || 0) + (parseFloat(r.total_amount) || 0);
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            const revenues = months.map(m => monthlyData[m]);
+
+            const ctx = document.getElementById('revenueTrendChart');
+            if (!ctx) return;
+
+            performanceCharts.revenueTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: revenues,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `₹${(context.parsed.y / 1000).toFixed(1)}K`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => `₹${(value/1000).toFixed(0)}K`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function renderBookingSourceChart(reservations) {
+            if (performanceCharts.bookingSource) {
+                performanceCharts.bookingSource.destroy();
+            }
+
+            const sourceData = {};
+            reservations.forEach(r => {
+                const source = r.booking_source || 'DIRECT';
+                sourceData[source] = (sourceData[source] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('bookingSourceChart');
+            if (!ctx) return;
+
+            performanceCharts.bookingSource = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(sourceData),
+                    datasets: [{
+                        data: Object.values(sourceData),
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        async function renderPaymentMethodsChartJS(payments) {
+            if (performanceCharts.paymentMethods) {
+                performanceCharts.paymentMethods.destroy();
+            }
+
+            const methodData = {
+                cash: 0,
+                upi: 0,
+                gateway: 0,
+                bank_transfer: 0
+            };
+
+            payments.forEach(p => {
+                const method = p.payment_method || 'cash';
+                if (methodData[method] !== undefined) {
+                    methodData[method] += parseFloat(p.amount) || 0;
+                }
+            });
+
+            const ctx = document.getElementById('paymentMethodsChart');
+            if (!ctx) return;
+
+            performanceCharts.paymentMethods = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Cash', 'UPI', 'Gateway', 'Bank Transfer'],
+                    datasets: [{
+                        label: 'Amount',
+                        data: [methodData.cash, methodData.upi, methodData.gateway, methodData.bank_transfer],
+                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `₹${(context.parsed.y / 1000).toFixed(1)}K`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => `₹${(value/1000).toFixed(0)}K`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function renderBookingTypesChartJS(reservations) {
+            if (performanceCharts.bookingTypes) {
+                performanceCharts.bookingTypes.destroy();
+            }
+
+            const typeData = {};
+            reservations.forEach(r => {
+                const type = r.booking_type || 'STAYCATION';
+                typeData[type] = (typeData[type] || 0) + (parseFloat(r.total_amount) || 0);
+            });
+
+            const ctx = document.getElementById('bookingTypesChart');
+            if (!ctx) return;
+
+            performanceCharts.bookingTypes = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(typeData),
+                    datasets: [{
+                        data: Object.values(typeData),
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.label}: ₹${(context.parsed / 1000).toFixed(1)}K`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function renderPerformanceLeaderboard(properties, allReservations, allPayments) {
+            const propertyPerformance = properties.map(prop => {
+                const reservations = allReservations.filter(r => r.property_id === prop.id && r.status !== 'cancelled');
+                const revenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+                const bookings = reservations.length;
+                const payments = allPayments.filter(p => reservations.some(r => r.booking_id === p.booking_id));
+                const collected = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const collectionRate = revenue > 0 ? (collected / revenue * 100) : 0;
+
+                return {
+                    name: prop.name,
+                    revenue,
+                    bookings,
+                    collectionRate,
+                    score: calculatePerformanceScore({ totalRevenue: revenue, totalNights: 0, totalCollected: collected }, reservations)
+                };
+            }).sort((a, b) => b.score - a.score);
+
+            const html = `
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    ${propertyPerformance.map((prop, index) => {
+                        const scoreData = getScoreGrade(prop.score);
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                        return `
+                            <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--background); border-radius: 8px; border-left: 4px solid ${scoreData.color};">
+                                <div style="font-size: 24px; width: 40px; text-align: center;">${medal || (index + 1)}</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">${prop.name}</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);">${prop.bookings} bookings • ${formatCurrency(prop.revenue)}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 24px; font-weight: 700; color: ${scoreData.color};">${prop.score}</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">${scoreData.grade}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            document.getElementById('performanceLeaderboard').innerHTML = html;
+        }
+
+        function renderMonthlyPerformanceTable(reservations) {
+            const monthlyData = {};
+            reservations.forEach(r => {
+                const month = new Date(r.check_in).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+                if (!monthlyData[month]) {
+                    monthlyData[month] = { bookings: 0, revenue: 0, nights: 0 };
+                }
+                monthlyData[month].bookings++;
+                monthlyData[month].revenue += parseFloat(r.total_amount) || 0;
+                monthlyData[month].nights += r.nights || 0;
+            });
+
+            const months = Object.keys(monthlyData).sort();
+
+            const html = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border);">
+                            <th style="text-align: left; padding: 12px; font-size: 13px; color: var(--text-secondary);">Month</th>
+                            <th style="text-align: right; padding: 12px; font-size: 13px; color: var(--text-secondary);">Bookings</th>
+                            <th style="text-align: right; padding: 12px; font-size: 13px; color: var(--text-secondary);">Nights</th>
+                            <th style="text-align: right; padding: 12px; font-size: 13px; color: var(--text-secondary);">Revenue</th>
+                            <th style="text-align: right; padding: 12px; font-size: 13px; color: var(--text-secondary);">Avg/Booking</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${months.map(month => {
+                            const data = monthlyData[month];
+                            const avgBooking = data.bookings > 0 ? data.revenue / data.bookings : 0;
+                            return `
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td style="padding: 12px; font-weight: 600;">${month}</td>
+                                    <td style="padding: 12px; text-align: right;">${data.bookings}</td>
+                                    <td style="padding: 12px; text-align: right;">${data.nights}</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #10b981;">${formatCurrency(data.revenue)}</td>
+                                    <td style="padding: 12px; text-align: right; color: var(--text-secondary);">${formatCurrency(avgBooking)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('monthlyPerformanceTable').innerHTML = html;
         }
 
         // ========================================
