@@ -13462,7 +13462,7 @@
 
             const daysArray = [];
             payments.forEach(payment => {
-                const reservation = reservations.find(r => r.id === payment.booking_id);
+                const reservation = reservations.find(r => r.booking_id === payment.booking_id);
                 if (reservation) {
                     const checkIn = new Date(reservation.check_in);
                     const paymentDate = new Date(payment.payment_date);
