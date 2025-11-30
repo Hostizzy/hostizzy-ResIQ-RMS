@@ -5286,7 +5286,7 @@
                 </p>
             </div>
 
-            <!-- Date Range Filter -->
+            <!-- Filters -->
             <div class="card" style="margin-bottom: 24px;">
                 <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
                     <div style="flex: 1; min-width: 200px;">
@@ -5310,6 +5310,26 @@
                     <div id="biCustomDateTo" style="display: none; min-width: 160px;">
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">To</label>
                         <input type="date" id="biEndDate" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div style="min-width: 180px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
+                            🏠 Property
+                        </label>
+                        <select id="biPropertyFilter" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+                            <option value="all">All Properties</option>
+                        </select>
+                    </div>
+                    <div style="min-width: 180px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
+                            💳 Payment Method
+                        </label>
+                        <select id="biPaymentMethodFilter" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+                            <option value="all">All Methods</option>
+                            <option value="cash">Cash</option>
+                            <option value="upi">UPI</option>
+                            <option value="gateway">Gateway</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                        </select>
                     </div>
                     <button class="btn btn-secondary" onclick="refreshBusinessIntelligence()" style="padding: 10px 20px;">
                         🔄 Refresh
@@ -5338,8 +5358,21 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 24px;">
                 <!-- Payment Collection by Property -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">🏠 Payment Collection by Property</h3>
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <h3 class="card-title" style="margin: 0;">🏠 Payment Collection by Property</h3>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">Sort:</label>
+                            <select id="biPropertySort" onchange="renderPropertyPaymentsWithSort()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white;">
+                                <option value="collected_desc">Collected: High to Low</option>
+                                <option value="collected_asc">Collected: Low to High</option>
+                                <option value="revenue_desc">Revenue: High to Low</option>
+                                <option value="revenue_asc">Revenue: Low to High</option>
+                                <option value="rate_desc">Collection Rate: High to Low</option>
+                                <option value="rate_asc">Collection Rate: Low to High</option>
+                                <option value="name_asc">Name: A to Z</option>
+                                <option value="name_desc">Name: Z to A</option>
+                            </select>
+                        </div>
                     </div>
                     <div style="padding: 20px;">
                         <div style="max-height: 400px; overflow-y: auto;">
@@ -13285,6 +13318,7 @@
         // ========================================
 
         let biCharts = {}; // Store chart instances
+        let biData = {}; // Store current filtered data for sorting
 
         async function loadBusinessIntelligence() {
             try {
@@ -13309,8 +13343,18 @@
                 const payments = await db.getAllPayments();
                 const properties = await db.getProperties();
 
-                // Filter by date range
-                const filteredData = filterByDateRange(reservations, payments);
+                // Populate property filter dropdown
+                populatePropertyFilter(properties);
+
+                // Filter by date range, property, and payment method
+                const filteredData = filterData(reservations, payments);
+
+                // Store filtered data globally for sorting
+                biData = {
+                    reservations: filteredData.reservations,
+                    payments: filteredData.payments,
+                    properties: properties
+                };
 
                 // Render all sections
                 await renderBIKPICards(filteredData.reservations, filteredData.payments, properties);
@@ -13329,12 +13373,35 @@
             }
         }
 
+        function populatePropertyFilter(properties) {
+            const select = document.getElementById('biPropertyFilter');
+            const currentValue = select.value;
+
+            // Keep "All Properties" option and add properties
+            const options = '<option value="all">All Properties</option>' +
+                properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+            select.innerHTML = options;
+
+            // Restore previous selection if it still exists
+            if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
         function showLoadingState() {
             document.getElementById('biKPICards').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Loading...</div>';
         }
 
-        function filterByDateRange(reservations, payments) {
+        function filterData(reservations, payments) {
             const dateRange = document.getElementById('biDateRange').value;
+            const propertyFilter = document.getElementById('biPropertyFilter').value;
+            const paymentMethodFilter = document.getElementById('biPaymentMethodFilter').value;
+
+            let filteredReservations = [...reservations];
+            let filteredPayments = [...payments];
+
+            // Date range filtering
             let startDate, endDate;
             const now = new Date();
 
@@ -13364,18 +13431,37 @@
                     endDate = new Date(document.getElementById('biEndDate').value || now);
                     break;
                 default: // all_time
-                    return { reservations, payments };
+                    startDate = null;
+                    endDate = null;
             }
 
-            const filteredReservations = reservations.filter(r => {
-                const checkIn = new Date(r.check_in);
-                return checkIn >= startDate && checkIn <= endDate;
-            });
+            if (startDate && endDate) {
+                filteredReservations = filteredReservations.filter(r => {
+                    const checkIn = new Date(r.check_in);
+                    return checkIn >= startDate && checkIn <= endDate;
+                });
 
-            const filteredPayments = payments.filter(p => {
-                const paymentDate = new Date(p.payment_date);
-                return paymentDate >= startDate && paymentDate <= endDate;
-            });
+                filteredPayments = filteredPayments.filter(p => {
+                    const paymentDate = new Date(p.payment_date);
+                    return paymentDate >= startDate && paymentDate <= endDate;
+                });
+            }
+
+            // Property filtering
+            if (propertyFilter && propertyFilter !== 'all') {
+                filteredReservations = filteredReservations.filter(r => r.property_id === propertyFilter);
+
+                // Filter payments based on reservations' property
+                const filteredBookingIds = new Set(filteredReservations.map(r => r.booking_id));
+                filteredPayments = filteredPayments.filter(p => filteredBookingIds.has(p.booking_id));
+            }
+
+            // Payment method filtering
+            if (paymentMethodFilter && paymentMethodFilter !== 'all') {
+                filteredPayments = filteredPayments.filter(p =>
+                    (p.payment_method || 'cash') === paymentMethodFilter
+                );
+            }
 
             return { reservations: filteredReservations, payments: filteredPayments };
         }
@@ -13580,7 +13666,7 @@
             document.getElementById('biSmartInsights').innerHTML = html;
         }
 
-        async function renderPropertyPayments(reservations, payments, properties) {
+        async function renderPropertyPayments(reservations, payments, properties, sortBy = 'collected_desc') {
             const propertyData = {};
 
             // Aggregate by property
@@ -13607,9 +13693,40 @@
                 }
             });
 
-            const sortedProperties = Object.entries(propertyData)
-                .map(([id, data]) => ({ id, ...data }))
-                .sort((a, b) => b.totalCollected - a.totalCollected);
+            // Apply sorting
+            let sortedProperties = Object.entries(propertyData)
+                .map(([id, data]) => ({
+                    id,
+                    ...data,
+                    collectionRate: data.totalRevenue > 0 ? (data.totalCollected / data.totalRevenue * 100) : 0
+                }));
+
+            switch(sortBy) {
+                case 'collected_asc':
+                    sortedProperties.sort((a, b) => a.totalCollected - b.totalCollected);
+                    break;
+                case 'collected_desc':
+                    sortedProperties.sort((a, b) => b.totalCollected - a.totalCollected);
+                    break;
+                case 'revenue_asc':
+                    sortedProperties.sort((a, b) => a.totalRevenue - b.totalRevenue);
+                    break;
+                case 'revenue_desc':
+                    sortedProperties.sort((a, b) => b.totalRevenue - a.totalRevenue);
+                    break;
+                case 'rate_asc':
+                    sortedProperties.sort((a, b) => a.collectionRate - b.collectionRate);
+                    break;
+                case 'rate_desc':
+                    sortedProperties.sort((a, b) => b.collectionRate - a.collectionRate);
+                    break;
+                case 'name_asc':
+                    sortedProperties.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'name_desc':
+                    sortedProperties.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+            }
 
             const html = sortedProperties.map((prop, index) => {
                 const collectionRate = prop.totalRevenue > 0 ? (prop.totalCollected / prop.totalRevenue * 100) : 0;
@@ -13646,6 +13763,14 @@
             }).join('');
 
             document.getElementById('biPropertyPayments').innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-secondary);">No data available</div>';
+        }
+
+        // Wrapper function for sorting
+        async function renderPropertyPaymentsWithSort() {
+            if (!biData.reservations || !biData.payments || !biData.properties) return;
+
+            const sortBy = document.getElementById('biPropertySort').value;
+            await renderPropertyPayments(biData.reservations, biData.payments, biData.properties, sortBy);
         }
 
         async function renderPaymentMethodsChart(payments) {
