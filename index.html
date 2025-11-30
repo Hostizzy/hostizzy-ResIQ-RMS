@@ -3962,6 +3962,12 @@
                     <span class="sidebar-item-label">Analytics</span>
                 </a>
 
+                <!-- Business Intelligence -->
+                <a class="sidebar-item" onclick="showView('businessIntelligence')">
+                    <span class="sidebar-item-icon">🧠</span>
+                    <span class="sidebar-item-label">Business Intelligence</span>
+                </a>
+
                 <!-- Availability -->
                 <a class="sidebar-item" onclick="showView('availability')">
                     <span class="sidebar-item-icon">📆</span>
@@ -4064,6 +4070,12 @@
                 <a class="mobile-sidebar-link" onclick="showView('performance'); closeMobileSidebar();">
                     <span class="mobile-sidebar-icon">📈</span>
                     <span class="mobile-sidebar-text">Analytics</span>
+                </a>
+
+                <!-- Business Intelligence -->
+                <a class="mobile-sidebar-link" onclick="showView('businessIntelligence'); closeMobileSidebar();">
+                    <span class="mobile-sidebar-icon">🧠</span>
+                    <span class="mobile-sidebar-text">Business Intelligence</span>
                 </a>
 
                 <!-- Availability -->
@@ -5262,6 +5274,147 @@
                 <div id="performanceComparisonContent"></div>
             </div>
         </div>
+
+        <!-- Business Intelligence View -->
+        <div id="businessIntelligenceView" class="container hidden">
+            <div style="margin-bottom: 32px;">
+                <h2 style="margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+                    <span>🧠</span> Business Intelligence Dashboard
+                </h2>
+                <p style="color: var(--text-secondary); font-size: 14px;">
+                    Comprehensive payment analytics, financial insights, and smart recommendations
+                </p>
+            </div>
+
+            <!-- Date Range Filter -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
+                            📅 Time Period
+                        </label>
+                        <select id="biDateRange" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+                            <option value="all_time">All Time</option>
+                            <option value="last30" selected>Last 30 Days</option>
+                            <option value="last90">Last 90 Days</option>
+                            <option value="this_month">This Month</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="this_year">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <div id="biCustomDateFrom" style="display: none; min-width: 160px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">From</label>
+                        <input type="date" id="biStartDate" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <div id="biCustomDateTo" style="display: none; min-width: 160px;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">To</label>
+                        <input type="date" id="biEndDate" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                    </div>
+                    <button class="btn btn-secondary" onclick="refreshBusinessIntelligence()" style="padding: 10px 20px;">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Performance Indicators -->
+            <div id="biKPICards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <!-- Will be populated by JavaScript -->
+            </div>
+
+            <!-- Smart Insights & Alerts -->
+            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                <div style="padding: 24px;">
+                    <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: white;">
+                        <span>💡</span> Smart Insights & Alerts
+                    </h3>
+                    <div id="biSmartInsights" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Analytics Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <!-- Payment Collection by Property -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🏠 Payment Collection by Property</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <div id="biPropertyPayments"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Methods Distribution -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">💳 Payment Methods Distribution</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="biPaymentMethodsChart" style="max-height: 350px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Timeline & Channel Analysis -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <!-- Payment Collection Timeline -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📈 Payment Collection Timeline</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="biPaymentTimelineChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Channel-wise Payment Analysis -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📊 Channel Payment Performance</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div id="biChannelPayments" style="max-height: 350px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collection Velocity Metrics -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">⚡ Collection Velocity & Efficiency</h3>
+                </div>
+                <div id="biCollectionVelocity" style="padding: 20px;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Financial Summary -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">💰 Financial Summary</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div id="biFinancialSummary"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue vs Collection Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Revenue vs Collection Analysis</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <canvas id="biRevenueCollectionChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Team View -->
         <div id="teamView" class="container hidden">
             <div class="card-header">
@@ -7505,6 +7658,7 @@
             if (viewName === 'availability') loadAvailabilityCalendar();
             if (viewName === 'properties') loadProperties();
             if (viewName === 'performance') initializePerformanceView();
+            if (viewName === 'businessIntelligence') loadBusinessIntelligence();
             if (viewName === 'team') loadTeam();
 
         }
@@ -13125,6 +13279,772 @@
                 showToast('Export Failed', error.message, '❌');
             }
         }
+
+        // ========================================
+        // BUSINESS INTELLIGENCE FUNCTIONS
+        // ========================================
+
+        let biCharts = {}; // Store chart instances
+
+        async function loadBusinessIntelligence() {
+            try {
+                // Show loading state
+                showLoadingState();
+
+                // Handle custom date range visibility
+                const dateRange = document.getElementById('biDateRange').value;
+                const customFrom = document.getElementById('biCustomDateFrom');
+                const customTo = document.getElementById('biCustomDateTo');
+
+                if (dateRange === 'custom') {
+                    customFrom.style.display = 'block';
+                    customTo.style.display = 'block';
+                } else {
+                    customFrom.style.display = 'none';
+                    customTo.style.display = 'none';
+                }
+
+                // Load data
+                const reservations = await db.getReservations();
+                const payments = await db.getAllPayments();
+                const properties = await db.getProperties();
+
+                // Filter by date range
+                const filteredData = filterByDateRange(reservations, payments);
+
+                // Render all sections
+                await renderBIKPICards(filteredData.reservations, filteredData.payments, properties);
+                await renderBISmartInsights(filteredData.reservations, filteredData.payments, properties);
+                await renderPropertyPayments(filteredData.reservations, filteredData.payments, properties);
+                await renderPaymentMethodsChart(filteredData.payments);
+                await renderPaymentTimelineChart(filteredData.payments);
+                await renderChannelPayments(filteredData.reservations, filteredData.payments);
+                await renderCollectionVelocity(filteredData.reservations, filteredData.payments);
+                await renderFinancialSummary(filteredData.reservations, filteredData.payments);
+                await renderRevenueCollectionChart(filteredData.reservations, filteredData.payments);
+
+            } catch (error) {
+                console.error('Error loading Business Intelligence:', error);
+                showToast('Error', 'Failed to load Business Intelligence', '❌');
+            }
+        }
+
+        function showLoadingState() {
+            document.getElementById('biKPICards').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Loading...</div>';
+        }
+
+        function filterByDateRange(reservations, payments) {
+            const dateRange = document.getElementById('biDateRange').value;
+            let startDate, endDate;
+            const now = new Date();
+
+            switch(dateRange) {
+                case 'last30':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+                    endDate = now;
+                    break;
+                case 'last90':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 90);
+                    endDate = now;
+                    break;
+                case 'this_month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    endDate = now;
+                    break;
+                case 'last_month':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+                    break;
+                case 'this_year':
+                    startDate = new Date(now.getFullYear(), 0, 1);
+                    endDate = now;
+                    break;
+                case 'custom':
+                    startDate = new Date(document.getElementById('biStartDate').value || '2020-01-01');
+                    endDate = new Date(document.getElementById('biEndDate').value || now);
+                    break;
+                default: // all_time
+                    return { reservations, payments };
+            }
+
+            const filteredReservations = reservations.filter(r => {
+                const checkIn = new Date(r.check_in);
+                return checkIn >= startDate && checkIn <= endDate;
+            });
+
+            const filteredPayments = payments.filter(p => {
+                const paymentDate = new Date(p.payment_date);
+                return paymentDate >= startDate && paymentDate <= endDate;
+            });
+
+            return { reservations: filteredReservations, payments: filteredPayments };
+        }
+
+        async function renderBIKPICards(reservations, payments, properties) {
+            const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+            const totalCollected = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const totalPending = totalRevenue - totalCollected;
+            const collectionRate = totalRevenue > 0 ? (totalCollected / totalRevenue * 100) : 0;
+
+            const avgCollectionDays = calculateAvgCollectionDays(reservations, payments);
+            const activeProperties = properties.length;
+
+            const kpis = [
+                {
+                    icon: '💰',
+                    label: 'Total Revenue',
+                    value: `₹${(totalRevenue / 100000).toFixed(2)}L`,
+                    subtext: `${reservations.length} bookings`,
+                    color: '#667eea',
+                    trend: 'up'
+                },
+                {
+                    icon: '✅',
+                    label: 'Collected',
+                    value: `₹${(totalCollected / 100000).toFixed(2)}L`,
+                    subtext: `${collectionRate.toFixed(1)}% collection rate`,
+                    color: '#10b981',
+                    trend: collectionRate >= 80 ? 'up' : 'down'
+                },
+                {
+                    icon: '⏳',
+                    label: 'Pending Collection',
+                    value: `₹${(totalPending / 100000).toFixed(2)}L`,
+                    subtext: `${(100 - collectionRate).toFixed(1)}% remaining`,
+                    color: totalPending > totalCollected ? '#ef4444' : '#f59e0b',
+                    trend: 'neutral'
+                },
+                {
+                    icon: '⚡',
+                    label: 'Avg Collection Time',
+                    value: `${avgCollectionDays} days`,
+                    subtext: avgCollectionDays <= 7 ? 'Excellent' : avgCollectionDays <= 15 ? 'Good' : 'Needs improvement',
+                    color: avgCollectionDays <= 7 ? '#10b981' : avgCollectionDays <= 15 ? '#f59e0b' : '#ef4444',
+                    trend: avgCollectionDays <= 7 ? 'up' : 'neutral'
+                },
+                {
+                    icon: '🏠',
+                    label: 'Active Properties',
+                    value: activeProperties,
+                    subtext: `${payments.length} transactions`,
+                    color: '#8b5cf6',
+                    trend: 'up'
+                }
+            ];
+
+            const html = kpis.map(kpi => `
+                <div class="card" style="background: linear-gradient(135deg, ${kpi.color}15 0%, ${kpi.color}05 100%); border-left: 4px solid ${kpi.color};">
+                    <div style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <span style="font-size: 32px;">${kpi.icon}</span>
+                            <span style="font-size: 20px; color: ${kpi.color};">
+                                ${kpi.trend === 'up' ? '↗' : kpi.trend === 'down' ? '↘' : '→'}
+                            </span>
+                        </div>
+                        <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
+                            ${kpi.value}
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+                            ${kpi.label}
+                        </div>
+                        <div style="font-size: 12px; color: ${kpi.color}; font-weight: 600;">
+                            ${kpi.subtext}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('biKPICards').innerHTML = html;
+        }
+
+        function calculateAvgCollectionDays(reservations, payments) {
+            if (payments.length === 0) return 0;
+
+            const daysArray = [];
+            payments.forEach(payment => {
+                const reservation = reservations.find(r => r.id === payment.booking_id);
+                if (reservation) {
+                    const checkIn = new Date(reservation.check_in);
+                    const paymentDate = new Date(payment.payment_date);
+                    const daysDiff = Math.floor((paymentDate - checkIn) / (1000 * 60 * 60 * 24));
+                    if (daysDiff >= 0) {
+                        daysArray.push(daysDiff);
+                    }
+                }
+            });
+
+            if (daysArray.length === 0) return 0;
+            const sum = daysArray.reduce((a, b) => a + b, 0);
+            return Math.round(sum / daysArray.length);
+        }
+
+        async function renderBISmartInsights(reservations, payments, properties) {
+            const insights = [];
+
+            // Pending payments over 30 days
+            const now = new Date();
+            const oldPendingReservations = reservations.filter(r => {
+                const checkIn = new Date(r.check_in);
+                const daysSince = Math.floor((now - checkIn) / (1000 * 60 * 60 * 24));
+                const paid = parseFloat(r.paid_amount) || 0;
+                const total = parseFloat(r.total_amount) || 0;
+                return daysSince > 30 && paid < total;
+            });
+
+            if (oldPendingReservations.length > 0) {
+                const totalOldPending = oldPendingReservations.reduce((sum, r) =>
+                    sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0)), 0
+                );
+                insights.push({
+                    type: 'alert',
+                    icon: '🔴',
+                    text: `${oldPendingReservations.length} bookings have pending payments over 30 days old (₹${(totalOldPending/1000).toFixed(1)}K)`
+                });
+            }
+
+            // Collection rate analysis
+            const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+            const totalCollected = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const collectionRate = totalRevenue > 0 ? (totalCollected / totalRevenue * 100) : 0;
+
+            if (collectionRate >= 90) {
+                insights.push({
+                    type: 'success',
+                    icon: '🟢',
+                    text: `Excellent collection rate of ${collectionRate.toFixed(1)}%! Keep it up.`
+                });
+            } else if (collectionRate < 70) {
+                insights.push({
+                    type: 'warning',
+                    icon: '🟡',
+                    text: `Collection rate is ${collectionRate.toFixed(1)}%. Consider follow-ups to improve collections.`
+                });
+            }
+
+            // Payment method preference
+            const paymentMethods = {};
+            payments.forEach(p => {
+                const method = p.payment_method || 'cash';
+                paymentMethods[method] = (paymentMethods[method] || 0) + 1;
+            });
+            const topMethod = Object.entries(paymentMethods).sort((a, b) => b[1] - a[1])[0];
+            if (topMethod) {
+                const methodNames = { cash: 'Cash', upi: 'UPI', gateway: 'Payment Gateway', bank_transfer: 'Bank Transfer' };
+                insights.push({
+                    type: 'info',
+                    icon: '💳',
+                    text: `${methodNames[topMethod[0]] || topMethod[0]} is the most used payment method (${topMethod[1]} transactions)`
+                });
+            }
+
+            // Best performing property
+            const propertyRevenue = {};
+            reservations.forEach(r => {
+                const propId = r.property_id;
+                propertyRevenue[propId] = (propertyRevenue[propId] || 0) + (parseFloat(r.total_amount) || 0);
+            });
+            const topProperty = Object.entries(propertyRevenue).sort((a, b) => b[1] - a[1])[0];
+            if (topProperty) {
+                const prop = properties.find(p => p.id == topProperty[0]);
+                if (prop) {
+                    insights.push({
+                        type: 'success',
+                        icon: '🏆',
+                        text: `${prop.name} is your top performer with ₹${(topProperty[1]/100000).toFixed(2)}L in revenue`
+                    });
+                }
+            }
+
+            // If no insights, show a default message
+            if (insights.length === 0) {
+                insights.push({
+                    type: 'info',
+                    icon: '📊',
+                    text: 'Keep monitoring your metrics for data-driven insights'
+                });
+            }
+
+            const html = insights.map(insight => {
+                const bgColor = insight.type === 'alert' ? 'rgba(239, 68, 68, 0.2)' :
+                               insight.type === 'warning' ? 'rgba(245, 158, 11, 0.2)' :
+                               insight.type === 'success' ? 'rgba(16, 185, 129, 0.2)' :
+                               'rgba(255, 255, 255, 0.2)';
+                return `
+                    <div style="padding: 16px; background: ${bgColor}; border-radius: 12px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 24px;">${insight.icon}</span>
+                        <span style="font-size: 14px; line-height: 1.5;">${insight.text}</span>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('biSmartInsights').innerHTML = html;
+        }
+
+        async function renderPropertyPayments(reservations, payments, properties) {
+            const propertyData = {};
+
+            // Aggregate by property
+            properties.forEach(prop => {
+                propertyData[prop.id] = {
+                    name: prop.name,
+                    totalRevenue: 0,
+                    totalCollected: 0,
+                    transactionCount: 0
+                };
+            });
+
+            reservations.forEach(r => {
+                if (propertyData[r.property_id]) {
+                    propertyData[r.property_id].totalRevenue += parseFloat(r.total_amount) || 0;
+                }
+            });
+
+            payments.forEach(p => {
+                const reservation = reservations.find(r => r.id === p.booking_id);
+                if (reservation && propertyData[reservation.property_id]) {
+                    propertyData[reservation.property_id].totalCollected += parseFloat(p.amount) || 0;
+                    propertyData[reservation.property_id].transactionCount++;
+                }
+            });
+
+            const sortedProperties = Object.entries(propertyData)
+                .map(([id, data]) => ({ id, ...data }))
+                .sort((a, b) => b.totalCollected - a.totalCollected);
+
+            const html = sortedProperties.map((prop, index) => {
+                const collectionRate = prop.totalRevenue > 0 ? (prop.totalCollected / prop.totalRevenue * 100) : 0;
+                const pending = prop.totalRevenue - prop.totalCollected;
+                const barColor = collectionRate >= 80 ? '#10b981' : collectionRate >= 60 ? '#f59e0b' : '#ef4444';
+
+                return `
+                    <div style="padding: 16px; border-bottom: 1px solid var(--border); ${index === sortedProperties.length - 1 ? 'border-bottom: none;' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 15px;">${index + 1}. ${prop.name}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${prop.transactionCount} transactions</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; font-size: 16px; color: #10b981;">₹${(prop.totalCollected/1000).toFixed(1)}K</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">of ₹${(prop.totalRevenue/1000).toFixed(1)}K</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="flex: 1; background: var(--background); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="width: ${collectionRate}%; height: 100%; background: ${barColor}; transition: width 0.3s;"></div>
+                            </div>
+                            <div style="font-size: 12px; font-weight: 600; color: ${barColor}; min-width: 45px; text-align: right;">
+                                ${collectionRate.toFixed(0)}%
+                            </div>
+                        </div>
+                        ${pending > 0 ? `
+                            <div style="margin-top: 6px; font-size: 11px; color: #ef4444;">
+                                Pending: ₹${(pending/1000).toFixed(1)}K
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('biPropertyPayments').innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-secondary);">No data available</div>';
+        }
+
+        async function renderPaymentMethodsChart(payments) {
+            const methodData = {
+                cash: { count: 0, amount: 0, label: 'Cash', color: '#10b981' },
+                upi: { count: 0, amount: 0, label: 'UPI', color: '#3b82f6' },
+                gateway: { count: 0, amount: 0, label: 'Gateway', color: '#8b5cf6' },
+                bank_transfer: { count: 0, amount: 0, label: 'Bank Transfer', color: '#f59e0b' }
+            };
+
+            payments.forEach(p => {
+                const method = p.payment_method || 'cash';
+                if (methodData[method]) {
+                    methodData[method].count++;
+                    methodData[method].amount += parseFloat(p.amount) || 0;
+                }
+            });
+
+            const ctx = document.getElementById('biPaymentMethodsChart');
+            if (!ctx) return;
+
+            // Destroy previous chart if exists
+            if (biCharts.paymentMethods) {
+                biCharts.paymentMethods.destroy();
+            }
+
+            const labels = Object.values(methodData).map(m => m.label);
+            const data = Object.values(methodData).map(m => m.amount);
+            const colors = Object.values(methodData).map(m => m.color);
+
+            biCharts.paymentMethods = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12 },
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    return data.labels.map((label, i) => {
+                                        const value = data.datasets[0].data[i];
+                                        const count = Object.values(methodData)[i].count;
+                                        return {
+                                            text: `${label}: ₹${(value/1000).toFixed(1)}K (${count})`,
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            hidden: false,
+                                            index: i
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    return `${label}: ₹${value.toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function renderPaymentTimelineChart(payments) {
+            // Group payments by date
+            const dateData = {};
+            payments.forEach(p => {
+                const date = new Date(p.payment_date).toISOString().split('T')[0];
+                dateData[date] = (dateData[date] || 0) + (parseFloat(p.amount) || 0);
+            });
+
+            // Sort by date
+            const sortedDates = Object.keys(dateData).sort();
+            const amounts = sortedDates.map(date => dateData[date]);
+
+            const ctx = document.getElementById('biPaymentTimelineChart');
+            if (!ctx) return;
+
+            // Destroy previous chart if exists
+            if (biCharts.paymentTimeline) {
+                biCharts.paymentTimeline.destroy();
+            }
+
+            biCharts.paymentTimeline = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates.map(d => new Date(d).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })),
+                    datasets: [{
+                        label: 'Payment Collection',
+                        data: amounts,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `₹${context.parsed.y.toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + (value/1000).toFixed(0) + 'K';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function renderChannelPayments(reservations, payments) {
+            const channelData = {};
+
+            reservations.forEach(r => {
+                const channel = r.booking_source || 'DIRECT';
+                if (!channelData[channel]) {
+                    channelData[channel] = { revenue: 0, collected: 0, bookings: 0 };
+                }
+                channelData[channel].revenue += parseFloat(r.total_amount) || 0;
+                channelData[channel].bookings++;
+            });
+
+            payments.forEach(p => {
+                const reservation = reservations.find(r => r.id === p.booking_id);
+                if (reservation) {
+                    const channel = reservation.booking_source || 'DIRECT';
+                    if (channelData[channel]) {
+                        channelData[channel].collected += parseFloat(p.amount) || 0;
+                    }
+                }
+            });
+
+            const channelColors = {
+                'DIRECT': '#3b82f6',
+                'AIRBNB': '#ef4444',
+                'AGODA/BOOKING.COM': '#1e3a8a',
+                'MMT/GOIBIBO': '#f59e0b',
+                'OTHER': '#6b7280'
+            };
+
+            const sortedChannels = Object.entries(channelData)
+                .sort((a, b) => b[1].collected - a[1].collected);
+
+            const html = sortedChannels.map(([channel, data]) => {
+                const collectionRate = data.revenue > 0 ? (data.collected / data.revenue * 100) : 0;
+                const color = channelColors[channel] || '#6b7280';
+
+                return `
+                    <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">${channel}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${data.bookings} bookings</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; font-size: 15px; color: ${color};">₹${(data.collected/1000).toFixed(1)}K</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">${collectionRate.toFixed(0)}% collected</div>
+                            </div>
+                        </div>
+                        <div style="background: var(--background); height: 6px; border-radius: 3px; overflow: hidden;">
+                            <div style="width: ${collectionRate}%; height: 100%; background: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('biChannelPayments').innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-secondary);">No data available</div>';
+        }
+
+        async function renderCollectionVelocity(reservations, payments) {
+            // Calculate velocity metrics
+            let totalDays = 0;
+            let count = 0;
+            const velocityByProperty = {};
+
+            payments.forEach(p => {
+                const reservation = reservations.find(r => r.id === p.booking_id);
+                if (reservation) {
+                    const checkIn = new Date(reservation.check_in);
+                    const paymentDate = new Date(p.payment_date);
+                    const days = Math.floor((paymentDate - checkIn) / (1000 * 60 * 60 * 24));
+
+                    if (days >= 0) {
+                        totalDays += days;
+                        count++;
+
+                        const propId = reservation.property_id;
+                        if (!velocityByProperty[propId]) {
+                            velocityByProperty[propId] = { totalDays: 0, count: 0, name: reservation.property_name };
+                        }
+                        velocityByProperty[propId].totalDays += days;
+                        velocityByProperty[propId].count++;
+                    }
+                }
+            });
+
+            const avgDays = count > 0 ? Math.round(totalDays / count) : 0;
+
+            const html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba205 100%); border-radius: 12px;">
+                        <div style="font-size: 48px; font-weight: 700; color: #667eea; margin-bottom: 8px;">${avgDays}</div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">Avg Days to Collect</div>
+                        <div style="font-size: 12px; color: ${avgDays <= 7 ? '#10b981' : avgDays <= 15 ? '#f59e0b' : '#ef4444'}; font-weight: 600; margin-top: 4px;">
+                            ${avgDays <= 7 ? '🟢 Excellent' : avgDays <= 15 ? '🟡 Good' : '🔴 Needs Improvement'}
+                        </div>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #10b98115 0%, #05966905 100%); border-radius: 12px;">
+                        <div style="font-size: 48px; font-weight: 700; color: #10b981; margin-bottom: 8px;">${count}</div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">Total Transactions</div>
+                        <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-top: 4px;">Analyzed</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text-secondary);">Collection Velocity by Property</h4>
+                    <div style="display: grid; gap: 12px;">
+                        ${Object.values(velocityByProperty).map(prop => {
+                            const avg = Math.round(prop.totalDays / prop.count);
+                            const score = avg <= 7 ? 100 : avg <= 15 ? 75 : avg <= 30 ? 50 : 25;
+                            const color = avg <= 7 ? '#10b981' : avg <= 15 ? '#f59e0b' : '#ef4444';
+                            return `
+                                <div style="padding: 12px; background: var(--background); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 13px; font-weight: 500;">${prop.name}</span>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span style="font-size: 12px; color: var(--text-secondary);">${prop.count} payments</span>
+                                        <span style="font-size: 14px; font-weight: 700; color: ${color};">${avg} days</span>
+                                        <div style="width: 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+                                            <div style="width: ${score}%; height: 100%; background: ${color};"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('biCollectionVelocity').innerHTML = html;
+        }
+
+        async function renderFinancialSummary(reservations, payments) {
+            const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+            const totalCollected = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const totalPending = totalRevenue - totalCollected;
+            const otaFees = reservations.reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
+            const netRevenue = totalRevenue - otaFees;
+            const hostizzyRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
+            const ownerRevenue = netRevenue - hostizzyRevenue;
+
+            const metrics = [
+                { label: 'Gross Revenue', value: totalRevenue, color: '#667eea', icon: '💰' },
+                { label: 'OTA Fees', value: otaFees, color: '#ef4444', icon: '💸' },
+                { label: 'Net Revenue', value: netRevenue, color: '#10b981', icon: '💵' },
+                { label: 'Collected', value: totalCollected, color: '#10b981', icon: '✅' },
+                { label: 'Pending', value: totalPending, color: '#f59e0b', icon: '⏳' },
+                { label: 'Hostizzy Share', value: hostizzyRevenue, color: '#8b5cf6', icon: '🏢' },
+                { label: 'Owner Share', value: ownerRevenue, color: '#3b82f6', icon: '🏠' }
+            ];
+
+            const html = metrics.map(metric => `
+                <div style="padding: 20px; background: linear-gradient(135deg, ${metric.color}15 0%, ${metric.color}05 100%); border-radius: 12px; border-left: 4px solid ${metric.color};">
+                    <div style="font-size: 24px; margin-bottom: 8px;">${metric.icon}</div>
+                    <div style="font-size: 22px; font-weight: 700; color: ${metric.color}; margin-bottom: 4px;">
+                        ₹${(metric.value / 100000).toFixed(2)}L
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">
+                        ${metric.label}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('biFinancialSummary').innerHTML = html;
+        }
+
+        async function renderRevenueCollectionChart(reservations, payments) {
+            // Group by month
+            const monthlyData = {};
+
+            reservations.forEach(r => {
+                const month = r.month || new Date(r.check_in).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+                if (!monthlyData[month]) {
+                    monthlyData[month] = { revenue: 0, collected: 0 };
+                }
+                monthlyData[month].revenue += parseFloat(r.total_amount) || 0;
+            });
+
+            payments.forEach(p => {
+                const reservation = reservations.find(r => r.id === p.booking_id);
+                if (reservation) {
+                    const month = reservation.month || new Date(reservation.check_in).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+                    if (monthlyData[month]) {
+                        monthlyData[month].collected += parseFloat(p.amount) || 0;
+                    }
+                }
+            });
+
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const revenueData = sortedMonths.map(m => monthlyData[m].revenue);
+            const collectedData = sortedMonths.map(m => monthlyData[m].collected);
+
+            const ctx = document.getElementById('biRevenueCollectionChart');
+            if (!ctx) return;
+
+            // Destroy previous chart if exists
+            if (biCharts.revenueCollection) {
+                biCharts.revenueCollection.destroy();
+            }
+
+            biCharts.revenueCollection = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedMonths,
+                    datasets: [
+                        {
+                            label: 'Revenue',
+                            data: revenueData,
+                            backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                            borderColor: '#667eea',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Collected',
+                            data: collectedData,
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: '#10b981',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 12 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ₹${context.parsed.y.toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + (value/1000).toFixed(0) + 'K';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function refreshBusinessIntelligence() {
+            loadBusinessIntelligence();
+            showToast('Refreshed', 'Business Intelligence data reloaded', '🔄');
+        }
+
+        // ========================================
+        // END BUSINESS INTELLIGENCE FUNCTIONS
+        // ========================================
+
         // Team
         async function loadTeam() {
             try {
