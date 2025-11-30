@@ -13925,21 +13925,14 @@
                 // Populate property dropdown
                 const properties = await db.getProperties();
                 const propertyFilter = document.getElementById('performancePropertyFilter');
-                propertyFilter.innerHTML = '<option value="">🏠 All Properties</option>' + 
+                propertyFilter.innerHTML = '<option value="">🏠 All Properties</option>' +
                     properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-                
-                // Populate month dropdown with unique months from reservations
-                const reservations = await db.getReservations();
-                const months = [...new Set(reservations.map(r => r.month).filter(Boolean))].sort().reverse();
-                const monthFilter = document.getElementById('performanceMonthFilter');
-                monthFilter.innerHTML = '<option value="">All Months</option>' + 
-                    months.map(m => `<option value="${m}">${m}</option>`).join('');
-                
+
                 // Set default date range to current year
                 const today = new Date();
                 document.getElementById('performanceStartDate').value = `${today.getFullYear()}-01-01`;
                 document.getElementById('performanceEndDate').value = today.toISOString().split('T')[0];
-                
+
                 // Load initial data
                 await loadPropertyPerformance();
             } catch (error) {
@@ -13979,16 +13972,15 @@
                 // Get filter values
                 const propertyId = document.getElementById('performancePropertyFilter').value;
                 const dateRange = document.getElementById('performanceDateRange').value;
-                const monthFilter = document.getElementById('performanceMonthFilter').value;
-                
+
                 // Get all reservations
                 let reservations = await db.getReservations();
-                
+
                 // Filter by property if selected
                 if (propertyId) {
                     reservations = reservations.filter(r => r.property_id == propertyId);
                 }
-                
+
                 // ⬇️ NEW DATE FILTERING CODE GOES HERE (Section 1C from my previous message)
                 const today = new Date();
                 today.setHours(23, 59, 59, 999);
@@ -14005,7 +13997,7 @@
                             return checkIn >= startDate && checkIn <= endDate;
                         });
                         break;
-                        
+
                     case 'last90':
                         startDate = new Date(today.getTime() - (90 * 24 * 60 * 60 * 1000));
                         endDate = today;
@@ -14015,7 +14007,7 @@
                             return checkIn >= startDate && checkIn <= endDate;
                         });
                         break;
-                        
+
                     case 'custom':
                         const customStart = document.getElementById('performanceStartDate').value;
                         const customEnd = document.getElementById('performanceEndDate').value;
@@ -14032,22 +14024,13 @@
                             dateRangeLabel = 'Custom Range (select dates)';
                         }
                         break;
-                        
+
                     case 'all_time':
                     default:
                         dateRangeLabel = 'All Time';
                         break;
                 }
                 // ⬆️ END OF NEW DATE FILTERING CODE
-                
-                // Filter by month if selected
-                if (monthFilter) {
-                    reservations = reservations.filter(r => {
-                        const checkInDate = new Date(r.check_in);
-                        const month = checkInDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-                        return month === monthFilter;
-                    });
-                }
                 
                 // Filter out cancelled bookings for metrics
                 const activeReservations = reservations.filter(r => r.status !== 'cancelled');
@@ -14092,10 +14075,9 @@
         function updateFilterSummary() {
             const propertyId = document.getElementById('performancePropertyFilter').value;
             const dateRange = document.getElementById('performanceDateRange').value;
-            const monthFilter = document.getElementById('performanceMonthFilter').value;
-            
+
             let summaryParts = [];
-            
+
             // Property filter
             if (propertyId) {
                 const propertySelect = document.getElementById('performancePropertyFilter');
@@ -14104,7 +14086,7 @@
             } else {
                 summaryParts.push('📍 All Properties');
             }
-            
+
             // Date range filter
             switch(dateRange) {
                 case 'all_time':
@@ -14124,13 +14106,8 @@
                     }
                     break;
             }
-            
-            // Month filter
-            if (monthFilter) {
-                summaryParts.push(`📆 ${monthFilter}`);
-            }
-            
-            document.getElementById('filterSummary').innerHTML = 
+
+            document.getElementById('filterSummary').innerHTML =
                 `<strong>Active Filters:</strong> ${summaryParts.join(' • ')}`;
         }
         function calculatePerformanceMetrics(reservations, propertyId) {
