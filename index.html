@@ -13600,7 +13600,7 @@
             });
 
             payments.forEach(p => {
-                const reservation = reservations.find(r => r.id === p.booking_id);
+                const reservation = reservations.find(r => r.booking_id === p.booking_id);
                 if (reservation && propertyData[reservation.property_id]) {
                     propertyData[reservation.property_id].totalCollected += parseFloat(p.amount) || 0;
                     propertyData[reservation.property_id].transactionCount++;
@@ -13799,7 +13799,7 @@
             });
 
             payments.forEach(p => {
-                const reservation = reservations.find(r => r.id === p.booking_id);
+                const reservation = reservations.find(r => r.booking_id === p.booking_id);
                 if (reservation) {
                     const channel = reservation.booking_source || 'DIRECT';
                     if (channelData[channel]) {
@@ -13852,7 +13852,7 @@
             const velocityByProperty = {};
 
             payments.forEach(p => {
-                const reservation = reservations.find(r => r.id === p.booking_id);
+                const reservation = reservations.find(r => r.booking_id === p.booking_id);
                 if (reservation) {
                     const checkIn = new Date(reservation.check_in);
                     const paymentDate = new Date(p.payment_date);
@@ -13964,7 +13964,7 @@
             });
 
             payments.forEach(p => {
-                const reservation = reservations.find(r => r.id === p.booking_id);
+                const reservation = reservations.find(r => r.booking_id === p.booking_id);
                 if (reservation) {
                     const month = reservation.month || new Date(reservation.check_in).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
                     if (monthlyData[month]) {
