@@ -913,6 +913,11 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.08);
         }
 
+        .communication-message:hover {
+            background: var(--background);
+            cursor: pointer;
+        }
+
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -1956,7 +1961,8 @@
                 z-index: 1001;
             }
 
-            .sidebar.active {
+            .sidebar.active,
+            .sidebar.mobile-open {
                 left: 0;
             }
 
@@ -8172,7 +8178,6 @@
                     document.querySelector('.mobile-nav').classList.remove('hidden');
                     document.getElementById('mobileHeader').classList.remove('hidden');
                     document.getElementById('mobileUserEmail').textContent = user.email;
-                    document.getElementById('sidebarUserEmail').textContent = user.email;
                     
                     // Hide Performance view for staff
                     if (user.role === 'staff') {
@@ -8539,6 +8544,21 @@
             }
         }
 
+        // Mobile Sidebar Toggle Functions
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('mobile-open');
+            }
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('mobile-open');
+            }
+        }
+
         // Global Search
         let globalSearchResults = [];
 
@@ -8855,13 +8875,171 @@
         }
 
         // Communication Functions
+        let communicationMessages = [];
+        let currentCommunicationFilter = 'all';
+
         function loadCommunication() {
-            // Future implementation for loading message history
-            console.log('Communication view loaded');
+            try {
+                const stored = localStorage.getItem('communicationMessages');
+                communicationMessages = stored ? JSON.parse(stored) : [];
+                renderCommunicationMessages();
+            } catch (error) {
+                console.error('Error loading communications:', error);
+                communicationMessages = [];
+            }
+        }
+
+        function renderCommunicationMessages() {
+            const messageHistory = document.getElementById('messageHistory');
+            if (!messageHistory) return;
+
+            let filteredMessages = communicationMessages;
+            if (currentCommunicationFilter !== 'all') {
+                filteredMessages = communicationMessages.filter(m => m.channel === currentCommunicationFilter);
+            }
+
+            if (filteredMessages.length === 0) {
+                messageHistory.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                        <h3 style="margin-bottom: 8px;">No messages yet</h3>
+                        <p>Start communicating with your guests using the quick templates above</p>
+                    </div>
+                `;
+                return;
+            }
+
+            messageHistory.innerHTML = filteredMessages.map(msg => `
+                <div class="communication-message" style="padding: 16px; border-bottom: 1px solid var(--border); transition: background 0.2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 24px;">${getChannelIcon(msg.channel)}</span>
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-primary);">${msg.recipient}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${msg.channel.toUpperCase()}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: var(--text-tertiary);">${new Date(msg.timestamp).toLocaleDateString()}</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary);">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                    <div style="padding: 12px; background: var(--background); border-radius: 8px; margin-top: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 4px; color: var(--primary);">${msg.subject}</div>
+                        <div style="color: var(--text-secondary); font-size: 14px; line-height: 1.5;">${msg.message}</div>
+                    </div>
+                    ${msg.status ? `<div style="margin-top: 8px; display: inline-block; padding: 4px 12px; background: ${msg.status === 'sent' ? '#dcfce7' : '#fef3c7'}; color: ${msg.status === 'sent' ? '#166534' : '#92400e'}; border-radius: 12px; font-size: 11px; font-weight: 600;">${msg.status.toUpperCase()}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function getChannelIcon(channel) {
+            const icons = {
+                'whatsapp': '💬',
+                'email': '📧',
+                'sms': '📱'
+            };
+            return icons[channel] || '💬';
         }
 
         function openComposeModal() {
-            showToast('Coming Soon', 'Message composition feature coming soon!', '✉️');
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">✉️ Compose Message</h3>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div class="form-group">
+                            <label>Channel *</label>
+                            <select id="composeChannel" class="form-control">
+                                <option value="whatsapp">💬 WhatsApp</option>
+                                <option value="email">📧 Email</option>
+                                <option value="sms">📱 SMS</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Recipient *</label>
+                            <select id="composeRecipient" class="form-control">
+                                <option value="">Select Guest...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Subject/Title</label>
+                            <input type="text" id="composeSubject" class="form-control" placeholder="e.g., Booking Confirmation">
+                        </div>
+                        <div class="form-group">
+                            <label>Message *</label>
+                            <textarea id="composeMessage" class="form-control" rows="6" placeholder="Type your message here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                        <button class="btn btn-primary" onclick="sendComposedMessage()">📤 Send Message</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Load guests into recipient dropdown
+            loadGuestsForCompose();
+        }
+
+        async function loadGuestsForCompose() {
+            const select = document.getElementById('composeRecipient');
+            if (!select) return;
+
+            try {
+                const reservations = await db.getReservations();
+                const uniqueGuests = {};
+
+                reservations.forEach(r => {
+                    if (r.guest_name && r.guest_phone) {
+                        uniqueGuests[r.guest_phone] = r.guest_name;
+                    }
+                });
+
+                select.innerHTML = '<option value="">Select Guest...</option>' +
+                    Object.entries(uniqueGuests).map(([phone, name]) =>
+                        `<option value="${phone}">${name} (${phone})</option>`
+                    ).join('');
+            } catch (error) {
+                console.error('Error loading guests:', error);
+            }
+        }
+
+        function sendComposedMessage() {
+            const channel = document.getElementById('composeChannel').value;
+            const recipient = document.getElementById('composeRecipient');
+            const recipientValue = recipient.value;
+            const recipientText = recipient.options[recipient.selectedIndex].text;
+            const subject = document.getElementById('composeSubject').value;
+            const message = document.getElementById('composeMessage').value;
+
+            if (!recipientValue || !message) {
+                showToast('Missing Fields', 'Please select a recipient and enter a message', '⚠️');
+                return;
+            }
+
+            const newMessage = {
+                id: Date.now(),
+                channel,
+                recipient: recipientText,
+                subject: subject || 'Message',
+                message,
+                timestamp: new Date().toISOString(),
+                status: 'sent'
+            };
+
+            communicationMessages.unshift(newMessage);
+            localStorage.setItem('communicationMessages', JSON.stringify(communicationMessages));
+            renderCommunicationMessages();
+
+            document.querySelector('.modal').remove();
+            showToast('Message Sent', `Message sent to ${recipientText}`, '✅');
         }
 
         function filterCommunications(type) {
@@ -8870,20 +9048,48 @@
             });
             event.target.classList.add('active');
 
-            showToast('Filter Applied', `Showing ${type} messages`, '🔍');
+            currentCommunicationFilter = type;
+            renderCommunicationMessages();
         }
 
         function sendTemplate(templateType) {
             const templates = {
-                'booking-confirmation': '✅ Booking confirmed!',
-                'payment-reminder': '💰 Payment reminder',
-                'check-in': '🔑 Check-in details',
-                'check-out': '👋 Thank you for staying',
-                'review-request': '⭐ Please leave a review',
-                'custom': '✏️ Custom message'
+                'booking-confirmation': {
+                    subject: 'Booking Confirmation',
+                    message: 'Dear Guest,\n\nYour booking has been confirmed! We look forward to hosting you.\n\nThank you for choosing us!'
+                },
+                'payment-reminder': {
+                    subject: 'Payment Reminder',
+                    message: 'Dear Guest,\n\nThis is a friendly reminder about your pending payment. Please complete your payment at your earliest convenience.\n\nThank you!'
+                },
+                'check-in': {
+                    subject: 'Check-in Details',
+                    message: 'Dear Guest,\n\nWe\'re excited to welcome you! Here are your check-in details:\n\nCheck-in time: 2:00 PM\nProperty address: [Your Property Address]\n\nSee you soon!'
+                },
+                'check-out': {
+                    subject: 'Thank You for Staying',
+                    message: 'Dear Guest,\n\nThank you for staying with us! We hope you had a wonderful experience.\n\nCheck-out time: 11:00 AM\n\nWe hope to see you again!'
+                },
+                'review-request': {
+                    subject: 'Please Share Your Experience',
+                    message: 'Dear Guest,\n\nWe hope you enjoyed your stay! We would love to hear about your experience.\n\nPlease take a moment to leave us a review.\n\nThank you!'
+                },
+                'custom': {
+                    subject: 'Custom Message',
+                    message: ''
+                }
             };
 
-            showToast('Template Selected', templates[templateType] || 'Template selected', '📝');
+            const template = templates[templateType];
+            if (template) {
+                openComposeModal();
+                setTimeout(() => {
+                    const subjectInput = document.getElementById('composeSubject');
+                    const messageInput = document.getElementById('composeMessage');
+                    if (subjectInput) subjectInput.value = template.subject;
+                    if (messageInput) messageInput.value = template.message;
+                }, 100);
+            }
         }
         function renderBookingTypeBreakdown(reservations, targetId) {
         const bookingTypes = {};
@@ -17279,7 +17485,6 @@
                     document.querySelector('.mobile-nav').classList.remove('hidden');
                     document.getElementById('mobileHeader').classList.remove('hidden');
                     document.getElementById('mobileUserEmail').textContent = currentUser.email;
-                    document.getElementById('sidebarUserEmail').textContent = currentUser.email;
                     
                     // Hide Performance for staff
                     if (currentUser.role === 'staff') {
