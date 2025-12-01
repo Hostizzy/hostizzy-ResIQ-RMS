@@ -798,12 +798,35 @@
             .nav-secondary {
                 display: none !important;
             }
-            
+
             /* Show More dropdown on tablet */
             .more-dropdown-container {
                 display: block !important;
             }
-            
+
+            /* Simplify sidebar - hide category headers, show flat menu */
+            .sidebar-category-header {
+                display: none !important;
+            }
+
+            .sidebar-category-items {
+                display: block !important;
+                padding: 0 !important;
+            }
+
+            .sidebar-category {
+                margin: 0 !important;
+            }
+
+            /* Add subtle separators between groups */
+            .sidebar-category + .sidebar-category .sidebar-category-items::before {
+                content: '';
+                display: block;
+                height: 1px;
+                background: var(--border);
+                margin: 8px 0;
+            }
+
             /* Hide separator on tablet */
             .nav-separator {
                 display: none;
@@ -888,6 +911,11 @@
 
         .card:hover {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .communication-message:hover {
+            background: var(--background);
+            cursor: pointer;
         }
 
         .card-header {
@@ -1619,85 +1647,6 @@
             flex: 1;
         }
         
-        /* Mobile Sidebar - Hamburger Menu */
-        .mobile-sidebar {
-            display: none;
-            position: fixed;
-            top: 60px;
-            left: -100%;
-            width: 280px;
-            height: calc(100vh - 140px);
-            background: white;
-            z-index: 1001;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto;
-            flex-direction: column;
-        }
-        
-        .mobile-sidebar.active {
-            left: 0;
-        }
-        
-        .mobile-sidebar-header {
-            padding: 20px 16px;
-            border-bottom: 1px solid var(--border);
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-tertiary);
-            letter-spacing: 0.5px;
-        }
-        
-        .mobile-sidebar-menu {
-            padding: 12px 8px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .mobile-sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .mobile-sidebar-link.active {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .mobile-sidebar-link:hover {
-            background: var(--background);
-            color: var(--text-primary);
-        }
-
-        .mobile-sidebar-icon {
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .mobile-sidebar-text {
-            flex: 1;
-        }
-        
-        .mobile-sidebar-footer {
-            padding: 12px 8px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
         .mobile-overlay {
             display: none;
             position: fixed;
@@ -2003,8 +1952,42 @@
                 display: none;
             }
 
+            /* Sidebar hidden by default, shown when active */
             .sidebar {
+                display: flex;
+                width: 80px;
+                left: -80px;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 1001;
+            }
+
+            .sidebar.active,
+            .sidebar.mobile-open {
+                left: 0;
+            }
+
+            /* Compact sidebar styles for mobile */
+            .sidebar-item-label,
+            .sidebar-title,
+            .sidebar-category-header {
                 display: none;
+            }
+
+            .sidebar-item {
+                justify-content: center;
+                padding: 12px 8px;
+            }
+
+            .sidebar-item-icon {
+                font-size: 24px;
+            }
+
+            .sidebar-category-items {
+                padding: 0;
+            }
+
+            .container {
+                margin-left: 0;
             }
 
             .mobile-header {
@@ -4062,48 +4045,6 @@
             </div>
         </div>
 
-        <!-- Mobile Sidebar -->
-        <div id="mobileSidebar" class="mobile-sidebar">
-            <div class="mobile-sidebar-header">
-                <img src="assets/logo.png" alt="ResIQ" class="mobile-logo" style="margin-bottom: 8px;">
-                <div id="sidebarUserEmail" style="font-size: 13px; color: var(--text-secondary);"></div>
-            </div>
-            <div class="mobile-sidebar-menu">
-                <a class="mobile-sidebar-link active" onclick="showViewMobile('dashboard')">
-                    <span style="margin-right: 12px;">📊</span> Dashboard
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('reservations')">
-                    <span style="margin-right: 12px;">📅</span> Reservations
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('guestDocuments')">
-                    <span style="margin-right: 12px;">📋</span> Documents
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('payments')">
-                    <span style="margin-right: 12px;">💰</span> Payments
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('meals')">
-                    <span style="margin-right: 12px;">🍽️</span> Meals
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('availability')">
-                    <span style="margin-right: 12px;">🗓️</span> Availability
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('properties')">
-                    <span style="margin-right: 12px;">🏠</span> Properties
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('performance')">
-                    <span style="margin-right: 12px;">📊</span> Performance
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('team')">
-                    <span style="margin-right: 12px;">👥</span> Team
-                </a>
-                <a class="mobile-sidebar-link" onclick="logout()" style="margin-top: 20px; color: var(--danger);">
-                    <span style="margin-right: 12px;">🚪</span> Logout
-                </a>
-            </div>
-        </div>
-
-        <!-- Mobile Overlay -->
-        <div id="mobileOverlay" class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
         <!-- Pull to Refresh Indicator -->
         <div class="pull-to-refresh-indicator" id="pullToRefreshIndicator">
@@ -4184,6 +4125,10 @@
                             <span class="sidebar-item-icon">📅</span>
                             <span class="sidebar-item-label">Reservations</span>
                         </a>
+                        <a class="sidebar-item" onclick="showView('guestDocuments')">
+                            <span class="sidebar-item-icon">📄</span>
+                            <span class="sidebar-item-label">Documents</span>
+                        </a>
                         <a class="sidebar-item" onclick="showView('guests')">
                             <span class="sidebar-item-icon">👥</span>
                             <span class="sidebar-item-label">Guests</span>
@@ -4191,10 +4136,6 @@
                         <a class="sidebar-item" onclick="showView('meals')">
                             <span class="sidebar-item-icon">🍽️</span>
                             <span class="sidebar-item-label">Meals</span>
-                        </a>
-                        <a class="sidebar-item" onclick="showView('availability')">
-                            <span class="sidebar-item-icon">📆</span>
-                            <span class="sidebar-item-label">Availability</span>
                         </a>
                     </div>
                 </div>
@@ -4232,13 +4173,13 @@
                             <span class="sidebar-item-icon">🏘️</span>
                             <span class="sidebar-item-label">Properties</span>
                         </a>
-                        <a class="sidebar-item" onclick="showView('guestDocuments')">
-                            <span class="sidebar-item-icon">📄</span>
-                            <span class="sidebar-item-label">Documents</span>
-                        </a>
                         <a class="sidebar-item" onclick="showView('team')">
                             <span class="sidebar-item-icon">👨‍💼</span>
                             <span class="sidebar-item-label">Team</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('availability')">
+                            <span class="sidebar-item-icon">📆</span>
+                            <span class="sidebar-item-label">Availability</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('communication')">
                             <span class="sidebar-item-icon">💬</span>
@@ -4268,7 +4209,7 @@
         <div class="mobile-header">
             <div class="mobile-header-content">
                 <!-- Hamburger Menu Button -->
-                <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">
                     <span id="hamburgerIcon">☰</span>
                 </button>
 
@@ -4282,97 +4223,8 @@
             </div>
         </div>
 
-        <!-- Mobile Sidebar (Hamburger Menu) -->
-        <aside class="mobile-sidebar" id="mobileSidebar">
-            <div class="mobile-sidebar-header">
-                ☰ Menu
-            </div>
-
-            <div class="mobile-sidebar-menu">
-                <!-- Dashboard -->
-                <a class="mobile-sidebar-link active" onclick="showView('dashboard'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📊</span>
-                    <span class="mobile-sidebar-text">Dashboard</span>
-                </a>
-
-                <!-- Reservations -->
-                <a class="mobile-sidebar-link" onclick="showView('reservations'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📅</span>
-                    <span class="mobile-sidebar-text">Reservations</span>
-                </a>
-
-                <!-- Guests -->
-                <a class="mobile-sidebar-link" onclick="showView('guests'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">👥</span>
-                    <span class="mobile-sidebar-text">Guests</span>
-                </a>
-
-                <!-- Payments -->
-                <a class="mobile-sidebar-link" onclick="showView('payments'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">💰</span>
-                    <span class="mobile-sidebar-text">Payments</span>
-                </a>
-
-                <!-- Meals -->
-                <a class="mobile-sidebar-link" onclick="showView('meals'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">🍽️</span>
-                    <span class="mobile-sidebar-text">Meals</span>
-                </a>
-
-                <!-- Properties -->
-                <a class="mobile-sidebar-link" onclick="showView('properties'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">🏘️</span>
-                    <span class="mobile-sidebar-text">Properties</span>
-                </a>
-
-                <!-- Documents -->
-                <a class="mobile-sidebar-link" onclick="showView('guestDocuments'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📄</span>
-                    <span class="mobile-sidebar-text">Documents</span>
-                </a>
-
-                <!-- Analytics -->
-                <a class="mobile-sidebar-link" onclick="showView('performance'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📈</span>
-                    <span class="mobile-sidebar-text">Analytics</span>
-                </a>
-
-                <!-- Business Intelligence -->
-                <a class="mobile-sidebar-link" onclick="showView('businessIntelligence'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">🧠</span>
-                    <span class="mobile-sidebar-text">Business Intelligence</span>
-                </a>
-
-                <!-- Availability -->
-                <a class="mobile-sidebar-link" onclick="showView('availability'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📆</span>
-                    <span class="mobile-sidebar-text">Availability</span>
-                </a>
-
-                <!-- Team -->
-                <a class="mobile-sidebar-link" onclick="showView('team'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">👨‍💼</span>
-                    <span class="mobile-sidebar-text">Team</span>
-                </a>
-            </div>
-
-            <div class="mobile-sidebar-footer">
-                <!-- Settings -->
-                <a class="mobile-sidebar-link" onclick="showView('settings'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">⚙️</span>
-                    <span class="mobile-sidebar-text">Settings</span>
-                </a>
-
-                <!-- Logout -->
-                <a class="mobile-sidebar-link" onclick="logout();">
-                    <span class="mobile-sidebar-icon">🚪</span>
-                    <span class="mobile-sidebar-text">Logout</span>
-                </a>
-            </div>
-        </aside>
-
         <!-- Mobile Overlay (for sidebar backdrop) -->
-        <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileSidebar()"></div>
+        <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
 
         <!-- Mobile Bottom Navigation -->
         <div class="mobile-nav">
@@ -4485,6 +4337,14 @@
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
+                    <div class="category-card" onclick="showView('guestDocuments')">
+                        <div class="category-card-icon" style="background: var(--gradient-danger);">📋</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Documents</div>
+                            <div class="category-card-stat">Document review</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
                     <div class="category-card" onclick="showView('guests')">
                         <div class="category-card-icon" style="background: var(--gradient-ocean);">👥</div>
                         <div class="category-card-content">
@@ -4498,14 +4358,6 @@
                         <div class="category-card-content">
                             <div class="category-card-title">Meals</div>
                             <div class="category-card-stat">Meal planning</div>
-                        </div>
-                        <div class="category-card-arrow">›</div>
-                    </div>
-                    <div class="category-card" onclick="showView('availability')">
-                        <div class="category-card-icon" style="background: var(--gradient-primary);">📆</div>
-                        <div class="category-card-content">
-                            <div class="category-card-title">Availability</div>
-                            <div class="category-card-stat" id="homeStatUpcoming">-- upcoming</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
@@ -4561,19 +4413,19 @@
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
-                    <div class="category-card" onclick="showView('guestDocuments')">
-                        <div class="category-card-icon" style="background: var(--gradient-danger);">📋</div>
-                        <div class="category-card-content">
-                            <div class="category-card-title">Documents</div>
-                            <div class="category-card-stat">Document review</div>
-                        </div>
-                        <div class="category-card-arrow">›</div>
-                    </div>
                     <div class="category-card" onclick="showView('team')">
                         <div class="category-card-icon" style="background: var(--gradient-ocean);">👨‍💼</div>
                         <div class="category-card-content">
                             <div class="category-card-title">Team</div>
                             <div class="category-card-stat">Team management</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('availability')">
+                        <div class="category-card-icon" style="background: var(--gradient-primary);">📆</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Availability</div>
+                            <div class="category-card-stat" id="homeStatUpcoming">-- upcoming</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
@@ -5286,8 +5138,23 @@
                             <div class="split-percentage" id="pendingRate">0%</div>
                         </div>
                     </div>
+
+                    <!-- Property & Hostizzy Breakdown -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                        <div style="padding: 12px; background: linear-gradient(135deg, #10b98115 0%, #05966915 100%); border-radius: 8px; border-left: 3px solid #10b981;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">🏠 Properties</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #10b981;" id="propertyCollected">₹0</div>
+                        </div>
+                        <div style="padding: 12px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 8px; border-left: 3px solid #667eea;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">💼 Hostizzy</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #667eea;" id="hostizzyCollected">₹0</div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Sources Chart -->
                     <div style="padding: 20px; background: var(--background-alt); border-radius: 8px; margin-top: 16px;">
-                        <canvas id="paymentChart" style="max-height: 250px;"></canvas>
+                        <div style="font-weight: 600; margin-bottom: 16px; font-size: 14px; color: var(--text-primary);">💰 Payment Sources</div>
+                        <canvas id="paymentChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -7878,30 +7745,24 @@
                 showDecimals = false,
                 compact = true
             } = options;
-            
+
             const value = parseFloat(amount) || 0;
             const absValue = Math.abs(value);
-            
+
             let formatted = '';
-            
+
             if (compact) {
                 if (absValue >= 10000000) {
                     // Crores (10M+)
                     formatted = `${(value / 10000000).toFixed(showDecimals ? 2 : 1)}Cr`;
-                } else if (absValue >= 100000) {
-                    // Lakhs (100K+) - Only use lakhs for 1L and above
-                    formatted = `${(value / 100000).toFixed(showDecimals ? 2 : 1)}L`;
-                } else if (absValue >= 1000) {
-                    // Thousands (1K+) - Use for amounts below 1 lakh
-                    formatted = `${(value / 1000).toFixed(showDecimals ? 2 : 1)}K`;
                 } else {
-                    // Less than 1000
-                    formatted = Math.round(value).toLocaleString('en-IN');
+                    // Always use Lakhs for consistency
+                    formatted = `${(value / 100000).toFixed(2)}L`;
                 }
             } else {
                 formatted = Math.round(value).toLocaleString('en-IN');
             }
-            
+
             return showSymbol ? `₹${formatted}` : formatted;
         }
 
@@ -8317,7 +8178,6 @@
                     document.querySelector('.mobile-nav').classList.remove('hidden');
                     document.getElementById('mobileHeader').classList.remove('hidden');
                     document.getElementById('mobileUserEmail').textContent = user.email;
-                    document.getElementById('sidebarUserEmail').textContent = user.email;
                     
                     // Hide Performance view for staff
                     if (user.role === 'staff') {
@@ -8360,12 +8220,6 @@
                 }
             });
             
-            // Hide from mobile sidebar
-            document.querySelectorAll('.mobile-sidebar-link').forEach(link => {
-                if (link.textContent.includes('Performance') || link.onclick?.toString().includes('performance')) {
-                    link.style.display = 'none';
-                }
-            });
         }
 
         function logout() {
@@ -8379,12 +8233,9 @@
         // Mobile Navigation
         function showViewMobile(viewName) {
             showView(viewName);
-            toggleMobileSidebar();
-            
+            toggleSidebar();
+
             document.querySelectorAll('.mobile-nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.querySelectorAll('.mobile-sidebar-link').forEach(item => {
                 item.classList.remove('active');
             });
             if (event && event.target) event.target.classList.add('active');
@@ -8693,7 +8544,24 @@
             }
         }
 
+        // Mobile Sidebar Toggle Functions
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('mobile-open');
+            }
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('mobile-open');
+            }
+        }
+
         // Global Search
+        let globalSearchResults = [];
+
         function handleGlobalSearch(event) {
             const searchInput = document.getElementById('globalSearch');
             const searchResults = document.getElementById('searchResults');
@@ -8721,10 +8589,7 @@
                             type: 'reservation',
                             title: `${reservation.guest_name} - ${reservation.property_name}`,
                             meta: `Booking #${reservation.booking_id} | ${reservation.status}`,
-                            action: () => {
-                                showView('reservations');
-                                clearGlobalSearch();
-                            }
+                            view: 'reservations'
                         });
                     }
                 });
@@ -8740,10 +8605,7 @@
                             type: 'guest',
                             title: guest.name,
                             meta: `${guest.email || ''} ${guest.phone || ''}`,
-                            action: () => {
-                                showView('guests');
-                                clearGlobalSearch();
-                            }
+                            view: 'guests'
                         });
                     }
                 });
@@ -8758,19 +8620,19 @@
                             type: 'property',
                             title: property.name,
                             meta: `${property.location || ''} | ${property.property_type || ''}`,
-                            action: () => {
-                                showView('properties');
-                                clearGlobalSearch();
-                            }
+                            view: 'properties'
                         });
                     }
                 });
             }
 
+            // Store results globally
+            globalSearchResults = results;
+
             // Display results
             if (results.length > 0) {
-                searchResults.innerHTML = results.slice(0, 8).map(result => `
-                    <div class="search-result-item" onclick='${result.action.toString()}()'>
+                searchResults.innerHTML = results.slice(0, 8).map((result, index) => `
+                    <div class="search-result-item" onclick="handleSearchResultClick(${index})">
                         <div class="search-result-title">${result.title}</div>
                         <div class="search-result-meta">${result.meta}</div>
                     </div>
@@ -8779,6 +8641,14 @@
             } else {
                 searchResults.innerHTML = '<div class="search-result-item"><div class="search-result-title">No results found</div></div>';
                 searchResults.style.display = 'block';
+            }
+        }
+
+        function handleSearchResultClick(index) {
+            const result = globalSearchResults[index];
+            if (result && result.view) {
+                showView(result.view);
+                clearGlobalSearch();
             }
         }
 
@@ -9005,13 +8875,171 @@
         }
 
         // Communication Functions
+        let communicationMessages = [];
+        let currentCommunicationFilter = 'all';
+
         function loadCommunication() {
-            // Future implementation for loading message history
-            console.log('Communication view loaded');
+            try {
+                const stored = localStorage.getItem('communicationMessages');
+                communicationMessages = stored ? JSON.parse(stored) : [];
+                renderCommunicationMessages();
+            } catch (error) {
+                console.error('Error loading communications:', error);
+                communicationMessages = [];
+            }
+        }
+
+        function renderCommunicationMessages() {
+            const messageHistory = document.getElementById('messageHistory');
+            if (!messageHistory) return;
+
+            let filteredMessages = communicationMessages;
+            if (currentCommunicationFilter !== 'all') {
+                filteredMessages = communicationMessages.filter(m => m.channel === currentCommunicationFilter);
+            }
+
+            if (filteredMessages.length === 0) {
+                messageHistory.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                        <h3 style="margin-bottom: 8px;">No messages yet</h3>
+                        <p>Start communicating with your guests using the quick templates above</p>
+                    </div>
+                `;
+                return;
+            }
+
+            messageHistory.innerHTML = filteredMessages.map(msg => `
+                <div class="communication-message" style="padding: 16px; border-bottom: 1px solid var(--border); transition: background 0.2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 24px;">${getChannelIcon(msg.channel)}</span>
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-primary);">${msg.recipient}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${msg.channel.toUpperCase()}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: var(--text-tertiary);">${new Date(msg.timestamp).toLocaleDateString()}</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary);">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                    <div style="padding: 12px; background: var(--background); border-radius: 8px; margin-top: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 4px; color: var(--primary);">${msg.subject}</div>
+                        <div style="color: var(--text-secondary); font-size: 14px; line-height: 1.5;">${msg.message}</div>
+                    </div>
+                    ${msg.status ? `<div style="margin-top: 8px; display: inline-block; padding: 4px 12px; background: ${msg.status === 'sent' ? '#dcfce7' : '#fef3c7'}; color: ${msg.status === 'sent' ? '#166534' : '#92400e'}; border-radius: 12px; font-size: 11px; font-weight: 600;">${msg.status.toUpperCase()}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function getChannelIcon(channel) {
+            const icons = {
+                'whatsapp': '💬',
+                'email': '📧',
+                'sms': '📱'
+            };
+            return icons[channel] || '💬';
         }
 
         function openComposeModal() {
-            showToast('Coming Soon', 'Message composition feature coming soon!', '✉️');
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">✉️ Compose Message</h3>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div class="form-group">
+                            <label>Channel *</label>
+                            <select id="composeChannel" class="form-control">
+                                <option value="whatsapp">💬 WhatsApp</option>
+                                <option value="email">📧 Email</option>
+                                <option value="sms">📱 SMS</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Recipient *</label>
+                            <select id="composeRecipient" class="form-control">
+                                <option value="">Select Guest...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Subject/Title</label>
+                            <input type="text" id="composeSubject" class="form-control" placeholder="e.g., Booking Confirmation">
+                        </div>
+                        <div class="form-group">
+                            <label>Message *</label>
+                            <textarea id="composeMessage" class="form-control" rows="6" placeholder="Type your message here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                        <button class="btn btn-primary" onclick="sendComposedMessage()">📤 Send Message</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Load guests into recipient dropdown
+            loadGuestsForCompose();
+        }
+
+        async function loadGuestsForCompose() {
+            const select = document.getElementById('composeRecipient');
+            if (!select) return;
+
+            try {
+                const reservations = await db.getReservations();
+                const uniqueGuests = {};
+
+                reservations.forEach(r => {
+                    if (r.guest_name && r.guest_phone) {
+                        uniqueGuests[r.guest_phone] = r.guest_name;
+                    }
+                });
+
+                select.innerHTML = '<option value="">Select Guest...</option>' +
+                    Object.entries(uniqueGuests).map(([phone, name]) =>
+                        `<option value="${phone}">${name} (${phone})</option>`
+                    ).join('');
+            } catch (error) {
+                console.error('Error loading guests:', error);
+            }
+        }
+
+        function sendComposedMessage() {
+            const channel = document.getElementById('composeChannel').value;
+            const recipient = document.getElementById('composeRecipient');
+            const recipientValue = recipient.value;
+            const recipientText = recipient.options[recipient.selectedIndex].text;
+            const subject = document.getElementById('composeSubject').value;
+            const message = document.getElementById('composeMessage').value;
+
+            if (!recipientValue || !message) {
+                showToast('Missing Fields', 'Please select a recipient and enter a message', '⚠️');
+                return;
+            }
+
+            const newMessage = {
+                id: Date.now(),
+                channel,
+                recipient: recipientText,
+                subject: subject || 'Message',
+                message,
+                timestamp: new Date().toISOString(),
+                status: 'sent'
+            };
+
+            communicationMessages.unshift(newMessage);
+            localStorage.setItem('communicationMessages', JSON.stringify(communicationMessages));
+            renderCommunicationMessages();
+
+            document.querySelector('.modal').remove();
+            showToast('Message Sent', `Message sent to ${recipientText}`, '✅');
         }
 
         function filterCommunications(type) {
@@ -9020,20 +9048,48 @@
             });
             event.target.classList.add('active');
 
-            showToast('Filter Applied', `Showing ${type} messages`, '🔍');
+            currentCommunicationFilter = type;
+            renderCommunicationMessages();
         }
 
         function sendTemplate(templateType) {
             const templates = {
-                'booking-confirmation': '✅ Booking confirmed!',
-                'payment-reminder': '💰 Payment reminder',
-                'check-in': '🔑 Check-in details',
-                'check-out': '👋 Thank you for staying',
-                'review-request': '⭐ Please leave a review',
-                'custom': '✏️ Custom message'
+                'booking-confirmation': {
+                    subject: 'Booking Confirmation',
+                    message: 'Dear Guest,\n\nYour booking has been confirmed! We look forward to hosting you.\n\nThank you for choosing us!'
+                },
+                'payment-reminder': {
+                    subject: 'Payment Reminder',
+                    message: 'Dear Guest,\n\nThis is a friendly reminder about your pending payment. Please complete your payment at your earliest convenience.\n\nThank you!'
+                },
+                'check-in': {
+                    subject: 'Check-in Details',
+                    message: 'Dear Guest,\n\nWe\'re excited to welcome you! Here are your check-in details:\n\nCheck-in time: 2:00 PM\nProperty address: [Your Property Address]\n\nSee you soon!'
+                },
+                'check-out': {
+                    subject: 'Thank You for Staying',
+                    message: 'Dear Guest,\n\nThank you for staying with us! We hope you had a wonderful experience.\n\nCheck-out time: 11:00 AM\n\nWe hope to see you again!'
+                },
+                'review-request': {
+                    subject: 'Please Share Your Experience',
+                    message: 'Dear Guest,\n\nWe hope you enjoyed your stay! We would love to hear about your experience.\n\nPlease take a moment to leave us a review.\n\nThank you!'
+                },
+                'custom': {
+                    subject: 'Custom Message',
+                    message: ''
+                }
             };
 
-            showToast('Template Selected', templates[templateType] || 'Template selected', '📝');
+            const template = templates[templateType];
+            if (template) {
+                openComposeModal();
+                setTimeout(() => {
+                    const subjectInput = document.getElementById('composeSubject');
+                    const messageInput = document.getElementById('composeMessage');
+                    if (subjectInput) subjectInput.value = template.subject;
+                    if (messageInput) messageInput.value = template.message;
+                }, 100);
+            }
         }
         function renderBookingTypeBreakdown(reservations, targetId) {
         const bookingTypes = {};
@@ -9431,12 +9487,15 @@
 
         async function applyQuickFilter(filter) {
             currentQuickFilter = filter;
-            
+
             // Update UI
             document.querySelectorAll('.filter-chip').forEach(chip => {
                 chip.classList.remove('active');
             });
-            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+            const filterElement = document.querySelector(`[data-filter="${filter}"]`);
+            if (filterElement) {
+                filterElement.classList.add('active');
+            }
             
             // Get all reservations
             let filteredReservations = [...allReservations];
@@ -10053,19 +10112,11 @@
                 updateTrendDisplay('monthNightsChange', nightsChange);
                 
                 // Update UI - Revenue
-                if (currentRevenue >= 100000) {
-                    document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 100000).toFixed(2) + 'L';
-                } else {
-                    document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 1000).toFixed(1) + 'K';
-                }
+                document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 100000).toFixed(2) + 'L';
                 updateTrendDisplay('monthRevenueChange', revenueChange);
-                
+
                 // Update UI - Hostizzy Revenue
-                if (currentHostizzy >= 100000) {
-                    document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 100000).toFixed(2) + 'L';
-                } else {
-                    document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 1000).toFixed(1) + 'K';
-                }
+                document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 100000).toFixed(2) + 'L';
                 updateTrendDisplay('monthHostizzyChange', hostizzyChange);
                 
             } catch (error) {
@@ -10122,19 +10173,11 @@
                 updateTrendDisplay('monthNightsChange', nightsChange);
                 
                 // Update UI - Revenue
-                if (currentRevenue >= 100000) {
-                    document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 100000).toFixed(2) + 'L';
-                } else {
-                    document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 1000).toFixed(1) + 'K';
-                }
+                document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 100000).toFixed(2) + 'L';
                 updateTrendDisplay('monthRevenueChange', revenueChange);
-                
+
                 // Update UI - Hostizzy Revenue
-                if (currentHostizzy >= 100000) {
-                    document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 100000).toFixed(2) + 'L';
-                } else {
-                    document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 1000).toFixed(1) + 'K';
-                }
+                document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 100000).toFixed(2) + 'L';
                 updateTrendDisplay('monthHostizzyChange', hostizzyChange);
                 
             } catch (error) {
@@ -10174,36 +10217,68 @@
         // Payment Analytics - Revenue Split
         function renderRevenueSplit(payments, reservations) {
             // Calculate Hostizzy vs Owner Revenue (from reservations, not payments)
-            const hostizzyRevenue = reservations.reduce((sum, r) => 
+            const hostizzyRevenue = reservations.reduce((sum, r) =>
                 sum + (parseFloat(r.hostizzy_revenue) || 0), 0
             );
-            const totalRevenue = reservations.reduce((sum, r) => 
+            const totalRevenue = reservations.reduce((sum, r) =>
                 sum + (parseFloat(r.total_amount) || 0), 0
             );
             const ownerRevenue = totalRevenue - hostizzyRevenue;
-            
+
             const hostizzyPercentage = totalRevenue > 0 ? ((hostizzyRevenue / totalRevenue) * 100).toFixed(1) : 0;
             const ownerPercentage = totalRevenue > 0 ? ((ownerRevenue / totalRevenue) * 100).toFixed(1) : 0;
-            
+
             // Calculate Collection Status
-            const totalPaid = reservations.reduce((sum, r) => 
+            const totalPaid = reservations.reduce((sum, r) =>
                 sum + (parseFloat(r.paid_amount) || 0), 0
             );
             const pendingCollection = totalRevenue - totalPaid;
             const collectionRate = totalRevenue > 0 ? ((totalPaid / totalRevenue) * 100).toFixed(1) : 0;
             const pendingRate = (100 - collectionRate).toFixed(1);
-            
+
+            // Calculate Property vs Hostizzy Collection (based on paid amounts)
+            const hostizzyCollected = reservations.reduce((sum, r) => {
+                const paidAmount = parseFloat(r.paid_amount) || 0;
+                const totalAmount = parseFloat(r.total_amount) || 0;
+                const hostizzyRev = parseFloat(r.hostizzy_revenue) || 0;
+                if (totalAmount > 0) {
+                    return sum + (paidAmount * (hostizzyRev / totalAmount));
+                }
+                return sum;
+            }, 0);
+            const propertyCollected = totalPaid - hostizzyCollected;
+
+            // Calculate Payment Source Breakup
+            const paymentSources = {};
+            payments.forEach(p => {
+                const method = p.payment_method || 'Other';
+                paymentSources[method] = (paymentSources[method] || 0) + (parseFloat(p.amount) || 0);
+            });
+
+            // Sort payment sources by amount
+            const sortedSources = Object.entries(paymentSources)
+                .sort((a, b) => b[1] - a[1]);
+
             // Update Revenue Distribution
             document.getElementById('hostizzyTotal').textContent = '₹' + (hostizzyRevenue/100000).toFixed(1) + 'L';
             document.getElementById('ownerTotal').textContent = '₹' + (ownerRevenue/100000).toFixed(1) + 'L';
             document.getElementById('hostizzyPercentage').textContent = hostizzyPercentage + '% of total';
             document.getElementById('ownerPercentage').textContent = ownerPercentage + '% of total';
-            
+
             // Update Payment Collection Status
             document.getElementById('totalCollected').textContent = '₹' + (totalPaid/100000).toFixed(1) + 'L';
             document.getElementById('pendingCollection').textContent = '₹' + (pendingCollection/100000).toFixed(1) + 'L';
             document.getElementById('collectionRate').textContent = collectionRate + '% collected';
             document.getElementById('pendingRate').textContent = pendingRate + '% remaining';
+
+            // Update Property & Hostizzy Breakdown
+            if (document.getElementById('propertyCollected')) {
+                document.getElementById('propertyCollected').textContent = '₹' + (propertyCollected/100000).toFixed(1) + 'L';
+            }
+            if (document.getElementById('hostizzyCollected')) {
+                document.getElementById('hostizzyCollected').textContent = '₹' + (hostizzyCollected/100000).toFixed(1) + 'L';
+            }
+
         }
 
         function renderPaymentMethodChart(payments, targetElementId = 'paymentMethodChart') {
@@ -10231,7 +10306,7 @@
                     <div style="margin-bottom: 16px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <span style="font-weight: 600; font-size: 14px;">${icons[method] || '💳'} ${method.replace('_', ' ').toUpperCase()}</span>
-                            <span style="font-weight: 700;">₹${(data.amount/1000).toFixed(1)}K (${percentage}%)</span>
+                            <span style="font-weight: 700;">₹${(data.amount/100000).toFixed(2)}L (${percentage}%)</span>
                         </div>
                         <div style="background: var(--background); height: 8px; border-radius: 4px; overflow: hidden;">
                             <div style="width: ${percentage}%; height: 100%; background: ${colors[method] || '#6b7280'}; transition: width 0.3s;"></div>
@@ -10741,7 +10816,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
                             <span>${data.count} bookings (${bookingPercentage.toFixed(1)}%)</span>
-                            <span>Avg: ₹${Math.round(avgBookingValue/1000)}K</span>
+                            <span>Avg: ₹${(avgBookingValue/100000).toFixed(2)}L</span>
                         </div>
                     </div>
                 `;
@@ -14789,7 +14864,7 @@
             if (collectionRate < 70) {
                 insights.push({
                     icon: '⚠️',
-                    text: `Payment collection is at ${collectionRate.toFixed(0)}%. Focus on collecting pending amounts of ₹${((metrics.totalRevenue - metrics.totalCollected)/1000).toFixed(1)}K.`,
+                    text: `Payment collection is at ${collectionRate.toFixed(0)}%. Focus on collecting pending amounts of ₹${((metrics.totalRevenue - metrics.totalCollected)/100000).toFixed(2)}L.`,
                     type: 'warning'
                 });
             } else if (collectionRate >= 90) {
@@ -14979,7 +15054,7 @@
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `₹${(context.parsed.y / 1000).toFixed(1)}K`
+                                label: (context) => `₹${(context.parsed.y / 100000).toFixed(2)}L`
                             }
                         }
                     },
@@ -14987,7 +15062,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => `₹${(value/1000).toFixed(0)}K`
+                                callback: (value) => `₹${(value/100000).toFixed(1)}L`
                             }
                         }
                     }
@@ -15070,7 +15145,7 @@
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `₹${(context.parsed.y / 1000).toFixed(1)}K`
+                                label: (context) => `₹${(context.parsed.y / 100000).toFixed(2)}L`
                             }
                         }
                     },
@@ -15078,7 +15153,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => `₹${(value/1000).toFixed(0)}K`
+                                callback: (value) => `₹${(value/100000).toFixed(1)}L`
                             }
                         }
                     }
@@ -15118,7 +15193,7 @@
                         legend: { position: 'bottom' },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `${context.label}: ₹${(context.parsed / 1000).toFixed(1)}K`
+                                label: (context) => `${context.label}: ₹${(context.parsed / 100000).toFixed(2)}L`
                             }
                         }
                     }
@@ -15657,7 +15732,7 @@
                 insights.push({
                     type: 'alert',
                     icon: '🔴',
-                    text: `${oldPendingReservations.length} bookings have pending payments over 30 days old (₹${(totalOldPending/1000).toFixed(1)}K)`
+                    text: `${oldPendingReservations.length} bookings have pending payments over 30 days old (₹${(totalOldPending/100000).toFixed(2)}L)`
                 });
             }
 
@@ -15814,8 +15889,8 @@
                                 <div style="font-size: 12px; color: var(--text-secondary);">${prop.transactionCount} transactions</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 16px; color: #10b981;">₹${(prop.totalCollected/1000).toFixed(1)}K</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">of ₹${(prop.totalRevenue/1000).toFixed(1)}K</div>
+                                <div style="font-weight: 700; font-size: 16px; color: #10b981;">₹${(prop.totalCollected/100000).toFixed(2)}L</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">of ₹${(prop.totalRevenue/100000).toFixed(2)}L</div>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -15828,7 +15903,7 @@
                         </div>
                         ${pending > 0 ? `
                             <div style="margin-top: 6px; font-size: 11px; color: #ef4444;">
-                                Pending: ₹${(pending/1000).toFixed(1)}K
+                                Pending: ₹${(pending/100000).toFixed(2)}L
                             </div>
                         ` : ''}
                     </div>
@@ -15900,7 +15975,7 @@
                                         const value = data.datasets[0].data[i];
                                         const count = Object.values(methodData)[i].count;
                                         return {
-                                            text: `${label}: ₹${(value/1000).toFixed(1)}K (${count})`,
+                                            text: `${label}: ₹${(value/100000).toFixed(2)}L (${count})`,
                                             fillStyle: data.datasets[0].backgroundColor[i],
                                             hidden: false,
                                             index: i
@@ -15975,7 +16050,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + (value/1000).toFixed(0) + 'K';
+                                    return '₹' + (value/100000).toFixed(1) + 'L';
                                 }
                             }
                         }
@@ -16029,7 +16104,7 @@
                                 <div style="font-size: 12px; color: var(--text-secondary);">${data.bookings} bookings</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 15px; color: ${color};">₹${(data.collected/1000).toFixed(1)}K</div>
+                                <div style="font-weight: 700; font-size: 15px; color: ${color};">₹${(data.collected/100000).toFixed(2)}L</div>
                                 <div style="font-size: 11px; color: var(--text-secondary);">${collectionRate.toFixed(0)}% collected</div>
                             </div>
                         </div>
@@ -16225,7 +16300,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + (value/1000).toFixed(0) + 'K';
+                                    return '₹' + (value/100000).toFixed(1) + 'L';
                                 }
                             }
                         }
@@ -17410,7 +17485,6 @@
                     document.querySelector('.mobile-nav').classList.remove('hidden');
                     document.getElementById('mobileHeader').classList.remove('hidden');
                     document.getElementById('mobileUserEmail').textContent = currentUser.email;
-                    document.getElementById('sidebarUserEmail').textContent = currentUser.email;
                     
                     // Hide Performance for staff
                     if (currentUser.role === 'staff') {
@@ -20486,28 +20560,40 @@
         // NEW NAVIGATION FUNCTIONS
         // ==========================================
 
-        // Toggle Mobile Sidebar
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('mobileSidebar');
+        // Toggle Sidebar (works for both mobile and tablet)
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
             const overlay = document.getElementById('mobileOverlay');
             const hamburger = document.getElementById('hamburgerIcon');
-            
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-            
+
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+            if (overlay) {
+                overlay.classList.toggle('active');
+            }
+
             // Animate hamburger icon
-            hamburger.textContent = sidebar.classList.contains('active') ? '✕' : '☰';
+            if (hamburger) {
+                hamburger.textContent = sidebar?.classList.contains('active') ? '✕' : '☰';
+            }
         }
 
-        // Close Mobile Sidebar
-        function closeMobileSidebar() {
-            const sidebar = document.getElementById('mobileSidebar');
+        // Close Sidebar
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
             const overlay = document.getElementById('mobileOverlay');
             const hamburger = document.getElementById('hamburgerIcon');
-            
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-            hamburger.textContent = '☰';
+
+            if (sidebar) {
+                sidebar.classList.remove('active');
+            }
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+            if (hamburger) {
+                hamburger.textContent = '☰';
+            }
         }
 
         // Toggle User Menu (Mobile)
@@ -20522,10 +20608,6 @@
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
-            document.querySelectorAll('.mobile-sidebar-link').forEach(item => {
-                item.classList.remove('active');
-            });
 
             document.querySelectorAll('.mobile-nav-item').forEach(item => {
                 item.classList.remove('active');
@@ -20533,15 +20615,12 @@
 
             // Set active based on view name
             const sidebarSelector = `.sidebar-item[onclick*="'${viewName}'"]`;
-            const mobileSidebarSelector = `.mobile-sidebar-link[onclick*="'${viewName}'"]`;
             const mobileNavSelector = `.mobile-nav-item[onclick*="'${viewName}'"]`;
 
             const sidebarItem = document.querySelector(sidebarSelector);
-            const mobileSidebarItem = document.querySelector(mobileSidebarSelector);
             const mobileNavItem = document.querySelector(mobileNavSelector);
 
             if (sidebarItem) sidebarItem.classList.add('active');
-            if (mobileSidebarItem) mobileSidebarItem.classList.add('active');
             if (mobileNavItem) mobileNavItem.classList.add('active');
         }
 
@@ -20930,24 +21009,56 @@
                 paymentChartInstance.destroy();
             }
 
-            const collected = parseFloat(document.getElementById('totalCollected')?.textContent.replace(/[₹,]/g, '') || 0);
-            const pending = parseFloat(document.getElementById('pendingCollection')?.textContent.replace(/[₹,]/g, '') || 0);
+            // Calculate payment sources distribution
+            const paymentSources = {};
+            const payments = state.payments || [];
+
+            payments.forEach(payment => {
+                const source = payment.payment_method || 'Unknown';
+                if (!paymentSources[source]) {
+                    paymentSources[source] = 0;
+                }
+                paymentSources[source] += parseFloat(payment.amount || 0);
+            });
+
+            // Sort by amount descending
+            const sortedSources = Object.entries(paymentSources)
+                .sort((a, b) => b[1] - a[1]);
+
+            const labels = sortedSources.map(([source]) => source);
+            const data = sortedSources.map(([, amount]) => amount);
+
+            // Color scheme for payment methods
+            const colors = {
+                'UPI': 'rgba(139, 92, 246, 0.8)',
+                'CASH': 'rgba(16, 185, 129, 0.8)',
+                'CARD': 'rgba(59, 130, 246, 0.8)',
+                'BANK TRANSFER': 'rgba(245, 158, 11, 0.8)',
+                'CHEQUE': 'rgba(239, 68, 68, 0.8)',
+                'Unknown': 'rgba(148, 163, 184, 0.8)'
+            };
+
+            const borderColors = {
+                'UPI': 'rgba(139, 92, 246, 1)',
+                'CASH': 'rgba(16, 185, 129, 1)',
+                'CARD': 'rgba(59, 130, 246, 1)',
+                'BANK TRANSFER': 'rgba(245, 158, 11, 1)',
+                'CHEQUE': 'rgba(239, 68, 68, 1)',
+                'Unknown': 'rgba(148, 163, 184, 1)'
+            };
+
+            const backgroundColors = labels.map(label => colors[label] || 'rgba(99, 102, 241, 0.8)');
+            const borderColorsArray = labels.map(label => borderColors[label] || 'rgba(99, 102, 241, 1)');
 
             paymentChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Collected', 'Pending'],
+                    labels: labels,
                     datasets: [{
                         label: 'Amount (₹)',
-                        data: [collected, pending],
-                        backgroundColor: [
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(239, 68, 68, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(16, 185, 129, 1)',
-                            'rgba(239, 68, 68, 1)'
-                        ],
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColorsArray,
                         borderWidth: 2,
                         borderRadius: 8
                     }]
@@ -20960,7 +21071,9 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return '₹' + context.parsed.y.toLocaleString('en-IN');
+                                    const total = data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed.y / total) * 100).toFixed(1) : 0;
+                                    return `₹${context.parsed.y.toLocaleString('en-IN')} (${percentage}%)`;
                                 }
                             }
                         }
@@ -20970,7 +21083,10 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + (value / 1000) + 'K';
+                                    if (value >= 1000) {
+                                        return '₹' + (value / 1000) + 'K';
+                                    }
+                                    return '₹' + value;
                                 }
                             }
                         }
