@@ -798,12 +798,35 @@
             .nav-secondary {
                 display: none !important;
             }
-            
+
             /* Show More dropdown on tablet */
             .more-dropdown-container {
                 display: block !important;
             }
-            
+
+            /* Simplify sidebar - hide category headers, show flat menu */
+            .sidebar-category-header {
+                display: none !important;
+            }
+
+            .sidebar-category-items {
+                display: block !important;
+                padding: 0 !important;
+            }
+
+            .sidebar-category {
+                margin: 0 !important;
+            }
+
+            /* Add subtle separators between groups */
+            .sidebar-category + .sidebar-category .sidebar-category-items::before {
+                content: '';
+                display: block;
+                height: 1px;
+                background: var(--border);
+                margin: 8px 0;
+            }
+
             /* Hide separator on tablet */
             .nav-separator {
                 display: none;
@@ -4184,6 +4207,10 @@
                             <span class="sidebar-item-icon">📅</span>
                             <span class="sidebar-item-label">Reservations</span>
                         </a>
+                        <a class="sidebar-item" onclick="showView('guestDocuments')">
+                            <span class="sidebar-item-icon">📄</span>
+                            <span class="sidebar-item-label">Documents</span>
+                        </a>
                         <a class="sidebar-item" onclick="showView('guests')">
                             <span class="sidebar-item-icon">👥</span>
                             <span class="sidebar-item-label">Guests</span>
@@ -4191,10 +4218,6 @@
                         <a class="sidebar-item" onclick="showView('meals')">
                             <span class="sidebar-item-icon">🍽️</span>
                             <span class="sidebar-item-label">Meals</span>
-                        </a>
-                        <a class="sidebar-item" onclick="showView('availability')">
-                            <span class="sidebar-item-icon">📆</span>
-                            <span class="sidebar-item-label">Availability</span>
                         </a>
                     </div>
                 </div>
@@ -4232,13 +4255,13 @@
                             <span class="sidebar-item-icon">🏘️</span>
                             <span class="sidebar-item-label">Properties</span>
                         </a>
-                        <a class="sidebar-item" onclick="showView('guestDocuments')">
-                            <span class="sidebar-item-icon">📄</span>
-                            <span class="sidebar-item-label">Documents</span>
-                        </a>
                         <a class="sidebar-item" onclick="showView('team')">
                             <span class="sidebar-item-icon">👨‍💼</span>
                             <span class="sidebar-item-label">Team</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('availability')">
+                            <span class="sidebar-item-icon">📆</span>
+                            <span class="sidebar-item-label">Availability</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('communication')">
                             <span class="sidebar-item-icon">💬</span>
@@ -4485,6 +4508,14 @@
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
+                    <div class="category-card" onclick="showView('guestDocuments')">
+                        <div class="category-card-icon" style="background: var(--gradient-danger);">📋</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Documents</div>
+                            <div class="category-card-stat">Document review</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
                     <div class="category-card" onclick="showView('guests')">
                         <div class="category-card-icon" style="background: var(--gradient-ocean);">👥</div>
                         <div class="category-card-content">
@@ -4498,14 +4529,6 @@
                         <div class="category-card-content">
                             <div class="category-card-title">Meals</div>
                             <div class="category-card-stat">Meal planning</div>
-                        </div>
-                        <div class="category-card-arrow">›</div>
-                    </div>
-                    <div class="category-card" onclick="showView('availability')">
-                        <div class="category-card-icon" style="background: var(--gradient-primary);">📆</div>
-                        <div class="category-card-content">
-                            <div class="category-card-title">Availability</div>
-                            <div class="category-card-stat" id="homeStatUpcoming">-- upcoming</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
@@ -4561,19 +4584,19 @@
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
-                    <div class="category-card" onclick="showView('guestDocuments')">
-                        <div class="category-card-icon" style="background: var(--gradient-danger);">📋</div>
-                        <div class="category-card-content">
-                            <div class="category-card-title">Documents</div>
-                            <div class="category-card-stat">Document review</div>
-                        </div>
-                        <div class="category-card-arrow">›</div>
-                    </div>
                     <div class="category-card" onclick="showView('team')">
                         <div class="category-card-icon" style="background: var(--gradient-ocean);">👨‍💼</div>
                         <div class="category-card-content">
                             <div class="category-card-title">Team</div>
                             <div class="category-card-stat">Team management</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('availability')">
+                        <div class="category-card-icon" style="background: var(--gradient-primary);">📆</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Availability</div>
+                            <div class="category-card-stat" id="homeStatUpcoming">-- upcoming</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
@@ -5272,7 +5295,7 @@
                 <!-- Payment Collection Status -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">💳 Payment Collection</h3>
+                        <h3 class="card-title">💳 Payment Collection & Chat</h3>
                     </div>
                     <div class="split-card">
                         <div class="split-item">
@@ -5286,6 +5309,27 @@
                             <div class="split-percentage" id="pendingRate">0%</div>
                         </div>
                     </div>
+
+                    <!-- Property & Hostizzy Breakdown -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                        <div style="padding: 12px; background: linear-gradient(135deg, #10b98115 0%, #05966915 100%); border-radius: 8px; border-left: 3px solid #10b981;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">🏠 Properties</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #10b981;" id="propertyCollected">₹0</div>
+                        </div>
+                        <div style="padding: 12px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 8px; border-left: 3px solid #667eea;">
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">💼 Hostizzy</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #667eea;" id="hostizzyCollected">₹0</div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Source Breakup -->
+                    <div style="margin-top: 16px; padding: 16px; background: var(--background-alt); border-radius: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">💰 Payment Sources</div>
+                        <div id="paymentSourceBreakup" style="display: grid; gap: 8px;">
+                            <!-- Will be populated by JS -->
+                        </div>
+                    </div>
+
                     <div style="padding: 20px; background: var(--background-alt); border-radius: 8px; margin-top: 16px;">
                         <canvas id="paymentChart" style="max-height: 250px;"></canvas>
                     </div>
@@ -7878,30 +7922,24 @@
                 showDecimals = false,
                 compact = true
             } = options;
-            
+
             const value = parseFloat(amount) || 0;
             const absValue = Math.abs(value);
-            
+
             let formatted = '';
-            
+
             if (compact) {
                 if (absValue >= 10000000) {
                     // Crores (10M+)
                     formatted = `${(value / 10000000).toFixed(showDecimals ? 2 : 1)}Cr`;
-                } else if (absValue >= 100000) {
-                    // Lakhs (100K+) - Only use lakhs for 1L and above
-                    formatted = `${(value / 100000).toFixed(showDecimals ? 2 : 1)}L`;
-                } else if (absValue >= 1000) {
-                    // Thousands (1K+) - Use for amounts below 1 lakh
-                    formatted = `${(value / 1000).toFixed(showDecimals ? 2 : 1)}K`;
                 } else {
-                    // Less than 1000
-                    formatted = Math.round(value).toLocaleString('en-IN');
+                    // Always use Lakhs for consistency
+                    formatted = `${(value / 100000).toFixed(2)}L`;
                 }
             } else {
                 formatted = Math.round(value).toLocaleString('en-IN');
             }
-            
+
             return showSymbol ? `₹${formatted}` : formatted;
         }
 
@@ -10053,19 +10091,11 @@
                 updateTrendDisplay('monthNightsChange', nightsChange);
                 
                 // Update UI - Revenue
-                if (currentRevenue >= 100000) {
-                    document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 100000).toFixed(2) + 'L';
-                } else {
-                    document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 1000).toFixed(1) + 'K';
-                }
+                document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 100000).toFixed(2) + 'L';
                 updateTrendDisplay('monthRevenueChange', revenueChange);
-                
+
                 // Update UI - Hostizzy Revenue
-                if (currentHostizzy >= 100000) {
-                    document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 100000).toFixed(2) + 'L';
-                } else {
-                    document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 1000).toFixed(1) + 'K';
-                }
+                document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 100000).toFixed(2) + 'L';
                 updateTrendDisplay('monthHostizzyChange', hostizzyChange);
                 
             } catch (error) {
@@ -10122,19 +10152,11 @@
                 updateTrendDisplay('monthNightsChange', nightsChange);
                 
                 // Update UI - Revenue
-                if (currentRevenue >= 100000) {
-                    document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 100000).toFixed(2) + 'L';
-                } else {
-                    document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 1000).toFixed(1) + 'K';
-                }
+                document.getElementById('monthRevenue').textContent = '₹' + (currentRevenue / 100000).toFixed(2) + 'L';
                 updateTrendDisplay('monthRevenueChange', revenueChange);
-                
+
                 // Update UI - Hostizzy Revenue
-                if (currentHostizzy >= 100000) {
-                    document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 100000).toFixed(2) + 'L';
-                } else {
-                    document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 1000).toFixed(1) + 'K';
-                }
+                document.getElementById('monthHostizzyRevenue').textContent = '₹' + (currentHostizzy / 100000).toFixed(2) + 'L';
                 updateTrendDisplay('monthHostizzyChange', hostizzyChange);
                 
             } catch (error) {
@@ -10174,36 +10196,87 @@
         // Payment Analytics - Revenue Split
         function renderRevenueSplit(payments, reservations) {
             // Calculate Hostizzy vs Owner Revenue (from reservations, not payments)
-            const hostizzyRevenue = reservations.reduce((sum, r) => 
+            const hostizzyRevenue = reservations.reduce((sum, r) =>
                 sum + (parseFloat(r.hostizzy_revenue) || 0), 0
             );
-            const totalRevenue = reservations.reduce((sum, r) => 
+            const totalRevenue = reservations.reduce((sum, r) =>
                 sum + (parseFloat(r.total_amount) || 0), 0
             );
             const ownerRevenue = totalRevenue - hostizzyRevenue;
-            
+
             const hostizzyPercentage = totalRevenue > 0 ? ((hostizzyRevenue / totalRevenue) * 100).toFixed(1) : 0;
             const ownerPercentage = totalRevenue > 0 ? ((ownerRevenue / totalRevenue) * 100).toFixed(1) : 0;
-            
+
             // Calculate Collection Status
-            const totalPaid = reservations.reduce((sum, r) => 
+            const totalPaid = reservations.reduce((sum, r) =>
                 sum + (parseFloat(r.paid_amount) || 0), 0
             );
             const pendingCollection = totalRevenue - totalPaid;
             const collectionRate = totalRevenue > 0 ? ((totalPaid / totalRevenue) * 100).toFixed(1) : 0;
             const pendingRate = (100 - collectionRate).toFixed(1);
-            
+
+            // Calculate Property vs Hostizzy Collection (based on paid amounts)
+            const hostizzyCollected = reservations.reduce((sum, r) => {
+                const paidAmount = parseFloat(r.paid_amount) || 0;
+                const totalAmount = parseFloat(r.total_amount) || 0;
+                const hostizzyRev = parseFloat(r.hostizzy_revenue) || 0;
+                if (totalAmount > 0) {
+                    return sum + (paidAmount * (hostizzyRev / totalAmount));
+                }
+                return sum;
+            }, 0);
+            const propertyCollected = totalPaid - hostizzyCollected;
+
+            // Calculate Payment Source Breakup
+            const paymentSources = {};
+            payments.forEach(p => {
+                const method = p.payment_method || 'Other';
+                paymentSources[method] = (paymentSources[method] || 0) + (parseFloat(p.amount) || 0);
+            });
+
+            // Sort payment sources by amount
+            const sortedSources = Object.entries(paymentSources)
+                .sort((a, b) => b[1] - a[1]);
+
             // Update Revenue Distribution
             document.getElementById('hostizzyTotal').textContent = '₹' + (hostizzyRevenue/100000).toFixed(1) + 'L';
             document.getElementById('ownerTotal').textContent = '₹' + (ownerRevenue/100000).toFixed(1) + 'L';
             document.getElementById('hostizzyPercentage').textContent = hostizzyPercentage + '% of total';
             document.getElementById('ownerPercentage').textContent = ownerPercentage + '% of total';
-            
+
             // Update Payment Collection Status
             document.getElementById('totalCollected').textContent = '₹' + (totalPaid/100000).toFixed(1) + 'L';
             document.getElementById('pendingCollection').textContent = '₹' + (pendingCollection/100000).toFixed(1) + 'L';
             document.getElementById('collectionRate').textContent = collectionRate + '% collected';
             document.getElementById('pendingRate').textContent = pendingRate + '% remaining';
+
+            // Update Property & Hostizzy Breakdown
+            if (document.getElementById('propertyCollected')) {
+                document.getElementById('propertyCollected').textContent = '₹' + (propertyCollected/100000).toFixed(1) + 'L';
+            }
+            if (document.getElementById('hostizzyCollected')) {
+                document.getElementById('hostizzyCollected').textContent = '₹' + (hostizzyCollected/100000).toFixed(1) + 'L';
+            }
+
+            // Update Payment Source Breakup
+            if (document.getElementById('paymentSourceBreakup')) {
+                const sourceHTML = sortedSources.length > 0
+                    ? sortedSources.map(([method, amount]) => {
+                        const percentage = totalPaid > 0 ? ((amount / totalPaid) * 100).toFixed(0) : 0;
+                        return `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border-radius: 6px;">
+                                <span style="font-size: 13px; color: var(--text);">${method}</span>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 12px; color: var(--text-secondary);">${percentage}%</span>
+                                    <span style="font-weight: 600; color: var(--success);">₹${(amount/100000).toFixed(1)}L</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')
+                    : '<div style="text-align: center; padding: 20px; color: var(--text-secondary); font-size: 13px;">No payment data available</div>';
+
+                document.getElementById('paymentSourceBreakup').innerHTML = sourceHTML;
+            }
         }
 
         function renderPaymentMethodChart(payments, targetElementId = 'paymentMethodChart') {
@@ -10231,7 +10304,7 @@
                     <div style="margin-bottom: 16px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <span style="font-weight: 600; font-size: 14px;">${icons[method] || '💳'} ${method.replace('_', ' ').toUpperCase()}</span>
-                            <span style="font-weight: 700;">₹${(data.amount/1000).toFixed(1)}K (${percentage}%)</span>
+                            <span style="font-weight: 700;">₹${(data.amount/100000).toFixed(2)}L (${percentage}%)</span>
                         </div>
                         <div style="background: var(--background); height: 8px; border-radius: 4px; overflow: hidden;">
                             <div style="width: ${percentage}%; height: 100%; background: ${colors[method] || '#6b7280'}; transition: width 0.3s;"></div>
@@ -10741,7 +10814,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
                             <span>${data.count} bookings (${bookingPercentage.toFixed(1)}%)</span>
-                            <span>Avg: ₹${Math.round(avgBookingValue/1000)}K</span>
+                            <span>Avg: ₹${(avgBookingValue/100000).toFixed(2)}L</span>
                         </div>
                     </div>
                 `;
@@ -14789,7 +14862,7 @@
             if (collectionRate < 70) {
                 insights.push({
                     icon: '⚠️',
-                    text: `Payment collection is at ${collectionRate.toFixed(0)}%. Focus on collecting pending amounts of ₹${((metrics.totalRevenue - metrics.totalCollected)/1000).toFixed(1)}K.`,
+                    text: `Payment collection is at ${collectionRate.toFixed(0)}%. Focus on collecting pending amounts of ₹${((metrics.totalRevenue - metrics.totalCollected)/100000).toFixed(2)}L.`,
                     type: 'warning'
                 });
             } else if (collectionRate >= 90) {
@@ -14979,7 +15052,7 @@
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `₹${(context.parsed.y / 1000).toFixed(1)}K`
+                                label: (context) => `₹${(context.parsed.y / 100000).toFixed(2)}L`
                             }
                         }
                     },
@@ -14987,7 +15060,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => `₹${(value/1000).toFixed(0)}K`
+                                callback: (value) => `₹${(value/100000).toFixed(1)}L`
                             }
                         }
                     }
@@ -15070,7 +15143,7 @@
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `₹${(context.parsed.y / 1000).toFixed(1)}K`
+                                label: (context) => `₹${(context.parsed.y / 100000).toFixed(2)}L`
                             }
                         }
                     },
@@ -15078,7 +15151,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => `₹${(value/1000).toFixed(0)}K`
+                                callback: (value) => `₹${(value/100000).toFixed(1)}L`
                             }
                         }
                     }
@@ -15118,7 +15191,7 @@
                         legend: { position: 'bottom' },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `${context.label}: ₹${(context.parsed / 1000).toFixed(1)}K`
+                                label: (context) => `${context.label}: ₹${(context.parsed / 100000).toFixed(2)}L`
                             }
                         }
                     }
@@ -15657,7 +15730,7 @@
                 insights.push({
                     type: 'alert',
                     icon: '🔴',
-                    text: `${oldPendingReservations.length} bookings have pending payments over 30 days old (₹${(totalOldPending/1000).toFixed(1)}K)`
+                    text: `${oldPendingReservations.length} bookings have pending payments over 30 days old (₹${(totalOldPending/100000).toFixed(2)}L)`
                 });
             }
 
@@ -15814,8 +15887,8 @@
                                 <div style="font-size: 12px; color: var(--text-secondary);">${prop.transactionCount} transactions</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 16px; color: #10b981;">₹${(prop.totalCollected/1000).toFixed(1)}K</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">of ₹${(prop.totalRevenue/1000).toFixed(1)}K</div>
+                                <div style="font-weight: 700; font-size: 16px; color: #10b981;">₹${(prop.totalCollected/100000).toFixed(2)}L</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">of ₹${(prop.totalRevenue/100000).toFixed(2)}L</div>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -15828,7 +15901,7 @@
                         </div>
                         ${pending > 0 ? `
                             <div style="margin-top: 6px; font-size: 11px; color: #ef4444;">
-                                Pending: ₹${(pending/1000).toFixed(1)}K
+                                Pending: ₹${(pending/100000).toFixed(2)}L
                             </div>
                         ` : ''}
                     </div>
@@ -15900,7 +15973,7 @@
                                         const value = data.datasets[0].data[i];
                                         const count = Object.values(methodData)[i].count;
                                         return {
-                                            text: `${label}: ₹${(value/1000).toFixed(1)}K (${count})`,
+                                            text: `${label}: ₹${(value/100000).toFixed(2)}L (${count})`,
                                             fillStyle: data.datasets[0].backgroundColor[i],
                                             hidden: false,
                                             index: i
@@ -15975,7 +16048,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + (value/1000).toFixed(0) + 'K';
+                                    return '₹' + (value/100000).toFixed(1) + 'L';
                                 }
                             }
                         }
@@ -16029,7 +16102,7 @@
                                 <div style="font-size: 12px; color: var(--text-secondary);">${data.bookings} bookings</div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 15px; color: ${color};">₹${(data.collected/1000).toFixed(1)}K</div>
+                                <div style="font-weight: 700; font-size: 15px; color: ${color};">₹${(data.collected/100000).toFixed(2)}L</div>
                                 <div style="font-size: 11px; color: var(--text-secondary);">${collectionRate.toFixed(0)}% collected</div>
                             </div>
                         </div>
@@ -16225,7 +16298,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + (value/1000).toFixed(0) + 'K';
+                                    return '₹' + (value/100000).toFixed(1) + 'L';
                                 }
                             }
                         }
