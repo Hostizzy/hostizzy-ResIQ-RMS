@@ -1642,85 +1642,6 @@
             flex: 1;
         }
         
-        /* Mobile Sidebar - Hamburger Menu */
-        .mobile-sidebar {
-            display: none;
-            position: fixed;
-            top: 60px;
-            left: -100%;
-            width: 280px;
-            height: calc(100vh - 140px);
-            background: white;
-            z-index: 1001;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto;
-            flex-direction: column;
-        }
-        
-        .mobile-sidebar.active {
-            left: 0;
-        }
-        
-        .mobile-sidebar-header {
-            padding: 20px 16px;
-            border-bottom: 1px solid var(--border);
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-tertiary);
-            letter-spacing: 0.5px;
-        }
-        
-        .mobile-sidebar-menu {
-            padding: 12px 8px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .mobile-sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .mobile-sidebar-link.active {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .mobile-sidebar-link:hover {
-            background: var(--background);
-            color: var(--text-primary);
-        }
-
-        .mobile-sidebar-icon {
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .mobile-sidebar-text {
-            flex: 1;
-        }
-        
-        .mobile-sidebar-footer {
-            padding: 12px 8px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
         .mobile-overlay {
             display: none;
             position: fixed;
@@ -2026,8 +1947,41 @@
                 display: none;
             }
 
+            /* Sidebar hidden by default, shown when active */
             .sidebar {
+                display: flex;
+                width: 80px;
+                left: -80px;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 1001;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            /* Compact sidebar styles for mobile */
+            .sidebar-item-label,
+            .sidebar-title,
+            .sidebar-category-header {
                 display: none;
+            }
+
+            .sidebar-item {
+                justify-content: center;
+                padding: 12px 8px;
+            }
+
+            .sidebar-item-icon {
+                font-size: 24px;
+            }
+
+            .sidebar-category-items {
+                padding: 0;
+            }
+
+            .container {
+                margin-left: 0;
             }
 
             .mobile-header {
@@ -4085,48 +4039,6 @@
             </div>
         </div>
 
-        <!-- Mobile Sidebar -->
-        <div id="mobileSidebar" class="mobile-sidebar">
-            <div class="mobile-sidebar-header">
-                <img src="assets/logo.png" alt="ResIQ" class="mobile-logo" style="margin-bottom: 8px;">
-                <div id="sidebarUserEmail" style="font-size: 13px; color: var(--text-secondary);"></div>
-            </div>
-            <div class="mobile-sidebar-menu">
-                <a class="mobile-sidebar-link active" onclick="showViewMobile('dashboard')">
-                    <span style="margin-right: 12px;">📊</span> Dashboard
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('reservations')">
-                    <span style="margin-right: 12px;">📅</span> Reservations
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('guestDocuments')">
-                    <span style="margin-right: 12px;">📋</span> Documents
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('payments')">
-                    <span style="margin-right: 12px;">💰</span> Payments
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('meals')">
-                    <span style="margin-right: 12px;">🍽️</span> Meals
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('availability')">
-                    <span style="margin-right: 12px;">🗓️</span> Availability
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('properties')">
-                    <span style="margin-right: 12px;">🏠</span> Properties
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('performance')">
-                    <span style="margin-right: 12px;">📊</span> Performance
-                </a>
-                <a class="mobile-sidebar-link" onclick="showViewMobile('team')">
-                    <span style="margin-right: 12px;">👥</span> Team
-                </a>
-                <a class="mobile-sidebar-link" onclick="logout()" style="margin-top: 20px; color: var(--danger);">
-                    <span style="margin-right: 12px;">🚪</span> Logout
-                </a>
-            </div>
-        </div>
-
-        <!-- Mobile Overlay -->
-        <div id="mobileOverlay" class="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
         <!-- Pull to Refresh Indicator -->
         <div class="pull-to-refresh-indicator" id="pullToRefreshIndicator">
@@ -4291,7 +4203,7 @@
         <div class="mobile-header">
             <div class="mobile-header-content">
                 <!-- Hamburger Menu Button -->
-                <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">
                     <span id="hamburgerIcon">☰</span>
                 </button>
 
@@ -4305,97 +4217,8 @@
             </div>
         </div>
 
-        <!-- Mobile Sidebar (Hamburger Menu) -->
-        <aside class="mobile-sidebar" id="mobileSidebar">
-            <div class="mobile-sidebar-header">
-                ☰ Menu
-            </div>
-
-            <div class="mobile-sidebar-menu">
-                <!-- Dashboard -->
-                <a class="mobile-sidebar-link active" onclick="showView('dashboard'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📊</span>
-                    <span class="mobile-sidebar-text">Dashboard</span>
-                </a>
-
-                <!-- Reservations -->
-                <a class="mobile-sidebar-link" onclick="showView('reservations'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📅</span>
-                    <span class="mobile-sidebar-text">Reservations</span>
-                </a>
-
-                <!-- Guests -->
-                <a class="mobile-sidebar-link" onclick="showView('guests'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">👥</span>
-                    <span class="mobile-sidebar-text">Guests</span>
-                </a>
-
-                <!-- Payments -->
-                <a class="mobile-sidebar-link" onclick="showView('payments'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">💰</span>
-                    <span class="mobile-sidebar-text">Payments</span>
-                </a>
-
-                <!-- Meals -->
-                <a class="mobile-sidebar-link" onclick="showView('meals'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">🍽️</span>
-                    <span class="mobile-sidebar-text">Meals</span>
-                </a>
-
-                <!-- Properties -->
-                <a class="mobile-sidebar-link" onclick="showView('properties'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">🏘️</span>
-                    <span class="mobile-sidebar-text">Properties</span>
-                </a>
-
-                <!-- Documents -->
-                <a class="mobile-sidebar-link" onclick="showView('guestDocuments'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📄</span>
-                    <span class="mobile-sidebar-text">Documents</span>
-                </a>
-
-                <!-- Analytics -->
-                <a class="mobile-sidebar-link" onclick="showView('performance'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📈</span>
-                    <span class="mobile-sidebar-text">Analytics</span>
-                </a>
-
-                <!-- Business Intelligence -->
-                <a class="mobile-sidebar-link" onclick="showView('businessIntelligence'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">🧠</span>
-                    <span class="mobile-sidebar-text">Business Intelligence</span>
-                </a>
-
-                <!-- Availability -->
-                <a class="mobile-sidebar-link" onclick="showView('availability'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">📆</span>
-                    <span class="mobile-sidebar-text">Availability</span>
-                </a>
-
-                <!-- Team -->
-                <a class="mobile-sidebar-link" onclick="showView('team'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">👨‍💼</span>
-                    <span class="mobile-sidebar-text">Team</span>
-                </a>
-            </div>
-
-            <div class="mobile-sidebar-footer">
-                <!-- Settings -->
-                <a class="mobile-sidebar-link" onclick="showView('settings'); closeMobileSidebar();">
-                    <span class="mobile-sidebar-icon">⚙️</span>
-                    <span class="mobile-sidebar-text">Settings</span>
-                </a>
-
-                <!-- Logout -->
-                <a class="mobile-sidebar-link" onclick="logout();">
-                    <span class="mobile-sidebar-icon">🚪</span>
-                    <span class="mobile-sidebar-text">Logout</span>
-                </a>
-            </div>
-        </aside>
-
         <!-- Mobile Overlay (for sidebar backdrop) -->
-        <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileSidebar()"></div>
+        <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
 
         <!-- Mobile Bottom Navigation -->
         <div class="mobile-nav">
@@ -5295,7 +5118,7 @@
                 <!-- Payment Collection Status -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">💳 Payment Collection & Chat</h3>
+                        <h3 class="card-title">💳 Payment Collection</h3>
                     </div>
                     <div class="split-card">
                         <div class="split-item">
@@ -5322,16 +5145,10 @@
                         </div>
                     </div>
 
-                    <!-- Payment Source Breakup -->
-                    <div style="margin-top: 16px; padding: 16px; background: var(--background-alt); border-radius: 8px;">
-                        <div style="font-weight: 600; margin-bottom: 12px; font-size: 13px; color: var(--text-secondary);">💰 Payment Sources</div>
-                        <div id="paymentSourceBreakup" style="display: grid; gap: 8px;">
-                            <!-- Will be populated by JS -->
-                        </div>
-                    </div>
-
+                    <!-- Payment Sources Chart -->
                     <div style="padding: 20px; background: var(--background-alt); border-radius: 8px; margin-top: 16px;">
-                        <canvas id="paymentChart" style="max-height: 250px;"></canvas>
+                        <div style="font-weight: 600; margin-bottom: 16px; font-size: 14px; color: var(--text-primary);">💰 Payment Sources</div>
+                        <canvas id="paymentChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -8398,12 +8215,6 @@
                 }
             });
             
-            // Hide from mobile sidebar
-            document.querySelectorAll('.mobile-sidebar-link').forEach(link => {
-                if (link.textContent.includes('Performance') || link.onclick?.toString().includes('performance')) {
-                    link.style.display = 'none';
-                }
-            });
         }
 
         function logout() {
@@ -8417,12 +8228,9 @@
         // Mobile Navigation
         function showViewMobile(viewName) {
             showView(viewName);
-            toggleMobileSidebar();
-            
+            toggleSidebar();
+
             document.querySelectorAll('.mobile-nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.querySelectorAll('.mobile-sidebar-link').forEach(item => {
                 item.classList.remove('active');
             });
             if (event && event.target) event.target.classList.add('active');
@@ -10265,25 +10073,6 @@
                 document.getElementById('hostizzyCollected').textContent = '₹' + (hostizzyCollected/100000).toFixed(1) + 'L';
             }
 
-            // Update Payment Source Breakup
-            if (document.getElementById('paymentSourceBreakup')) {
-                const sourceHTML = sortedSources.length > 0
-                    ? sortedSources.map(([method, amount]) => {
-                        const percentage = totalPaid > 0 ? ((amount / totalPaid) * 100).toFixed(0) : 0;
-                        return `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border-radius: 6px;">
-                                <span style="font-size: 13px; color: var(--text);">${method}</span>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <span style="font-size: 12px; color: var(--text-secondary);">${percentage}%</span>
-                                    <span style="font-weight: 600; color: var(--success);">₹${(amount/100000).toFixed(1)}L</span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')
-                    : '<div style="text-align: center; padding: 20px; color: var(--text-secondary); font-size: 13px;">No payment data available</div>';
-
-                document.getElementById('paymentSourceBreakup').innerHTML = sourceHTML;
-            }
         }
 
         function renderPaymentMethodChart(payments, targetElementId = 'paymentMethodChart') {
@@ -20566,28 +20355,40 @@
         // NEW NAVIGATION FUNCTIONS
         // ==========================================
 
-        // Toggle Mobile Sidebar
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('mobileSidebar');
+        // Toggle Sidebar (works for both mobile and tablet)
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
             const overlay = document.getElementById('mobileOverlay');
             const hamburger = document.getElementById('hamburgerIcon');
-            
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-            
+
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+            if (overlay) {
+                overlay.classList.toggle('active');
+            }
+
             // Animate hamburger icon
-            hamburger.textContent = sidebar.classList.contains('active') ? '✕' : '☰';
+            if (hamburger) {
+                hamburger.textContent = sidebar?.classList.contains('active') ? '✕' : '☰';
+            }
         }
 
-        // Close Mobile Sidebar
-        function closeMobileSidebar() {
-            const sidebar = document.getElementById('mobileSidebar');
+        // Close Sidebar
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
             const overlay = document.getElementById('mobileOverlay');
             const hamburger = document.getElementById('hamburgerIcon');
-            
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-            hamburger.textContent = '☰';
+
+            if (sidebar) {
+                sidebar.classList.remove('active');
+            }
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+            if (hamburger) {
+                hamburger.textContent = '☰';
+            }
         }
 
         // Toggle User Menu (Mobile)
@@ -20602,10 +20403,6 @@
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
-            document.querySelectorAll('.mobile-sidebar-link').forEach(item => {
-                item.classList.remove('active');
-            });
 
             document.querySelectorAll('.mobile-nav-item').forEach(item => {
                 item.classList.remove('active');
@@ -20613,15 +20410,12 @@
 
             // Set active based on view name
             const sidebarSelector = `.sidebar-item[onclick*="'${viewName}'"]`;
-            const mobileSidebarSelector = `.mobile-sidebar-link[onclick*="'${viewName}'"]`;
             const mobileNavSelector = `.mobile-nav-item[onclick*="'${viewName}'"]`;
 
             const sidebarItem = document.querySelector(sidebarSelector);
-            const mobileSidebarItem = document.querySelector(mobileSidebarSelector);
             const mobileNavItem = document.querySelector(mobileNavSelector);
 
             if (sidebarItem) sidebarItem.classList.add('active');
-            if (mobileSidebarItem) mobileSidebarItem.classList.add('active');
             if (mobileNavItem) mobileNavItem.classList.add('active');
         }
 
@@ -21010,24 +20804,56 @@
                 paymentChartInstance.destroy();
             }
 
-            const collected = parseFloat(document.getElementById('totalCollected')?.textContent.replace(/[₹,]/g, '') || 0);
-            const pending = parseFloat(document.getElementById('pendingCollection')?.textContent.replace(/[₹,]/g, '') || 0);
+            // Calculate payment sources distribution
+            const paymentSources = {};
+            const payments = state.payments || [];
+
+            payments.forEach(payment => {
+                const source = payment.payment_method || 'Unknown';
+                if (!paymentSources[source]) {
+                    paymentSources[source] = 0;
+                }
+                paymentSources[source] += parseFloat(payment.amount || 0);
+            });
+
+            // Sort by amount descending
+            const sortedSources = Object.entries(paymentSources)
+                .sort((a, b) => b[1] - a[1]);
+
+            const labels = sortedSources.map(([source]) => source);
+            const data = sortedSources.map(([, amount]) => amount);
+
+            // Color scheme for payment methods
+            const colors = {
+                'UPI': 'rgba(139, 92, 246, 0.8)',
+                'CASH': 'rgba(16, 185, 129, 0.8)',
+                'CARD': 'rgba(59, 130, 246, 0.8)',
+                'BANK TRANSFER': 'rgba(245, 158, 11, 0.8)',
+                'CHEQUE': 'rgba(239, 68, 68, 0.8)',
+                'Unknown': 'rgba(148, 163, 184, 0.8)'
+            };
+
+            const borderColors = {
+                'UPI': 'rgba(139, 92, 246, 1)',
+                'CASH': 'rgba(16, 185, 129, 1)',
+                'CARD': 'rgba(59, 130, 246, 1)',
+                'BANK TRANSFER': 'rgba(245, 158, 11, 1)',
+                'CHEQUE': 'rgba(239, 68, 68, 1)',
+                'Unknown': 'rgba(148, 163, 184, 1)'
+            };
+
+            const backgroundColors = labels.map(label => colors[label] || 'rgba(99, 102, 241, 0.8)');
+            const borderColorsArray = labels.map(label => borderColors[label] || 'rgba(99, 102, 241, 1)');
 
             paymentChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Collected', 'Pending'],
+                    labels: labels,
                     datasets: [{
                         label: 'Amount (₹)',
-                        data: [collected, pending],
-                        backgroundColor: [
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(239, 68, 68, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(16, 185, 129, 1)',
-                            'rgba(239, 68, 68, 1)'
-                        ],
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColorsArray,
                         borderWidth: 2,
                         borderRadius: 8
                     }]
@@ -21040,7 +20866,9 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return '₹' + context.parsed.y.toLocaleString('en-IN');
+                                    const total = data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed.y / total) * 100).toFixed(1) : 0;
+                                    return `₹${context.parsed.y.toLocaleString('en-IN')} (${percentage}%)`;
                                 }
                             }
                         }
@@ -21050,7 +20878,10 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + (value / 1000) + 'K';
+                                    if (value >= 1000) {
+                                        return '₹' + (value / 1000) + 'K';
+                                    }
+                                    return '₹' + value;
                                 }
                             }
                         }
