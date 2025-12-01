@@ -8732,6 +8732,8 @@
         }
 
         // Global Search
+        let globalSearchResults = [];
+
         function handleGlobalSearch(event) {
             const searchInput = document.getElementById('globalSearch');
             const searchResults = document.getElementById('searchResults');
@@ -8759,10 +8761,7 @@
                             type: 'reservation',
                             title: `${reservation.guest_name} - ${reservation.property_name}`,
                             meta: `Booking #${reservation.booking_id} | ${reservation.status}`,
-                            action: () => {
-                                showView('reservations');
-                                clearGlobalSearch();
-                            }
+                            view: 'reservations'
                         });
                     }
                 });
@@ -8778,10 +8777,7 @@
                             type: 'guest',
                             title: guest.name,
                             meta: `${guest.email || ''} ${guest.phone || ''}`,
-                            action: () => {
-                                showView('guests');
-                                clearGlobalSearch();
-                            }
+                            view: 'guests'
                         });
                     }
                 });
@@ -8796,19 +8792,19 @@
                             type: 'property',
                             title: property.name,
                             meta: `${property.location || ''} | ${property.property_type || ''}`,
-                            action: () => {
-                                showView('properties');
-                                clearGlobalSearch();
-                            }
+                            view: 'properties'
                         });
                     }
                 });
             }
 
+            // Store results globally
+            globalSearchResults = results;
+
             // Display results
             if (results.length > 0) {
-                searchResults.innerHTML = results.slice(0, 8).map(result => `
-                    <div class="search-result-item" onclick='${result.action.toString()}()'>
+                searchResults.innerHTML = results.slice(0, 8).map((result, index) => `
+                    <div class="search-result-item" onclick="handleSearchResultClick(${index})">
                         <div class="search-result-title">${result.title}</div>
                         <div class="search-result-meta">${result.meta}</div>
                     </div>
@@ -8817,6 +8813,14 @@
             } else {
                 searchResults.innerHTML = '<div class="search-result-item"><div class="search-result-title">No results found</div></div>';
                 searchResults.style.display = 'block';
+            }
+        }
+
+        function handleSearchResultClick(index) {
+            const result = globalSearchResults[index];
+            if (result && result.view) {
+                showView(result.view);
+                clearGlobalSearch();
             }
         }
 
@@ -9469,12 +9473,15 @@
 
         async function applyQuickFilter(filter) {
             currentQuickFilter = filter;
-            
+
             // Update UI
             document.querySelectorAll('.filter-chip').forEach(chip => {
                 chip.classList.remove('active');
             });
-            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+            const filterElement = document.querySelector(`[data-filter="${filter}"]`);
+            if (filterElement) {
+                filterElement.classList.add('active');
+            }
             
             // Get all reservations
             let filteredReservations = [...allReservations];
