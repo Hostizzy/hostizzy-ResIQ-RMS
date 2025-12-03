@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6366f1">
+    <title>Owner Portal - ResIQ by Hostizzy</title>
+    <link rel="icon" type="image/png" href="assets/logo-192.png">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--gradient-primary);
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand h2 {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .property-selector {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-trend {
+            font-size: 13px;
+            color: var(--success);
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.6);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table thead {
+            background: var(--background);
+        }
+
+        table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        table tbody tr:hover {
+            background: var(--background);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .close-btn:hover {
+            color: var(--danger);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Payout List */
+        .payout-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .payout-item:hover {
+            background: var(--background);
+            transform: translateX(4px);
+        }
+
+        .payout-info h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .payout-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        /* Revenue Split */
+        .revenue-split {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .split-item {
+            text-align: center;
+            padding: 20px;
+            background: var(--background);
+            border-radius: 12px;
+        }
+
+        .split-amount {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .split-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .split-percentage {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <h1>🏠 Owner Portal</h1>
+                <p>ResIQ by Hostizzy</p>
+            </div>
+            <form id="loginForm" onsubmit="login(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="owner@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%">
+                    Login to Dashboard
+                </button>
+            </form>
+            <p style="text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-secondary);">
+                Owner Portal Access Only
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-brand">
+                <h2>🏠 Owner Portal</h2>
+                <span id="ownerName" style="color: var(--text-secondary); font-size: 14px;"></span>
+            </div>
+            <div class="header-actions">
+                <select id="propertySelector" class="property-selector" onchange="loadOwnerData()">
+                    <option value="">All Properties</option>
+                </select>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Revenue Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">💰 Total Revenue</div>
+                    <div class="stat-value" id="totalRevenue">₹0</div>
+                    <div class="stat-trend" id="revenueTrend">↗ From all bookings</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">💼 Hostizzy Commission</div>
+                    <div class="stat-value" id="hostizzyCommission">₹0</div>
+                    <div class="stat-trend" style="color: var(--warning);" id="commissionRate">20% of revenue</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">✨ Your Net Earnings</div>
+                    <div class="stat-value" id="netEarnings">₹0</div>
+                    <div class="stat-trend">After commission</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">⏳ Pending Payout</div>
+                    <div class="stat-value" id="pendingPayout">₹0</div>
+                    <div class="stat-trend" style="color: var(--warning);">Awaiting request</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+                <button class="tab" onclick="switchTab('bookings')">📅 Bookings</button>
+                <button class="tab" onclick="switchTab('payments')">💳 Payments</button>
+                <button class="tab" onclick="switchTab('payouts')">💸 Payouts</button>
+                <button class="tab" onclick="switchTab('bank')">🏦 Bank Details</button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overviewTab" class="tab-content active">
+                <!-- Revenue Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Revenue Analytics</h3>
+                        <select id="chartPeriod" onchange="updateChart()">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Split -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Revenue Breakdown</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="revenue-split">
+                            <div class="split-item">
+                                <div class="split-amount" style="color: var(--primary);" id="splitGross">₹0</div>
+                                <div class="split-label">Gross Revenue</div>
+                                <div class="split-percentage">100%</div>
+                            </div>
+                            <div class="split-item">
+                                <div class="split-amount" style="color: var(--warning);" id="splitCommission">₹0</div>
+                                <div class="split-label">Platform Fee</div>
+                                <div class="split-percentage" id="splitCommissionPct">20%</div>
+                            </div>
+                            <div class="split-item">
+                                <div class="split-amount" style="color: var(--success);" id="splitNet">₹0</div>
+                                <div class="split-label">Your Earnings</div>
+                                <div class="split-percentage" id="splitNetPct">80%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookings Tab -->
+            <div id="bookingsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Your Bookings</h3>
+                        <select id="bookingFilter" onchange="filterBookings()">
+                            <option value="all">All Status</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="checked-in">Checked In</option>
+                            <option value="checked-out">Completed</option>
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table id="bookingsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Guest</th>
+                                        <th>Check In</th>
+                                        <th>Check Out</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookingsBody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            <div class="empty-state-icon">📅</div>
+                                            <p>No bookings found</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="paymentsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Payment Collections</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table id="paymentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Booking ID</th>
+                                        <th>Guest</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Your Share</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentsBody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            <div class="empty-state-icon">💳</div>
+                                            <p>No payments found</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payouts Tab -->
+            <div id="payoutsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Payout Requests</h3>
+                        <button class="btn btn-success" onclick="openPayoutRequestModal()">
+                            💸 Request Payout
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="payoutsList">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">💸</div>
+                                <p>No payout requests yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank Details Tab -->
+            <div id="bankTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Bank Account Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="bankForm" onsubmit="saveBankDetails(event)">
+                            <div class="form-group">
+                                <label>Account Holder Name</label>
+                                <input type="text" id="accountName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Account Number</label>
+                                <input type="text" id="accountNumber" required>
+                            </div>
+                            <div class="form-group">
+                                <label>IFSC Code</label>
+                                <input type="text" id="ifscCode" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Bank Name</label>
+                                <input type="text" id="bankName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Branch</label>
+                                <input type="text" id="branch">
+                            </div>
+                            <div class="form-group">
+                                <label>UPI ID (Optional)</label>
+                                <input type="text" id="upiId" placeholder="yourname@upi">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Bank Details</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payout Request Modal -->
+    <div id="payoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Request Payout</h3>
+                <button class="close-btn" onclick="closePayoutModal()">×</button>
+            </div>
+            <form id="payoutForm" onsubmit="submitPayoutRequest(event)">
+                <div class="modal-body">
+                    <div style="background: var(--background); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Available for Payout</p>
+                        <p style="font-size: 32px; font-weight: 700; color: var(--success);" id="availablePayout">₹0</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Payout Amount</label>
+                        <input type="number" id="payoutAmount" min="100" step="1" required placeholder="Enter amount">
+                        <small style="color: var(--text-secondary);">Minimum: ₹100</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select id="payoutMethod" required>
+                            <option value="bank">Bank Transfer</option>
+                            <option value="upi">UPI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <textarea id="payoutNotes" rows="3" placeholder="Add any notes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closePayoutModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentOwner = null;
+        let currentProperty = null;
+        let revenueChart = null;
+
+        // Login
+        async function login(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                // TODO: Implement owner authentication
+                // For now, using basic email check
+                const { data: owner, error } = await supabase
+                    .from('property_owners')
+                    .select('*')
+                    .eq('email', email)
+                    .single();
+
+                if (error || !owner) {
+                    alert('Invalid credentials');
+                    return;
+                }
+
+                currentOwner = owner;
+                document.getElementById('ownerName').textContent = owner.name;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+
+                await loadProperties();
+                await loadOwnerData();
+            } catch (err) {
+                console.error('Login error:', err);
+                alert('Login failed. Please check your credentials.');
+            }
+        }
+
+        // Load Properties
+        async function loadProperties() {
+            const { data: properties } = await supabase
+                .from('properties')
+                .select('*')
+                .eq('owner_id', currentOwner.id);
+
+            const selector = document.getElementById('propertySelector');
+            selector.innerHTML = '<option value="">All Properties</option>';
+
+            properties?.forEach(prop => {
+                const option = document.createElement('option');
+                option.value = prop.id;
+                option.textContent = prop.name;
+                selector.appendChild(option);
+            });
+        }
+
+        // Load Owner Data
+        async function loadOwnerData() {
+            const propertyId = document.getElementById('propertySelector').value;
+            currentProperty = propertyId || null;
+
+            await Promise.all([
+                loadRevenueStats(),
+                loadBookings(),
+                loadPayments(),
+                loadPayouts(),
+                loadBankDetails(),
+                updateChart()
+            ]);
+        }
+
+        // Load Revenue Stats
+        async function loadRevenueStats() {
+            let query = supabase
+                .from('reservations')
+                .select('total_amount, ota_service_fee, hostizzy_commission')
+                .eq('owner_id', currentOwner.id)
+                .in('status', ['confirmed', 'checked-in', 'checked-out']);
+
+            if (currentProperty) {
+                query = query.eq('property_id', currentProperty);
+            }
+
+            const { data: bookings } = await query;
+
+            const totalRevenue = bookings?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
+            const commission = bookings?.reduce((sum, b) => sum + (b.hostizzy_commission || b.total_amount * 0.20), 0) || 0;
+            const netEarnings = totalRevenue - commission;
+
+            // Get pending payouts
+            const { data: payouts } = await supabase
+                .from('payout_requests')
+                .select('amount')
+                .eq('owner_id', currentOwner.id)
+                .eq('status', 'pending');
+
+            const pendingPayout = netEarnings - (payouts?.reduce((sum, p) => sum + p.amount, 0) || 0);
+
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toLocaleString()}`;
+            document.getElementById('hostizzyCommission').textContent = `₹${commission.toLocaleString()}`;
+            document.getElementById('netEarnings').textContent = `₹${netEarnings.toLocaleString()}`;
+            document.getElementById('pendingPayout').textContent = `₹${pendingPayout.toLocaleString()}`;
+
+            // Revenue split
+            document.getElementById('splitGross').textContent = `₹${totalRevenue.toLocaleString()}`;
+            document.getElementById('splitCommission').textContent = `₹${commission.toLocaleString()}`;
+            document.getElementById('splitNet').textContent = `₹${netEarnings.toLocaleString()}`;
+
+            const commissionPct = totalRevenue > 0 ? ((commission / totalRevenue) * 100).toFixed(1) : 0;
+            const netPct = totalRevenue > 0 ? ((netEarnings / totalRevenue) * 100).toFixed(1) : 0;
+            document.getElementById('splitCommissionPct').textContent = `${commissionPct}%`;
+            document.getElementById('splitNetPct').textContent = `${netPct}%`;
+
+            return { totalRevenue, commission, netEarnings, pendingPayout };
+        }
+
+        // Load Bookings
+        async function loadBookings() {
+            let query = supabase
+                .from('reservations')
+                .select('*')
+                .eq('owner_id', currentOwner.id)
+                .order('check_in', { ascending: false });
+
+            if (currentProperty) {
+                query = query.eq('property_id', currentProperty);
+            }
+
+            const { data: bookings } = await query;
+
+            const tbody = document.getElementById('bookingsBody');
+            if (!bookings || bookings.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">📅</div>
+                            <p>No bookings found</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = bookings.map(b => `
+                <tr>
+                    <td>${b.booking_id}</td>
+                    <td>${b.guest_name}</td>
+                    <td>${new Date(b.check_in).toLocaleDateString()}</td>
+                    <td>${new Date(b.check_out).toLocaleDateString()}</td>
+                    <td>₹${b.total_amount?.toLocaleString()}</td>
+                    <td><span class="badge badge-${b.status}">${b.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Load Payments
+        async function loadPayments() {
+            let query = supabase
+                .from('payments')
+                .select('*, reservations!inner(owner_id, booking_id, guest_name)')
+                .eq('reservations.owner_id', currentOwner.id)
+                .order('payment_date', { ascending: false });
+
+            if (currentProperty) {
+                query = query.eq('reservations.property_id', currentProperty);
+            }
+
+            const { data: payments } = await query;
+
+            const tbody = document.getElementById('paymentsBody');
+            if (!payments || payments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">💳</div>
+                            <p>No payments found</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = payments.map(p => {
+                const ownerShare = p.amount * 0.80; // 80% to owner
+                return `
+                    <tr>
+                        <td>${new Date(p.payment_date).toLocaleDateString()}</td>
+                        <td>${p.reservations.booking_id}</td>
+                        <td>${p.reservations.guest_name}</td>
+                        <td>₹${p.amount?.toLocaleString()}</td>
+                        <td>${p.payment_method}</td>
+                        <td style="color: var(--success); font-weight: 600;">₹${ownerShare.toLocaleString()}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Load Payouts
+        async function loadPayouts() {
+            const { data: payouts } = await supabase
+                .from('payout_requests')
+                .select('*')
+                .eq('owner_id', currentOwner.id)
+                .order('request_date', { ascending: false });
+
+            const container = document.getElementById('payoutsList');
+            if (!payouts || payouts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💸</div>
+                        <p>No payout requests yet</p>
+                        <button class="btn btn-primary" onclick="openPayoutRequestModal()" style="margin-top: 16px;">
+                            Request Your First Payout
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = payouts.map(p => {
+                const statusColors = {
+                    'pending': 'warning',
+                    'approved': 'success',
+                    'processing': 'warning',
+                    'completed': 'success',
+                    'rejected': 'danger'
+                };
+                return `
+                    <div class="payout-item">
+                        <div class="payout-info">
+                            <h4>₹${p.amount.toLocaleString()}</h4>
+                            <div class="payout-meta">
+                                Requested on ${new Date(p.request_date).toLocaleDateString()} •
+                                ${p.payment_method?.toUpperCase()}
+                            </div>
+                        </div>
+                        <span class="badge badge-${statusColors[p.status]}">${p.status.toUpperCase()}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Load Bank Details
+        async function loadBankDetails() {
+            const { data: bankAccount } = await supabase
+                .from('owner_bank_accounts')
+                .select('*')
+                .eq('owner_id', currentOwner.id)
+                .eq('is_primary', true)
+                .single();
+
+            if (bankAccount) {
+                document.getElementById('accountName').value = bankAccount.account_holder_name || '';
+                document.getElementById('accountNumber').value = bankAccount.account_number || '';
+                document.getElementById('ifscCode').value = bankAccount.ifsc_code || '';
+                document.getElementById('bankName').value = bankAccount.bank_name || '';
+                document.getElementById('branch').value = bankAccount.branch || '';
+                document.getElementById('upiId').value = bankAccount.upi_id || '';
+            }
+        }
+
+        // Save Bank Details
+        async function saveBankDetails(event) {
+            event.preventDefault();
+
+            const bankData = {
+                owner_id: currentOwner.id,
+                account_holder_name: document.getElementById('accountName').value,
+                account_number: document.getElementById('accountNumber').value,
+                ifsc_code: document.getElementById('ifscCode').value,
+                bank_name: document.getElementById('bankName').value,
+                branch: document.getElementById('branch').value,
+                upi_id: document.getElementById('upiId').value,
+                is_primary: true
+            };
+
+            const { error } = await supabase
+                .from('owner_bank_accounts')
+                .upsert(bankData, { onConflict: 'owner_id,is_primary' });
+
+            if (error) {
+                alert('Error saving bank details: ' + error.message);
+            } else {
+                alert('Bank details saved successfully!');
+            }
+        }
+
+        // Update Chart
+        async function updateChart() {
+            const days = parseInt(document.getElementById('chartPeriod')?.value || 30);
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+
+            let query = supabase
+                .from('reservations')
+                .select('check_in, total_amount, hostizzy_commission')
+                .eq('owner_id', currentOwner.id)
+                .gte('check_in', startDate.toISOString())
+                .in('status', ['confirmed', 'checked-in', 'checked-out'])
+                .order('check_in');
+
+            if (currentProperty) {
+                query = query.eq('property_id', currentProperty);
+            }
+
+            const { data: bookings } = await query;
+
+            // Group by date
+            const revenueByDate = {};
+            bookings?.forEach(b => {
+                const date = new Date(b.check_in).toLocaleDateString();
+                if (!revenueByDate[date]) {
+                    revenueByDate[date] = { gross: 0, net: 0 };
+                }
+                revenueByDate[date].gross += b.total_amount || 0;
+                revenueByDate[date].net += (b.total_amount || 0) - (b.hostizzy_commission || b.total_amount * 0.20);
+            });
+
+            const labels = Object.keys(revenueByDate);
+            const grossData = labels.map(date => revenueByDate[date].gross);
+            const netData = labels.map(date => revenueByDate[date].net);
+
+            const ctx = document.getElementById('revenueChart')?.getContext('2d');
+            if (!ctx) return;
+
+            if (revenueChart) {
+                revenueChart.destroy();
+            }
+
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Gross Revenue',
+                            data: grossData,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Your Earnings',
+                            data: netData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Payout Modal
+        async function openPayoutRequestModal() {
+            const stats = await loadRevenueStats();
+            document.getElementById('availablePayout').textContent = `₹${stats.pendingPayout.toLocaleString()}`;
+            document.getElementById('payoutModal').classList.add('active');
+        }
+
+        function closePayoutModal() {
+            document.getElementById('payoutModal').classList.remove('active');
+        }
+
+        async function submitPayoutRequest(event) {
+            event.preventDefault();
+
+            const amount = parseFloat(document.getElementById('payoutAmount').value);
+            const method = document.getElementById('payoutMethod').value;
+            const notes = document.getElementById('payoutNotes').value;
+
+            if (amount < 100) {
+                alert('Minimum payout amount is ₹100');
+                return;
+            }
+
+            const payoutData = {
+                owner_id: currentOwner.id,
+                property_id: currentProperty,
+                amount: amount,
+                payment_method: method,
+                notes: notes,
+                status: 'pending',
+                request_date: new Date().toISOString()
+            };
+
+            const { error } = await supabase
+                .from('payout_requests')
+                .insert([payoutData]);
+
+            if (error) {
+                alert('Error submitting payout request: ' + error.message);
+            } else {
+                alert('Payout request submitted successfully!');
+                closePayoutModal();
+                await loadPayouts();
+                await loadRevenueStats();
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // Filter Bookings
+        function filterBookings() {
+            const filter = document.getElementById('bookingFilter').value;
+            loadBookings(); // Reload with filter
+        }
+
+        // Logout
+        function logout() {
+            currentOwner = null;
+            currentProperty = null;
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('loginForm').reset();
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('payoutModal');
+            if (event.target === modal) {
+                closePayoutModal();
+            }
+        }
+    </script>
+</body>
+</html>
