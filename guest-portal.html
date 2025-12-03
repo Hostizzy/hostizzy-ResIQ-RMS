@@ -1429,9 +1429,10 @@ function startPolling() {
   S.pollTimer = setInterval(async () => {
     const onDash = DOM.q('#scrDash').classList.contains('active');
     if (!onDash) return;
-    
+
     await loadDocs();
     await loadMealPrefs();
+    await refreshReservationData(); // Refresh payment data
     renderDashGuests();
     updateDashProgress();
     maybeShowMeals();
@@ -1450,6 +1451,16 @@ function stopPolling() {
    ======================================== */
 async function loadMealPrefs() {
   S.mealPrefs = await DB.getMealPreferences(S.reservation.booking_id) || {};
+}
+
+async function refreshReservationData() {
+  try {
+    const updatedReservation = await DB.getReservation(S.reservation.booking_id);
+    S.reservation = updatedReservation;
+    UI.renderPaymentBreakdown(S.reservation);
+  } catch (err) {
+    console.error('Failed to refresh reservation data:', err);
+  }
 }
 
 async function showDashboard() {
