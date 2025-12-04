@@ -410,21 +410,4 @@ async function submitPayoutRequest() {
     }
 }
 
-// Modify logout function to support owner logout
-function logout() {
-    localStorage.removeItem('currentUser');
-    currentUser = null;
-
-    // Hide all app sections
-    document.getElementById('mainApp').classList.add('hidden');
-    document.getElementById('ownerApp').classList.add('hidden');
-
-    // Show login screen
-    document.getElementById('loginScreen').classList.remove('hidden');
-
-    // Hide mobile nav
-    document.querySelector('.mobile-nav')?.classList.add('hidden');
-    document.getElementById('mobileHeader')?.classList.add('hidden');
-
-    showToast('Logged Out', 'You have been logged out successfully', '👋');
-}
+// Note: logout() function is defined in index.html to support both staff and owner portals
