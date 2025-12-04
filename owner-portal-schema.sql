@@ -96,6 +96,10 @@ ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES property_owners(id) ON DELETE 
 ALTER TABLE reservations
 ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES property_owners(id) ON DELETE SET NULL;
 
+-- Add Hostizzy revenue/commission column
+ALTER TABLE reservations
+ADD COLUMN IF NOT EXISTS hostizzy_revenue NUMERIC DEFAULT 0;
+
 -- =====================================================
 -- INDEXES
 -- =====================================================
