@@ -14240,8 +14240,22 @@
                 showToast('Error', 'Failed to initialize performance view', '❌');
             }
         }
-        // Property Performance Functions
-       async function loadPropertyPerformance() {
+        // ============================================================================
+        // PROPERTY VIEW FUNCTIONS
+        // ============================================================================
+
+        // Global state for Property View
+        let propertyViewData = {
+            selectedProperty: null,
+            reservations: [],
+            filteredReservations: [],
+            currentSort: { field: 'check_in', direction: 'desc' },
+            currentPage: 1,
+            itemsPerPage: 50
+        };
+
+        // Main loader function for Property View
+        async function loadPropertyView() {
             try {
                 // Get filter values
                 const propertyId = document.getElementById('performancePropertyFilter').value;
