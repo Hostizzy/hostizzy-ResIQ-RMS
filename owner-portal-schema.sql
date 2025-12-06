@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS payout_requests (
     -- Processing Details
     requested_at TIMESTAMPTZ DEFAULT NOW(),
     processed_at TIMESTAMPTZ,
-    processed_by UUID REFERENCES team_members(id),
+    processed_by INT REFERENCES team_members(id),
 
     -- Transaction Details
     transaction_id TEXT,
