@@ -5660,123 +5660,193 @@
             <div id="propertiesGrid" class="stats-grid"></div>
         </div>
         <!-- Performance View - REDESIGNED -->
-        <div id="performanceView" class="container hidden">
-            <!-- Header with gradient -->
-            <div style="margin-bottom: 32px;">
-                <h2 style="margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 32px;">📊</span>
-                    <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                        Analytics Dashboard
-                    </span>
+        <!-- Property Analytics View -->
+        <div id="propertyView" class="container hidden">
+            <!-- Header -->
+            <div style="margin-bottom: 24px;">
+                <h2 style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 28px;">🏠</span>
+                    <span>Property Analytics</span>
                 </h2>
-                <p style="color: var(--text-secondary); font-size: 14px; margin-left: 44px;">
-                    Comprehensive property performance metrics, scoring, and intelligent insights
+                <p style="color: var(--text-secondary); font-size: 14px;">
+                    Comprehensive analysis for individual properties with all reservations, payments, and performance metrics
                 </p>
             </div>
 
-            <!-- Filters with modern design -->
-            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 24px;">
                 <div style="padding: 20px;">
                     <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
-                        <div style="flex: 1; min-width: 220px;">
+                        <div style="flex: 1; min-width: 250px;">
                             <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                                🏠 Property Selection
+                                🏠 Select Property *
                             </label>
-                            <select id="performancePropertyFilter" onchange="loadPropertyPerformance()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
-                                <option value="">All Properties</option>
+                            <select id="propertySelectFilter" onchange="loadPropertyView()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+                                <option value="">-- Select a Property --</option>
                             </select>
                         </div>
-
-                        <div style="min-width: 200px;">
+                        <div style="min-width: 180px;">
                             <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                                📅 Select Month
+                                📅 Date Range
                             </label>
-                            <select id="performanceMonthFilter" onchange="loadPropertyPerformance()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
-                                <option value="all_time">All Time</option>
-                                <!-- Will be populated with months by JS -->
+                            <select id="propertyDateRange" onchange="loadPropertyView()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+                                <option value="all">All Time</option>
+                                <option value="this_month" selected>This Month</option>
+                                <option value="last_month">Last Month</option>
+                                <option value="last_3_months">Last 3 Months</option>
+                                <option value="last_6_months">Last 6 Months</option>
+                                <option value="this_year">This Year</option>
+                                <option value="custom">Custom Range</option>
                             </select>
                         </div>
-
-                        <div style="display: flex; gap: 12px;">
-                            <button class="btn btn-primary" onclick="loadPropertyPerformance()" style="padding: 10px 24px;">
-                                🔍 Analyze
-                            </button>
-                            <button class="btn btn-secondary" onclick="exportPerformanceReport()" style="padding: 10px 24px;">
-                                📥 Export
-                            </button>
+                        <div id="propertyCustomDateRange" style="display: none; min-width: 150px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">From</label>
+                            <input type="date" id="propertyDateFrom" onchange="loadPropertyView()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
                         </div>
+                        <div id="propertyCustomDateRangeTo" style="display: none; min-width: 150px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">To</label>
+                            <input type="date" id="propertyDateTo" onchange="loadPropertyView()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                        </div>
+                        <button class="btn btn-primary" onclick="loadPropertyView()" style="padding: 10px 24px;">
+                            🔍 Analyze
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportPropertyReport()" style="padding: 10px 24px;">
+                            📥 Export
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Performance Score Card -->
-            <div id="performanceScoreCard" class="card" style="margin-bottom: 24px; display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                <!-- Will be populated by JS -->
+            <!-- KPI Cards -->
+            <div id="propertyKPICards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <!-- Will be populated by JavaScript -->
             </div>
 
-            <!-- Key Metrics with Trends -->
-            <div id="performanceMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                <!-- Will be populated by JS -->
-            </div>
-
-            <!-- Smart Insights -->
-            <div id="performanceInsights" class="card" style="margin-bottom: 24px; display: none; background: linear-gradient(135deg, #10b98115 0%, #059669 15 100%); border-left: 4px solid #10b981;">
-                <!-- Will be populated by JS -->
-            </div>
-
-            <!-- Property Comparison Tool -->
+            <!-- All Reservations Table -->
             <div class="card" style="margin-bottom: 24px;">
-                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 class="card-title" style="margin: 0;">⚖️ Property Comparison</h3>
-                    <div style="display: flex; gap: 12px;">
-                        <select id="compareProperty1" onchange="updatePropertyComparison()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
-                            <option value="">Select Property 1</option>
-                        </select>
-                        <span style="align-self: center; color: var(--text-secondary);">vs</span>
-                        <select id="compareProperty2" onchange="updatePropertyComparison()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
-                            <option value="">Select Property 2</option>
-                        </select>
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <h3 class="card-title" style="margin: 0;">📋 All Reservations</h3>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <input type="text" id="propertyReservationsSearch" placeholder="Search..." onkeyup="filterPropertyReservations()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 200px;">
+                        <button class="btn btn-secondary btn-sm" onclick="exportPropertyReservations()">
+                            📥 Export Excel
+                        </button>
                     </div>
                 </div>
-                <div id="performanceComparisonContent" style="padding: 20px;">
-                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        Select two properties above to compare their performance
+                <div style="padding: 20px; overflow-x: auto;">
+                    <table id="propertyReservationsTable" class="data-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th onclick="sortPropertyReservations('booking_id')" style="cursor: pointer;">Booking ID ↕</th>
+                                <th onclick="sortPropertyReservations('guest_name')" style="cursor: pointer;">Guest Name ↕</th>
+                                <th onclick="sortPropertyReservations('check_in')" style="cursor: pointer;">Check-In ↕</th>
+                                <th onclick="sortPropertyReservations('check_out')" style="cursor: pointer;">Check-Out ↕</th>
+                                <th onclick="sortPropertyReservations('nights')" style="cursor: pointer;">Nights ↕</th>
+                                <th onclick="sortPropertyReservations('booking_type')" style="cursor: pointer;">Type ↕</th>
+                                <th onclick="sortPropertyReservations('total_amount')" style="cursor: pointer;">Total ↕</th>
+                                <th onclick="sortPropertyReservations('paid_amount')" style="cursor: pointer;">Paid ↕</th>
+                                <th onclick="sortPropertyReservations('pending')" style="cursor: pointer;">Pending ↕</th>
+                                <th onclick="sortPropertyReservations('payment_status')" style="cursor: pointer;">Payment Status ↕</th>
+                                <th onclick="sortPropertyReservations('status')" style="cursor: pointer;">Booking Status ↕</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="propertyReservationsTableBody">
+                            <tr>
+                                <td colspan="12" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                    Select a property to view reservations
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="propertyReservationsPagination" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <!-- Pagination will be populated by JS -->
                     </div>
                 </div>
             </div>
 
-            <!-- Interactive Charts Grid -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <!-- Month-over-Month Comparison -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Month-over-Month Comparison</h3>
+                </div>
+                <div style="padding: 20px; overflow-x: auto;">
+                    <table id="propertyMoMTable" class="data-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Revenue</th>
+                                <th>Bookings</th>
+                                <th>Nights</th>
+                                <th>Occupancy %</th>
+                                <th>ADR (Avg Daily Rate)</th>
+                                <th>Collection %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="propertyMoMTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                    Select a property to view month-over-month data
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payment Collection Breakdown -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">💰 Payment Collection Breakdown</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div id="propertyPaymentBreakdown">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics Grid -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">📈 Performance Metrics</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div id="propertyPerformanceMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 24px;">
                 <!-- Revenue Trend Chart -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">📈 Revenue Trend</h3>
+                        <h3 class="card-title">📈 Revenue Trend (12 Months)</h3>
                     </div>
                     <div style="padding: 20px;">
-                        <canvas id="revenueTrendChart" style="max-height: 300px;"></canvas>
+                        <canvas id="propertyRevenueTrendChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
 
-                <!-- Booking Source Distribution -->
+                <!-- Booking Sources Chart -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">📊 Booking Sources</h3>
                     </div>
                     <div style="padding: 20px;">
-                        <canvas id="bookingSourceChart" style="max-height: 300px;"></canvas>
+                        <canvas id="propertyBookingSourceChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
-            </div>
 
-            <!-- Additional Charts Grid -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                <!-- Payment Methods Chart -->
+                <!-- Payment Status Chart -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">💳 Payment Methods</h3>
+                        <h3 class="card-title">💳 Payment Status</h3>
                     </div>
                     <div style="padding: 20px;">
-                        <canvas id="paymentMethodsChart" style="max-height: 280px;"></canvas>
+                        <canvas id="propertyPaymentStatusChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
 
@@ -5786,61 +5856,47 @@
                         <h3 class="card-title">🎪 Booking Types</h3>
                     </div>
                     <div style="padding: 20px;">
-                        <canvas id="bookingTypesChart" style="max-height: 280px;"></canvas>
+                        <canvas id="propertyBookingTypesChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- Third Row of Charts -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                <!-- Payment Status Chart -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">💵 Payment Status Breakdown</h3>
-                    </div>
-                    <div style="padding: 20px;">
-                        <canvas id="paymentStatusChart" style="max-height: 280px;"></canvas>
-                    </div>
-                </div>
-
-                <!-- Check-in Day Distribution -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">📆 Check-in Day Pattern</h3>
-                    </div>
-                    <div style="padding: 20px;">
-                        <canvas id="checkinDayChart" style="max-height: 280px;"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Revenue by Property Chart (Full Width) -->
-            <div id="revenueByPropertyContainer" class="card" style="margin-bottom: 24px; display: none;">
-                <div class="card-header">
-                    <h3 class="card-title">🏠 Revenue by Property</h3>
-                </div>
-                <div style="padding: 20px;">
-                    <canvas id="revenueByPropertyChart" style="max-height: 350px;"></canvas>
-                </div>
-            </div>
-
-            <!-- Property Performance Leaderboard -->
+            <!-- Booking Type Breakdown Table -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">🏆 Property Performance Leaderboard</h3>
+                    <h3 class="card-title">🎯 Booking Type Breakdown</h3>
                 </div>
-                <div id="performanceLeaderboard" style="padding: 20px;">
-                    <!-- Will be populated by JS -->
+                <div style="padding: 20px; overflow-x: auto;">
+                    <table id="propertyBookingTypeTable" class="data-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Booking Type</th>
+                                <th>Count</th>
+                                <th>Revenue</th>
+                                <th>% of Total Revenue</th>
+                                <th>Avg Booking Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="propertyBookingTypeTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                    Select a property to view booking type breakdown
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- Monthly Performance Table -->
+            <!-- Occupancy Heatmap -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">📅 Monthly Performance Breakdown</h3>
+                    <h3 class="card-title">📅 Occupancy Heatmap</h3>
                 </div>
-                <div style="padding: 20px; overflow-x: auto;">
-                    <div id="monthlyPerformanceTable"></div>
+                <div style="padding: 20px;">
+                    <div id="propertyOccupancyHeatmap">
+                        <!-- Will be populated by JavaScript with calendar view -->
+                    </div>
                 </div>
             </div>
         </div>
