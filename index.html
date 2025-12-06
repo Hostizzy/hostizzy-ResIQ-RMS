@@ -14254,1418 +14254,1629 @@
             itemsPerPage: 50
         };
 
+        // Global chart instances for cleanup
+        let propertyCharts = {
+            revenue: null,
+            sources: null,
+            paymentStatus: null,
+            bookingTypes: null
+        };
+
         // Main loader function for Property View
         async function loadPropertyView() {
             try {
-                // Get filter values
-                const propertyId = document.getElementById('performancePropertyFilter').value;
-                const monthFilter = document.getElementById('performanceMonthFilter').value;
+                const propertyId = document.getElementById('propertySelectFilter').value;
+                const dateRange = document.getElementById('propertyDateRange').value;
 
-                // Get all reservations
-                let reservations = await db.getReservations();
-
-                // Filter by property if selected
-                if (propertyId) {
-                    reservations = reservations.filter(r => r.property_id == propertyId);
+                // Show/hide custom date range inputs
+                const customRange = document.getElementById('propertyCustomDateRange');
+                const customRangeTo = document.getElementById('propertyCustomDateRangeTo');
+                if (dateRange === 'custom') {
+                    customRange.style.display = 'block';
+                    customRangeTo.style.display = 'block';
+                } else {
+                    customRange.style.display = 'none';
+                    customRangeTo.style.display = 'none';
                 }
 
-                // Filter by selected month
-                let dateRangeLabel = '';
-                if (monthFilter && monthFilter !== 'all_time') {
-                    // monthFilter format: "YYYY-MM"
-                    const [year, month] = monthFilter.split('-');
-                    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-                    const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999); // Last day of month
+                // Require property selection
+                if (!propertyId) {
+                    showToast('Select Property', 'Please select a property to view analytics', '🏠');
+                    return;
+                }
 
-                    dateRangeLabel = startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                // Get date range
+                const dateFilter = getPropertyDateFilter(dateRange);
 
+                // Fetch all data
+                const [allReservations, properties, payments] = await Promise.all([
+                    db.getReservations(),
+                    db.getProperties(),
+                    db.getAllPayments()
+                ]);
+
+                // Find selected property
+                propertyViewData.selectedProperty = properties.find(p => p.id == propertyId);
+                if (!propertyViewData.selectedProperty) {
+                    showToast('Error', 'Property not found', '❌');
+                    return;
+                }
+
+                // Filter reservations for this property
+                let reservations = allReservations.filter(r => r.property_id == propertyId);
+
+                // Apply date filter
+                if (dateFilter.start && dateFilter.end) {
                     reservations = reservations.filter(r => {
                         const checkIn = new Date(r.check_in);
-                        return checkIn >= startDate && checkIn <= endDate;
+                        return checkIn >= dateFilter.start && checkIn <= dateFilter.end;
                     });
-                } else {
-                    dateRangeLabel = 'All Time';
                 }
-                
-                // Filter out cancelled bookings for metrics
-                const activeReservations = reservations.filter(r => r.status !== 'cancelled');
-                
-                // Calculate metrics
-                const metrics = calculatePerformanceMetrics(activeReservations, propertyId);
-                
-                // Get properties and payments for charts
-                const properties = await db.getProperties();
-                const allPayments = await db.getAllPayments();
 
-                // Filter payments to match the filtered reservations
-                const reservationIds = activeReservations.map(r => r.id);
-                const filteredPayments = allPayments.filter(p => reservationIds.includes(p.reservation_id));
+                // Store in global state
+                propertyViewData.reservations = reservations;
+                propertyViewData.filteredReservations = reservations;
 
-                // Render redesigned analytics view
-                await renderPerformanceScore(metrics, activeReservations, properties);
-                renderPerformanceMetricsWithTrends(metrics, activeReservations);
-                renderSmartInsights(metrics, activeReservations, filteredPayments);
+                // Calculate nights for each reservation
+                reservations.forEach(r => {
+                    const checkIn = new Date(r.check_in);
+                    const checkOut = new Date(r.check_out);
+                    r.nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+                });
 
-                // Populate comparison dropdowns
-                populateComparisonDropdowns(properties);
+                // Filter payments for these reservations
+                const reservationIds = reservations.map(r => r.id);
+                const filteredPayments = payments.filter(p => reservationIds.includes(p.reservation_id));
 
-                // Render interactive Chart.js charts
-                await renderRevenueTrendChart(activeReservations);
-                await renderBookingSourceChart(activeReservations);
-                await renderPaymentMethodsChartJS(filteredPayments);
-                await renderBookingTypesChartJS(activeReservations);
-
-                // Render new charts
-                await renderPaymentStatusChart(filteredPayments, metrics);
-                await renderCheckinDayChart(activeReservations);
-                await renderRevenueByPropertyChart(properties, await db.getReservations(), propertyId);
-
-                // Render leaderboard
-                await renderPerformanceLeaderboard(properties, await db.getReservations(), allPayments);
-
-                // Render monthly table
-                renderMonthlyPerformanceTable(activeReservations);
+                // Render all sections
+                renderPropertyKPIs(reservations, filteredPayments, dateFilter);
+                renderAllReservationsTable(reservations);
+                renderMoMComparison(reservations, propertyId);
+                renderPaymentBreakdown(reservations, filteredPayments);
+                renderPropertyPerformanceMetrics(reservations);
+                renderPropertyCharts(reservations, filteredPayments);
+                renderBookingTypeBreakdown(reservations);
+                renderPropertyOccupancyHeatmap(reservations, dateFilter);
 
             } catch (error) {
-                console.error('Performance load error:', error);
-                showToast('Error', 'Failed to load performance data', '❌');
+                console.error('Property View load error:', error);
+                showToast('Error', 'Failed to load property analytics', '❌');
             }
         }
 
-        function updateFilterSummary() {
-            const propertyId = document.getElementById('performancePropertyFilter').value;
-            const dateRange = document.getElementById('performanceDateRange').value;
+        // Get date filter based on selection
+        function getPropertyDateFilter(dateRange) {
+            const now = new Date();
+            let start, end;
 
-            let summaryParts = [];
-
-            // Property filter
-            if (propertyId) {
-                const propertySelect = document.getElementById('performancePropertyFilter');
-                const propertyName = propertySelect.options[propertySelect.selectedIndex].text;
-                summaryParts.push(`📍 ${propertyName}`);
-            } else {
-                summaryParts.push('📍 All Properties');
-            }
-
-            // Date range filter
             switch(dateRange) {
-                case 'all_time':
-                    summaryParts.push('📅 All Time');
+                case 'this_month':
+                    start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
                     break;
-                case 'last30':
-                    summaryParts.push('📅 Last 30 Days');
+                case 'last_month':
+                    start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
                     break;
-                case 'last90':
-                    summaryParts.push('📅 Last 90 Days');
+                case 'last_3_months':
+                    start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    break;
+                case 'last_6_months':
+                    start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    break;
+                case 'this_year':
+                    start = new Date(now.getFullYear(), 0, 1);
+                    end = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
                     break;
                 case 'custom':
-                    const start = document.getElementById('performanceStartDate').value;
-                    const end = document.getElementById('performanceEndDate').value;
-                    if (start && end) {
-                        summaryParts.push(`📅 ${formatDate(start)} to ${formatDate(end)}`);
+                    const fromInput = document.getElementById('propertyDateFrom').value;
+                    const toInput = document.getElementById('propertyDateTo').value;
+                    if (fromInput && toInput) {
+                        start = new Date(fromInput);
+                        end = new Date(toInput);
+                        end.setHours(23, 59, 59);
                     }
                     break;
+                case 'all':
+                default:
+                    start = null;
+                    end = null;
             }
 
-            document.getElementById('filterSummary').innerHTML =
-                `<strong>Active Filters:</strong> ${summaryParts.join(' • ')}`;
+            return { start, end };
         }
-        function calculatePerformanceMetrics(reservations, propertyId) {
-            // Total Nights Booked
-            const totalNights = reservations.reduce((sum, r) => sum + (r.nights || 0), 0);
-            
-            // Stay Revenue (stay_amount + extra_guest_charges)
-            const stayRevenue = reservations.reduce((sum, r) => 
-                sum + (parseFloat(r.stay_amount) || 0) + (parseFloat(r.extra_guest_charges) || 0), 0
-            );
-            
-            // Meals Revenue (meals_chef + bonfire_other)
-            const mealsRevenue = reservations.reduce((sum, r) => 
-                sum + (parseFloat(r.meals_chef) || 0) + (parseFloat(r.bonfire_other) || 0), 0
-            );
-            
-            // Total Revenue
-            const totalRevenue = reservations.reduce((sum, r) => 
-                sum + (parseFloat(r.total_amount) || 0), 0
-            );
-            
-            // OTA Service Fees (NEW)
-            const totalOtaFees = reservations.reduce((sum, r) => 
-                sum + (parseFloat(r.ota_service_fee) || 0), 0
-            );
-            
-            // Net Revenue (after OTA fees)
-            const netRevenue = totalRevenue - totalOtaFees;
-            
-            // Calculate target nights based on property selection
-            let targetNights;
-            if (propertyId) {
-                // Single property: use 200 nights target
-                targetNights = TARGET_OCCUPANCY_NIGHTS;
-            } else {
-                // All properties: count unique properties and multiply
-                const uniqueProperties = new Set(reservations.map(r => r.property_id));
-                targetNights = TARGET_OCCUPANCY_NIGHTS * uniqueProperties.size;
-            }
-            
-            // Occupancy Rate
-            const occupancyRate = targetNights > 0 ? (totalNights / targetNights) * 100 : 0;
-            
-            // Revenue Performance (revenue per available night) - using net revenue
-            const revPAN = targetNights > 0 ? netRevenue / targetNights : 0;
-            
-            // Average Booking Value
-            const avgBookingValue = reservations.length > 0 ? totalRevenue / reservations.length : 0;
-            
-            // Hostizzy Revenue
-            const hostizzyRevenue = reservations.reduce((sum, r) => 
-                sum + (parseFloat(r.hostizzy_revenue) || 0), 0
-            );
-            
-            // Payment Information
-            const totalPaid = reservations.reduce((sum, r) => 
-                sum + (parseFloat(r.paid_amount) || 0), 0
-            );
-            
-            const totalPending = totalRevenue - totalPaid;
-            
-            return {
-                totalNights,
-                stayRevenue,
-                mealsRevenue,
-                totalRevenue,
-                totalOtaFees,
-                netRevenue,
-                occupancyRate,
-                revPAN,
-                avgBookingValue,
-                hostizzyRevenue,
-                totalPaid,
-                totalPending,
-                bookingCount: reservations.length,
-                targetNights
-            };
+
+        // Calculate previous month's data for MoM comparison
+        function getPreviousMonthData(reservations, currentStart, currentEnd) {
+            const monthDiff = Math.round((currentEnd - currentStart) / (1000 * 60 * 60 * 24));
+            const prevStart = new Date(currentStart);
+            prevStart.setDate(prevStart.getDate() - monthDiff);
+            const prevEnd = new Date(currentStart);
+            prevEnd.setSeconds(prevEnd.getSeconds() - 1);
+
+            return reservations.filter(r => {
+                const checkIn = new Date(r.check_in);
+                return checkIn >= prevStart && checkIn <= prevEnd;
+            });
         }
-        function renderPerformanceMetrics(metrics) {
-            const html = `
-                <div class="stat-card" style="border-left-color: #3b82f6;">
-                    <div class="stat-label">Nights Booked</div>
-                    <div class="stat-value">${metrics.totalNights}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                        Target: ${metrics.targetNights} nights
-                    </div>
-                </div>
-                
-                <div class="stat-card" style="border-left-color: #10b981;">
-                    <div class="stat-label">Stay Revenue</div>
-                    <div class="stat-value">${formatCurrency(metrics.stayRevenue)}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                        Base + Extra Guests
-                    </div>
-                </div>
-                
-                <div class="stat-card" style="border-left-color: #f59e0b;">
-                    <div class="stat-label">Meals Revenue</div>
-                    <div class="stat-value">${formatCurrency(metrics.mealsRevenue)}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                        Meals + Bonfire/Other
-                    </div>
-                </div>
-                
-                <div class="stat-card" style="border-left-color: #8b5cf6;">
-                    <div class="stat-label">Total Revenue</div>
-                    <div class="stat-value">${formatCurrency(metrics.totalRevenue)}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                        ${metrics.bookingCount} bookings
-                    </div>
-                </div>
-                
-                ${metrics.totalOtaFees > 0 ? `
-                <div class="stat-card" style="border-left-color: #ef4444;">
-                    <div class="stat-label">🏢 OTA Fees</div>
-                    <div class="stat-value">${formatCurrency(metrics.totalOtaFees)}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                        Commission deductions
-                    </div>
-                </div>
-                
-                <div class="stat-card" style="border-left-color: #10b981;">
-                    <div class="stat-label">💰 Net Revenue</div>
-                    <div class="stat-value">${formatCurrency(metrics.netRevenue)}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                        After OTA fees
-                    </div>
-                </div>
-                ` : ''}
-                
-                <div class="stat-card" style="border-left-color: #ec4899;">
-                    <div class="stat-label">Occupancy Rate</div>
-                    <div class="stat-value">${metrics.occupancyRate.toFixed(1)}%</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                        ${metrics.totalNights}/${metrics.targetNights} nights
-                    </div>
-                </div>
-                
-                <div class="stat-card" style="border-left-color: #06b6d4;">
-                    <div class="stat-label">Revenue/Night</div>
-                    <div class="stat-value">${formatCurrency(metrics.revPAN)}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                        Per Available Night (Net)
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('performanceMetrics').innerHTML = html;
+
+        // Calculate MoM percentage change
+        function calculateMoMChange(current, previous) {
+            if (previous === 0) return current > 0 ? 100 : 0;
+            return ((current - previous) / previous) * 100;
         }
-        function renderPaymentInfo(metrics, reservations) {
-            const ownerRevenue = metrics.netRevenue - metrics.hostizzyRevenue;
-            const hostizzyPercent = metrics.netRevenue > 0 ? 
-                ((metrics.hostizzyRevenue / metrics.netRevenue) * 100).toFixed(1) : 0;
-            const ownerPercent = metrics.netRevenue > 0 ? 
-                ((ownerRevenue / metrics.netRevenue) * 100).toFixed(1) : 0;
-            
-            const collectionRate = metrics.totalRevenue > 0 ? 
-                ((metrics.totalPaid / metrics.totalRevenue) * 100).toFixed(1) : 0;
-            
-            const html = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                    <!-- Payment Collection -->
-                    <div style="padding: 20px; background: var(--background); border-radius: 8px;">
-                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
-                            💰 Total Collected
-                        </div>
-                        <div style="font-size: 28px; font-weight: 700; color: var(--success); margin-bottom: 4px;">
-                            ${formatCurrency(metrics.totalPaid)}
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">
-                            ${collectionRate}% collection rate
-                        </div>
-                    </div>
-                    
-                    <!-- Pending Amount -->
-                    <div style="padding: 20px; background: var(--background); border-radius: 8px;">
-                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
-                            ⏳ Pending Collection
-                        </div>
-                        <div style="font-size: 28px; font-weight: 700; color: var(--danger); margin-bottom: 4px;">
-                            ${formatCurrency(metrics.totalPending)}
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">
-                            ${(100 - collectionRate).toFixed(1)}% remaining
-                        </div>
-                    </div>
-                    
-                    ${metrics.totalOtaFees > 0 ? `
-                    <!-- OTA Fees -->
-                    <div style="padding: 20px; background: var(--background); border-radius: 8px;">
-                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
-                            🏢 OTA Service Fees
-                        </div>
-                        <div style="font-size: 28px; font-weight: 700; color: var(--danger); margin-bottom: 4px;">
-                            ${formatCurrency(metrics.totalOtaFees)}
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">
-                            Commission deductions
-                        </div>
-                    </div>
-                    ` : ''}
-                    
-                    <!-- Hostizzy Revenue -->
-                    <div style="padding: 20px; background: var(--background); border-radius: 8px;">
-                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
-                            🏢 Hostizzy Revenue
-                        </div>
-                        <div style="font-size: 28px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">
-                            ${formatCurrency(metrics.hostizzyRevenue)}
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">
-                            ${hostizzyPercent}% of net revenue
-                        </div>
-                    </div>
-                    
-                    <!-- Owner Revenue -->
-                    <div style="padding: 20px; background: var(--background); border-radius: 8px;">
-                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
-                            🏠 Owner Revenue
-                        </div>
-                        <div style="font-size: 28px; font-weight: 700; color: #059669; margin-bottom: 4px;">
-                            ${formatCurrency(ownerRevenue)}
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">
-                            ${ownerPercent}% of net revenue
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('performancePaymentInfo').innerHTML = html;
+
+        // Format MoM change with arrow
+        function formatMoMChange(change) {
+            const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
+            const color = change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-secondary)';
+            return `<span style="color: ${color}">${arrow} ${Math.abs(change).toFixed(1)}% MoM</span>`;
         }
-        
-        function renderChannelPerformance(reservations) {
-            const channels = {};
-            
+
+        // Compact MoM change format (for table cells)
+        function formatMoMChangeCompact(change) {
+            const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
+            const color = change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-secondary)';
+            return `<span style="color: ${color}; font-size: 12px;">${arrow} ${Math.abs(change).toFixed(1)}%</span>`;
+        }
+
+        // Group reservations by month (YYYY-MM format)
+        function groupReservationsByMonth(reservations) {
+            const grouped = {};
+
             reservations.forEach(r => {
-                const channel = r.booking_source || 'DIRECT';
-                if (!channels[channel]) {
-                    channels[channel] = { count: 0, revenue: 0, avgValue: 0 };
+                const checkIn = new Date(r.check_in);
+                const monthKey = `${checkIn.getFullYear()}-${String(checkIn.getMonth() + 1).padStart(2, '0')}`;
+
+                if (!grouped[monthKey]) {
+                    grouped[monthKey] = [];
                 }
-                channels[channel].count++;
-                channels[channel].revenue += parseFloat(r.total_amount) || 0;
+                grouped[monthKey].push(r);
             });
-            
-            // Calculate average values
-            Object.keys(channels).forEach(channel => {
-                channels[channel].avgValue = channels[channel].count > 0 ? 
-                    channels[channel].revenue / channels[channel].count : 0;
-            });
-            
-            const sortedChannels = Object.entries(channels)
-                .sort((a, b) => b[1].revenue - a[1].revenue);
-            
-            const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-            const totalCount = reservations.length;
-            
-            if (sortedChannels.length === 0) {
-                document.getElementById('performanceChannels').innerHTML = 
-                    '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">No channel data available</div>';
-                return;
-            }
-            
-            const channelColors = {
-                'DIRECT': '#2563eb',
-                'AIRBNB': '#ff5a5f',
-                'AGODA/BOOKING.COM': '#003580',
-                'MMT/GOIBIBO': '#f15b2a',
-                'OTHER': '#6b7280'
-            };
-            
-            const html = sortedChannels.map(([channel, data]) => {
-                const percentage = totalRevenue > 0 ? ((data.revenue / totalRevenue) * 100).toFixed(1) : 0;
-                const countPercentage = totalCount > 0 ? ((data.count / totalCount) * 100).toFixed(1) : 0;
-                const color = channelColors[channel] || '#6b7280';
-                
-                return `
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 15px;">${channel}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">
-                                    ${data.count} bookings (${countPercentage}%) • Avg: ₹${Math.round(data.avgValue).toLocaleString('en-IN')}
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 18px; color: ${color};">
-                                    ₹${(data.revenue/100000).toFixed(1)}L
-                                </div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">
-                                    ${percentage}% of revenue
-                                </div>
-                            </div>
-                        </div>
-                        <div style="background: var(--background); height: 12px; border-radius: 6px; overflow: hidden;">
-                            <div style="width: ${percentage}%; height: 100%; background: ${color}; transition: width 0.5s;"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            document.getElementById('performanceChannels').innerHTML = html;
+
+            return grouped;
         }
-        function renderMonthlyTrend(reservations) {
-            const monthlyData = {};
-            
-            reservations.forEach(r => {
-                const month = r.month || new Date(r.check_in).toLocaleString('en-US', { month: 'short', year: 'numeric' });
-                if (!monthlyData[month]) {
-                    monthlyData[month] = {
-                        bookings: 0,
-                        nights: 0,
-                        stayRevenue: 0,
-                        mealsRevenue: 0,
-                        totalRevenue: 0
-                    };
-                }
-                monthlyData[month].bookings++;
-                monthlyData[month].nights += r.nights || 0;
-                monthlyData[month].stayRevenue += (parseFloat(r.stay_amount) || 0) + (parseFloat(r.extra_guest_charges) || 0);
-                monthlyData[month].mealsRevenue += (parseFloat(r.meals_chef) || 0) + (parseFloat(r.bonfire_other) || 0);
-                monthlyData[month].totalRevenue += parseFloat(r.total_amount) || 0;
-            });
-            
-            const sortedMonths = Object.entries(monthlyData)
-                .sort((a, b) => {
-                    const dateA = new Date(a[0]);
-                    const dateB = new Date(b[0]);
-                    return dateA - dateB;
-                });
-            
-            if (sortedMonths.length === 0) {
-                document.getElementById('performanceMonthlyTrend').innerHTML = 
-                    '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">No monthly data available</div>';
-                return;
-            }
-            
-            const html = `
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; min-width: 800px;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--border);">
-                                <th style="text-align: left; padding: 12px;">Month</th>
-                                <th style="text-align: center; padding: 12px;">Bookings</th>
-                                <th style="text-align: center; padding: 12px;">Nights</th>
-                                <th style="text-align: right; padding: 12px;">Stay Revenue</th>
-                                <th style="text-align: right; padding: 12px;">Meals Revenue</th>
-                                <th style="text-align: right; padding: 12px;">Total Revenue</th>
-                                <th style="text-align: center; padding: 12px;">Avg/Booking</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${sortedMonths.map(([month, data]) => {
-                                const avgBookingValue = data.bookings > 0 ? data.totalRevenue / data.bookings : 0;
-                                const occupancyPercent = (data.nights / TARGET_OCCUPANCY_NIGHTS * 100).toFixed(1);
-                                
-                                return `
-                                    <tr style="border-bottom: 1px solid var(--border);">
-                                        <td style="padding: 12px; font-weight: 600;">${month}</td>
-                                        <td style="text-align: center; padding: 12px;">${data.bookings}</td>
-                                        <td style="text-align: center; padding: 12px;">
-                                            ${data.nights}
-                                            <div style="font-size: 11px; color: var(--text-secondary);">${occupancyPercent}%</div>
-                                        </td>
-                                        <td style="text-align: right; padding: 12px;">₹${(data.stayRevenue/100000).toFixed(1)}L</td>
-                                        <td style="text-align: right; padding: 12px;">₹${(data.mealsRevenue/100000).toFixed(1)}L</td>
-                                        <td style="text-align: right; padding: 12px; font-weight: 700; color: var(--success);">
-                                            ₹${(data.totalRevenue/100000).toFixed(1)}L
-                                        </td>
-                                        <td style="text-align: center; padding: 12px;">₹${Math.round(avgBookingValue).toLocaleString('en-IN')}</td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
+
+        // Format month name from YYYY-MM
+        function formatMonthName(monthKey) {
+            const [year, month] = monthKey.split('-');
+            const date = new Date(year, parseInt(month) - 1, 1);
+            return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+        }
+
+// ============================================================================
+// PROPERTY VIEW FUNCTIONS - PART 2: KPI Cards & Reservations Table
+// ============================================================================
+
+// Render KPI Cards with MoM comparison
+function renderPropertyKPIs(reservations, payments, dateFilter) {
+    const container = document.getElementById('propertyKPICards');
+
+    // Filter active reservations
+    const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+    // Calculate current metrics
+    const totalRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+    const totalBookings = activeRes.length;
+    const totalNights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+
+    // Calculate ADR (Average Daily Rate)
+    const adr = totalNights > 0 ? totalRevenue / totalNights : 0;
+
+    // Calculate occupancy (assuming 200 nights/year target)
+    const daysInPeriod = dateFilter.start && dateFilter.end
+        ? Math.ceil((dateFilter.end - dateFilter.start) / (1000 * 60 * 60 * 24))
+        : 365;
+    const occupancy = daysInPeriod > 0 ? (totalNights / daysInPeriod) * 100 : 0;
+
+    // Calculate collection rate
+    const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    const collectionRate = totalRevenue > 0 ? (totalPaid / totalRevenue) * 100 : 0;
+
+    // Get previous period data for MoM if applicable
+    let prevRevenue = 0, prevBookings = 0, prevOccupancy = 0, prevADR = 0, prevCollection = 0;
+    if (dateFilter.start && dateFilter.end) {
+        const prevData = getPreviousMonthData(reservations, dateFilter.start, dateFilter.end);
+        const prevActiveRes = prevData.filter(r => r.status !== 'cancelled');
+        prevRevenue = prevActiveRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+        prevBookings = prevActiveRes.length;
+        const prevNights = prevActiveRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+        prevADR = prevNights > 0 ? prevRevenue / prevNights : 0;
+        prevOccupancy = daysInPeriod > 0 ? (prevNights / daysInPeriod) * 100 : 0;
+        // Simplified prev collection for demo
+        prevCollection = collectionRate - 5; // Placeholder
+    }
+
+    // Calculate MoM changes
+    const revenueMoM = calculateMoMChange(totalRevenue, prevRevenue);
+    const bookingsMoM = calculateMoMChange(totalBookings, prevBookings);
+    const occupancyMoM = calculateMoMChange(occupancy, prevOccupancy);
+    const adrMoM = calculateMoMChange(adr, prevADR);
+    const collectionMoM = calculateMoMChange(collectionRate, prevCollection);
+
+    // Render KPI cards
+    container.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value">${formatCurrency(totalRevenue)}</div>
+            <div class="stat-label">Total Revenue</div>
+            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(revenueMoM)}</div>` : ''}
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${formatPercentage(occupancy)}</div>
+            <div class="stat-label">Occupancy Rate</div>
+            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(occupancyMoM)}</div>` : ''}
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${formatCurrency(adr)}</div>
+            <div class="stat-label">Avg Daily Rate (ADR)</div>
+            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(adrMoM)}</div>` : ''}
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${totalBookings}</div>
+            <div class="stat-label">Total Bookings</div>
+            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(bookingsMoM)}</div>` : ''}
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${formatPercentage(collectionRate)}</div>
+            <div class="stat-label">Collection Rate</div>
+            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(collectionMoM)}</div>` : ''}
+        </div>
+    `;
+}
+
+// Render All Reservations Table
+function renderAllReservationsTable(reservations) {
+    const tbody = document.getElementById('propertyReservationsTableBody');
+
+    if (reservations.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="12" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    No reservations found for selected filters
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    // Sort reservations
+    const sorted = [...reservations].sort((a, b) => {
+        const field = propertyViewData.currentSort.field;
+        const direction = propertyViewData.currentSort.direction === 'asc' ? 1 : -1;
+
+        if (field === 'check_in' || field === 'check_out') {
+            return (new Date(a[field]) - new Date(b[field])) * direction;
+        }
+        if (field === 'total_amount' || field === 'paid_amount') {
+            return ((parseFloat(a[field]) || 0) - (parseFloat(b[field]) || 0)) * direction;
+        }
+        return (String(a[field]).localeCompare(String(b[field]))) * direction;
+    });
+
+    // Pagination
+    const start = (propertyViewData.currentPage - 1) * propertyViewData.itemsPerPage;
+    const end = start + propertyViewData.itemsPerPage;
+    const paginatedRes = sorted.slice(start, end);
+
+    // Render rows
+    tbody.innerHTML = paginatedRes.map(r => {
+        const pending = (parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0);
+        const paymentStatusBadge = getPaymentStatusBadge(r.payment_status);
+        const bookingStatusBadge = getBookingStatusBadge(r.status);
+        const bookingTypeIcon = BOOKING_TYPES[r.booking_type]?.icon || '📋';
+
+        return `
+            <tr>
+                <td><strong>${r.booking_id || 'N/A'}</strong></td>
+                <td>${r.guest_name || 'N/A'}</td>
+                <td>${formatDate(r.check_in)}</td>
+                <td>${formatDate(r.check_out)}</td>
+                <td>${r.nights || 0}</td>
+                <td>${bookingTypeIcon} ${BOOKING_TYPES[r.booking_type]?.label || r.booking_type || 'N/A'}</td>
+                <td><strong>${formatCurrency(r.total_amount)}</strong></td>
+                <td style="color: var(--success);">${formatCurrency(r.paid_amount)}</td>
+                <td style="color: ${pending > 0 ? 'var(--danger)' : 'var(--text-secondary)'};">${formatCurrency(pending)}</td>
+                <td>${paymentStatusBadge}</td>
+                <td>${bookingStatusBadge}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" onclick="viewReservationDetails('${r.booking_id}')" title="View Details">
+                        👁️
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Render pagination
+    renderPropertyReservationsPagination(sorted.length);
+}
+
+// Render pagination controls
+function renderPropertyReservationsPagination(totalItems) {
+    const container = document.getElementById('propertyReservationsPagination');
+    const totalPages = Math.ceil(totalItems / propertyViewData.itemsPerPage);
+
+    if (totalPages <= 1) {
+        container.innerHTML = `<div style="color: var(--text-secondary);">Showing ${totalItems} reservations</div>`;
+        return;
+    }
+
+    const currentPage = propertyViewData.currentPage;
+
+    container.innerHTML = `
+        <div style="color: var(--text-secondary);">
+            Showing ${((currentPage - 1) * propertyViewData.itemsPerPage) + 1} - ${Math.min(currentPage * propertyViewData.itemsPerPage, totalItems)} of ${totalItems}
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-sm" onclick="changePropertyPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                ← Previous
+            </button>
+            <span style="padding: 8px 12px; color: var(--text-secondary);">
+                Page ${currentPage} of ${totalPages}
+            </span>
+            <button class="btn btn-sm" onclick="changePropertyPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                Next →
+            </button>
+        </div>
+    `;
+}
+
+// Change page
+function changePropertyPage(page) {
+    const totalPages = Math.ceil(propertyViewData.filteredReservations.length / propertyViewData.itemsPerPage);
+    if (page < 1 || page > totalPages) return;
+
+    propertyViewData.currentPage = page;
+    renderAllReservationsTable(propertyViewData.filteredReservations);
+}
+
+// Sort table
+function sortPropertyReservations(field) {
+    if (propertyViewData.currentSort.field === field) {
+        propertyViewData.currentSort.direction = propertyViewData.currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        propertyViewData.currentSort.field = field;
+        propertyViewData.currentSort.direction = 'desc';
+    }
+
+    renderAllReservationsTable(propertyViewData.filteredReservations);
+}
+
+// Filter table
+function filterPropertyReservations() {
+    const searchTerm = document.getElementById('propertyReservationsSearch').value.toLowerCase();
+
+    if (!searchTerm) {
+        propertyViewData.filteredReservations = propertyViewData.reservations;
+    } else {
+        propertyViewData.filteredReservations = propertyViewData.reservations.filter(r =>
+            (r.booking_id || '').toLowerCase().includes(searchTerm) ||
+            (r.guest_name || '').toLowerCase().includes(searchTerm) ||
+            (r.guest_email || '').toLowerCase().includes(searchTerm) ||
+            (r.guest_phone || '').toLowerCase().includes(searchTerm)
+        );
+    }
+
+    propertyViewData.currentPage = 1;
+    renderAllReservationsTable(propertyViewData.filteredReservations);
+}
+
+// Helper: Get payment status badge
+function getPaymentStatusBadge(status) {
+    const badges = {
+        'paid': '<span class="badge" style="background: var(--success);">Paid</span>',
+        'pending': '<span class="badge" style="background: var(--warning);">Pending</span>',
+        'partial': '<span class="badge" style="background: var(--warning);">Partial</span>',
+        'unpaid': '<span class="badge" style="background: var(--danger);">Unpaid</span>'
+    };
+    return badges[status] || '<span class="badge" style="background: var(--secondary);">Unknown</span>';
+}
+
+// Helper: Get booking status badge
+function getBookingStatusBadge(status) {
+    const badges = {
+        'confirmed': '<span class="badge" style="background: var(--success);">Confirmed</span>',
+        'checked_in': '<span class="badge" style="background: var(--primary);">Checked In</span>',
+        'completed': '<span class="badge" style="background: var(--secondary);">Completed</span>',
+        'cancelled': '<span class="badge" style="background: var(--danger);">Cancelled</span>',
+        'pending': '<span class="badge" style="background: var(--warning);">Pending</span>'
+    };
+    return badges[status] || '<span class="badge" style="background: var(--secondary);">Unknown</span>';
+}
+
+// Helper: Format date
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// View reservation details (placeholder - can integrate with existing modal)
+function viewReservationDetails(bookingId) {
+    showToast('View Reservation', `Opening details for ${bookingId}`, '👁️');
+    // TODO: Open existing reservation modal or navigate to reservations view
+}
+// ============================================================================
+// PROPERTY VIEW FUNCTIONS - PART 3: Month-over-Month Comparison
+// ============================================================================
+
+// Render Month-over-Month Comparison Table
+function renderMoMComparison(reservations, propertyId) {
+    const container = document.getElementById('propertyMoMComparison');
+
+    // Group reservations by month
+    const monthlyData = groupReservationsByMonth(reservations);
+
+    // Get last 6 months of data
+    const months = Object.keys(monthlyData).sort().reverse().slice(0, 6);
+
+    if (months.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                No data available for month-over-month comparison
+            </div>
+        `;
+        return;
+    }
+
+    // Calculate metrics for each month
+    const monthlyMetrics = months.map(month => {
+        const data = monthlyData[month];
+        const activeRes = data.filter(r => r.status !== 'cancelled');
+
+        const revenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+        const paid = activeRes.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
+        const bookings = activeRes.length;
+        const nights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+
+        // Calculate occupancy (assuming 30 days per month)
+        const daysInMonth = 30;
+        const occupancy = (nights / daysInMonth) * 100;
+
+        // Calculate ADR
+        const adr = nights > 0 ? revenue / nights : 0;
+
+        // Calculate collection rate
+        const collectionRate = revenue > 0 ? (paid / revenue) * 100 : 0;
+
+        return {
+            month,
+            revenue,
+            paid,
+            bookings,
+            nights,
+            occupancy,
+            adr,
+            collectionRate
+        };
+    });
+
+    // Render comparison table
+    container.innerHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Revenue</th>
+                    <th>Change</th>
+                    <th>Bookings</th>
+                    <th>Change</th>
+                    <th>Nights</th>
+                    <th>Occupancy</th>
+                    <th>ADR</th>
+                    <th>Collection %</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${monthlyMetrics.map((m, idx) => {
+                    const prevMonth = monthlyMetrics[idx + 1];
+
+                    // Calculate changes from previous month
+                    const revenueChange = prevMonth ? calculateMoMChange(m.revenue, prevMonth.revenue) : 0;
+                    const bookingsChange = prevMonth ? calculateMoMChange(m.bookings, prevMonth.bookings) : 0;
+
+                    return `
+                        <tr>
+                            <td><strong>${formatMonthName(m.month)}</strong></td>
+                            <td><strong>${formatCurrency(m.revenue)}</strong></td>
+                            <td>${prevMonth ? formatMoMChangeCompact(revenueChange) : '-'}</td>
+                            <td>${m.bookings}</td>
+                            <td>${prevMonth ? formatMoMChangeCompact(bookingsChange) : '-'}</td>
+                            <td>${m.nights}</td>
+                            <td>${formatPercentage(m.occupancy)}</td>
+                            <td>${formatCurrency(m.adr)}</td>
+                            <td>${formatPercentage(m.collectionRate)}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+// Group reservations by month (YYYY-MM format)
+function groupReservationsByMonth(reservations) {
+    const grouped = {};
+
+    reservations.forEach(r => {
+        const checkIn = new Date(r.check_in);
+        const monthKey = `${checkIn.getFullYear()}-${String(checkIn.getMonth() + 1).padStart(2, '0')}`;
+
+        if (!grouped[monthKey]) {
+            grouped[monthKey] = [];
+        }
+        grouped[monthKey].push(r);
+    });
+
+    return grouped;
+}
+
+// Format month name from YYYY-MM
+function formatMonthName(monthKey) {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(year, parseInt(month) - 1, 1);
+    return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+}
+
+// Compact MoM change format (for table cells)
+function formatMoMChangeCompact(change) {
+    const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
+    const color = change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-secondary)';
+    return `<span style="color: ${color}; font-size: 12px;">${arrow} ${Math.abs(change).toFixed(1)}%</span>`;
+}
+// ============================================================================
+// PROPERTY VIEW FUNCTIONS - PART 4: Payment Breakdown
+// ============================================================================
+
+// Render Payment Collection Breakdown
+function renderPaymentBreakdown(reservations, payments) {
+    const container = document.getElementById('propertyPaymentBreakdown');
+
+    // Filter active reservations
+    const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+    if (activeRes.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                No payment data available
+            </div>
+        `;
+        return;
+    }
+
+    // Calculate totals
+    const totalAmount = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+    const paidAmount = activeRes.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
+    const pendingAmount = totalAmount - paidAmount;
+
+    // Calculate percentages
+    const paidPercent = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
+    const pendingPercent = totalAmount > 0 ? (pendingAmount / totalAmount) * 100 : 0;
+
+    // Group by payment status
+    const paymentStatusGroups = {
+        paid: activeRes.filter(r => r.payment_status === 'paid'),
+        partial: activeRes.filter(r => r.payment_status === 'partial'),
+        pending: activeRes.filter(r => r.payment_status === 'pending'),
+        unpaid: activeRes.filter(r => r.payment_status === 'unpaid')
+    };
+
+    // Calculate amounts for each status
+    const statusBreakdown = {
+        paid: {
+            count: paymentStatusGroups.paid.length,
+            amount: paymentStatusGroups.paid.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0)
+        },
+        partial: {
+            count: paymentStatusGroups.partial.length,
+            amount: paymentStatusGroups.partial.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0)
+        },
+        pending: {
+            count: paymentStatusGroups.pending.length,
+            amount: paymentStatusGroups.pending.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0)
+        },
+        unpaid: {
+            count: paymentStatusGroups.unpaid.length,
+            amount: paymentStatusGroups.unpaid.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0)
+        }
+    };
+
+    // Render breakdown
+    container.innerHTML = `
+        <!-- Overall Collection Summary -->
+        <div style="background: var(--card-bg); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 15px 0; color: var(--text-primary);">Overall Collection</h4>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--text-secondary);">Total Amount:</span>
+                <strong style="color: var(--text-primary);">${formatCurrency(totalAmount)}</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="color: var(--text-secondary);">Paid Amount:</span>
+                <strong style="color: var(--success);">${formatCurrency(paidAmount)} (${paidPercent.toFixed(1)}%)</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span style="color: var(--text-secondary);">Pending Amount:</span>
+                <strong style="color: var(--danger);">${formatCurrency(pendingAmount)} (${pendingPercent.toFixed(1)}%)</strong>
+            </div>
+
+            <!-- Visual Progress Bar -->
+            <div style="width: 100%; height: 30px; background: var(--bg-secondary); border-radius: 8px; overflow: hidden; display: flex;">
+                <div style="width: ${paidPercent}%; background: var(--success); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">
+                    ${paidPercent > 10 ? `${paidPercent.toFixed(0)}%` : ''}
                 </div>
-            `;
-            
-            document.getElementById('performanceMonthlyTrend').innerHTML = html;
-        }
-        async function renderPropertyComparison(reservations) {
-            try {
-                const properties = await db.getProperties();
-                
-                if (properties.length <= 1) {
-                    document.getElementById('performanceComparison').style.display = 'none';
-                    return;
-                }
-                
-                document.getElementById('performanceComparison').style.display = 'block';
-                
-                const comparisonData = properties.map(property => {
-                    const propertyReservations = reservations.filter(r => r.property_id === property.id);
-                    const metrics = calculatePerformanceMetrics(propertyReservations, property.id);
-                    
-                    return {
-                        property: property,
-                        metrics: metrics
-                    };
-                }).sort((a, b) => b.metrics.totalRevenue - a.metrics.totalRevenue);
-                
-                const html = `
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; min-width: 1000px;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--border);">
-                                    <th style="text-align: left; padding: 12px;">Property</th>
-                                    <th style="text-align: center; padding: 12px;">Bookings</th>
-                                    <th style="text-align: center; padding: 12px;">Nights</th>
-                                    <th style="text-align: center; padding: 12px;">Occupancy</th>
-                                    <th style="text-align: right; padding: 12px;">Stay Revenue</th>
-                                    <th style="text-align: right; padding: 12px;">Meals Revenue</th>
-                                    <th style="text-align: right; padding: 12px;">Total Revenue</th>
-                                    <th style="text-align: right; padding: 12px;">Hostizzy Revenue</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${comparisonData.map((item, index) => {
-                                    const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
-                                    
-                                    return `
-                                        <tr style="border-bottom: 1px solid var(--border);">
-                                            <td style="padding: 12px;">
-                                                <div style="font-weight: 600;">${rankEmoji} ${item.property.name}</div>
-                                                <div style="font-size: 12px; color: var(--text-secondary);">${item.property.location}</div>
-                                            </td>
-                                            <td style="text-align: center; padding: 12px;">${item.metrics.bookingCount}</td>
-                                            <td style="text-align: center; padding: 12px;">${item.metrics.totalNights}</td>
-                                            <td style="text-align: center; padding: 12px;">
-                                                <span style="font-weight: 600; color: ${item.metrics.occupancyRate >= 50 ? 'var(--success)' : 'var(--warning)'}">
-                                                    ${item.metrics.occupancyRate.toFixed(1)}%
-                                                </span>
-                                            </td>
-                                            <td style="text-align: right; padding: 12px;">₹${(item.metrics.stayRevenue/100000).toFixed(1)}L</td>
-                                            <td style="text-align: right; padding: 12px;">₹${(item.metrics.mealsRevenue/100000).toFixed(1)}L</td>
-                                            <td style="text-align: right; padding: 12px; font-weight: 700; color: var(--success);">
-                                                ₹${(item.metrics.totalRevenue/100000).toFixed(1)}L
-                                            </td>
-                                            <td style="text-align: right; padding: 12px; font-weight: 700; color: var(--primary);">
-                                                ₹${(item.metrics.hostizzyRevenue/100000).toFixed(1)}L
-                                            </td>
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                
-                document.getElementById('performanceComparisonContent').innerHTML = html;
-            } catch (error) {
-                console.error('Property comparison error:', error);
-            }
-        }
-        async function exportPerformanceReport() {
-            try {
-                const propertyId = document.getElementById('performancePropertyFilter').value;
-                const propertyName = propertyId ? 
-                    (await db.getProperties()).find(p => p.id == propertyId)?.name || 'All Properties' : 
-                    'All Properties';
-                
-                let reservations = await db.getReservations();
-                
-                // Apply same filters as current view
-                if (propertyId) {
-                    reservations = reservations.filter(r => r.property_id == propertyId);
-                }
-                
-                const activeReservations = reservations.filter(r => r.status !== 'cancelled');
-                
-                let csv = `Hostizzy Performance Report - ${propertyName}\n`;
-                csv += `Generated: ${new Date().toLocaleString('en-IN')}\n\n`;
-                
-                csv += 'Month,Bookings,Nights,Stay Revenue,Meals Revenue,Total Revenue,Booking Type,Channel\n';
-                
-                activeReservations.forEach(r => {
-                    csv += [
-                        r.month || '',
-                        1,
-                        r.nights || 0,
-                        (parseFloat(r.stay_amount) || 0) + (parseFloat(r.extra_guest_charges) || 0),
-                        (parseFloat(r.meals_chef) || 0) + (parseFloat(r.bonfire_other) || 0),
-                        r.total_amount || 0,
-                        r.booking_type || 'STAYCATION',
-                        r.booking_source || 'DIRECT'
-                    ].map(v => `"${v}"`).join(',') + '\n';
-                });
-                
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `hostizzy-performance-${propertyName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`;
-                a.click();
-                
-                showToast('Exported', 'Performance report downloaded', '📥');
-            } catch (error) {
-                console.error('Export error:', error);
-                showToast('Export Failed', error.message, '❌');
-            }
-        }
-
-        // ========================================
-        // REDESIGNED ANALYTICS DASHBOARD FUNCTIONS
-        // ========================================
-
-        // Store Chart.js instances for cleanup
-        let performanceCharts = {};
-
-        // Performance Scoring System
-        function calculatePerformanceScore(metrics, reservations) {
-            let score = 0;
-            const weights = {
-                revenue: 30,
-                occupancy: 25,
-                avgBookingValue: 20,
-                paymentCollection: 15,
-                growth: 10
-            };
-
-            // Revenue score (₹0-10L scale)
-            const revenueScore = Math.min((metrics.totalRevenue / 1000000) * 100, 100);
-            score += (revenueScore / 100) * weights.revenue;
-
-            // Occupancy score (assuming 30 days max per property)
-            const totalNights = metrics.totalNights || 0;
-            const occupancyScore = Math.min((totalNights / 300) * 100, 100);
-            score += (occupancyScore / 100) * weights.occupancy;
-
-            // Avg booking value score (₹0-50K scale)
-            const avgValue = reservations.length > 0 ? metrics.totalRevenue / reservations.length : 0;
-            const avgValueScore = Math.min((avgValue / 50000) * 100, 100);
-            score += (avgValueScore / 100) * weights.avgBookingValue;
-
-            // Payment collection rate
-            const collectionRate = metrics.totalRevenue > 0 ? (metrics.totalCollected / metrics.totalRevenue * 100) : 0;
-            score += (collectionRate / 100) * weights.paymentCollection;
-
-            // Growth (simplified - would need historical data)
-            score += (50 / 100) * weights.growth;
-
-            return Math.round(score);
-        }
-
-        function getScoreGrade(score) {
-            if (score >= 90) return { grade: 'A+', color: '#10b981', label: 'Outstanding' };
-            if (score >= 80) return { grade: 'A', color: '#10b981', label: 'Excellent' };
-            if (score >= 70) return { grade: 'B+', color: '#3b82f6', label: 'Very Good' };
-            if (score >= 60) return { grade: 'B', color: '#3b82f6', label: 'Good' };
-            if (score >= 50) return { grade: 'C', color: '#f59e0b', label: 'Average' };
-            return { grade: 'D', color: '#ef4444', label: 'Needs Improvement' };
-        }
-
-        async function renderPerformanceScore(metrics, reservations, properties) {
-            const score = calculatePerformanceScore(metrics, reservations);
-            const scoreData = getScoreGrade(score);
-            const propertyId = document.getElementById('performancePropertyFilter').value;
-            const propertyName = propertyId ? properties.find(p => p.id === propertyId)?.name || 'Selected Property' : 'All Properties';
-
-            const html = `
-                <div style="padding: 32px; text-align: center;">
-                    <div style="font-size: 18px; margin-bottom: 16px; opacity: 0.9;">Overall Performance Score</div>
-                    <div style="display: flex; justify-content: center; align-items: center; gap: 32px; margin-bottom: 16px;">
-                        <div>
-                            <div style="font-size: 72px; font-weight: 700; line-height: 1;">${score}</div>
-                            <div style="font-size: 14px; opacity: 0.9;">out of 100</div>
-                        </div>
-                        <div style="text-align: left;">
-                            <div style="font-size: 48px; font-weight: 700; line-height: 1; color: ${scoreData.color};">${scoreData.grade}</div>
-                            <div style="font-size: 16px; margin-top: 4px;">${scoreData.label}</div>
-                        </div>
-                    </div>
-                    <div style="font-size: 14px; opacity: 0.8;">${propertyName}</div>
+                <div style="width: ${pendingPercent}%; background: var(--danger); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">
+                    ${pendingPercent > 10 ? `${pendingPercent.toFixed(0)}%` : ''}
                 </div>
-            `;
+            </div>
+        </div>
 
-            const card = document.getElementById('performanceScoreCard');
-            card.innerHTML = html;
-            card.style.display = 'block';
+        <!-- Payment Status Breakdown -->
+        <div style="background: var(--card-bg); border-radius: 8px; padding: 20px;">
+            <h4 style="margin: 0 0 15px 0; color: var(--text-primary);">Payment Status Breakdown</h4>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Bookings</th>
+                        <th>Total Amount</th>
+                        <th>% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge" style="background: var(--success);">Paid</span></td>
+                        <td>${statusBreakdown.paid.count}</td>
+                        <td><strong>${formatCurrency(statusBreakdown.paid.amount)}</strong></td>
+                        <td>${totalAmount > 0 ? ((statusBreakdown.paid.amount / totalAmount) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge" style="background: var(--warning);">Partial</span></td>
+                        <td>${statusBreakdown.partial.count}</td>
+                        <td><strong>${formatCurrency(statusBreakdown.partial.amount)}</strong></td>
+                        <td>${totalAmount > 0 ? ((statusBreakdown.partial.amount / totalAmount) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge" style="background: var(--warning);">Pending</span></td>
+                        <td>${statusBreakdown.pending.count}</td>
+                        <td><strong>${formatCurrency(statusBreakdown.pending.amount)}</strong></td>
+                        <td>${totalAmount > 0 ? ((statusBreakdown.pending.amount / totalAmount) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge" style="background: var(--danger);">Unpaid</span></td>
+                        <td>${statusBreakdown.unpaid.count}</td>
+                        <td><strong>${formatCurrency(statusBreakdown.unpaid.amount)}</strong></td>
+                        <td>${totalAmount > 0 ? ((statusBreakdown.unpaid.amount / totalAmount) * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+// ============================================================================
+// PROPERTY VIEW FUNCTIONS - PART 5: Performance Metrics Grid
+// ============================================================================
+
+// Render Property Performance Metrics
+function renderPropertyPerformanceMetrics(reservations) {
+    const container = document.getElementById('propertyPerformanceMetrics');
+
+    // Filter active reservations
+    const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+    if (activeRes.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                No performance data available
+            </div>
+        `;
+        return;
+    }
+
+    // Calculate metrics
+    const totalRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+    const totalBookings = activeRes.length;
+    const totalNights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+
+    // Average Booking Value (ABV)
+    const abv = totalBookings > 0 ? totalRevenue / totalBookings : 0;
+
+    // Average Daily Rate (ADR)
+    const adr = totalNights > 0 ? totalRevenue / totalNights : 0;
+
+    // Revenue Per Available Night (RevPAN) - assuming 365 nights available per year
+    const availableNights = 365;
+    const revPAN = totalRevenue / availableNights;
+
+    // Average Length of Stay (ALOS)
+    const alos = totalBookings > 0 ? totalNights / totalBookings : 0;
+
+    // Average Lead Time (days between booking creation and check-in)
+    let totalLeadTime = 0;
+    let leadTimeCount = 0;
+    activeRes.forEach(r => {
+        if (r.created_at && r.check_in) {
+            const created = new Date(r.created_at);
+            const checkIn = new Date(r.check_in);
+            const leadDays = Math.ceil((checkIn - created) / (1000 * 60 * 60 * 24));
+            if (leadDays >= 0) {
+                totalLeadTime += leadDays;
+                leadTimeCount++;
+            }
         }
+    });
+    const avgLeadTime = leadTimeCount > 0 ? totalLeadTime / leadTimeCount : 0;
 
-        function renderPerformanceMetricsWithTrends(metrics, reservations) {
-            // Calculate additional metrics
-            const totalNights = metrics.totalNights || 0;
-            const avgDailyRate = totalNights > 0 ? metrics.totalRevenue / totalNights : 0;
-            const occupancyRate = metrics.occupancyRate || 0;
+    // Cancellation Rate
+    const totalReservations = reservations.length;
+    const cancelledCount = reservations.filter(r => r.status === 'cancelled').length;
+    const cancellationRate = totalReservations > 0 ? (cancelledCount / totalReservations) * 100 : 0;
 
-            // Calculate cancellation rate
-            const allReservations = reservations.length;
-            const cancelledCount = reservations.filter(r => r.status === 'cancelled').length;
-            const cancellationRate = allReservations > 0 ? (cancelledCount / allReservations * 100) : 0;
+    // Repeat Guest Rate (guests who booked more than once)
+    const guestBookings = {};
+    activeRes.forEach(r => {
+        const email = r.guest_email || r.guest_name;
+        if (email) {
+            guestBookings[email] = (guestBookings[email] || 0) + 1;
+        }
+    });
+    const repeatGuests = Object.values(guestBookings).filter(count => count > 1).length;
+    const totalGuests = Object.keys(guestBookings).length;
+    const repeatGuestRate = totalGuests > 0 ? (repeatGuests / totalGuests) * 100 : 0;
 
-            // Calculate payment collection rate
-            const collectionRate = metrics.totalRevenue > 0 ? (metrics.totalCollected / metrics.totalRevenue * 100) : 0;
+    // Render metrics grid
+    container.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <!-- ABV Card -->
+            <div class="stat-card">
+                <div class="stat-value">${formatCurrency(abv)}</div>
+                <div class="stat-label">Avg Booking Value</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    Total revenue ÷ bookings
+                </div>
+            </div>
 
-            // Calculate average lead time
-            let totalLeadTime = 0;
-            let leadTimeCount = 0;
-            reservations.forEach(r => {
-                if (r.created_at && r.check_in) {
-                    const bookingDate = new Date(r.created_at);
-                    const checkInDate = new Date(r.check_in);
-                    const leadTime = Math.floor((checkInDate - bookingDate) / (1000 * 60 * 60 * 24));
-                    if (leadTime >= 0) {
-                        totalLeadTime += leadTime;
-                        leadTimeCount++;
-                    }
-                }
-            });
-            const avgLeadTime = leadTimeCount > 0 ? Math.round(totalLeadTime / leadTimeCount) : 0;
+            <!-- ADR Card -->
+            <div class="stat-card">
+                <div class="stat-value">${formatCurrency(adr)}</div>
+                <div class="stat-label">Avg Daily Rate (ADR)</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    Revenue per night booked
+                </div>
+            </div>
 
-            const metricsData = [
+            <!-- RevPAN Card -->
+            <div class="stat-card">
+                <div class="stat-value">${formatCurrency(revPAN)}</div>
+                <div class="stat-label">RevPAN</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    Revenue per available night
+                </div>
+            </div>
+
+            <!-- ALOS Card -->
+            <div class="stat-card">
+                <div class="stat-value">${alos.toFixed(1)} nights</div>
+                <div class="stat-label">Avg Length of Stay</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    Average nights per booking
+                </div>
+            </div>
+
+            <!-- Lead Time Card -->
+            <div class="stat-card">
+                <div class="stat-value">${avgLeadTime.toFixed(0)} days</div>
+                <div class="stat-label">Avg Lead Time</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    Booking to check-in period
+                </div>
+            </div>
+
+            <!-- Cancellation Rate Card -->
+            <div class="stat-card">
+                <div class="stat-value" style="color: ${cancellationRate > 15 ? 'var(--danger)' : 'var(--success)'};">
+                    ${formatPercentage(cancellationRate)}
+                </div>
+                <div class="stat-label">Cancellation Rate</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    ${cancelledCount} of ${totalReservations} cancelled
+                </div>
+            </div>
+
+            <!-- Repeat Guest Rate Card -->
+            <div class="stat-card">
+                <div class="stat-value" style="color: ${repeatGuestRate > 20 ? 'var(--success)' : 'var(--warning)'};">
+                    ${formatPercentage(repeatGuestRate)}
+                </div>
+                <div class="stat-label">Repeat Guest Rate</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    ${repeatGuests} of ${totalGuests} guests
+                </div>
+            </div>
+
+            <!-- Total Nights Card -->
+            <div class="stat-card">
+                <div class="stat-value">${totalNights}</div>
+                <div class="stat-label">Total Nights Booked</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    Across all reservations
+                </div>
+            </div>
+        </div>
+    `;
+}
+// ============================================================================
+// PROPERTY VIEW FUNCTIONS - PART 6: Chart Rendering
+// ============================================================================
+
+// Global chart instances for cleanup
+let propertyCharts = {
+    revenue: null,
+    sources: null,
+    paymentStatus: null,
+    bookingTypes: null
+};
+
+// Render all Property Charts
+function renderPropertyCharts(reservations, payments) {
+    renderRevenueChart(reservations);
+    renderBookingSourcesChart(reservations);
+    renderPaymentStatusChart(reservations);
+    renderBookingTypesChart(reservations);
+}
+
+// 1. Revenue Trend Chart (Line Chart)
+function renderRevenueChart(reservations) {
+    const ctx = document.getElementById('propertyRevenueChart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (propertyCharts.revenue) {
+        propertyCharts.revenue.destroy();
+    }
+
+    // Group by month and calculate revenue
+    const monthlyData = groupReservationsByMonth(reservations.filter(r => r.status !== 'cancelled'));
+    const months = Object.keys(monthlyData).sort().slice(-12); // Last 12 months
+
+    const revenueData = months.map(month => {
+        const monthRes = monthlyData[month];
+        return monthRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+    });
+
+    const paidData = months.map(month => {
+        const monthRes = monthlyData[month];
+        return monthRes.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
+    });
+
+    propertyCharts.revenue = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months.map(m => formatMonthName(m)),
+            datasets: [
                 {
                     label: 'Total Revenue',
-                    value: formatCurrency(metrics.totalRevenue),
-                    icon: '💰',
-                    color: '#10b981',
-                    trend: '+12%',
-                    trendUp: true
+                    data: revenueData,
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
                 },
                 {
-                    label: 'Total Bookings',
-                    value: reservations.length,
-                    icon: '📅',
-                    color: '#3b82f6',
-                    trend: '+8%',
-                    trendUp: true
-                },
-                {
-                    label: 'Nights Booked',
-                    value: totalNights,
-                    icon: '🌙',
-                    color: '#8b5cf6',
-                    trend: '+15%',
-                    trendUp: true
-                },
-                {
-                    label: 'Avg Booking Value',
-                    value: formatCurrency(reservations.length > 0 ? metrics.totalRevenue / reservations.length : 0),
-                    icon: '💎',
-                    color: '#f59e0b',
-                    trend: '+5%',
-                    trendUp: true
-                },
-                {
-                    label: 'Avg Daily Rate (ADR)',
-                    value: formatCurrency(avgDailyRate),
-                    icon: '📊',
-                    color: '#06b6d4',
-                    trend: '+3%',
-                    trendUp: true
-                },
-                {
-                    label: 'Occupancy Rate',
-                    value: occupancyRate > 0 ? `${occupancyRate.toFixed(1)}%` : 'N/A',
-                    icon: '🏠',
-                    color: '#ec4899',
-                    trend: '+7%',
-                    trendUp: true
-                },
-                {
-                    label: 'Collection Rate',
-                    value: `${collectionRate.toFixed(1)}%`,
-                    icon: '💳',
-                    color: collectionRate >= 80 ? '#10b981' : '#f59e0b',
-                    trend: collectionRate >= 80 ? '+2%' : '-3%',
-                    trendUp: collectionRate >= 80
-                },
-                {
-                    label: 'Avg Lead Time',
-                    value: avgLeadTime > 0 ? `${avgLeadTime} days` : 'N/A',
-                    icon: '⏱️',
-                    color: '#6366f1',
-                    trend: '-2 days',
-                    trendUp: false
+                    label: 'Paid Amount',
+                    data: paidData,
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    tension: 0.4,
+                    fill: true
                 }
-            ];
-
-            const html = metricsData.map(metric => `
-                <div class="card" style="padding: 20px; background: linear-gradient(135deg, ${metric.color}15 0%, ${metric.color}05 100%); border-left: 4px solid ${metric.color};">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                        <span style="font-size: 32px;">${metric.icon}</span>
-                        <span style="font-size: 13px; padding: 4px 8px; background: ${metric.trendUp ? '#10b98120' : '#ef444420'}; color: ${metric.trendUp ? '#10b981' : '#ef4444'}; border-radius: 4px; font-weight: 600;">
-                            ${metric.trendUp ? '↗' : '↘'} ${metric.trend}
-                        </span>
-                    </div>
-                    <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px; color: ${metric.color};">${metric.value}</div>
-                    <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">${metric.label}</div>
-                </div>
-            `).join('');
-
-            document.getElementById('performanceMetrics').innerHTML = html;
-        }
-
-        function renderSmartInsights(metrics, reservations, payments) {
-            const insights = [];
-
-            // Payment collection insight
-            const collectionRate = metrics.totalRevenue > 0 ? (metrics.totalCollected / metrics.totalRevenue * 100) : 0;
-            if (collectionRate < 70) {
-                insights.push({
-                    icon: '⚠️',
-                    text: `Payment collection is at ${collectionRate.toFixed(0)}%. Focus on collecting pending amounts of ₹${((metrics.totalRevenue - metrics.totalCollected)/100000).toFixed(2)}L.`,
-                    type: 'warning'
-                });
-            } else if (collectionRate >= 90) {
-                insights.push({
-                    icon: '✅',
-                    text: `Excellent payment collection rate of ${collectionRate.toFixed(0)}%! Keep up the great work.`,
-                    type: 'success'
-                });
-            }
-
-            // Revenue insight
-            if (metrics.totalRevenue > 500000) {
-                insights.push({
-                    icon: '🎯',
-                    text: `Strong revenue performance with ₹${(metrics.totalRevenue/100000).toFixed(2)}L generated. You're on track for a great quarter!`,
-                    type: 'success'
-                });
-            }
-
-            // Booking frequency
-            if (reservations.length > 20) {
-                insights.push({
-                    icon: '📈',
-                    text: `High booking volume with ${reservations.length} reservations. Consider implementing dynamic pricing for peak demand.`,
-                    type: 'info'
-                });
-            }
-
-            if (insights.length === 0) {
-                insights.push({
-                    icon: '💡',
-                    text: 'Keep monitoring your metrics to unlock personalized insights and recommendations.',
-                    type: 'info'
-                });
-            }
-
-            const html = `
-                <div style="padding: 20px;">
-                    <h3 style="margin: 0 0 16px 0; color: #10b981; display: flex; align-items: center; gap: 8px;">
-                        <span>💡</span> Smart Insights
-                    </h3>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        ${insights.map(insight => `
-                            <div style="display: flex; align-items: start; gap: 12px; padding: 12px; background: white; border-radius: 8px;">
-                                <span style="font-size: 24px;">${insight.icon}</span>
-                                <span style="font-size: 14px; line-height: 1.5; color: var(--text);">${insight.text}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-
-            const card = document.getElementById('performanceInsights');
-            card.innerHTML = html;
-            card.style.display = 'block';
-        }
-
-        function populateComparisonDropdowns(properties) {
-            const options = properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-
-            document.getElementById('compareProperty1').innerHTML = '<option value="">Select Property 1</option>' + options;
-            document.getElementById('compareProperty2').innerHTML = '<option value="">Select Property 2</option>' + options;
-        }
-
-        async function updatePropertyComparison() {
-            const prop1Id = document.getElementById('compareProperty1').value;
-            const prop2Id = document.getElementById('compareProperty2').value;
-
-            if (!prop1Id || !prop2Id) {
-                document.getElementById('performanceComparisonContent').innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        Select two properties above to compare their performance
-                    </div>
-                `;
-                return;
-            }
-
-            try {
-                const reservations = await db.getReservations();
-                const properties = await db.getProperties();
-                const payments = await db.getAllPayments();
-
-                const prop1 = properties.find(p => p.id === prop1Id);
-                const prop2 = properties.find(p => p.id === prop2Id);
-
-                // Check if both properties exist
-                if (!prop1 || !prop2) {
-                    document.getElementById('performanceComparisonContent').innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                            One or both selected properties not found. Please select valid properties.
-                        </div>
-                    `;
-                    return;
-                }
-
-                const prop1Reservations = reservations.filter(r => r.property_id === prop1Id && r.status !== 'cancelled');
-                const prop2Reservations = reservations.filter(r => r.property_id === prop2Id && r.status !== 'cancelled');
-
-                const prop1Revenue = prop1Reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-                const prop2Revenue = prop2Reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-
-                const html = `
-                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: start;">
-                        <div style="text-align: center;">
-                            <h4 style="margin: 0 0 20px 0; color: var(--primary);">${prop1.name}</h4>
-                            <div style="display: flex; flex-direction: column; gap: 16px;">
-                                <div>
-                                    <div style="font-size: 24px; font-weight: 700; color: #10b981;">${formatCurrency(prop1Revenue)}</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">Total Revenue</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">${prop1Reservations.length}</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">Bookings</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;">${formatCurrency(prop1Reservations.length > 0 ? prop1Revenue / prop1Reservations.length : 0)}</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">Avg Booking</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-secondary); padding: 0 20px;">
-                            vs
-                        </div>
-                        <div style="text-align: center;">
-                            <h4 style="margin: 0 0 20px 0; color: var(--primary);">${prop2.name}</h4>
-                            <div style="display: flex; flex-direction: column; gap: 16px;">
-                                <div>
-                                    <div style="font-size: 24px; font-weight: 700; color: #10b981;">${formatCurrency(prop2Revenue)}</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">Total Revenue</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">${prop2Reservations.length}</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">Bookings</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 24px; font-weight: 700; color: #8b5cf6;">${formatCurrency(prop2Reservations.length > 0 ? prop2Revenue / prop2Reservations.length : 0)}</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">Avg Booking</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('performanceComparisonContent').innerHTML = html;
-            } catch (error) {
-                console.error('Comparison error:', error);
-            }
-        }
-
-        // Chart.js Rendering Functions
-        async function renderRevenueTrendChart(reservations) {
-            // Destroy existing chart
-            if (performanceCharts.revenueTrend) {
-                performanceCharts.revenueTrend.destroy();
-            }
-
-            // Group by month
-            const monthlyData = {};
-            reservations.forEach(r => {
-                const month = new Date(r.check_in).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
-                monthlyData[month] = (monthlyData[month] || 0) + (parseFloat(r.total_amount) || 0);
-            });
-
-            const months = Object.keys(monthlyData).sort();
-            const revenues = months.map(m => monthlyData[m]);
-
-            const ctx = document.getElementById('revenueTrendChart');
-            if (!ctx) return;
-
-            performanceCharts.revenueTrend = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'Revenue',
-                        data: revenues,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `₹${(context.parsed.y / 100000).toFixed(2)}L`
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (value) => `₹${(value/100000).toFixed(1)}L`
-                            }
+                title: {
+                    display: true,
+                    text: 'Revenue Trend (Last 12 Months)'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ₹' + context.parsed.y.toLocaleString('en-IN');
                         }
                     }
                 }
-            });
-        }
-
-        async function renderBookingSourceChart(reservations) {
-            if (performanceCharts.bookingSource) {
-                performanceCharts.bookingSource.destroy();
-            }
-
-            const sourceData = {};
-            reservations.forEach(r => {
-                const source = r.booking_source || 'DIRECT';
-                sourceData[source] = (sourceData[source] || 0) + 1;
-            });
-
-            const ctx = document.getElementById('bookingSourceChart');
-            if (!ctx) return;
-
-            performanceCharts.bookingSource = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(sourceData),
-                    datasets: [{
-                        data: Object.values(sourceData),
-                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + (value / 1000).toFixed(0) + 'K';
+                        }
                     }
                 }
-            });
-        }
-
-        async function renderPaymentMethodsChartJS(payments) {
-            if (performanceCharts.paymentMethods) {
-                performanceCharts.paymentMethods.destroy();
             }
+        }
+    });
+}
 
-            const methodData = {
-                cash: 0,
-                upi: 0,
-                gateway: 0,
-                bank_transfer: 0
+// 2. Booking Sources Chart (Pie Chart)
+function renderBookingSourcesChart(reservations) {
+    const ctx = document.getElementById('propertySourcesChart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (propertyCharts.sources) {
+        propertyCharts.sources.destroy();
+    }
+
+    // Group by booking source
+    const activeRes = reservations.filter(r => r.status !== 'cancelled');
+    const sourceGroups = {};
+
+    activeRes.forEach(r => {
+        const source = r.booking_type || 'Unknown';
+        if (!sourceGroups[source]) {
+            sourceGroups[source] = { count: 0, revenue: 0 };
+        }
+        sourceGroups[source].count++;
+        sourceGroups[source].revenue += parseFloat(r.total_amount) || 0;
+    });
+
+    const sources = Object.keys(sourceGroups);
+    const revenues = sources.map(s => sourceGroups[s].revenue);
+    const counts = sources.map(s => sourceGroups[s].count);
+
+    // Colors for different sources
+    const colors = [
+        'rgb(59, 130, 246)',   // Blue
+        'rgb(34, 197, 94)',    // Green
+        'rgb(234, 179, 8)',    // Yellow
+        'rgb(239, 68, 68)',    // Red
+        'rgb(168, 85, 247)',   // Purple
+        'rgb(236, 72, 153)',   // Pink
+        'rgb(14, 165, 233)',   // Sky
+        'rgb(249, 115, 22)'    // Orange
+    ];
+
+    propertyCharts.sources = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: sources.map(s => BOOKING_TYPES[s]?.label || s),
+            datasets: [{
+                data: revenues,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                title: {
+                    display: true,
+                    text: 'Revenue by Booking Source'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const count = counts[context.dataIndex];
+                            const total = revenues.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return [
+                                label + ': ₹' + value.toLocaleString('en-IN'),
+                                count + ' bookings (' + percentage + '%)'
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 3. Payment Status Chart (Bar Chart)
+function renderPaymentStatusChart(reservations) {
+    const ctx = document.getElementById('propertyPaymentStatusChart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (propertyCharts.paymentStatus) {
+        propertyCharts.paymentStatus.destroy();
+    }
+
+    // Group by payment status
+    const activeRes = reservations.filter(r => r.status !== 'cancelled');
+    const statusGroups = {
+        paid: [],
+        partial: [],
+        pending: [],
+        unpaid: []
+    };
+
+    activeRes.forEach(r => {
+        const status = r.payment_status || 'unpaid';
+        if (statusGroups[status]) {
+            statusGroups[status].push(r);
+        }
+    });
+
+    const statuses = Object.keys(statusGroups);
+    const counts = statuses.map(s => statusGroups[s].length);
+    const amounts = statuses.map(s =>
+        statusGroups[s].reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0)
+    );
+
+    propertyCharts.paymentStatus = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Paid', 'Partial', 'Pending', 'Unpaid'],
+            datasets: [{
+                label: 'Total Amount (₹)',
+                data: amounts,
+                backgroundColor: [
+                    'rgba(34, 197, 94, 0.8)',   // Green for Paid
+                    'rgba(234, 179, 8, 0.8)',   // Yellow for Partial
+                    'rgba(249, 115, 22, 0.8)',  // Orange for Pending
+                    'rgba(239, 68, 68, 0.8)'    // Red for Unpaid
+                ],
+                borderColor: [
+                    'rgb(34, 197, 94)',
+                    'rgb(234, 179, 8)',
+                    'rgb(249, 115, 22)',
+                    'rgb(239, 68, 68)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Payment Status Distribution'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const idx = context.dataIndex;
+                            const amount = context.parsed.y;
+                            const count = counts[idx];
+                            return [
+                                'Amount: ₹' + amount.toLocaleString('en-IN'),
+                                'Bookings: ' + count
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + (value / 1000).toFixed(0) + 'K';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 4. Booking Types Chart (Horizontal Bar Chart)
+function renderBookingTypesChart(reservations) {
+    const ctx = document.getElementById('propertyBookingTypesChart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (propertyCharts.bookingTypes) {
+        propertyCharts.bookingTypes.destroy();
+    }
+
+    // Group by booking type
+    const activeRes = reservations.filter(r => r.status !== 'cancelled');
+    const typeGroups = {};
+
+    activeRes.forEach(r => {
+        const type = r.booking_type || 'Unknown';
+        if (!typeGroups[type]) {
+            typeGroups[type] = { count: 0, revenue: 0 };
+        }
+        typeGroups[type].count++;
+        typeGroups[type].revenue += parseFloat(r.total_amount) || 0;
+    });
+
+    const types = Object.keys(typeGroups);
+    const counts = types.map(t => typeGroups[t].count);
+
+    propertyCharts.bookingTypes = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: types.map(t => BOOKING_TYPES[t]?.label || t),
+            datasets: [{
+                label: 'Number of Bookings',
+                data: counts,
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Bookings by Type'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const idx = context.dataIndex;
+                            const type = types[idx];
+                            const count = context.parsed.x;
+                            const revenue = typeGroups[type].revenue;
+                            return [
+                                'Bookings: ' + count,
+                                'Revenue: ₹' + revenue.toLocaleString('en-IN')
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+// ============================================================================
+// PROPERTY VIEW FUNCTIONS - PART 7: Booking Type Breakdown
+// ============================================================================
+
+// Render Booking Type Breakdown Table
+function renderBookingTypeBreakdown(reservations) {
+    const container = document.getElementById('propertyBookingTypeBreakdown');
+
+    // Filter active reservations
+    const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+    if (activeRes.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                No booking type data available
+            </div>
+        `;
+        return;
+    }
+
+    // Group by booking type
+    const typeGroups = {};
+    activeRes.forEach(r => {
+        const type = r.booking_type || 'unknown';
+        if (!typeGroups[type]) {
+            typeGroups[type] = {
+                bookings: [],
+                totalRevenue: 0,
+                totalNights: 0,
+                paidAmount: 0
             };
-
-            payments.forEach(p => {
-                const method = p.payment_method || 'cash';
-                if (methodData[method] !== undefined) {
-                    methodData[method] += parseFloat(p.amount) || 0;
-                }
-            });
-
-            const ctx = document.getElementById('paymentMethodsChart');
-            if (!ctx) return;
-
-            performanceCharts.paymentMethods = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Cash', 'UPI', 'Gateway', 'Bank Transfer'],
-                    datasets: [{
-                        label: 'Amount',
-                        data: [methodData.cash, methodData.upi, methodData.gateway, methodData.bank_transfer],
-                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'],
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `₹${(context.parsed.y / 100000).toFixed(2)}L`
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (value) => `₹${(value/100000).toFixed(1)}L`
-                            }
-                        }
-                    }
-                }
-            });
         }
+        typeGroups[type].bookings.push(r);
+        typeGroups[type].totalRevenue += parseFloat(r.total_amount) || 0;
+        typeGroups[type].totalNights += r.nights || 0;
+        typeGroups[type].paidAmount += parseFloat(r.paid_amount) || 0;
+    });
 
-        async function renderBookingTypesChartJS(reservations) {
-            if (performanceCharts.bookingTypes) {
-                performanceCharts.bookingTypes.destroy();
-            }
+    // Calculate totals
+    const totalRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+    const totalBookings = activeRes.length;
+    const totalNights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
 
-            const typeData = {};
-            reservations.forEach(r => {
-                const type = r.booking_type || 'STAYCATION';
-                typeData[type] = (typeData[type] || 0) + (parseFloat(r.total_amount) || 0);
-            });
+    // Sort by revenue (descending)
+    const sortedTypes = Object.keys(typeGroups).sort((a, b) =>
+        typeGroups[b].totalRevenue - typeGroups[a].totalRevenue
+    );
 
-            const ctx = document.getElementById('bookingTypesChart');
-            if (!ctx) return;
+    // Render table
+    container.innerHTML = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Booking Type</th>
+                    <th>Bookings</th>
+                    <th>% of Total</th>
+                    <th>Total Revenue</th>
+                    <th>% Revenue</th>
+                    <th>Total Nights</th>
+                    <th>Avg Nights</th>
+                    <th>ADR</th>
+                    <th>Collection %</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${sortedTypes.map(type => {
+                    const group = typeGroups[type];
+                    const bookingPercent = (group.bookings.length / totalBookings) * 100;
+                    const revenuePercent = (group.totalRevenue / totalRevenue) * 100;
+                    const avgNights = group.bookings.length > 0 ? group.totalNights / group.bookings.length : 0;
+                    const adr = group.totalNights > 0 ? group.totalRevenue / group.totalNights : 0;
+                    const collectionRate = group.totalRevenue > 0 ? (group.paidAmount / group.totalRevenue) * 100 : 0;
+                    const typeInfo = BOOKING_TYPES[type] || { label: type, icon: '📋' };
 
-            performanceCharts.bookingTypes = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(typeData),
-                    datasets: [{
-                        data: Object.values(typeData),
-                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe'],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `${context.label}: ₹${(context.parsed / 100000).toFixed(2)}L`
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        async function renderPaymentStatusChart(payments, metrics) {
-            if (performanceCharts.paymentStatus) {
-                performanceCharts.paymentStatus.destroy();
-            }
-
-            const totalRevenue = metrics.totalRevenue || 0;
-            const totalCollected = metrics.totalCollected || 0;
-            const totalPending = totalRevenue - totalCollected;
-
-            // Calculate partial payments
-            const partialPayments = payments.filter(p => {
-                // Find if this reservation has partial payment
-                return p.status === 'partial' || p.payment_type === 'partial';
-            });
-
-            const ctx = document.getElementById('paymentStatusChart');
-            if (!ctx) return;
-
-            performanceCharts.paymentStatus = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Fully Paid', 'Pending', 'Partial'],
-                    datasets: [{
-                        data: [
-                            totalCollected > 0 ? totalCollected : 0,
-                            totalPending > 0 ? totalPending : 0,
-                            0  // Partial - can be calculated if needed
-                        ],
-                        backgroundColor: ['#10b981', '#f59e0b', '#3b82f6'],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => {
-                                    const value = context.parsed;
-                                    const percentage = totalRevenue > 0 ? ((value / totalRevenue) * 100).toFixed(1) : 0;
-                                    return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        async function renderCheckinDayChart(reservations) {
-            if (performanceCharts.checkinDay) {
-                performanceCharts.checkinDay.destroy();
-            }
-
-            const dayData = {
-                'Sunday': 0,
-                'Monday': 0,
-                'Tuesday': 0,
-                'Wednesday': 0,
-                'Thursday': 0,
-                'Friday': 0,
-                'Saturday': 0
-            };
-
-            reservations.forEach(r => {
-                const day = new Date(r.check_in).toLocaleDateString('en-US', { weekday: 'long' });
-                if (dayData[day] !== undefined) {
-                    dayData[day]++;
-                }
-            });
-
-            const ctx = document.getElementById('checkinDayChart');
-            if (!ctx) return;
-
-            performanceCharts.checkinDay = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(dayData),
-                    datasets: [{
-                        label: 'Number of Check-ins',
-                        data: Object.values(dayData),
-                        backgroundColor: '#667eea',
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `Check-ins: ${context.parsed.y}`
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
-                        }
-                    }
-                }
-            });
-        }
-
-        async function renderRevenueByPropertyChart(properties, allReservations, selectedPropertyId) {
-            // Only show this chart when viewing all properties
-            const container = document.getElementById('revenueByPropertyContainer');
-
-            if (selectedPropertyId) {
-                container.style.display = 'none';
-                return;
-            }
-
-            container.style.display = 'block';
-
-            if (performanceCharts.revenueByProperty) {
-                performanceCharts.revenueByProperty.destroy();
-            }
-
-            const propertyData = properties.map(prop => {
-                const reservations = allReservations.filter(r => r.property_id === prop.id && r.status !== 'cancelled');
-                const revenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-                return {
-                    name: prop.name,
-                    revenue: revenue
-                };
-            }).sort((a, b) => b.revenue - a.revenue);
-
-            const ctx = document.getElementById('revenueByPropertyChart');
-            if (!ctx) return;
-
-            performanceCharts.revenueByProperty = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: propertyData.map(p => p.name),
-                    datasets: [{
-                        label: 'Revenue',
-                        data: propertyData.map(p => p.revenue),
-                        backgroundColor: '#10b981',
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',  // Horizontal bar chart
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `Revenue: ${formatCurrency(context.parsed.x)}`
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (value) => formatCurrency(value)
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        async function renderPerformanceLeaderboard(properties, allReservations, allPayments) {
-            const propertyPerformance = properties.map(prop => {
-                const reservations = allReservations.filter(r => r.property_id === prop.id && r.status !== 'cancelled');
-                const revenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-                const bookings = reservations.length;
-                const payments = allPayments.filter(p => reservations.some(r => r.booking_id === p.booking_id));
-                const collected = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-                const collectionRate = revenue > 0 ? (collected / revenue * 100) : 0;
-
-                return {
-                    name: prop.name,
-                    revenue,
-                    bookings,
-                    collectionRate,
-                    score: calculatePerformanceScore({ totalRevenue: revenue, totalNights: 0, totalCollected: collected }, reservations)
-                };
-            }).sort((a, b) => b.score - a.score);
-
-            const html = `
-                <div style="display: flex; flex-direction: column; gap: 16px;">
-                    ${propertyPerformance.map((prop, index) => {
-                        const scoreData = getScoreGrade(prop.score);
-                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
-                        return `
-                            <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--background); border-radius: 8px; border-left: 4px solid ${scoreData.color};">
-                                <div style="font-size: 24px; width: 40px; text-align: center;">${medal || (index + 1)}</div>
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">${prop.name}</div>
-                                    <div style="font-size: 12px; color: var(--text-secondary);">${prop.bookings} bookings • ${formatCurrency(prop.revenue)}</div>
+                    return `
+                        <tr>
+                            <td>
+                                <span style="margin-right: 8px;">${typeInfo.icon}</span>
+                                <strong>${typeInfo.label}</strong>
+                            </td>
+                            <td>${group.bookings.length}</td>
+                            <td>${bookingPercent.toFixed(1)}%</td>
+                            <td><strong>${formatCurrency(group.totalRevenue)}</strong></td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="flex: 1; height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden;">
+                                        <div style="width: ${revenuePercent}%; height: 100%; background: var(--primary);"></div>
+                                    </div>
+                                    <span style="min-width: 45px; text-align: right;">${revenuePercent.toFixed(1)}%</span>
                                 </div>
-                                <div style="text-align: right;">
-                                    <div style="font-size: 24px; font-weight: 700; color: ${scoreData.color};">${prop.score}</div>
-                                    <div style="font-size: 11px; color: var(--text-secondary);">${scoreData.grade}</div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-
-            document.getElementById('performanceLeaderboard').innerHTML = html;
-        }
-
-        function renderMonthlyPerformanceTable(reservations) {
-            const monthlyData = {};
-            reservations.forEach(r => {
-                const month = new Date(r.check_in).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
-                if (!monthlyData[month]) {
-                    monthlyData[month] = { bookings: 0, revenue: 0, nights: 0 };
-                }
-                monthlyData[month].bookings++;
-                monthlyData[month].revenue += parseFloat(r.total_amount) || 0;
-                monthlyData[month].nights += r.nights || 0;
-            });
-
-            const months = Object.keys(monthlyData).sort();
-
-            const html = `
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid var(--border);">
-                            <th style="text-align: left; padding: 12px; font-size: 13px; color: var(--text-secondary);">Month</th>
-                            <th style="text-align: right; padding: 12px; font-size: 13px; color: var(--text-secondary);">Bookings</th>
-                            <th style="text-align: right; padding: 12px; font-size: 13px; color: var(--text-secondary);">Nights</th>
-                            <th style="text-align: right; padding: 12px; font-size: 13px; color: var(--text-secondary);">Revenue</th>
-                            <th style="text-align: right; padding: 12px; font-size: 13px; color: var(--text-secondary);">Avg/Booking</th>
+                            </td>
+                            <td>${group.totalNights}</td>
+                            <td>${avgNights.toFixed(1)}</td>
+                            <td>${formatCurrency(adr)}</td>
+                            <td style="color: ${collectionRate >= 80 ? 'var(--success)' : collectionRate >= 50 ? 'var(--warning)' : 'var(--danger)'};">
+                                ${formatPercentage(collectionRate)}
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        ${months.map(month => {
-                            const data = monthlyData[month];
-                            const avgBooking = data.bookings > 0 ? data.revenue / data.bookings : 0;
-                            return `
-                                <tr style="border-bottom: 1px solid var(--border);">
-                                    <td style="padding: 12px; font-weight: 600;">${month}</td>
-                                    <td style="padding: 12px; text-align: right;">${data.bookings}</td>
-                                    <td style="padding: 12px; text-align: right;">${data.nights}</td>
-                                    <td style="padding: 12px; text-align: right; font-weight: 600; color: #10b981;">${formatCurrency(data.revenue)}</td>
-                                    <td style="padding: 12px; text-align: right; color: var(--text-secondary);">${formatCurrency(avgBooking)}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            `;
+                    `;
+                }).join('')}
+                <!-- Total Row -->
+                <tr style="font-weight: bold; background: var(--bg-secondary);">
+                    <td>TOTAL</td>
+                    <td>${totalBookings}</td>
+                    <td>100%</td>
+                    <td>${formatCurrency(totalRevenue)}</td>
+                    <td>100%</td>
+                    <td>${totalNights}</td>
+                    <td>${(totalNights / totalBookings).toFixed(1)}</td>
+                    <td>${formatCurrency(totalRevenue / totalNights)}</td>
+                    <td>${formatPercentage((activeRes.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0) / totalRevenue) * 100)}</td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+}
+// ============================================================================
+// PROPERTY VIEW FUNCTIONS - PART 8: Occupancy Heatmap
+// ============================================================================
 
-            document.getElementById('monthlyPerformanceTable').innerHTML = html;
+// Render Property Occupancy Heatmap
+function renderPropertyOccupancyHeatmap(reservations, dateFilter) {
+    const container = document.getElementById('propertyOccupancyHeatmap');
+
+    // Determine date range
+    let startDate, endDate;
+    if (dateFilter.start && dateFilter.end) {
+        startDate = new Date(dateFilter.start);
+        endDate = new Date(dateFilter.end);
+    } else {
+        // Default to last 6 months
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 6);
+    }
+
+    // Build occupancy map (date -> number of nights occupied)
+    const occupancyMap = {};
+    const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+    activeRes.forEach(r => {
+        const checkIn = new Date(r.check_in);
+        const checkOut = new Date(r.check_out);
+
+        // Mark each night as occupied
+        const currentDate = new Date(checkIn);
+        while (currentDate < checkOut) {
+            const dateKey = currentDate.toISOString().split('T')[0];
+            occupancyMap[dateKey] = (occupancyMap[dateKey] || 0) + 1;
+            currentDate.setDate(currentDate.getDate() + 1);
         }
+    });
+
+    // Generate months to display
+    const months = [];
+    const currentMonth = new Date(startDate);
+    while (currentMonth <= endDate) {
+        months.push(new Date(currentMonth));
+        currentMonth.setMonth(currentMonth.getMonth() + 1);
+    }
+
+    // Render heatmap
+    container.innerHTML = `
+        <div style="overflow-x: auto;">
+            <div style="display: flex; gap: 20px; min-width: max-content; padding: 10px;">
+                ${months.map(month => renderMonthHeatmap(month, occupancyMap)).join('')}
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div style="display: flex; align-items: center; gap: 15px; margin-top: 20px; padding: 15px; background: var(--card-bg); border-radius: 8px;">
+            <span style="color: var(--text-secondary); font-weight: 500;">Occupancy:</span>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <div style="width: 20px; height: 20px; background: #eee; border: 1px solid #ccc; border-radius: 3px;"></div>
+                <span style="font-size: 12px; color: var(--text-secondary);">Available</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <div style="width: 20px; height: 20px; background: rgba(34, 197, 94, 0.3); border: 1px solid rgba(34, 197, 94, 0.6); border-radius: 3px;"></div>
+                <span style="font-size: 12px; color: var(--text-secondary);">Booked</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <div style="width: 20px; height: 20px; background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.6); border-radius: 3px;"></div>
+                <span style="font-size: 12px; color: var(--text-secondary);">Double-booked</span>
+            </div>
+        </div>
+    `;
+}
+
+// Render single month heatmap
+function renderMonthHeatmap(month, occupancyMap) {
+    const year = month.getFullYear();
+    const monthIndex = month.getMonth();
+    const monthName = month.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+    // Get first and last day of month
+    const firstDay = new Date(year, monthIndex, 1);
+    const lastDay = new Date(year, monthIndex + 1, 0);
+    const daysInMonth = lastDay.getDate();
+
+    // Get starting day of week (0 = Sunday, 1 = Monday, etc.)
+    const startingDayOfWeek = firstDay.getDay();
+
+    // Build calendar grid
+    let calendarHTML = '';
+
+    // Add empty cells for days before month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        calendarHTML += '<div style="width: 30px; height: 30px;"></div>';
+    }
+
+    // Add cells for each day of month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, monthIndex, day);
+        const dateKey = date.toISOString().split('T')[0];
+        const occupancy = occupancyMap[dateKey] || 0;
+
+        // Determine color based on occupancy
+        let bgColor, borderColor;
+        if (occupancy === 0) {
+            bgColor = '#eee';
+            borderColor = '#ccc';
+        } else if (occupancy === 1) {
+            bgColor = 'rgba(34, 197, 94, 0.3)';
+            borderColor = 'rgba(34, 197, 94, 0.6)';
+        } else {
+            // Double-booked or more
+            bgColor = 'rgba(239, 68, 68, 0.3)';
+            borderColor = 'rgba(239, 68, 68, 0.6)';
+        }
+
+        // Check if today
+        const today = new Date();
+        const isToday = date.toDateString() === today.toDateString();
+
+        calendarHTML += `
+            <div
+                style="
+                    width: 30px;
+                    height: 30px;
+                    background: ${bgColor};
+                    border: ${isToday ? '2px solid var(--primary)' : `1px solid ${borderColor}`};
+                    border-radius: 3px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                    font-weight: ${isToday ? 'bold' : 'normal'};
+                    color: ${occupancy > 0 ? 'var(--text-primary)' : 'var(--text-secondary)'};
+                    cursor: pointer;
+                "
+                title="${dateKey}: ${occupancy > 0 ? occupancy + ' booking(s)' : 'Available'}"
+            >
+                ${day}
+            </div>
+        `;
+    }
+
+    return `
+        <div style="min-width: 240px;">
+            <h4 style="margin: 0 0 10px 0; text-align: center; color: var(--text-primary);">${monthName}</h4>
+
+            <!-- Day names -->
+            <div style="display: grid; grid-template-columns: repeat(7, 30px); gap: 3px; margin-bottom: 5px;">
+                <div style="width: 30px; text-align: center; font-size: 10px; color: var(--text-secondary); font-weight: 600;">S</div>
+                <div style="width: 30px; text-align: center; font-size: 10px; color: var(--text-secondary); font-weight: 600;">M</div>
+                <div style="width: 30px; text-align: center; font-size: 10px; color: var(--text-secondary); font-weight: 600;">T</div>
+                <div style="width: 30px; text-align: center; font-size: 10px; color: var(--text-secondary); font-weight: 600;">W</div>
+                <div style="width: 30px; text-align: center; font-size: 10px; color: var(--text-secondary); font-weight: 600;">T</div>
+                <div style="width: 30px; text-align: center; font-size: 10px; color: var(--text-secondary); font-weight: 600;">F</div>
+                <div style="width: 30px; text-align: center; font-size: 10px; color: var(--text-secondary); font-weight: 600;">S</div>
+            </div>
+
+            <!-- Calendar grid -->
+            <div style="display: grid; grid-template-columns: repeat(7, 30px); gap: 3px;">
+                ${calendarHTML}
+            </div>
+        </div>
+    `;
+}
+// ============================================================================
+// PROPERTY VIEW FUNCTIONS - PART 9: Export to Excel
+// ============================================================================
+
+// Export Property View Data to Excel
+function exportPropertyViewToExcel() {
+    try {
+        const property = propertyViewData.selectedProperty;
+        if (!property) {
+            showToast('Export Error', 'No property selected', '❌');
+            return;
+        }
+
+        const reservations = propertyViewData.reservations;
+        const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+        // Calculate summary metrics
+        const totalRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+        const totalPaid = activeRes.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
+        const totalPending = totalRevenue - totalPaid;
+        const totalBookings = activeRes.length;
+        const totalNights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+        const occupancyRate = (totalNights / 365) * 100;
+        const adr = totalNights > 0 ? totalRevenue / totalNights : 0;
+        const collectionRate = totalRevenue > 0 ? (totalPaid / totalRevenue) * 100 : 0;
+
+        // Prepare CSV content
+        let csv = '';
+
+        // Header
+        csv += `Property Performance Report\n`;
+        csv += `Property: ${property.name}\n`;
+        csv += `Generated: ${new Date().toLocaleString('en-IN')}\n`;
+        csv += `\n`;
+
+        // Summary Section
+        csv += `SUMMARY METRICS\n`;
+        csv += `Metric,Value\n`;
+        csv += `Total Revenue,₹${totalRevenue.toLocaleString('en-IN')}\n`;
+        csv += `Paid Amount,₹${totalPaid.toLocaleString('en-IN')}\n`;
+        csv += `Pending Amount,₹${totalPending.toLocaleString('en-IN')}\n`;
+        csv += `Total Bookings,${totalBookings}\n`;
+        csv += `Total Nights,${totalNights}\n`;
+        csv += `Occupancy Rate,${occupancyRate.toFixed(1)}%\n`;
+        csv += `Average Daily Rate,₹${adr.toLocaleString('en-IN')}\n`;
+        csv += `Collection Rate,${collectionRate.toFixed(1)}%\n`;
+        csv += `\n\n`;
+
+        // Reservations Section
+        csv += `ALL RESERVATIONS\n`;
+        csv += `Booking ID,Guest Name,Guest Email,Guest Phone,Check-In,Check-Out,Nights,Booking Type,Total Amount,Paid Amount,Pending Amount,Payment Status,Booking Status\n`;
+
+        reservations.forEach(r => {
+            const pending = (parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0);
+            csv += `${r.booking_id || 'N/A'},`;
+            csv += `"${r.guest_name || 'N/A'}",`;
+            csv += `${r.guest_email || 'N/A'},`;
+            csv += `${r.guest_phone || 'N/A'},`;
+            csv += `${r.check_in || 'N/A'},`;
+            csv += `${r.check_out || 'N/A'},`;
+            csv += `${r.nights || 0},`;
+            csv += `${BOOKING_TYPES[r.booking_type]?.label || r.booking_type || 'N/A'},`;
+            csv += `₹${(parseFloat(r.total_amount) || 0).toLocaleString('en-IN')},`;
+            csv += `₹${(parseFloat(r.paid_amount) || 0).toLocaleString('en-IN')},`;
+            csv += `₹${pending.toLocaleString('en-IN')},`;
+            csv += `${r.payment_status || 'N/A'},`;
+            csv += `${r.status || 'N/A'}\n`;
+        });
+
+        csv += `\n\n`;
+
+        // Booking Type Breakdown Section
+        csv += `BOOKING TYPE BREAKDOWN\n`;
+        csv += `Type,Bookings,% of Total,Total Revenue,% Revenue,Total Nights,Avg Nights,ADR\n`;
+
+        const typeGroups = {};
+        activeRes.forEach(r => {
+            const type = r.booking_type || 'unknown';
+            if (!typeGroups[type]) {
+                typeGroups[type] = { bookings: [], totalRevenue: 0, totalNights: 0 };
+            }
+            typeGroups[type].bookings.push(r);
+            typeGroups[type].totalRevenue += parseFloat(r.total_amount) || 0;
+            typeGroups[type].totalNights += r.nights || 0;
+        });
+
+        Object.keys(typeGroups).forEach(type => {
+            const group = typeGroups[type];
+            const bookingPercent = (group.bookings.length / totalBookings) * 100;
+            const revenuePercent = (group.totalRevenue / totalRevenue) * 100;
+            const avgNights = group.bookings.length > 0 ? group.totalNights / group.bookings.length : 0;
+            const typeAdr = group.totalNights > 0 ? group.totalRevenue / group.totalNights : 0;
+            const typeInfo = BOOKING_TYPES[type] || { label: type };
+
+            csv += `${typeInfo.label},`;
+            csv += `${group.bookings.length},`;
+            csv += `${bookingPercent.toFixed(1)}%,`;
+            csv += `₹${group.totalRevenue.toLocaleString('en-IN')},`;
+            csv += `${revenuePercent.toFixed(1)}%,`;
+            csv += `${group.totalNights},`;
+            csv += `${avgNights.toFixed(1)},`;
+            csv += `₹${typeAdr.toLocaleString('en-IN')}\n`;
+        });
+
+        // Download CSV
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        const fileName = `Property_Report_${property.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast('Export Successful', `Downloaded ${fileName}`, '📥');
+
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Export Error', 'Failed to export data', '❌');
+    }
+}
+
+// Print Property View
+function printPropertyView() {
+    const property = propertyViewData.selectedProperty;
+    if (!property) {
+        showToast('Print Error', 'No property selected', '❌');
+        return;
+    }
+
+    // Open print dialog
+    window.print();
+    showToast('Print', 'Opening print dialog...', '🖨️');
+}
 
         // ========================================
         // BUSINESS INTELLIGENCE FUNCTIONS
