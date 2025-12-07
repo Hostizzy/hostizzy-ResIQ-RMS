@@ -4114,32 +4114,6 @@
                     <span class="sidebar-item-label">Dashboard</span>
                 </a>
 
-                <!-- Operations Category -->
-                <div class="sidebar-category">
-                    <div class="sidebar-category-header" onclick="toggleSidebarCategory('operations')">
-                        <span class="sidebar-category-title">🎯 Operations</span>
-                        <span class="sidebar-category-arrow">▼</span>
-                    </div>
-                    <div class="sidebar-category-items" id="sidebar-operations" style="display: block;">
-                        <a class="sidebar-item" onclick="showView('reservations')">
-                            <span class="sidebar-item-icon">📅</span>
-                            <span class="sidebar-item-label">Reservations</span>
-                        </a>
-                        <a class="sidebar-item" onclick="showView('guestDocuments')">
-                            <span class="sidebar-item-icon">📄</span>
-                            <span class="sidebar-item-label">Documents</span>
-                        </a>
-                        <a class="sidebar-item" onclick="showView('guests')">
-                            <span class="sidebar-item-icon">👥</span>
-                            <span class="sidebar-item-label">Guests</span>
-                        </a>
-                        <a class="sidebar-item" onclick="showView('meals')">
-                            <span class="sidebar-item-icon">🍽️</span>
-                            <span class="sidebar-item-label">Meals</span>
-                        </a>
-                    </div>
-                </div>
-
                 <!-- Analytics Category -->
                 <div class="sidebar-category">
                     <div class="sidebar-category-header" onclick="toggleSidebarCategory('analytics')">
@@ -4169,9 +4143,25 @@
                         <span class="sidebar-category-arrow">▼</span>
                     </div>
                     <div class="sidebar-category-items" id="sidebar-operations" style="display: block;">
+                        <a class="sidebar-item" onclick="showView('reservations')">
+                            <span class="sidebar-item-icon">📅</span>
+                            <span class="sidebar-item-label">Reservations</span>
+                        </a>
                         <a class="sidebar-item" onclick="showView('payments')">
                             <span class="sidebar-item-icon">💳</span>
                             <span class="sidebar-item-label">Payments</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('guests')">
+                            <span class="sidebar-item-icon">👥</span>
+                            <span class="sidebar-item-label">Guests</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('guestDocuments')">
+                            <span class="sidebar-item-icon">📄</span>
+                            <span class="sidebar-item-label">Documents</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('meals')">
+                            <span class="sidebar-item-icon">🍽️</span>
+                            <span class="sidebar-item-label">Meals</span>
                         </a>
                     </div>
                 </div>
