@@ -4140,24 +4140,38 @@
                     </div>
                 </div>
 
-                <!-- Finance & Analytics Category -->
+                <!-- Analytics Category -->
                 <div class="sidebar-category">
-                    <div class="sidebar-category-header" onclick="toggleSidebarCategory('finance')">
-                        <span class="sidebar-category-title">💼 Finance & Analytics</span>
+                    <div class="sidebar-category-header" onclick="toggleSidebarCategory('analytics')">
+                        <span class="sidebar-category-title">📊 Analytics</span>
                         <span class="sidebar-category-arrow">▼</span>
                     </div>
-                    <div class="sidebar-category-items" id="sidebar-finance" style="display: block;">
-                        <a class="sidebar-item" onclick="showView('payments')">
+                    <div class="sidebar-category-items" id="sidebar-analytics" style="display: block;">
+                        <a class="sidebar-item" onclick="showView('propertyView')">
+                            <span class="sidebar-item-icon">🏠</span>
+                            <span class="sidebar-item-label">Property</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('businessView')">
+                            <span class="sidebar-item-icon">📊</span>
+                            <span class="sidebar-item-label">Business</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('financialsView')">
                             <span class="sidebar-item-icon">💰</span>
+                            <span class="sidebar-item-label">Financials</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Operations Category -->
+                <div class="sidebar-category">
+                    <div class="sidebar-category-header" onclick="toggleSidebarCategory('operations')">
+                        <span class="sidebar-category-title">⚙️ Operations</span>
+                        <span class="sidebar-category-arrow">▼</span>
+                    </div>
+                    <div class="sidebar-category-items" id="sidebar-operations" style="display: block;">
+                        <a class="sidebar-item" onclick="showView('payments')">
+                            <span class="sidebar-item-icon">💳</span>
                             <span class="sidebar-item-label">Payments</span>
-                        </a>
-                        <a class="sidebar-item" onclick="showView('performance')">
-                            <span class="sidebar-item-icon">📈</span>
-                            <span class="sidebar-item-label">Analytics</span>
-                        </a>
-                        <a class="sidebar-item" onclick="showView('businessIntelligence')">
-                            <span class="sidebar-item-icon">🧠</span>
-                            <span class="sidebar-item-label">Business Intelligence</span>
                         </a>
                     </div>
                 </div>
@@ -6092,10 +6106,11 @@
         </div>
 
         <!-- Business Intelligence View -->
-        <div id="businessIntelligenceView" class="container hidden">
+        <!-- Financials View (Payment Analytics) -->
+        <div id="financialsView" class="container hidden">
             <div style="margin-bottom: 32px;">
                 <h2 style="margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
-                    <span>🧠</span> Business Intelligence Dashboard
+                    <span>💰</span> Financials & Payment Analytics
                 </h2>
                 <p style="color: var(--text-secondary); font-size: 14px;">
                     Comprehensive payment analytics, financial insights, and smart recommendations
@@ -9080,8 +9095,9 @@
             if (viewName === 'meals') loadMeals();
             if (viewName === 'availability') loadAvailabilityCalendar();
             if (viewName === 'properties') loadProperties();
-            if (viewName === 'performance') initializePerformanceView();
-            if (viewName === 'businessIntelligence') loadBusinessIntelligence();
+            if (viewName === 'propertyView') loadPropertyView();
+            if (viewName === 'businessView') loadBusinessView();
+            if (viewName === 'financialsView') loadBusinessIntelligence();
             if (viewName === 'team') loadTeam();
             if (viewName === 'settings') loadSettings();
             if (viewName === 'communication') loadCommunication();
