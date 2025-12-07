@@ -21428,7 +21428,7 @@ function printPropertyView() {
 
             // Calculate payment sources distribution
             const paymentSources = {};
-            const payments = biData.payments || [];
+            const payments = (typeof state !== 'undefined' && state.payments) ? state.payments : [];
 
             payments.forEach(payment => {
                 const source = payment.payment_method || 'Unknown';
