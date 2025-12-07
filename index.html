@@ -5785,26 +5785,9 @@
                     <h3 class="card-title">📊 Month-over-Month Comparison</h3>
                 </div>
                 <div style="padding: 20px; overflow-x: auto;">
-                    <table id="propertyMoMTable" class="data-table" style="width: 100%;">
-                        <thead>
-                            <tr>
-                                <th>Month</th>
-                                <th>Revenue</th>
-                                <th>Bookings</th>
-                                <th>Nights</th>
-                                <th>Occupancy %</th>
-                                <th>ADR (Avg Daily Rate)</th>
-                                <th>Collection %</th>
-                            </tr>
-                        </thead>
-                        <tbody id="propertyMoMTableBody">
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                                    Select a property to view month-over-month data
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div id="propertyMoMComparison">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
                 </div>
             </div>
 
@@ -5840,7 +5823,7 @@
                         <h3 class="card-title">📈 Revenue Trend (12 Months)</h3>
                     </div>
                     <div style="padding: 20px;">
-                        <canvas id="propertyRevenueTrendChart" style="max-height: 300px;"></canvas>
+                        <canvas id="propertyRevenueChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
 
@@ -5850,7 +5833,7 @@
                         <h3 class="card-title">📊 Booking Sources</h3>
                     </div>
                     <div style="padding: 20px;">
-                        <canvas id="propertyBookingSourceChart" style="max-height: 300px;"></canvas>
+                        <canvas id="propertySourcesChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
 
@@ -5881,24 +5864,9 @@
                     <h3 class="card-title">🎯 Booking Type Breakdown</h3>
                 </div>
                 <div style="padding: 20px; overflow-x: auto;">
-                    <table id="propertyBookingTypeTable" class="data-table" style="width: 100%;">
-                        <thead>
-                            <tr>
-                                <th>Booking Type</th>
-                                <th>Count</th>
-                                <th>Revenue</th>
-                                <th>% of Total Revenue</th>
-                                <th>Avg Booking Value</th>
-                            </tr>
-                        </thead>
-                        <tbody id="propertyBookingTypeTableBody">
-                            <tr>
-                                <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                                    Select a property to view booking type breakdown
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div id="propertyBookingTypeBreakdown">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
                 </div>
             </div>
 
