@@ -5901,6 +5901,196 @@
             </div>
         </div>
 
+        <!-- Business View (Portfolio Analytics) -->
+        <div id="businessView" class="container hidden">
+            <div style="margin-bottom: 32px;">
+                <h2 style="margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+                    <span>📊</span> Business Analytics
+                </h2>
+                <p style="color: var(--text-secondary); margin: 0;">Portfolio-wide performance metrics and insights</p>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="card" style="margin-bottom: 24px; padding: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <!-- Date Range Filter -->
+                    <div>
+                        <label class="label">Date Range</label>
+                        <select id="businessDateRange" class="input" onchange="loadBusinessView()">
+                            <option value="this_month">This Month</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="last_3_months">Last 3 Months</option>
+                            <option value="last_6_months">Last 6 Months</option>
+                            <option value="this_year" selected>This Year</option>
+                            <option value="custom">Custom Range</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Date From (Hidden by default) -->
+                    <div id="businessCustomDateFrom" style="display: none;">
+                        <label class="label">From Date</label>
+                        <input type="date" id="businessDateFrom" class="input" onchange="loadBusinessView()">
+                    </div>
+
+                    <!-- Custom Date To (Hidden by default) -->
+                    <div id="businessCustomDateTo" style="display: none;">
+                        <label class="label">To Date</label>
+                        <input type="date" id="businessDateTo" class="input" onchange="loadBusinessView()">
+                    </div>
+
+                    <!-- Refresh Button -->
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-primary" onclick="loadBusinessView()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global KPI Cards -->
+            <div id="businessKPICards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;"></div>
+
+            <!-- Top Properties Leaderboard -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span>🏆</span> Top Properties Leaderboard
+                    </h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div id="topPropertiesLeaderboard"></div>
+                </div>
+            </div>
+
+            <!-- Channel Performance Analysis -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span>📡</span> Channel Performance Analysis
+                    </h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div id="channelPerformanceTable"></div>
+                </div>
+            </div>
+
+            <!-- Revenue Breakdown Section -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <!-- Revenue by Property -->
+                <div class="card">
+                    <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                        <h3 style="margin: 0;">Revenue by Property</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="businessPropertyRevenueChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Revenue by Booking Type -->
+                <div class="card">
+                    <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                        <h3 style="margin: 0;">Revenue by Booking Type</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="businessBookingTypeChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Channel Mix & Monthly Trend -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <!-- Channel Mix Chart -->
+                <div class="card">
+                    <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                        <h3 style="margin: 0;">Channel Mix</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="businessChannelMixChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Revenue Trend -->
+                <div class="card">
+                    <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                        <h3 style="margin: 0;">Monthly Revenue Trend</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <canvas id="businessMonthlyTrendChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guest Analytics & Occupancy Analysis -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <!-- Guest Analytics -->
+                <div class="card">
+                    <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <span>👥</span> Guest Analytics
+                        </h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div id="guestAnalytics"></div>
+                    </div>
+                </div>
+
+                <!-- Occupancy Analysis -->
+                <div class="card">
+                    <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <span>📅</span> Occupancy Analysis
+                        </h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div id="occupancyAnalysis"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property Comparison Table -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span>📋</span> Property Comparison
+                    </h3>
+                    <button class="btn btn-secondary btn-sm" onclick="exportBusinessViewToExcel()">
+                        📥 Export to Excel
+                    </button>
+                </div>
+                <div style="padding: 20px; overflow-x: auto;">
+                    <table class="data-table" id="propertyComparisonTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortPropertyComparison('rank')">Rank ↕</th>
+                                <th onclick="sortPropertyComparison('name')">Property ↕</th>
+                                <th onclick="sortPropertyComparison('revenue')">Revenue ↕</th>
+                                <th onclick="sortPropertyComparison('bookings')">Bookings ↕</th>
+                                <th onclick="sortPropertyComparison('occupancy')">Occupancy ↕</th>
+                                <th onclick="sortPropertyComparison('adr')">ADR ↕</th>
+                                <th onclick="sortPropertyComparison('revPAN')">RevPAN ↕</th>
+                                <th onclick="sortPropertyComparison('collection')">Collection % ↕</th>
+                                <th onclick="sortPropertyComparison('score')">Score ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="propertyComparisonTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Monthly Performance Table -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span>📈</span> Monthly Performance Breakdown
+                    </h3>
+                </div>
+                <div style="padding: 20px; overflow-x: auto;">
+                    <div id="businessMonthlyBreakdown"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Business Intelligence View -->
         <div id="businessIntelligenceView" class="container hidden">
             <div style="margin-bottom: 32px;">
@@ -15871,6 +16061,916 @@ function printPropertyView() {
 }
 
         // ========================================
+        // ============================================================================
+        // BUSINESS VIEW FUNCTIONS (Portfolio Analytics)
+        // ============================================================================
+
+        // Global state for Business View
+        let businessViewData = {
+            reservations: [],
+            properties: [],
+            payments: [],
+            filteredData: {},
+            currentSort: { field: 'score', direction: 'desc' }
+        };
+
+        // Global chart instances for cleanup
+        let businessCharts = {
+            propertyRevenue: null,
+            bookingType: null,
+            channelMix: null,
+            monthlyTrend: null
+        };
+
+        // Main loader function for Business View
+        async function loadBusinessView() {
+            try {
+                const dateRange = document.getElementById('businessDateRange').value;
+
+                // Show/hide custom date range inputs
+                const customFrom = document.getElementById('businessCustomDateFrom');
+                const customTo = document.getElementById('businessCustomDateTo');
+                if (dateRange === 'custom') {
+                    customFrom.style.display = 'block';
+                    customTo.style.display = 'block';
+                } else {
+                    customFrom.style.display = 'none';
+                    customTo.style.display = 'none';
+                }
+
+                // Get date filter
+                const dateFilter = getBusinessDateFilter(dateRange);
+
+                // Fetch all data
+                const [allReservations, properties, payments] = await Promise.all([
+                    db.getReservations(),
+                    db.getProperties(),
+                    db.getAllPayments()
+                ]);
+
+                // Store in global state
+                businessViewData.reservations = allReservations;
+                businessViewData.properties = properties;
+                businessViewData.payments = payments;
+
+                // Filter reservations by date
+                let filteredReservations = allReservations;
+                if (dateFilter.start && dateFilter.end) {
+                    filteredReservations = allReservations.filter(r => {
+                        const checkIn = new Date(r.check_in);
+                        return checkIn >= dateFilter.start && checkIn <= dateFilter.end;
+                    });
+                }
+
+                // Calculate nights for each reservation
+                filteredReservations.forEach(r => {
+                    const checkIn = new Date(r.check_in);
+                    const checkOut = new Date(r.check_out);
+                    r.nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+                });
+
+                // Store filtered data
+                businessViewData.filteredData = {
+                    reservations: filteredReservations,
+                    properties: properties,
+                    payments: payments
+                };
+
+                // Render all sections
+                renderBusinessKPIs(filteredReservations, properties, payments, dateFilter);
+                renderTopPropertiesLeaderboard(filteredReservations, properties, payments);
+                renderChannelPerformanceTable(filteredReservations);
+                renderGuestAnalytics(filteredReservations);
+                renderOccupancyAnalysis(filteredReservations, properties);
+                renderPropertyComparisonTable(filteredReservations, properties, payments);
+                renderBusinessMonthlyBreakdown(filteredReservations);
+                renderBusinessCharts(filteredReservations, properties);
+
+            } catch (error) {
+                console.error('Business View load error:', error);
+                showToast('Error', 'Failed to load business analytics', '❌');
+            }
+        }
+
+        // Get date filter based on selection
+        function getBusinessDateFilter(dateRange) {
+            const now = new Date();
+            let start, end;
+
+            switch(dateRange) {
+                case 'this_month':
+                    start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    break;
+                case 'last_month':
+                    start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+                    break;
+                case 'last_3_months':
+                    start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    break;
+                case 'last_6_months':
+                    start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    break;
+                case 'this_year':
+                    start = new Date(now.getFullYear(), 0, 1);
+                    end = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+                    break;
+                case 'custom':
+                    const fromInput = document.getElementById('businessDateFrom').value;
+                    const toInput = document.getElementById('businessDateTo').value;
+                    if (fromInput && toInput) {
+                        start = new Date(fromInput);
+                        end = new Date(toInput);
+                        end.setHours(23, 59, 59);
+                    }
+                    break;
+                case 'all':
+                default:
+                    start = null;
+                    end = null;
+            }
+
+            return { start, end };
+        }
+
+        // Render Global KPI Cards
+        function renderBusinessKPIs(reservations, properties, payments, dateFilter) {
+            const container = document.getElementById('businessKPICards');
+
+            // Filter active reservations
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Calculate metrics
+            const totalRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+            const totalBookings = activeRes.length;
+            const totalNights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+            const activeProperties = properties.length;
+
+            // Portfolio occupancy (total nights / (properties * target nights))
+            const targetNightsPerProperty = 200;
+            const totalTargetNights = activeProperties * targetNightsPerProperty;
+            const portfolioOccupancy = totalTargetNights > 0 ? (totalNights / totalTargetNights) * 100 : 0;
+
+            // Average booking value
+            const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
+
+            // Calculate previous period for MoM (simplified)
+            let prevRevenue = 0, prevBookings = 0, prevOccupancy = 0, prevAvgValue = 0;
+            if (dateFilter.start && dateFilter.end) {
+                const monthDiff = Math.round((dateFilter.end - dateFilter.start) / (1000 * 60 * 60 * 24));
+                const prevStart = new Date(dateFilter.start);
+                prevStart.setDate(prevStart.getDate() - monthDiff);
+                const prevEnd = new Date(dateFilter.start);
+                prevEnd.setSeconds(prevEnd.getSeconds() - 1);
+
+                const prevData = reservations.filter(r => {
+                    const checkIn = new Date(r.check_in);
+                    return checkIn >= prevStart && checkIn <= prevEnd && r.status !== 'cancelled';
+                });
+
+                prevRevenue = prevData.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+                prevBookings = prevData.length;
+                const prevNights = prevData.reduce((sum, r) => sum + (r.nights || 0), 0);
+                prevOccupancy = totalTargetNights > 0 ? (prevNights / totalTargetNights) * 100 : 0;
+                prevAvgValue = prevBookings > 0 ? prevRevenue / prevBookings : 0;
+            }
+
+            // Calculate MoM changes
+            const revenueMoM = calculateMoMChange(totalRevenue, prevRevenue);
+            const bookingsMoM = calculateMoMChange(totalBookings, prevBookings);
+            const occupancyMoM = calculateMoMChange(portfolioOccupancy, prevOccupancy);
+            const avgValueMoM = calculateMoMChange(avgBookingValue, prevAvgValue);
+
+            // Render KPI cards
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${formatCurrency(totalRevenue)}</div>
+                    <div class="stat-label">Total Revenue</div>
+                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(revenueMoM)}</div>` : ''}
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${formatPercentage(portfolioOccupancy)}</div>
+                    <div class="stat-label">Portfolio Occupancy</div>
+                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(occupancyMoM)}</div>` : ''}
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalBookings}</div>
+                    <div class="stat-label">Total Bookings</div>
+                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(bookingsMoM)}</div>` : ''}
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${formatCurrency(avgBookingValue)}</div>
+                    <div class="stat-label">Avg Booking Value</div>
+                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(avgValueMoM)}</div>` : ''}
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${activeProperties}</div>
+                    <div class="stat-label">Active Properties</div>
+                    <div class="stat-trend" style="font-size: 12px; margin-top: 4px; color: var(--text-secondary);">-</div>
+                </div>
+            `;
+        }
+
+        // Render Top Properties Leaderboard
+        function renderTopPropertiesLeaderboard(reservations, properties, payments) {
+            const container = document.getElementById('topPropertiesLeaderboard');
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Calculate metrics for each property
+            const propertyMetrics = properties.map(property => {
+                const propertyRes = activeRes.filter(r => r.property_id == property.id);
+                const revenue = propertyRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+                const bookings = propertyRes.length;
+                const nights = propertyRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+                const occupancy = nights > 0 ? (nights / 200) * 100 : 0; // Target 200 nights/year
+                const adr = nights > 0 ? revenue / nights : 0;
+
+                // Calculate performance score (weighted)
+                const revenueScore = Math.min((revenue / 1000000) * 100, 100) * 0.30;
+                const occupancyScore = Math.min(occupancy, 100) * 0.25;
+                const adrScore = Math.min((adr / 15000) * 100, 100) * 0.20;
+                const bookingsScore = Math.min((bookings / 50) * 100, 100) * 0.15;
+                const collectionScore = 50 * 0.10; // Simplified
+
+                const score = Math.round(revenueScore + occupancyScore + adrScore + bookingsScore + collectionScore);
+
+                return {
+                    property,
+                    revenue,
+                    bookings,
+                    nights,
+                    occupancy,
+                    adr,
+                    score
+                };
+            }).sort((a, b) => b.score - a.score);
+
+            // Render leaderboard
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">Rank</th>
+                            <th>Property</th>
+                            <th>Revenue</th>
+                            <th>Bookings</th>
+                            <th>Occupancy</th>
+                            <th>ADR</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${propertyMetrics.map((m, idx) => {
+                            const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '';
+                            const scoreColor = m.score >= 90 ? 'var(--success)' : m.score >= 70 ? 'var(--primary)' : 'var(--warning)';
+
+                            return `
+                                <tr>
+                                    <td style="text-align: center; font-size: 20px;">${medal || (idx + 1)}</td>
+                                    <td><strong>${m.property.name}</strong></td>
+                                    <td><strong>${formatCurrency(m.revenue)}</strong></td>
+                                    <td>${m.bookings}</td>
+                                    <td>${formatPercentage(m.occupancy)}</td>
+                                    <td>${formatCurrency(m.adr)}</td>
+                                    <td>
+                                        <span style="font-size: 18px; font-weight: bold; color: ${scoreColor};">
+                                            ${m.score}/100
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Render Channel Performance Table
+        function renderChannelPerformanceTable(reservations) {
+            const container = document.getElementById('channelPerformanceTable');
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Group by booking source/channel
+            const channelGroups = {};
+            activeRes.forEach(r => {
+                const channel = r.booking_source || r.booking_type || 'Direct';
+                if (!channelGroups[channel]) {
+                    channelGroups[channel] = {
+                        bookings: 0,
+                        revenue: 0,
+                        commission: 0
+                    };
+                }
+                channelGroups[channel].bookings++;
+                channelGroups[channel].revenue += parseFloat(r.total_amount) || 0;
+                channelGroups[channel].commission += parseFloat(r.ota_service_fee) || 0;
+            });
+
+            const channels = Object.keys(channelGroups);
+            const totalRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+            const totalCommission = activeRes.reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
+
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Booking Channel</th>
+                            <th>Bookings</th>
+                            <th>Revenue</th>
+                            <th>Avg Value</th>
+                            <th>Commission</th>
+                            <th>Net Revenue</th>
+                            <th>% of Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${channels.map(channel => {
+                            const data = channelGroups[channel];
+                            const avgValue = data.bookings > 0 ? data.revenue / data.bookings : 0;
+                            const netRevenue = data.revenue - data.commission;
+                            const percentage = totalRevenue > 0 ? (data.revenue / totalRevenue) * 100 : 0;
+
+                            return `
+                                <tr>
+                                    <td><strong>${channel}</strong></td>
+                                    <td>${data.bookings}</td>
+                                    <td><strong>${formatCurrency(data.revenue)}</strong></td>
+                                    <td>${formatCurrency(avgValue)}</td>
+                                    <td style="color: var(--danger);">${formatCurrency(data.commission)}</td>
+                                    <td style="color: var(--success);"><strong>${formatCurrency(netRevenue)}</strong></td>
+                                    <td>${formatPercentage(percentage)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                        <tr style="font-weight: bold; background: var(--bg-secondary);">
+                            <td>TOTAL</td>
+                            <td>${activeRes.length}</td>
+                            <td>${formatCurrency(totalRevenue)}</td>
+                            <td>-</td>
+                            <td>${formatCurrency(totalCommission)}</td>
+                            <td>${formatCurrency(totalRevenue - totalCommission)}</td>
+                            <td>100%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Continue in next message due to length...
+        // Render Guest Analytics
+        function renderGuestAnalytics(reservations) {
+            const container = document.getElementById('guestAnalytics');
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Calculate guest metrics
+            const uniqueGuests = new Set();
+            const guestBookings = {};
+
+            activeRes.forEach(r => {
+                const guestKey = r.guest_email || r.guest_phone || r.guest_name;
+                if (guestKey) {
+                    uniqueGuests.add(guestKey);
+                    guestBookings[guestKey] = (guestBookings[guestKey] || 0) + 1;
+                }
+            });
+
+            const totalUniqueGuests = uniqueGuests.size;
+            const repeatGuests = Object.values(guestBookings).filter(count => count > 1).length;
+            const repeatRate = totalUniqueGuests > 0 ? (repeatGuests / totalUniqueGuests) * 100 : 0;
+
+            // Average party size (simplified - would need guest_count field)
+            const avgPartySize = 4.2; // Placeholder
+
+            // Guest lifetime value
+            const totalRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+            const guestLTV = totalUniqueGuests > 0 ? totalRevenue / totalUniqueGuests : 0;
+
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">Total Unique Guests:</span>
+                        <strong>${totalUniqueGuests.toLocaleString()}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">New Guests:</span>
+                        <strong>${(totalUniqueGuests - repeatGuests).toLocaleString()} (${(100 - repeatRate).toFixed(1)}%)</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">Returning Guests:</span>
+                        <strong>${repeatGuests.toLocaleString()} (${repeatRate.toFixed(1)}%)</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">Avg Party Size:</span>
+                        <strong>${avgPartySize.toFixed(1)} guests</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">
+                        <span style="color: var(--text-secondary);">Guest Lifetime Value:</span>
+                        <strong>${formatCurrency(guestLTV)}</strong>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render Occupancy Analysis
+        function renderOccupancyAnalysis(reservations, properties) {
+            const container = document.getElementById('occupancyAnalysis');
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+            const totalNights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+            const targetNights = properties.length * 200; // 200 nights/year per property
+            const currentOccupancy = targetNights > 0 ? (totalNights / targetNights) * 100 : 0;
+            const targetOccupancy = 66; // Target based on 200 nights/year
+
+            // Property occupancy breakdown
+            const propertyOccupancy = properties.map(p => {
+                const propRes = activeRes.filter(r => r.property_id == p.id);
+                const nights = propRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+                const occ = (nights / 200) * 100;
+                return { name: p.name, occupancy: occ };
+            }).sort((a, b) => b.occupancy - a.occupancy);
+
+            container.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Portfolio Occupancy</div>
+                    <div style="font-size: 32px; font-weight: bold; margin-bottom: 4px;">${currentOccupancy.toFixed(1)}%</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">
+                        Target: ${targetOccupancy}% ${currentOccupancy >= targetOccupancy ? '✅ On Target' : '⚠️ Below Target'}
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Occupancy by Property:</div>
+                    ${propertyOccupancy.slice(0, 5).map(p => `
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="font-size: 12px;">${p.name}</span>
+                                <span style="font-size: 12px; font-weight: 600;">${p.occupancy.toFixed(0)}%</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden;">
+                                <div style="width: ${Math.min(p.occupancy, 100)}%; height: 100%; background: var(--primary);"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Render Property Comparison Table
+        function renderPropertyComparisonTable(reservations, properties, payments) {
+            const tbody = document.getElementById('propertyComparisonTableBody');
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Calculate metrics for each property
+            const propertyData = properties.map((property, idx) => {
+                const propertyRes = activeRes.filter(r => r.property_id == property.id);
+                const revenue = propertyRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+                const paid = propertyRes.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
+                const bookings = propertyRes.length;
+                const nights = propertyRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+                const occupancy = nights > 0 ? (nights / 200) * 100 : 0;
+                const adr = nights > 0 ? revenue / nights : 0;
+                const revPAN = revenue / 200;
+                const collectionRate = revenue > 0 ? (paid / revenue) * 100 : 0;
+
+                // Calculate score
+                const revenueScore = Math.min((revenue / 1000000) * 100, 100) * 0.30;
+                const occupancyScore = Math.min(occupancy, 100) * 0.25;
+                const adrScore = Math.min((adr / 15000) * 100, 100) * 0.20;
+                const bookingsScore = Math.min((bookings / 50) * 100, 100) * 0.15;
+                const collectionScore = Math.min(collectionRate, 100) * 0.10;
+                const score = Math.round(revenueScore + occupancyScore + adrScore + bookingsScore + collectionScore);
+
+                return {
+                    rank: idx + 1,
+                    name: property.name,
+                    revenue,
+                    bookings,
+                    occupancy,
+                    adr,
+                    revPAN,
+                    collection: collectionRate,
+                    score
+                };
+            });
+
+            // Sort by current sort field
+            const sorted = [...propertyData].sort((a, b) => {
+                const field = businessViewData.currentSort.field;
+                const direction = businessViewData.currentSort.direction === 'asc' ? 1 : -1;
+                return (a[field] - b[field]) * direction;
+            });
+
+            // Update ranks after sorting
+            sorted.forEach((item, idx) => item.rank = idx + 1);
+
+            tbody.innerHTML = sorted.map(p => {
+                const medal = p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : '';
+                const scoreColor = p.score >= 90 ? 'var(--success)' : p.score >= 70 ? 'var(--primary)' : 'var(--warning)';
+
+                return `
+                    <tr>
+                        <td style="text-align: center;">${medal || p.rank}</td>
+                        <td><strong>${p.name}</strong></td>
+                        <td><strong>${formatCurrency(p.revenue)}</strong></td>
+                        <td>${p.bookings}</td>
+                        <td>${formatPercentage(p.occupancy)}</td>
+                        <td>${formatCurrency(p.adr)}</td>
+                        <td>${formatCurrency(p.revPAN)}</td>
+                        <td>${formatPercentage(p.collection)}</td>
+                        <td style="color: ${scoreColor}; font-weight: bold;">${p.score}/100</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Sort property comparison table
+        function sortPropertyComparison(field) {
+            if (businessViewData.currentSort.field === field) {
+                businessViewData.currentSort.direction = businessViewData.currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                businessViewData.currentSort.field = field;
+                businessViewData.currentSort.direction = 'desc';
+            }
+
+            renderPropertyComparisonTable(
+                businessViewData.filteredData.reservations,
+                businessViewData.filteredData.properties,
+                businessViewData.filteredData.payments
+            );
+        }
+
+        // Render Business Monthly Breakdown
+        function renderBusinessMonthlyBreakdown(reservations) {
+            const container = document.getElementById('businessMonthlyBreakdown');
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Group by month
+            const monthlyData = {};
+            activeRes.forEach(r => {
+                const checkIn = new Date(r.check_in);
+                const monthKey = `${checkIn.getFullYear()}-${String(checkIn.getMonth() + 1).padStart(2, '0')}`;
+
+                if (!monthlyData[monthKey]) {
+                    monthlyData[monthKey] = { bookings: 0, revenue: 0, nights: 0 };
+                }
+                monthlyData[monthKey].bookings++;
+                monthlyData[monthKey].revenue += parseFloat(r.total_amount) || 0;
+                monthlyData[monthKey].nights += r.nights || 0;
+            });
+
+            const months = Object.keys(monthlyData).sort().reverse().slice(0, 12);
+
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Bookings</th>
+                            <th>Nights</th>
+                            <th>Revenue</th>
+                            <th>Avg/Booking</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${months.map(month => {
+                            const data = monthlyData[month];
+                            const avgBooking = data.bookings > 0 ? data.revenue / data.bookings : 0;
+
+                            return `
+                                <tr>
+                                    <td><strong>${formatMonthName(month)}</strong></td>
+                                    <td>${data.bookings}</td>
+                                    <td>${data.nights}</td>
+                                    <td><strong>${formatCurrency(data.revenue)}</strong></td>
+                                    <td>${formatCurrency(avgBooking)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Continue in part 3...
+        // Render all Business Charts
+        function renderBusinessCharts(reservations, properties) {
+            renderBusinessPropertyRevenueChart(reservations, properties);
+            renderBusinessBookingTypeChart(reservations);
+            renderBusinessChannelMixChart(reservations);
+            renderBusinessMonthlyTrendChart(reservations);
+        }
+
+        // 1. Revenue by Property Chart (Horizontal Bar)
+        function renderBusinessPropertyRevenueChart(reservations, properties) {
+            const canvas = document.getElementById('businessPropertyRevenueChart');
+            if (!canvas) return;
+
+            // Destroy existing chart
+            if (businessCharts.propertyRevenue) {
+                businessCharts.propertyRevenue.destroy();
+            }
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Calculate revenue per property
+            const propertyRevenue = properties.map(p => {
+                const propRes = activeRes.filter(r => r.property_id == p.id);
+                const revenue = propRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+                return { name: p.name, revenue };
+            }).sort((a, b) => b.revenue - a.revenue).slice(0, 10); // Top 10
+
+            businessCharts.propertyRevenue = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: propertyRevenue.map(p => p.name),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: propertyRevenue.map(p => p.revenue),
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Revenue: ${formatCurrency(context.parsed.x)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => formatCurrency(value)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Revenue by Booking Type Chart (Doughnut)
+        function renderBusinessBookingTypeChart(reservations) {
+            const canvas = document.getElementById('businessBookingTypeChart');
+            if (!canvas) return;
+
+            // Destroy existing chart
+            if (businessCharts.bookingType) {
+                businessCharts.bookingType.destroy();
+            }
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Group by booking type
+            const typeRevenue = {};
+            activeRes.forEach(r => {
+                const type = r.booking_type || 'Unknown';
+                typeRevenue[type] = (typeRevenue[type] || 0) + (parseFloat(r.total_amount) || 0);
+            });
+
+            const types = Object.keys(typeRevenue);
+            const revenues = types.map(t => typeRevenue[t]);
+
+            businessCharts.bookingType = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: types.map(t => BOOKING_TYPES[t]?.label || t),
+                    datasets: [{
+                        data: revenues,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(234, 179, 8, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(168, 85, 247, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed;
+                                    const total = revenues.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Channel Mix Chart (Pie)
+        function renderBusinessChannelMixChart(reservations) {
+            const canvas = document.getElementById('businessChannelMixChart');
+            if (!canvas) return;
+
+            // Destroy existing chart
+            if (businessCharts.channelMix) {
+                businessCharts.channelMix.destroy();
+            }
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Group by channel
+            const channelRevenue = {};
+            activeRes.forEach(r => {
+                const channel = r.booking_source || r.booking_type || 'Direct';
+                channelRevenue[channel] = (channelRevenue[channel] || 0) + (parseFloat(r.total_amount) || 0);
+            });
+
+            const channels = Object.keys(channelRevenue);
+            const revenues = channels.map(c => channelRevenue[c]);
+
+            businessCharts.channelMix = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: channels,
+                    datasets: [{
+                        data: revenues,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(234, 179, 8, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(236, 72, 153, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed;
+                                    const total = revenues.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 4. Monthly Revenue Trend Chart (Line)
+        function renderBusinessMonthlyTrendChart(reservations) {
+            const canvas = document.getElementById('businessMonthlyTrendChart');
+            if (!canvas) return;
+
+            // Destroy existing chart
+            if (businessCharts.monthlyTrend) {
+                businessCharts.monthlyTrend.destroy();
+            }
+
+            const activeRes = reservations.filter(r => r.status !== 'cancelled');
+
+            // Group by month
+            const monthlyData = {};
+            activeRes.forEach(r => {
+                const checkIn = new Date(r.check_in);
+                const monthKey = `${checkIn.getFullYear()}-${String(checkIn.getMonth() + 1).padStart(2, '0')}`;
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + (parseFloat(r.total_amount) || 0);
+            });
+
+            const months = Object.keys(monthlyData).sort().slice(-12); // Last 12 months
+            const revenues = months.map(m => monthlyData[m]);
+
+            businessCharts.monthlyTrend = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: months.map(m => formatMonthName(m)),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: revenues,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Revenue: ${formatCurrency(context.parsed.y)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => formatCurrency(value)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Export Business View to Excel
+        function exportBusinessViewToExcel() {
+            try {
+                const data = businessViewData.filteredData;
+                if (!data.reservations || data.reservations.length === 0) {
+                    showToast('Export Error', 'No data available to export', '❌');
+                    return;
+                }
+
+                const activeRes = data.reservations.filter(r => r.status !== 'cancelled');
+
+                // Prepare CSV content
+                let csv = '';
+
+                // Header
+                csv += `Business Analytics Report\n`;
+                csv += `Generated: ${new Date().toLocaleString('en-IN')}\n`;
+                csv += `Total Properties: ${data.properties.length}\n`;
+                csv += `Total Bookings: ${activeRes.length}\n`;
+                csv += `\n`;
+
+                // Property Performance
+                csv += `PROPERTY PERFORMANCE\n`;
+                csv += `Property,Revenue,Bookings,Nights,Occupancy %,ADR,Score\n`;
+
+                const propertyMetrics = data.properties.map(property => {
+                    const propertyRes = activeRes.filter(r => r.property_id == property.id);
+                    const revenue = propertyRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+                    const bookings = propertyRes.length;
+                    const nights = propertyRes.reduce((sum, r) => sum + (r.nights || 0), 0);
+                    const occupancy = nights > 0 ? (nights / 200) * 100 : 0;
+                    const adr = nights > 0 ? revenue / nights : 0;
+                    const score = Math.round((revenue / 1000000) * 30 + occupancy * 0.25 + (adr / 15000) * 20);
+
+                    return { property, revenue, bookings, nights, occupancy, adr, score };
+                }).sort((a, b) => b.score - a.score);
+
+                propertyMetrics.forEach(m => {
+                    csv += `"${m.property.name}",`;
+                    csv += `₹${m.revenue.toLocaleString('en-IN')},`;
+                    csv += `${m.bookings},`;
+                    csv += `${m.nights},`;
+                    csv += `${m.occupancy.toFixed(1)}%,`;
+                    csv += `₹${m.adr.toLocaleString('en-IN')},`;
+                    csv += `${m.score}/100\n`;
+                });
+
+                // Download CSV
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+
+                const fileName = `Business_Analytics_Report_${new Date().toISOString().split('T')[0]}.csv`;
+
+                link.setAttribute('href', url);
+                link.setAttribute('download', fileName);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showToast('Export Successful', `Downloaded ${fileName}`, '📥');
+
+            } catch (error) {
+                console.error('Export error:', error);
+                showToast('Export Error', 'Failed to export data', '❌');
+            }
+        }
+
         // BUSINESS INTELLIGENCE FUNCTIONS
         // ========================================
 
