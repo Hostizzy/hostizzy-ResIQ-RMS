@@ -8027,6 +8027,12 @@
             return showSymbol ? `₹${formatted}` : formatted;
         }
 
+        // Format percentage (e.g., 85.5 → "85.5%")
+        function formatPercentage(value) {
+            const num = parseFloat(value) || 0;
+            return `${num.toFixed(1)}%`;
+        }
+
         // Booking Source Badge Helper
         function getBookingSourceBadge(source) {
             if (!source) return '<span style="color: var(--text-secondary); font-size: 12px;">N/A</span>';
