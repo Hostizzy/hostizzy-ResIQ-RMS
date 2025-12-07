@@ -14471,6 +14471,18 @@
         // Main loader function for Property View
         async function loadPropertyView() {
             try {
+                // First, populate property dropdown if empty
+                const propertySelect = document.getElementById('propertySelectFilter');
+                if (propertySelect.options.length <= 1) {
+                    const properties = await db.getProperties();
+                    const currentValue = propertySelect.value;
+
+                    propertySelect.innerHTML = '<option value="">-- Select a Property --</option>' +
+                        properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+                    if (currentValue) propertySelect.value = currentValue;
+                }
+
                 const propertyId = document.getElementById('propertySelectFilter').value;
                 const dateRange = document.getElementById('propertyDateRange').value;
 
