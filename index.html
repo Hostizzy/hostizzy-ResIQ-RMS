@@ -15114,14 +15114,6 @@ function renderPropertyPerformanceMetrics(reservations) {
 // PROPERTY VIEW FUNCTIONS - PART 6: Chart Rendering
 // ============================================================================
 
-// Global chart instances for cleanup
-let propertyCharts = {
-    revenue: null,
-    sources: null,
-    paymentStatus: null,
-    bookingTypes: null
-};
-
 // Render all Property Charts
 function renderPropertyCharts(reservations, payments) {
     renderRevenueChart(reservations);
