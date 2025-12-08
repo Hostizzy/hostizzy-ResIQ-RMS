@@ -773,6 +773,76 @@
             transform: scale(0.95);
         }
 
+        /* Contextual Help Tooltip System */
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: help;
+            margin-left: 6px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .help-icon:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .help-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface-elevated);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 280px;
+            min-width: 200px;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            border: 1px solid var(--border);
+        }
+
+        .help-icon:hover .help-tooltip {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .help-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--surface-elevated);
+        }
+
+        .help-tooltip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--primary);
+        }
+
+        .help-tooltip-text {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
         .user-menu-dropdown {
             display: none;
             position: absolute;
