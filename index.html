@@ -6102,14 +6102,6 @@
                     </div>
                     <div style="min-width: 180px;">
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            🏠 Property
-                        </label>
-                        <select id="biPropertyFilter" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
-                            <option value="all">All Properties</option>
-                        </select>
-                    </div>
-                    <div style="min-width: 180px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
                             💳 Payment Method
                         </label>
                         <select id="biPaymentMethodFilter" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
@@ -17028,10 +17020,7 @@ function printPropertyView() {
                 const payments = await db.getAllPayments();
                 const properties = await db.getProperties();
 
-                // Populate property filter dropdown
-                populatePropertyFilter(properties);
-
-                // Filter by date range, property, and payment method
+                // Filter by date range and payment method
                 const filteredData = filterData(reservations, payments);
 
                 // Store filtered data globally for sorting
@@ -17061,29 +17050,12 @@ function printPropertyView() {
             }
         }
 
-        function populatePropertyFilter(properties) {
-            const select = document.getElementById('biPropertyFilter');
-            const currentValue = select.value;
-
-            // Keep "All Properties" option and add properties
-            const options = '<option value="all">All Properties</option>' +
-                properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-
-            select.innerHTML = options;
-
-            // Restore previous selection if it still exists
-            if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
-                select.value = currentValue;
-            }
-        }
-
         function showLoadingState() {
             document.getElementById('biKPICards').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Loading...</div>';
         }
 
         function filterData(reservations, payments) {
             const dateRange = document.getElementById('biDateRange').value;
-            const propertyFilter = document.getElementById('biPropertyFilter').value;
             const paymentMethodFilter = document.getElementById('biPaymentMethodFilter').value;
 
             let filteredReservations = [...reservations];
@@ -17133,15 +17105,6 @@ function printPropertyView() {
                     const paymentDate = new Date(p.payment_date);
                     return paymentDate >= startDate && paymentDate <= endDate;
                 });
-            }
-
-            // Property filtering
-            if (propertyFilter && propertyFilter !== 'all') {
-                filteredReservations = filteredReservations.filter(r => r.property_id === propertyFilter);
-
-                // Filter payments based on reservations' property
-                const filteredBookingIds = new Set(filteredReservations.map(r => r.booking_id));
-                filteredPayments = filteredPayments.filter(p => filteredBookingIds.has(p.booking_id));
             }
 
             // Payment method filtering
