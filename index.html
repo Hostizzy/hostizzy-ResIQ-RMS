@@ -6694,10 +6694,10 @@
             <!-- Communication Tabs -->
             <div class="card" style="margin-bottom: 20px;">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="filter-chip active" onclick="filterCommunications('all')">All Messages</button>
-                    <button class="filter-chip" onclick="filterCommunications('whatsapp')">💬 WhatsApp</button>
-                    <button class="filter-chip" onclick="filterCommunications('email')">📧 Email</button>
-                    <button class="filter-chip" onclick="filterCommunications('sms')">📱 SMS</button>
+                    <button class="filter-chip active" onclick="filterCommunications('all', this)">All Messages</button>
+                    <button class="filter-chip" onclick="filterCommunications('whatsapp', this)">💬 WhatsApp</button>
+                    <button class="filter-chip" onclick="filterCommunications('email', this)">📧 Email</button>
+                    <button class="filter-chip" onclick="filterCommunications('sms', this)">📱 SMS</button>
                 </div>
             </div>
 
@@ -9345,7 +9345,7 @@
                     <div style="padding: 20px;">
                         <div class="form-group">
                             <label>Channel *</label>
-                            <select id="composeChannel" class="form-control">
+                            <select id="composeChannel">
                                 <option value="whatsapp">💬 WhatsApp</option>
                                 <option value="email">📧 Email</option>
                                 <option value="sms">📱 SMS</option>
@@ -9353,17 +9353,17 @@
                         </div>
                         <div class="form-group">
                             <label>Recipient *</label>
-                            <select id="composeRecipient" class="form-control">
+                            <select id="composeRecipient">
                                 <option value="">Select Guest...</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Subject/Title</label>
-                            <input type="text" id="composeSubject" class="form-control" placeholder="e.g., Booking Confirmation">
+                            <input type="text" id="composeSubject" placeholder="e.g., Booking Confirmation">
                         </div>
                         <div class="form-group">
                             <label>Message *</label>
-                            <textarea id="composeMessage" class="form-control" rows="6" placeholder="Type your message here..."></textarea>
+                            <textarea id="composeMessage" rows="6" placeholder="Type your message here..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -9374,6 +9374,13 @@
             `;
             document.body.appendChild(modal);
 
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+
             // Load guests into recipient dropdown
             loadGuestsForCompose();
         }
@@ -9383,6 +9390,9 @@
             if (!select) return;
 
             try {
+                select.innerHTML = '<option value="">Loading guests...</option>';
+                select.disabled = true;
+
                 const reservations = await db.getReservations();
                 const uniqueGuests = {};
 
@@ -9392,51 +9402,87 @@
                     }
                 });
 
-                select.innerHTML = '<option value="">Select Guest...</option>' +
-                    Object.entries(uniqueGuests).map(([phone, name]) =>
-                        `<option value="${phone}">${name} (${phone})</option>`
-                    ).join('');
+                const guestEntries = Object.entries(uniqueGuests);
+
+                if (guestEntries.length === 0) {
+                    select.innerHTML = '<option value="">No guests found</option>';
+                } else {
+                    select.innerHTML = '<option value="">Select Guest...</option>' +
+                        guestEntries.map(([phone, name]) =>
+                            `<option value="${phone}">${name} (${phone})</option>`
+                        ).join('');
+                }
+
+                select.disabled = false;
             } catch (error) {
                 console.error('Error loading guests:', error);
+                select.innerHTML = '<option value="">Error loading guests</option>';
+                select.disabled = false;
+                showToast('Error', 'Failed to load guests. Please try again.', '❌');
             }
         }
 
         function sendComposedMessage() {
-            const channel = document.getElementById('composeChannel').value;
-            const recipient = document.getElementById('composeRecipient');
-            const recipientValue = recipient.value;
-            const recipientText = recipient.options[recipient.selectedIndex].text;
-            const subject = document.getElementById('composeSubject').value;
-            const message = document.getElementById('composeMessage').value;
+            try {
+                const channel = document.getElementById('composeChannel');
+                const recipient = document.getElementById('composeRecipient');
+                const subject = document.getElementById('composeSubject');
+                const messageInput = document.getElementById('composeMessage');
 
-            if (!recipientValue || !message) {
-                showToast('Missing Fields', 'Please select a recipient and enter a message', '⚠️');
-                return;
+                if (!channel || !recipient || !subject || !messageInput) {
+                    showToast('Error', 'Form elements not found. Please try again.', '❌');
+                    return;
+                }
+
+                const recipientValue = recipient.value;
+                const message = messageInput.value.trim();
+
+                if (!recipientValue || recipientValue === '') {
+                    showToast('Missing Recipient', 'Please select a recipient', '⚠️');
+                    return;
+                }
+
+                if (!message) {
+                    showToast('Missing Message', 'Please enter a message', '⚠️');
+                    return;
+                }
+
+                const recipientText = recipient.options[recipient.selectedIndex].text;
+
+                const newMessage = {
+                    id: Date.now(),
+                    channel: channel.value,
+                    recipient: recipientText,
+                    subject: subject.value || 'Message',
+                    message,
+                    timestamp: new Date().toISOString(),
+                    status: 'sent'
+                };
+
+                communicationMessages.unshift(newMessage);
+                localStorage.setItem('communicationMessages', JSON.stringify(communicationMessages));
+                renderCommunicationMessages();
+
+                // Close modal
+                const modal = document.querySelector('.modal');
+                if (modal) {
+                    modal.remove();
+                }
+
+                showToast('Message Sent', `Message sent to ${recipientText.split('(')[0].trim()}`, '✅');
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showToast('Error', 'Failed to send message. Please try again.', '❌');
             }
-
-            const newMessage = {
-                id: Date.now(),
-                channel,
-                recipient: recipientText,
-                subject: subject || 'Message',
-                message,
-                timestamp: new Date().toISOString(),
-                status: 'sent'
-            };
-
-            communicationMessages.unshift(newMessage);
-            localStorage.setItem('communicationMessages', JSON.stringify(communicationMessages));
-            renderCommunicationMessages();
-
-            document.querySelector('.modal').remove();
-            showToast('Message Sent', `Message sent to ${recipientText}`, '✅');
         }
 
-        function filterCommunications(type) {
+        function filterCommunications(type, element) {
             document.querySelectorAll('.filter-chip').forEach(chip => {
                 chip.classList.remove('active');
             });
-            event.target.classList.add('active');
+            if (element) {
+                element.classList.add('active');
+            }
 
             currentCommunicationFilter = type;
             renderCommunicationMessages();
