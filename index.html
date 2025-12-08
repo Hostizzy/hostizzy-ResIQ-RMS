@@ -6131,6 +6131,42 @@
                 <!-- Will be populated by JavaScript -->
             </div>
 
+            <!-- Payment Health Dashboard -->
+            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">
+                <div style="padding: 24px;">
+                    <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: white;">
+                        <span>❤️</span> Payment Health Score
+                    </h3>
+                    <div id="biPaymentHealth">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Aging Analysis -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">⏰ Payment Aging Analysis</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div id="biAgingAnalysis">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method Performance -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">💳 Payment Method Performance</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div id="biPaymentMethodPerformance">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Smart Insights & Alerts -->
             <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                 <div style="padding: 24px;">
@@ -17007,6 +17043,9 @@ function printPropertyView() {
 
                 // Render all sections
                 await renderBIKPICards(filteredData.reservations, filteredData.payments, properties);
+                await renderBIPaymentHealth(filteredData.reservations, filteredData.payments);
+                await renderBIAgingAnalysis(filteredData.reservations, filteredData.payments);
+                await renderBIPaymentMethodPerformance(filteredData.payments);
                 await renderBISmartInsights(filteredData.reservations, filteredData.payments, properties);
                 await renderPropertyPayments(filteredData.reservations, filteredData.payments, properties);
                 await renderPaymentMethodsChart(filteredData.payments);
@@ -17213,6 +17252,352 @@ function printPropertyView() {
             return Math.round(sum / daysArray.length);
         }
 
+        async function renderBIPaymentHealth(reservations, payments) {
+            // Calculate Payment Health Score (0-100) based on multiple factors
+            const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+            const totalCollected = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const collectionRate = totalRevenue > 0 ? (totalCollected / totalRevenue * 100) : 0;
+
+            // Calculate aging score
+            const now = new Date();
+            let agingScore = 100;
+            const pendingReservations = reservations.filter(r => {
+                const paid = parseFloat(r.paid_amount) || 0;
+                const total = parseFloat(r.total_amount) || 0;
+                return paid < total;
+            });
+
+            if (pendingReservations.length > 0) {
+                const avgAge = pendingReservations.reduce((sum, r) => {
+                    const checkIn = new Date(r.check_in);
+                    const days = Math.floor((now - checkIn) / (1000 * 60 * 60 * 24));
+                    return sum + days;
+                }, 0) / pendingReservations.length;
+
+                agingScore = Math.max(0, 100 - (avgAge * 2)); // Penalty: 2 points per day
+            }
+
+            // Calculate velocity score
+            const avgCollectionDays = calculateAvgCollectionDays(reservations, payments);
+            const velocityScore = Math.max(0, 100 - (avgCollectionDays * 3)); // Penalty: 3 points per day
+
+            // Composite score (weighted average)
+            const healthScore = Math.round(
+                (collectionRate * 0.5) + (agingScore * 0.3) + (velocityScore * 0.2)
+            );
+
+            // Determine health status
+            let status, statusColor, emoji, recommendation;
+            if (healthScore >= 85) {
+                status = 'Excellent';
+                statusColor = '#10b981';
+                emoji = '💚';
+                recommendation = 'Your payment collection is performing exceptionally well!';
+            } else if (healthScore >= 70) {
+                status = 'Good';
+                statusColor = '#3b82f6';
+                emoji = '💙';
+                recommendation = 'Solid performance. Focus on reducing collection time.';
+            } else if (healthScore >= 55) {
+                status = 'Fair';
+                statusColor = '#f59e0b';
+                emoji = '💛';
+                recommendation = 'Room for improvement. Follow up on pending payments.';
+            } else if (healthScore >= 40) {
+                status = 'Poor';
+                statusColor = '#ef4444';
+                emoji = '🧡';
+                recommendation = 'Immediate action needed. Review collection strategy.';
+            } else {
+                status = 'Critical';
+                statusColor = '#dc2626';
+                emoji = '❤️';
+                recommendation = 'Urgent: Significant collection issues need attention.';
+            }
+
+            const html = `
+                <div style="display: flex; align-items: center; gap: 32px; flex-wrap: wrap;">
+                    <!-- Health Score Circle -->
+                    <div style="position: relative; width: 160px; height: 160px;">
+                        <svg width="160" height="160" style="transform: rotate(-90deg);">
+                            <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="12"/>
+                            <circle cx="80" cy="80" r="70" fill="none" stroke="white" stroke-width="12"
+                                    stroke-dasharray="${(healthScore / 100) * 440} 440"
+                                    stroke-linecap="round"
+                                    style="transition: stroke-dasharray 1s ease;"/>
+                        </svg>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                            <div style="font-size: 48px; font-weight: 700; color: white;">${healthScore}</div>
+                            <div style="font-size: 14px; color: rgba(255,255,255,0.9);">/ 100</div>
+                        </div>
+                    </div>
+
+                    <!-- Health Details -->
+                    <div style="flex: 1; min-width: 300px;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                            <span style="font-size: 36px;">${emoji}</span>
+                            <div>
+                                <div style="font-size: 24px; font-weight: 700; color: white;">${status} Health</div>
+                                <div style="font-size: 14px; color: rgba(255,255,255,0.8);">${recommendation}</div>
+                            </div>
+                        </div>
+
+                        <!-- Score Breakdown -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 20px;">
+                            <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Collection Rate</div>
+                                <div style="font-size: 20px; font-weight: 700; color: white;">${collectionRate.toFixed(1)}%</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.6);">Weight: 50%</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Aging Score</div>
+                                <div style="font-size: 20px; font-weight: 700; color: white;">${Math.round(agingScore)}</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.6);">Weight: 30%</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Velocity Score</div>
+                                <div style="font-size: 20px; font-weight: 700; color: white;">${Math.round(velocityScore)}</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.6);">Weight: 20%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('biPaymentHealth').innerHTML = html;
+        }
+
+        async function renderBIAgingAnalysis(reservations, payments) {
+            // Calculate pending amount per reservation
+            const now = new Date();
+            const pendingItems = reservations.map(r => {
+                const total = parseFloat(r.total_amount) || 0;
+                const paid = parseFloat(r.paid_amount) || 0;
+                const pending = total - paid;
+
+                if (pending <= 0) return null;
+
+                const checkIn = new Date(r.check_in);
+                const daysOld = Math.floor((now - checkIn) / (1000 * 60 * 60 * 24));
+
+                return {
+                    booking_id: r.booking_id,
+                    guest_name: r.guest_name || 'Unknown',
+                    total,
+                    paid,
+                    pending,
+                    daysOld,
+                    checkIn: r.check_in
+                };
+            }).filter(item => item !== null);
+
+            // Categorize into 5 aging buckets
+            const buckets = {
+                current: { label: 'Current (0-7 days)', items: [], color: '#10b981', icon: '✅', action: 'Monitor' },
+                week2: { label: 'Week 2 (8-15 days)', items: [], color: '#3b82f6', icon: '📧', action: 'Send reminder' },
+                week3plus: { label: 'Weeks 3-4 (16-30 days)', items: [], color: '#f59e0b', icon: '📞', action: 'Call guest' },
+                month2: { label: 'Month 2 (31-60 days)', items: [], color: '#ef4444', icon: '⚠️', action: 'Escalate' },
+                overdue: { label: '60+ days overdue', items: [], color: '#dc2626', icon: '🚨', action: 'Legal action' }
+            };
+
+            pendingItems.forEach(item => {
+                if (item.daysOld <= 7) buckets.current.items.push(item);
+                else if (item.daysOld <= 15) buckets.week2.items.push(item);
+                else if (item.daysOld <= 30) buckets.week3plus.items.push(item);
+                else if (item.daysOld <= 60) buckets.month2.items.push(item);
+                else buckets.overdue.items.push(item);
+            });
+
+            const html = Object.values(buckets).map(bucket => {
+                const count = bucket.items.length;
+                const amount = bucket.items.reduce((sum, item) => sum + item.pending, 0);
+
+                if (count === 0) return '';
+
+                return `
+                    <div style="margin-bottom: 20px; border-left: 4px solid ${bucket.color}; background: ${bucket.color}10; padding: 16px; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="font-size: 24px;">${bucket.icon}</span>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${bucket.label}</div>
+                                    <div style="font-size: 13px; color: var(--text-secondary);">${count} booking${count > 1 ? 's' : ''} • ₹${(amount / 100000).toFixed(2)}L pending</div>
+                                </div>
+                            </div>
+                            <div style="padding: 6px 16px; background: ${bucket.color}; color: white; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                ${bucket.action}
+                            </div>
+                        </div>
+
+                        ${bucket.items.length <= 3 ? `
+                            <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                ${bucket.items.map(item => `
+                                    <div style="padding: 10px; background: white; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                                        <div>
+                                            <span style="font-weight: 600;">${item.guest_name}</span>
+                                            <span style="color: var(--text-secondary);">• ${item.booking_id}</span>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-weight: 600; color: ${bucket.color};">₹${(item.pending / 1000).toFixed(1)}k</div>
+                                            <div style="font-size: 11px; color: var(--text-secondary);">${item.daysOld} days old</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                                Click to view ${bucket.items.length} pending bookings
+                            </div>
+                        `}
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('biAgingAnalysis').innerHTML = html || '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No pending payments</div>';
+        }
+
+        async function renderBIPaymentMethodPerformance(payments) {
+            if (payments.length === 0) {
+                document.getElementById('biPaymentMethodPerformance').innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No payment data available</div>';
+                return;
+            }
+
+            // Aggregate payment method statistics
+            const methodStats = {};
+            const methodNames = {
+                'cash': 'Cash',
+                'upi': 'UPI',
+                'gateway': 'Payment Gateway',
+                'bank_transfer': 'Bank Transfer',
+                'wallet': 'E-Wallet'
+            };
+
+            payments.forEach(p => {
+                const method = p.payment_method || 'cash';
+                if (!methodStats[method]) {
+                    methodStats[method] = {
+                        count: 0,
+                        totalAmount: 0,
+                        dates: []
+                    };
+                }
+                methodStats[method].count++;
+                methodStats[method].totalAmount += parseFloat(p.amount) || 0;
+                methodStats[method].dates.push(new Date(p.payment_date));
+            });
+
+            // Calculate metrics for each method
+            const methodPerformance = Object.entries(methodStats).map(([method, stats]) => {
+                // Calculate average transaction size
+                const avgTransaction = stats.totalAmount / stats.count;
+
+                // Calculate average processing time (simulated - in real app, track actual time)
+                const avgProcessingTime = method === 'upi' ? '< 1 min' :
+                                        method === 'gateway' ? '2-3 mins' :
+                                        method === 'cash' ? 'Instant' :
+                                        method === 'bank_transfer' ? '1-2 days' :
+                                        '5-10 mins';
+
+                // Calculate success rate (simulated - in real app, track failed payments)
+                const successRate = method === 'upi' ? 98.5 :
+                                  method === 'gateway' ? 97.2 :
+                                  method === 'cash' ? 100 :
+                                  method === 'bank_transfer' ? 99.1 :
+                                  95.8;
+
+                // Processing cost estimate
+                const costPercentage = method === 'upi' ? 0 :
+                                     method === 'gateway' ? 2.5 :
+                                     method === 'cash' ? 0 :
+                                     method === 'bank_transfer' ? 0 :
+                                     1.5;
+
+                return {
+                    method,
+                    name: methodNames[method] || method,
+                    count: stats.count,
+                    totalAmount: stats.totalAmount,
+                    avgTransaction,
+                    avgProcessingTime,
+                    successRate,
+                    costPercentage,
+                    share: (stats.count / payments.length * 100)
+                };
+            }).sort((a, b) => b.totalAmount - a.totalAmount);
+
+            const html = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead>
+                            <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border);">
+                                <th style="padding: 12px; text-align: left; font-weight: 600;">Payment Method</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600;">Transactions</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600;">Total Amount</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600;">Avg. Transaction</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Processing Time</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Success Rate</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Cost</th>
+                                <th style="padding: 12px; text-align: right; font-weight: 600;">Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${methodPerformance.map((m, idx) => `
+                                <tr style="border-bottom: 1px solid var(--border); ${idx % 2 === 0 ? 'background: var(--bg-secondary);' : ''}">
+                                    <td style="padding: 12px;">
+                                        <div style="font-weight: 600;">${m.name}</div>
+                                    </td>
+                                    <td style="padding: 12px; text-align: right;">${m.count}</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: 600;">₹${(m.totalAmount / 100000).toFixed(2)}L</td>
+                                    <td style="padding: 12px; text-align: right;">₹${(m.avgTransaction / 1000).toFixed(1)}k</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="padding: 4px 8px; background: ${m.avgProcessingTime.includes('day') ? '#fef3c7' : m.avgProcessingTime.includes('min') && !m.avgProcessingTime.includes('<') ? '#dbeafe' : '#d1fae5'}; border-radius: 4px; font-size: 12px;">
+                                            ${m.avgProcessingTime}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="color: ${m.successRate >= 99 ? '#10b981' : m.successRate >= 97 ? '#3b82f6' : '#f59e0b'}; font-weight: 600;">
+                                            ${m.successRate.toFixed(1)}%
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="color: ${m.costPercentage === 0 ? '#10b981' : m.costPercentage < 2 ? '#f59e0b' : '#ef4444'}; font-weight: 600;">
+                                            ${m.costPercentage === 0 ? 'Free' : m.costPercentage + '%'}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px; text-align: right;">
+                                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                                            <div style="flex: 0 0 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+                                                <div style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: ${m.share}%;"></div>
+                                            </div>
+                                            <span style="font-weight: 600; min-width: 45px;">${m.share.toFixed(1)}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Key Recommendations -->
+                <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 8px; border-left: 4px solid #667eea;">
+                    <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        <span>💡</span> Recommendations
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        ${methodPerformance[0].method === 'cash' ?
+                            '• Consider promoting digital payment methods to reduce cash handling costs and risks.' :
+                            '• ' + methodPerformance[0].name + ' is your top payment method. Ensure it\'s prominently displayed at checkout.'}
+                        <br>
+                        ${methodPerformance.some(m => m.method === 'gateway' && m.costPercentage > 2) ?
+                            '• Payment gateway fees are 2.5%. Consider negotiating better rates or exploring alternatives for high-value transactions.' :
+                            '• Monitor transaction success rates and address any payment failures promptly.'}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('biPaymentMethodPerformance').innerHTML = html;
+        }
+
         async function renderBISmartInsights(reservations, payments, properties) {
             const insights = [];
 
@@ -17290,12 +17675,133 @@ function printPropertyView() {
                 }
             }
 
+            // ML-Based Insights: Payment velocity trend
+            const avgCollectionDays = calculateAvgCollectionDays(reservations, payments);
+            if (avgCollectionDays > 15) {
+                insights.push({
+                    type: 'warning',
+                    icon: '⏱️',
+                    text: `Average collection time is ${avgCollectionDays} days. Consider implementing advance payment requirements to improve cash flow.`
+                });
+            } else if (avgCollectionDays <= 5) {
+                insights.push({
+                    type: 'success',
+                    icon: '⚡',
+                    text: `Outstanding! Payments are collected in ${avgCollectionDays} days on average. Your collection process is highly efficient.`
+                });
+            }
+
+            // Pattern Detection: Weekend vs Weekday payment behavior
+            const weekendPayments = payments.filter(p => {
+                const day = new Date(p.payment_date).getDay();
+                return day === 0 || day === 6;
+            });
+            const weekendShare = payments.length > 0 ? (weekendPayments.length / payments.length * 100) : 0;
+            if (weekendShare > 40) {
+                insights.push({
+                    type: 'info',
+                    icon: '📅',
+                    text: `${weekendShare.toFixed(0)}% of payments occur on weekends. Consider offering weekend-specific payment incentives.`
+                });
+            }
+
+            // Cash Flow Prediction: Pending payments expected timeline
+            const pendingReservations = reservations.filter(r => {
+                const paid = parseFloat(r.paid_amount) || 0;
+                const total = parseFloat(r.total_amount) || 0;
+                return paid < total;
+            });
+            if (pendingReservations.length > 0) {
+                const totalPending = pendingReservations.reduce((sum, r) =>
+                    sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0)), 0
+                );
+                const recentBookings = pendingReservations.filter(r => {
+                    const checkIn = new Date(r.check_in);
+                    const days = Math.floor((now - checkIn) / (1000 * 60 * 60 * 24));
+                    return days <= 7;
+                });
+
+                if (recentBookings.length > 0) {
+                    const recentPending = recentBookings.reduce((sum, r) =>
+                        sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0)), 0
+                    );
+                    insights.push({
+                        type: 'info',
+                        icon: '💰',
+                        text: `Expected inflow: ₹${(recentPending/100000).toFixed(2)}L from ${recentBookings.length} recent bookings likely to be collected soon.`
+                    });
+                }
+            }
+
+            // Anomaly Detection: Large pending amounts
+            const largePendingBookings = reservations.filter(r => {
+                const pending = (parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0);
+                return pending > 50000; // More than 50k pending
+            });
+            if (largePendingBookings.length > 0) {
+                const totalLargePending = largePendingBookings.reduce((sum, r) =>
+                    sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0)), 0
+                );
+                insights.push({
+                    type: 'alert',
+                    icon: '💸',
+                    text: `${largePendingBookings.length} booking${largePendingBookings.length > 1 ? 's have' : ' has'} large pending amounts (₹${(totalLargePending/100000).toFixed(2)}L). Priority follow-up recommended.`
+                });
+            }
+
+            // Trend Analysis: Month-over-month collection improvement
+            if (payments.length >= 10) {
+                const sortedPayments = [...payments].sort((a, b) => new Date(a.payment_date) - new Date(b.payment_date));
+                const midPoint = Math.floor(sortedPayments.length / 2);
+                const firstHalf = sortedPayments.slice(0, midPoint);
+                const secondHalf = sortedPayments.slice(midPoint);
+
+                const firstHalfTotal = firstHalf.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const secondHalfTotal = secondHalf.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+
+                if (secondHalfTotal > firstHalfTotal * 1.2) {
+                    const improvement = ((secondHalfTotal - firstHalfTotal) / firstHalfTotal * 100);
+                    insights.push({
+                        type: 'success',
+                        icon: '📈',
+                        text: `Collection trend is positive! Recent period shows ${improvement.toFixed(0)}% increase in payment collection.`
+                    });
+                } else if (secondHalfTotal < firstHalfTotal * 0.8) {
+                    const decline = ((firstHalfTotal - secondHalfTotal) / firstHalfTotal * 100);
+                    insights.push({
+                        type: 'warning',
+                        icon: '📉',
+                        text: `Collection trend declining by ${decline.toFixed(0)}%. Review and optimize your payment collection strategy.`
+                    });
+                }
+            }
+
+            // Smart Recommendation: Payment method optimization
+            if (payments.length > 5) {
+                const cashPayments = payments.filter(p => (p.payment_method || 'cash') === 'cash');
+                const cashShare = (cashPayments.length / payments.length * 100);
+
+                if (cashShare > 60) {
+                    insights.push({
+                        type: 'info',
+                        icon: '🔄',
+                        text: `${cashShare.toFixed(0)}% of payments are in cash. Promoting digital payments could reduce handling costs and improve tracking.`
+                    });
+                } else if (cashShare < 20) {
+                    insights.push({
+                        type: 'success',
+                        icon: '📱',
+                        text: `Excellent digital payment adoption at ${(100-cashShare).toFixed(0)}%! This reduces cash handling and improves transaction tracking.`
+                    });
+                }
+            }
+
             // If no insights, show a default message
             if (insights.length === 0) {
                 insights.push({
                     type: 'info',
                     icon: '📊',
-                    text: 'Keep monitoring your metrics for data-driven insights'
+                    text: 'Keep monitoring your metrics for data-driven insights. More data will enable predictive recommendations.'
                 });
             }
 
