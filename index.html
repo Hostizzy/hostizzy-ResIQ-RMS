@@ -8129,6 +8129,47 @@
         // Start automation engine on page load
         startSmartAutomation();
 
+        // Lazy Loading System
+        const loadedViews = new Set();
+        const viewLoadingState = {};
+
+        function markViewAsLoaded(viewName) {
+            loadedViews.add(viewName);
+            viewLoadingState[viewName] = false;
+        }
+
+        function isViewLoaded(viewName) {
+            return loadedViews.has(viewName);
+        }
+
+        function showViewLoadingSpinner(viewName) {
+            const viewEl = document.getElementById(`${viewName}View`);
+            if (!viewEl) return;
+
+            // Check if loading spinner already exists
+            if (!viewEl.querySelector('.view-loading-spinner')) {
+                const spinner = document.createElement('div');
+                spinner.className = 'view-loading-spinner';
+                spinner.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 16px;">
+                        <div class="loading-spinner" style="width: 48px; height: 48px; border-width: 4px;"></div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Loading ${viewName}...</div>
+                    </div>
+                `;
+                viewEl.appendChild(spinner);
+            }
+        }
+
+        function hideViewLoadingSpinner(viewName) {
+            const viewEl = document.getElementById(`${viewName}View`);
+            if (!viewEl) return;
+
+            const spinner = viewEl.querySelector('.view-loading-spinner');
+            if (spinner) {
+                spinner.remove();
+            }
+        }
+
         // WhatsApp Message Templates
         const whatsappTemplates = {
             booking_confirmation: (booking) => `🏠 *Booking Confirmation - ResIQ by Hostizzy*
@@ -9434,33 +9475,53 @@
                     link.classList.add('active');
                 }
             });
-            
+
             // Save current view to localStorage for persistence on refresh
             try {
                 localStorage.setItem('lastView', viewName);
             } catch (error) {
                 console.error('Error saving view state:', error);
             }
-            
-            if (viewName === 'home') {
-                await loadInitialData();        // ensure data loaded first
-                await updateHomeScreenStats();  // then update stats
-            }
-            if (viewName === 'dashboard') loadDashboard();
-            if (viewName === 'reservations') loadReservations();
-            if (viewName === 'guests') loadGuests();
-            if (viewName === 'guestDocuments') loadGuestDocuments();
-            if (viewName === 'payments') loadPayments();
-            if (viewName === 'meals') loadMeals();
-            if (viewName === 'availability') loadAvailabilityCalendar();
-            if (viewName === 'properties') loadProperties();
-            if (viewName === 'property') loadPropertyView();
-            if (viewName === 'business') loadBusinessView();
-            if (viewName === 'financials') loadBusinessIntelligence();
-            if (viewName === 'team') loadTeam();
-            if (viewName === 'settings') loadSettings();
-            if (viewName === 'communication') loadCommunication();
 
+            // Lazy Loading: Only load view data if not already loaded
+            const alreadyLoaded = isViewLoaded(viewName);
+
+            if (!alreadyLoaded) {
+                showViewLoadingSpinner(viewName);
+                viewLoadingState[viewName] = true;
+            }
+
+            try {
+                // Load view data
+                if (viewName === 'home') {
+                    await loadInitialData();
+                    await updateHomeScreenStats();
+                }
+                else if (viewName === 'dashboard') await loadDashboard();
+                else if (viewName === 'reservations') await loadReservations();
+                else if (viewName === 'guests') await loadGuests();
+                else if (viewName === 'guestDocuments') await loadGuestDocuments();
+                else if (viewName === 'payments') await loadPayments();
+                else if (viewName === 'meals') await loadMeals();
+                else if (viewName === 'availability') await loadAvailabilityCalendar();
+                else if (viewName === 'properties') await loadProperties();
+                else if (viewName === 'property') await loadPropertyView();
+                else if (viewName === 'business') await loadBusinessView();
+                else if (viewName === 'financials') await loadBusinessIntelligence();
+                else if (viewName === 'team') await loadTeam();
+                else if (viewName === 'settings') loadSettings(); // Synchronous
+                else if (viewName === 'communication') loadCommunication(); // Synchronous
+
+                // Mark view as loaded
+                if (!alreadyLoaded) {
+                    markViewAsLoaded(viewName);
+                    hideViewLoadingSpinner(viewName);
+                    console.log(`✅ Lazy loaded: ${viewName}`);
+                }
+            } catch (error) {
+                console.error(`❌ Error loading view ${viewName}:`, error);
+                hideViewLoadingSpinner(viewName);
+            }
         }
 
         // Settings Functions
