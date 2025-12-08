@@ -2705,6 +2705,120 @@
             background: var(--danger);
         }
 
+        /* Multi-Property Calendar Styles */
+        .calendar-view-toggle {
+            display: inline-flex;
+            background: var(--background-alt);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .calendar-view-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .calendar-view-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        .calendar-view-btn:hover:not(.active) {
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        /* Property color badges for multi-property view */
+        .property-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 700;
+            color: white;
+            margin: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60px;
+        }
+
+        /* 10 distinct property colors */
+        .property-color-0 { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .property-color-1 { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .property-color-2 { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .property-color-3 { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .property-color-4 { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
+        .property-color-5 { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
+        .property-color-6 { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .property-color-7 { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+        .property-color-8 { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .property-color-9 { background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%); }
+
+        /* Multi-property day styling */
+        .calendar-day.multi-property {
+            padding: 6px 4px;
+        }
+
+        .calendar-day.multi-property .property-badges {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 4px;
+            align-items: flex-start;
+        }
+
+        /* Multi-property legend */
+        .multi-property-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .legend-property-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .legend-property-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .legend-property-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .legend-property-count {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
         /* Revenue Split Card */
         .split-card {
             display: grid;
@@ -5977,11 +6091,21 @@
             <h2 style="margin-bottom: 24px;">Property Availability Calendar</h2>
             
             <div class="card">
-                <div class="filters" style="margin-bottom: 20px;">
-                    <div class="filter-item">
-                        <select id="calendarPropertyFilter" onchange="loadAvailabilityCalendar()">
-                            <option value="">All Properties</option>
-                        </select>
+                <div class="filters" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <div class="calendar-view-toggle">
+                            <button class="calendar-view-btn active" id="singleViewBtn" onclick="setCalendarViewMode('single')">
+                                📍 Single Property
+                            </button>
+                            <button class="calendar-view-btn" id="multiViewBtn" onclick="setCalendarViewMode('multi')">
+                                🏘️ All Properties
+                            </button>
+                        </div>
+                        <div class="filter-item" id="singlePropertyFilterContainer">
+                            <select id="calendarPropertyFilter" onchange="loadAvailabilityCalendar()">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-secondary btn-sm" onclick="changeMonth(-1)">← Prev</button>
@@ -6021,11 +6145,18 @@
                     </div>    
                     </div>
                     <div class="calendar-grid" id="calendarGrid"></div>
+
+                    <!-- Single Property Legend -->
                     <div id="calendarLegend" style="margin-top: 20px; padding: 16px; background: var(--background); border-radius: 6px;">
                         <div style="font-weight: 600; margin-bottom: 8px;">Today's Bookings:</div>
                         <div id="todayBookings" style="font-size: 13px; color: var(--text-secondary);">
                             No bookings for selected date
                         </div>
+                    </div>
+
+                    <!-- Multi-Property Legend -->
+                    <div id="multiPropertyLegend" class="multi-property-legend" style="display: none;">
+                        <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -19800,6 +19931,8 @@ function printPropertyView() {
         
         // Availability Calendar
         let currentCalendarDate = new Date();
+        let calendarViewMode = 'single'; // 'single' or 'multi'
+        let propertyColorMap = new Map(); // Maps property IDs to color indices
 
         /**
          * Show property calendar - switches to availability view and filters by property
@@ -19833,43 +19966,284 @@ function printPropertyView() {
             }
         }
 
+        /**
+         * Set calendar view mode (single property or multi-property)
+         */
+        function setCalendarViewMode(mode) {
+            calendarViewMode = mode;
+
+            // Update button states
+            const singleBtn = document.getElementById('singleViewBtn');
+            const multiBtn = document.getElementById('multiViewBtn');
+            const propertyFilterContainer = document.getElementById('singlePropertyFilterContainer');
+
+            if (mode === 'single') {
+                singleBtn.classList.add('active');
+                multiBtn.classList.remove('active');
+                propertyFilterContainer.style.display = 'block';
+            } else {
+                singleBtn.classList.remove('active');
+                multiBtn.classList.add('active');
+                propertyFilterContainer.style.display = 'none';
+            }
+
+            // Reload calendar with new mode
+            loadAvailabilityCalendar();
+        }
+
         async function loadAvailabilityCalendar() {
             const reservations = await db.getReservations();
             const properties = await db.getProperties();
-            
+
+            // Populate property filter dropdown
             const propertyFilter = document.getElementById('calendarPropertyFilter');
             if (propertyFilter && propertyFilter.children.length === 1) {
-                propertyFilter.innerHTML = '<option value="">All Properties</option>' + 
+                propertyFilter.innerHTML = '<option value="">All Properties</option>' +
                     properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
             }
-            
-            currentPropertyFilter = propertyFilter.value;
-            
-            let filteredReservations = reservations.filter(r => r.status !== 'cancelled');
-            if (currentPropertyFilter) {
-                filteredReservations = filteredReservations.filter(r => r.property_id == currentPropertyFilter);
+
+            // Build property color map (assign colors to properties)
+            if (propertyColorMap.size === 0 && properties.length > 0) {
+                properties.forEach((prop, index) => {
+                    propertyColorMap.set(prop.id, index % 10); // 10 colors available
+                });
             }
-            
-            // Fetch synced availability dates (OTA blocked dates)
-            let syncedDates = [];
-            try {
+
+            if (calendarViewMode === 'multi') {
+                // Multi-property view - show all properties
+                let filteredReservations = reservations.filter(r => r.status !== 'cancelled');
+                renderMultiPropertyCalendar(filteredReservations, properties);
+            } else {
+                // Single property view - traditional behavior
+                currentPropertyFilter = propertyFilter.value;
+
+                let filteredReservations = reservations.filter(r => r.status !== 'cancelled');
                 if (currentPropertyFilter) {
-                    const { data: syncedData, error: syncError } = await supabase
-                        .from('synced_availability')
-                        .select('*')
-                        .eq('property_id', currentPropertyFilter);
-                    
-                    if (!syncError && syncedData) {
-                        syncedDates = syncedData;
-                    }
+                    filteredReservations = filteredReservations.filter(r => r.property_id == currentPropertyFilter);
                 }
-            } catch (error) {
-                console.error('Error fetching synced dates:', error);
+
+                // Fetch synced availability dates (OTA blocked dates)
+                let syncedDates = [];
+                try {
+                    if (currentPropertyFilter) {
+                        const { data: syncedData, error: syncError } = await supabase
+                            .from('synced_availability')
+                            .select('*')
+                            .eq('property_id', currentPropertyFilter);
+
+                        if (!syncError && syncedData) {
+                            syncedDates = syncedData;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching synced dates:', error);
+                }
+
+                renderCalendar(filteredReservations, syncedDates);
             }
-            
-            renderCalendar(filteredReservations, syncedDates);
         }
         
+        /**
+         * Render multi-property calendar view
+         */
+        function renderMultiPropertyCalendar(reservations, properties) {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
+
+            // Build bookings map by day (with property info)
+            const bookingsMap = {};
+            const propertyBookingCounts = {};
+
+            reservations.forEach(r => {
+                const checkIn = new Date(r.check_in);
+                const checkOut = new Date(r.check_out);
+                let currentDate = new Date(checkIn);
+
+                // Count bookings per property
+                if (!propertyBookingCounts[r.property_id]) {
+                    propertyBookingCounts[r.property_id] = 0;
+                }
+                propertyBookingCounts[r.property_id]++;
+
+                while (currentDate <= checkOut) {
+                    if (currentDate.getMonth() === month && currentDate.getFullYear() === year) {
+                        const day = currentDate.getDate();
+                        if (!bookingsMap[day]) bookingsMap[day] = [];
+                        bookingsMap[day].push(r);
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            });
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+
+            let calendarHTML = '';
+
+            // Calendar headers
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                calendarHTML += `<div class="calendar-day-header">${day}</div>`;
+            });
+
+            // Empty days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                calendarHTML += '<div class="calendar-day empty"></div>';
+            }
+
+            // Calendar days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+                const dayBookings = bookingsMap[day] || [];
+
+                // Group bookings by property
+                const propertiesOnDay = {};
+                dayBookings.forEach(booking => {
+                    const propId = booking.property_id;
+                    if (!propertiesOnDay[propId]) {
+                        propertiesOnDay[propId] = [];
+                    }
+                    propertiesOnDay[propId].push(booking);
+                });
+
+                const propertyCount = Object.keys(propertiesOnDay).length;
+
+                let propertyBadgesHTML = '';
+                if (propertyCount > 0) {
+                    // Create property badges
+                    Object.entries(propertiesOnDay).forEach(([propId, bookings]) => {
+                        const property = properties.find(p => p.id == propId);
+                        const colorIndex = propertyColorMap.get(parseInt(propId)) || 0;
+                        const propName = property ? property.name : `Property ${propId}`;
+                        const shortName = propName.length > 8 ? propName.substring(0, 8) + '...' : propName;
+
+                        propertyBadgesHTML += `
+                            <div class="property-badge property-color-${colorIndex}"
+                                 title="${propName}: ${bookings.length} booking(s)">
+                                ${shortName} (${bookings.length})
+                            </div>
+                        `;
+                    });
+                }
+
+                calendarHTML += `
+                    <div class="calendar-day ${isToday ? 'today' : ''} ${propertyCount > 0 ? 'multi-property' : ''}"
+                         onclick="showDayBookingsMulti(${day}, ${month}, ${year})"
+                         title="${propertyCount} propert${propertyCount === 1 ? 'y' : 'ies'}">
+                        <div style="font-weight: 600; font-size: 14px;">${day}</div>
+                        ${propertyCount > 0 ? `<div class="property-badges">${propertyBadgesHTML}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            document.getElementById('calendarGrid').innerHTML = calendarHTML;
+
+            // Show/hide appropriate legends
+            document.getElementById('calendarLegend').style.display = 'none';
+            document.getElementById('multiPropertyLegend').style.display = 'block';
+
+            // Render multi-property legend
+            renderMultiPropertyLegend(properties, propertyBookingCounts);
+        }
+
+        /**
+         * Render the multi-property legend showing all properties with their colors
+         */
+        function renderMultiPropertyLegend(properties, bookingCounts) {
+            const legendEl = document.getElementById('multiPropertyLegend');
+
+            const legendHTML = properties.map(prop => {
+                const colorIndex = propertyColorMap.get(prop.id) || 0;
+                const count = bookingCounts[prop.id] || 0;
+
+                return `
+                    <div class="legend-property-item">
+                        <div class="legend-property-color property-color-${colorIndex}"></div>
+                        <div class="legend-property-name" title="${prop.name}">${prop.name}</div>
+                        <div class="legend-property-count">${count} booking${count === 1 ? '' : 's'}</div>
+                    </div>
+                `;
+            }).join('');
+
+            legendEl.innerHTML = legendHTML || '<div style="text-align: center; color: var(--text-secondary);">No properties found</div>';
+        }
+
+        /**
+         * Show bookings for a specific day in multi-property mode
+         */
+        async function showDayBookingsMulti(day, month, year) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            try {
+                const reservations = await db.getReservations();
+                const properties = await db.getProperties();
+
+                // Filter reservations for the selected date
+                const dayBookings = reservations.filter(r => {
+                    if (r.status === 'cancelled') return false;
+
+                    const checkIn = new Date(r.check_in);
+                    const checkOut = new Date(r.check_out);
+                    const selectedDate = new Date(dateStr);
+
+                    return checkIn <= selectedDate && checkOut >= selectedDate;
+                });
+
+                if (dayBookings.length === 0) {
+                    showToast('No bookings for this date', 'info');
+                    return;
+                }
+
+                // Group by property
+                const byProperty = {};
+                dayBookings.forEach(booking => {
+                    const propId = booking.property_id;
+                    if (!byProperty[propId]) {
+                        byProperty[propId] = [];
+                    }
+                    byProperty[propId].push(booking);
+                });
+
+                // Create modal content
+                let content = `<h3 style="margin-bottom: 16px;">Bookings for ${dateStr}</h3>`;
+
+                Object.entries(byProperty).forEach(([propId, bookings]) => {
+                    const property = properties.find(p => p.id == propId);
+                    const colorIndex = propertyColorMap.get(parseInt(propId)) || 0;
+                    const propName = property ? property.name : `Property ${propId}`;
+
+                    content += `
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <div class="property-badge property-color-${colorIndex}">${propName}</div>
+                                <span style="font-weight: 600; color: var(--text-secondary);">(${bookings.length} booking${bookings.length === 1 ? '' : 's'})</span>
+                            </div>
+                            ${bookings.map(b => `
+                                <div style="padding: 12px; background: var(--background-alt); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid var(--primary);">
+                                    <div style="font-weight: 600; color: var(--text-primary);">${b.guest_name}</div>
+                                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                                        ${b.booking_id} | ${b.check_in} → ${b.check_out}
+                                    </div>
+                                    <div style="margin-top: 4px;">
+                                        <span class="badge badge-${b.status === 'confirmed' ? 'success' : b.status === 'pending' ? 'warning' : 'info'}">${b.status || 'confirmed'}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                });
+
+                showModal('Day Bookings', content);
+            } catch (error) {
+                console.error('Error loading day bookings:', error);
+                showToast('Failed to load bookings', 'error');
+            }
+        }
+
         function renderCalendar(reservations, syncedDates = []) {
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
@@ -20002,10 +20376,14 @@ function printPropertyView() {
                     </div>
                 `;
             }
-            
+
             document.getElementById('calendarGrid').innerHTML = calendarHTML;
+
+            // Show/hide appropriate legends (single property mode)
+            document.getElementById('calendarLegend').style.display = 'block';
+            document.getElementById('multiPropertyLegend').style.display = 'none';
         }
-        
+
         async function showDayBookings(day, month, year) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const todayBookingsEl = document.getElementById('todayBookings');
