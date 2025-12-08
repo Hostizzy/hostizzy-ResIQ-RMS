@@ -8012,6 +8012,123 @@
         // Initialize theme on page load
         initializeTheme();
 
+        // Smart Automation Engine
+        let automationIntervalId = null;
+
+        async function runSmartAutomation() {
+            try {
+                const reservations = await db.getReservations();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                let updatesMade = 0;
+
+                // 1. Auto-status Updates: Change status based on check-in/check-out dates
+                for (const reservation of reservations) {
+                    const checkIn = new Date(reservation.check_in);
+                    const checkOut = new Date(reservation.check_out);
+                    checkIn.setHours(0, 0, 0, 0);
+                    checkOut.setHours(0, 0, 0, 0);
+
+                    let newStatus = null;
+
+                    // Auto check-in on check-in date
+                    if (reservation.status === 'confirmed' && checkIn <= today && checkOut > today) {
+                        newStatus = 'checked-in';
+                    }
+                    // Auto check-out on check-out date
+                    else if (reservation.status === 'checked-in' && checkOut <= today) {
+                        newStatus = 'checked-out';
+                    }
+
+                    if (newStatus) {
+                        await db.updateReservation(reservation.id, { status: newStatus });
+                        updatesMade++;
+                        console.log(`🤖 Auto-updated ${reservation.booking_id} to ${newStatus}`);
+                    }
+                }
+
+                // 2. Payment Reminder Flags: Flag overdue payments
+                for (const reservation of reservations) {
+                    const total = parseFloat(reservation.total_amount) || 0;
+                    const paid = parseFloat(reservation.paid_amount) || 0;
+                    const pending = total - paid;
+
+                    if (pending > 0 && reservation.status !== 'cancelled') {
+                        const checkIn = new Date(reservation.check_in);
+                        const daysUntilCheckIn = Math.floor((checkIn - today) / (1000 * 60 * 60 * 24));
+
+                        // Flag if payment is pending and check-in is within 7 days
+                        if (daysUntilCheckIn <= 7 && daysUntilCheckIn >= 0) {
+                            if (!reservation.payment_reminder_sent) {
+                                console.log(`⚠️ Payment reminder needed for ${reservation.booking_id} (₹${pending} pending)`);
+                                // Mark for reminder (in real app, this would trigger notification)
+                                await db.updateReservation(reservation.id, {
+                                    payment_reminder_sent: true,
+                                    last_reminder_date: new Date().toISOString()
+                                });
+                                updatesMade++;
+                            }
+                        }
+                    }
+                }
+
+                // 3. Document Expiry Alerts: Check for expiring documents
+                // (This would check guest documents table if available)
+                // Example: ID cards, licenses, permits
+                try {
+                    const { data: documents } = await supabase
+                        .from('guest_documents')
+                        .select('*')
+                        .not('expiry_date', 'is', null);
+
+                    if (documents && documents.length > 0) {
+                        const expiringDocs = documents.filter(doc => {
+                            const expiry = new Date(doc.expiry_date);
+                            const daysUntilExpiry = Math.floor((expiry - today) / (1000 * 60 * 60 * 24));
+                            return daysUntilExpiry >= 0 && daysUntilExpiry <= 30; // Expiring in 30 days
+                        });
+
+                        if (expiringDocs.length > 0) {
+                            console.log(`📄 ${expiringDocs.length} document(s) expiring soon`);
+                            updatesMade += expiringDocs.length;
+                        }
+                    }
+                } catch (error) {
+                    // Document table may not exist, skip silently
+                }
+
+                if (updatesMade > 0) {
+                    console.log(`✅ Smart Automation: Made ${updatesMade} updates`);
+                }
+
+                return updatesMade;
+            } catch (error) {
+                console.error('❌ Smart Automation Error:', error);
+                return 0;
+            }
+        }
+
+        function startSmartAutomation() {
+            // Run immediately on start
+            runSmartAutomation();
+
+            // Run every 30 minutes
+            automationIntervalId = setInterval(runSmartAutomation, 30 * 60 * 1000);
+            console.log('🤖 Smart Automation Engine started (runs every 30 min)');
+        }
+
+        function stopSmartAutomation() {
+            if (automationIntervalId) {
+                clearInterval(automationIntervalId);
+                automationIntervalId = null;
+                console.log('🛑 Smart Automation Engine stopped');
+            }
+        }
+
+        // Start automation engine on page load
+        startSmartAutomation();
+
         // WhatsApp Message Templates
         const whatsappTemplates = {
             booking_confirmation: (booking) => `🏠 *Booking Confirmation - ResIQ by Hostizzy*
