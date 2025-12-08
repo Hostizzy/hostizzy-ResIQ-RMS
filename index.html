@@ -53,6 +53,45 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Dark Mode Theme */
+        [data-theme="dark"] {
+            --primary: #818cf8;
+            --primary-dark: #6366f1;
+            --primary-light: #a5b4fc;
+            --secondary: #94a3b8;
+            --success: #34d399;
+            --success-light: #6ee7b7;
+            --danger: #f87171;
+            --danger-light: #fca5a5;
+            --warning: #fbbf24;
+            --warning-light: #fcd34d;
+            --background: #0f172a;
+            --background-alt: #1e293b;
+            --surface: #1e293b;
+            --surface-elevated: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border: #334155;
+            --border-light: #1e293b;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Smooth theme transition */
+        body,
+        .card,
+        .navbar,
+        .sidebar,
+        input,
+        select,
+        textarea,
+        button {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--background);
@@ -708,7 +747,32 @@
         .user-menu-btn.active .user-menu-arrow {
             transform: rotate(180deg);
         }
-        
+
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background-alt);
+            border: 1px solid var(--border);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+
+        .theme-toggle-btn:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+            transform: scale(1.05);
+        }
+
+        .theme-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
         .user-menu-dropdown {
             display: none;
             position: absolute;
@@ -4071,6 +4135,12 @@
 
                 <!-- Spacer -->
                 <div style="flex: 1;"></div>
+
+                <!-- Dark Mode Toggle -->
+                <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode" style="margin-right: 16px;">
+                    <span class="theme-icon-light">☀️</span>
+                    <span class="theme-icon-dark" style="display: none;">🌙</span>
+                </button>
 
                 <!-- Profile Dropdown (Desktop & Tablet) -->
                 <div class="navbar-menu">
@@ -7761,6 +7831,46 @@
         let selectedReservations = new Set();
         let currentUser = null;
         let currentWhatsAppBooking = null;
+
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // Update theme icons
+            const lightIcon = document.querySelector('.theme-icon-light');
+            const darkIcon = document.querySelector('.theme-icon-dark');
+
+            if (lightIcon && darkIcon) {
+                if (theme === 'dark') {
+                    lightIcon.style.display = 'none';
+                    darkIcon.style.display = 'block';
+                } else {
+                    lightIcon.style.display = 'block';
+                    darkIcon.style.display = 'none';
+                }
+            }
+
+            // Update meta theme-color for mobile browsers
+            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) {
+                metaThemeColor.setAttribute('content', theme === 'dark' ? '#1e293b' : '#2563eb');
+            }
+        }
+
+        // Initialize theme on page load
+        initializeTheme();
 
         // WhatsApp Message Templates
         const whatsappTemplates = {
