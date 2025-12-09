@@ -2819,6 +2819,109 @@
             font-weight: 600;
         }
 
+        /* Drag & Drop File Upload Styles */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 48px 24px;
+            text-align: center;
+            background: var(--background-alt);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
+            border-width: 3px;
+            transform: scale(1.02);
+        }
+
+        .drop-zone.drag-over::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .drop-zone.drag-over .drop-zone-icon {
+            transform: scale(1.2) rotate(5deg);
+            animation: bounce 0.5s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1.2) translateY(0) rotate(5deg); }
+            50% { transform: scale(1.2) translateY(-10px) rotate(5deg); }
+        }
+
+        .drop-zone-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .drop-zone-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .drop-zone.uploading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .upload-progress {
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--primary-light);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .upload-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .upload-progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        /* Dark mode drag & drop */
+        [data-theme="dark"] .drop-zone {
+            border-color: var(--border);
+        }
+
+        [data-theme="dark"] .drop-zone:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        [data-theme="dark"] .drop-zone.drag-over {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%);
+        }
+
         /* Revenue Split Card */
         .split-card {
             display: grid;
@@ -7936,19 +8039,23 @@
             <div class="modal-body">
                 <!-- Step 1: Upload -->
                 <div id="importStep1" class="import-step">
-                    <!-- Upload Area -->
-                    <div style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 48px 24px; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s;" 
-                         onclick="document.getElementById('csvFileInput').click()"
-                         onmouseover="this.style.borderColor='#2563eb'; this.style.background='#eff6ff'"
-                         onmouseout="this.style.borderColor='#cbd5e1'; this.style.background='#f8fafc'">
-                        <div style="font-size: 40px; margin-bottom: 12px;">📁</div>
-                        <div style="font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 4px;">
+                    <!-- Upload Area with Drag & Drop -->
+                    <div id="csvDropZone" class="drop-zone"
+                         onclick="document.getElementById('csvFileInput').click()">
+                        <div class="drop-zone-icon">📁</div>
+                        <div class="drop-zone-title">
                             Drop CSV file here or click to browse
                         </div>
-                        <div style="font-size: 13px; color: #64748b;">
+                        <div class="drop-zone-subtitle">
                             Maximum file size: 10MB
                         </div>
                         <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleCSVUpload(event)">
+                        <div id="csvUploadProgress" class="upload-progress" style="display: none;">
+                            <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">Uploading...</div>
+                            <div class="upload-progress-bar">
+                                <div id="csvProgressFill" class="upload-progress-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Collapsible Format Guide -->
@@ -22380,6 +22487,73 @@ function printPropertyView() {
     function openImportModal() {
         document.getElementById('importModal').classList.add('active');
         resetImport();
+        initializeDragAndDrop();
+    }
+
+    /**
+     * Initialize drag and drop functionality for file uploads
+     */
+    function initializeDragAndDrop() {
+        const dropZone = document.getElementById('csvDropZone');
+        if (!dropZone) return;
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop zone when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('drag-over');
+            }, false);
+        });
+
+        // Handle dropped files
+        dropZone.addEventListener('drop', handleDrop, false);
+    }
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            const file = files[0];
+
+            // Validate file type
+            if (!file.name.endsWith('.csv')) {
+                showToast('Please upload a CSV file', 'error');
+                return;
+            }
+
+            // Validate file size (10MB max)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                showToast('File size exceeds 10MB limit', 'error');
+                return;
+            }
+
+            // Trigger the file input change event
+            const fileInput = document.getElementById('csvFileInput');
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+
+            // Manually trigger the change event
+            handleCSVUpload({ target: fileInput });
+        }
     }
 
     function closeImportModal() {
