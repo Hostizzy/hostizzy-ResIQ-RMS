@@ -2977,6 +2977,63 @@
             background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
         }
 
+        /* Drag-to-Book Calendar Styles */
+        .calendar-day.drag-selecting {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%) !important;
+            border: 2px solid var(--primary) !important;
+            cursor: grabbing !important;
+        }
+
+        .calendar-day.drag-start {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+            color: white !important;
+            border: 2px solid var(--primary) !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .calendar-day.drag-end {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+            color: white !important;
+            border: 2px solid var(--primary) !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .calendar-day.draggable {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .calendar-day.dragging-active {
+            cursor: grabbing;
+        }
+
+        .drag-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .drag-hint.show {
+            opacity: 1;
+        }
+
+        /* Dark mode drag styles */
+        [data-theme="dark"] .calendar-day.drag-selecting {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%) !important;
+        }
+
         /* Revenue Split Card */
         .split-card {
             display: grid;
@@ -6348,6 +6405,11 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Drag-to-Book Hint -->
+        <div id="dragHint" class="drag-hint">
+            Drag across dates to create a booking
         </div>
 
         <!-- Properties View -->
@@ -20126,6 +20188,207 @@ function printPropertyView() {
         let calendarViewMode = 'single'; // 'single' or 'multi'
         let propertyColorMap = new Map(); // Maps property IDs to color indices
 
+        // Drag-to-Book Calendar State
+        let isDragging = false;
+        let dragStartDate = null;
+        let dragEndDate = null;
+        let dragHintTimeout = null;
+
+        /**
+         * Initialize drag-to-book functionality on calendar
+         */
+        function initializeDragToBook() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            if (!calendarGrid) return;
+
+            // Only enable in single property view
+            if (calendarViewMode !== 'single') return;
+
+            // Add event listeners for drag
+            calendarGrid.addEventListener('mousedown', handleDragStart);
+            calendarGrid.addEventListener('mouseover', handleDragMove);
+            calendarGrid.addEventListener('mouseup', handleDragEnd);
+            document.addEventListener('mouseup', handleDragEnd); // Global mouseup to catch outside calendar
+
+            // Show hint on first hover
+            calendarGrid.addEventListener('mouseenter', showDragHint, { once: true });
+        }
+
+        /**
+         * Show drag hint to user
+         */
+        function showDragHint() {
+            const hint = document.getElementById('dragHint');
+            if (!hint) return;
+
+            hint.classList.add('show');
+
+            // Hide after 3 seconds
+            clearTimeout(dragHintTimeout);
+            dragHintTimeout = setTimeout(() => {
+                hint.classList.remove('show');
+            }, 3000);
+        }
+
+        /**
+         * Handle drag start on calendar day
+         */
+        function handleDragStart(e) {
+            const dayEl = e.target.closest('.calendar-day');
+            if (!dayEl || dayEl.classList.contains('empty')) return;
+
+            // Only allow in single property view
+            if (calendarViewMode !== 'single') return;
+
+            e.preventDefault();
+            isDragging = true;
+
+            // Get day number from the day element
+            const dayText = dayEl.querySelector('div')?.textContent;
+            const day = parseInt(dayText);
+
+            if (isNaN(day)) return;
+
+            // Build date
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            dragStartDate = new Date(year, month, day);
+            dragEndDate = dragStartDate;
+
+            // Clear previous selection
+            clearDragSelection();
+
+            // Mark start day
+            dayEl.classList.add('drag-start', 'drag-selecting');
+        }
+
+        /**
+         * Handle drag move over calendar days
+         */
+        function handleDragMove(e) {
+            if (!isDragging) return;
+
+            const dayEl = e.target.closest('.calendar-day');
+            if (!dayEl || dayEl.classList.contains('empty')) return;
+
+            // Get day number
+            const dayText = dayEl.querySelector('div')?.textContent;
+            const day = parseInt(dayText);
+
+            if (isNaN(day)) return;
+
+            // Build date
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            dragEndDate = new Date(year, month, day);
+
+            // Update selection visual
+            updateDragSelection();
+        }
+
+        /**
+         * Handle drag end
+         */
+        function handleDragEnd(e) {
+            if (!isDragging) return;
+
+            isDragging = false;
+
+            if (!dragStartDate || !dragEndDate) {
+                clearDragSelection();
+                return;
+            }
+
+            // Ensure start is before end
+            let checkIn = dragStartDate;
+            let checkOut = dragEndDate;
+
+            if (checkIn > checkOut) {
+                [checkIn, checkOut] = [checkOut, checkIn];
+            }
+
+            // Format dates for reservation modal
+            const checkInStr = checkIn.toISOString().split('T')[0];
+            const checkOutStr = checkOut.toISOString().split('T')[0];
+
+            // Clear selection
+            clearDragSelection();
+
+            // Open reservation modal with pre-filled dates
+            openReservationModal();
+
+            // Pre-fill check-in and check-out dates
+            setTimeout(() => {
+                const checkInInput = document.getElementById('checkIn');
+                const checkOutInput = document.getElementById('checkOut');
+
+                if (checkInInput) checkInInput.value = checkInStr;
+                if (checkOutInput) checkOutInput.value = checkOutStr;
+
+                // Calculate and update total amount if property is selected
+                calculateTotalAmount();
+            }, 100);
+
+            // Reset drag state
+            dragStartDate = null;
+            dragEndDate = null;
+        }
+
+        /**
+         * Update visual feedback during drag selection
+         */
+        function updateDragSelection() {
+            if (!dragStartDate || !dragEndDate) return;
+
+            clearDragSelection();
+
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+
+            // Ensure start is before end
+            let start = dragStartDate;
+            let end = dragEndDate;
+
+            if (start > end) {
+                [start, end] = [end, start];
+            }
+
+            // Highlight all days in range
+            const calendarDays = document.querySelectorAll('.calendar-day');
+
+            calendarDays.forEach(dayEl => {
+                if (dayEl.classList.contains('empty')) return;
+
+                const dayText = dayEl.querySelector('div')?.textContent;
+                const day = parseInt(dayText);
+
+                if (isNaN(day)) return;
+
+                const dayDate = new Date(year, month, day);
+
+                if (dayDate >= start && dayDate <= end) {
+                    dayEl.classList.add('drag-selecting');
+
+                    if (dayDate.getTime() === start.getTime()) {
+                        dayEl.classList.add('drag-start');
+                    }
+                    if (dayDate.getTime() === end.getTime()) {
+                        dayEl.classList.add('drag-end');
+                    }
+                }
+            });
+        }
+
+        /**
+         * Clear drag selection from calendar
+         */
+        function clearDragSelection() {
+            const calendarDays = document.querySelectorAll('.calendar-day');
+            calendarDays.forEach(dayEl => {
+                dayEl.classList.remove('drag-selecting', 'drag-start', 'drag-end');
+            });
+        }
+
         /**
          * Show property calendar - switches to availability view and filters by property
          */
@@ -20751,6 +21014,10 @@ function printPropertyView() {
             // Show/hide appropriate legends (single property mode)
             document.getElementById('calendarLegend').style.display = 'block';
             document.getElementById('multiPropertyLegend').style.display = 'none';
+            document.getElementById('rateCalendarLegend').style.display = 'none';
+
+            // Initialize drag-to-book functionality
+            initializeDragToBook();
         }
 
         async function showDayBookings(day, month, year) {
