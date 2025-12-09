@@ -8569,12 +8569,15 @@
                                     'viewPayment'
                                 );
 
-                                // Mark for reminder
-                                await db.updateReservation(reservation.id, {
-                                    payment_reminder_sent: true,
-                                    last_reminder_date: new Date().toISOString()
-                                });
-                                updatesMade++;
+                                // Mark for reminder (simple flag only - no date tracking for now)
+                                try {
+                                    await db.updateReservation(reservation.id, {
+                                        payment_reminder_sent: true
+                                    });
+                                    updatesMade++;
+                                } catch (err) {
+                                    console.error('Failed to update reminder flag:', err);
+                                }
                             }
                         }
                     }
@@ -19787,8 +19790,18 @@ function printPropertyView() {
                 }
 
                 tbody.innerHTML = owners.map(owner => {
-                    // Get assigned property names
-                    const assignedProps = owner.property_ids || [];
+                    // Get assigned property names (parse from JSON string or array)
+                    let assignedProps = [];
+                    try {
+                        if (owner.property_ids) {
+                            assignedProps = Array.isArray(owner.property_ids) ? owner.property_ids : [];
+                        } else if (owner.properties) {
+                            assignedProps = JSON.parse(owner.properties);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing properties:', e);
+                    }
+
                     const propNames = assignedProps.map(id => {
                         const prop = properties.find(p => p.id === id);
                         return prop ? prop.name : `Property ${id}`;
@@ -19837,13 +19850,22 @@ function printPropertyView() {
                     document.getElementById('ownerStatus').value = owner.status;
                     document.querySelector('.modal-title').textContent = 'Edit Property Owner';
 
-                    // Check assigned properties
-                    if (owner.property_ids) {
-                        owner.property_ids.forEach(propId => {
-                            const checkbox = document.querySelector(`.property-checkbox[value="${propId}"]`);
-                            if (checkbox) checkbox.checked = true;
-                        });
+                    // Check assigned properties (handle both array and JSON string)
+                    let assignedProps = [];
+                    try {
+                        if (owner.property_ids) {
+                            assignedProps = Array.isArray(owner.property_ids) ? owner.property_ids : [];
+                        } else if (owner.properties) {
+                            assignedProps = JSON.parse(owner.properties);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing properties for edit:', e);
                     }
+
+                    assignedProps.forEach(propId => {
+                        const checkbox = document.querySelector(`.property-checkbox[value="${propId}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
 
                     // Hide password field for edit
                     document.getElementById('ownerPassword').parentElement.style.display = 'none';
@@ -19913,9 +19935,15 @@ function printPropertyView() {
                     name,
                     email,
                     phone,
-                    status,
-                    property_ids: selectedProperties
+                    status
                 };
+
+                // Store property IDs as JSON string (workaround for missing array column)
+                // TODO: Run this SQL in Supabase to add proper array column:
+                // ALTER TABLE property_owners ADD COLUMN property_ids INTEGER[] DEFAULT '{}';
+                if (selectedProperties && selectedProperties.length > 0) {
+                    ownerData.properties = JSON.stringify(selectedProperties);
+                }
 
                 // Add password only for new owners
                 if (!ownerId) {
