@@ -6308,18 +6308,7 @@
             <div class="card">
                 <div class="filters" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                        <div class="calendar-view-toggle">
-                            <button class="calendar-view-btn active" id="singleViewBtn" onclick="setCalendarViewMode('single')">
-                                📍 Single Property
-                            </button>
-                            <button class="calendar-view-btn" id="multiViewBtn" onclick="setCalendarViewMode('multi')">
-                                🏘️ All Properties
-                            </button>
-                            <button class="calendar-view-btn" id="rateViewBtn" onclick="setCalendarViewMode('rate')">
-                                💰 Rate Calendar
-                            </button>
-                        </div>
-                        <div class="filter-item" id="singlePropertyFilterContainer">
+                        <div class="filter-item">
                             <select id="calendarPropertyFilter" onchange="loadAvailabilityCalendar()">
                                 <option value="">All Properties</option>
                             </select>
@@ -6372,37 +6361,6 @@
                         </div>
                     </div>
 
-                    <!-- Multi-Property Legend -->
-                    <div id="multiPropertyLegend" class="multi-property-legend" style="display: none;">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
-
-                    <!-- Rate Calendar Legend -->
-                    <div id="rateCalendarLegend" style="display: none; margin-top: 20px; padding: 16px; background: var(--background); border-radius: 8px; border: 1px solid var(--border);">
-                        <div style="font-weight: 600; margin-bottom: 12px;">Rate Legend:</div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 20px; height: 20px; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: 4px; border: 1px solid #10b981;"></div>
-                                <span style="font-size: 13px;">Low (₹0-₹2K)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 20px; height: 20px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 4px; border: 1px solid #f59e0b;"></div>
-                                <span style="font-size: 13px;">Medium (₹2K-₹5K)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 20px; height: 20px; background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); border-radius: 4px; border: 1px solid #ea580c;"></div>
-                                <span style="font-size: 13px;">High (₹5K-₹10K)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 20px; height: 20px; background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); border-radius: 4px; border: 1px solid #ef4444;"></div>
-                                <span style="font-size: 13px;">Premium (₹10K+)</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 20px; height: 20px; background: var(--background-alt); border-radius: 4px; border: 1px solid var(--border);"></div>
-                                <span style="font-size: 13px;">No Rate Set</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -20248,8 +20206,6 @@ function printPropertyView() {
         
         // Availability Calendar
         let currentCalendarDate = new Date();
-        let calendarViewMode = 'single'; // 'single' or 'multi'
-        let propertyColorMap = new Map(); // Maps property IDs to color indices
 
         // Drag-to-Book Calendar State
         let isDragging = false;
@@ -20263,9 +20219,6 @@ function printPropertyView() {
         function initializeDragToBook() {
             const calendarGrid = document.getElementById('calendarGrid');
             if (!calendarGrid) return;
-
-            // Only enable in single property view
-            if (calendarViewMode !== 'single') return;
 
             // Add event listeners for drag
             calendarGrid.addEventListener('mousedown', handleDragStart);
@@ -20299,9 +20252,6 @@ function printPropertyView() {
         function handleDragStart(e) {
             const dayEl = e.target.closest('.calendar-day');
             if (!dayEl || dayEl.classList.contains('empty')) return;
-
-            // Only allow in single property view
-            if (calendarViewMode !== 'single') return;
 
             e.preventDefault();
             isDragging = true;
@@ -20487,35 +20437,6 @@ function printPropertyView() {
         /**
          * Set calendar view mode (single property or multi-property)
          */
-        function setCalendarViewMode(mode) {
-            calendarViewMode = mode;
-
-            // Update button states
-            const singleBtn = document.getElementById('singleViewBtn');
-            const multiBtn = document.getElementById('multiViewBtn');
-            const rateBtn = document.getElementById('rateViewBtn');
-            const propertyFilterContainer = document.getElementById('singlePropertyFilterContainer');
-
-            // Reset all buttons
-            singleBtn.classList.remove('active');
-            multiBtn.classList.remove('active');
-            rateBtn.classList.remove('active');
-
-            if (mode === 'single') {
-                singleBtn.classList.add('active');
-                propertyFilterContainer.style.display = 'block';
-            } else if (mode === 'multi') {
-                multiBtn.classList.add('active');
-                propertyFilterContainer.style.display = 'none';
-            } else if (mode === 'rate') {
-                rateBtn.classList.add('active');
-                propertyFilterContainer.style.display = 'block'; // Show filter for rate view
-            }
-
-            // Reload calendar with new mode
-            loadAvailabilityCalendar();
-        }
-
         async function loadAvailabilityCalendar() {
             const reservations = await db.getReservations();
             const properties = await db.getProperties();
@@ -20527,416 +20448,32 @@ function printPropertyView() {
                     properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
             }
 
-            // Build property color map (assign colors to properties)
-            if (propertyColorMap.size === 0 && properties.length > 0) {
-                properties.forEach((prop, index) => {
-                    propertyColorMap.set(prop.id, index % 10); // 10 colors available
-                });
-            }
+            // Single property view only
+            currentPropertyFilter = propertyFilter.value;
 
-            if (calendarViewMode === 'multi') {
-                // Multi-property view - show all properties
-                let filteredReservations = reservations.filter(r => r.status !== 'cancelled');
-                renderMultiPropertyCalendar(filteredReservations, properties);
-            } else if (calendarViewMode === 'rate') {
-                // Rate calendar view - show pricing
-                currentPropertyFilter = propertyFilter.value;
-                renderRateCalendar(reservations, currentPropertyFilter);
-            } else {
-                // Single property view - traditional behavior
-                currentPropertyFilter = propertyFilter.value;
-
-                let filteredReservations = reservations.filter(r => r.status !== 'cancelled');
-                if (currentPropertyFilter) {
-                    filteredReservations = filteredReservations.filter(r => r.property_id == currentPropertyFilter);
-                }
-
-                // Fetch synced availability dates (OTA blocked dates)
-                let syncedDates = [];
-                try {
-                    if (currentPropertyFilter) {
-                        const { data: syncedData, error: syncError } = await supabase
-                            .from('synced_availability')
-                            .select('*')
-                            .eq('property_id', currentPropertyFilter);
-
-                        if (!syncError && syncedData) {
-                            syncedDates = syncedData;
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error fetching synced dates:', error);
-                }
-
-                renderCalendar(filteredReservations, syncedDates);
-            }
-        }
-        
-        /**
-         * Render multi-property calendar view
-         */
-        function renderMultiPropertyCalendar(reservations, properties) {
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
-
-            // Build bookings map by day (with property info)
-            const bookingsMap = {};
-            const propertyBookingCounts = {};
-
-            reservations.forEach(r => {
-                const checkIn = new Date(r.check_in);
-                const checkOut = new Date(r.check_out);
-                let currentDate = new Date(checkIn);
-
-                // Count bookings per property
-                if (!propertyBookingCounts[r.property_id]) {
-                    propertyBookingCounts[r.property_id] = 0;
-                }
-                propertyBookingCounts[r.property_id]++;
-
-                while (currentDate <= checkOut) {
-                    if (currentDate.getMonth() === month && currentDate.getFullYear() === year) {
-                        const day = currentDate.getDate();
-                        if (!bookingsMap[day]) bookingsMap[day] = [];
-                        bookingsMap[day].push(r);
-                    }
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
-            });
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const today = new Date();
-
-            let calendarHTML = '';
-
-            // Calendar headers
-            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
-                calendarHTML += `<div class="calendar-day-header">${day}</div>`;
-            });
-
-            // Empty days before month starts
-            for (let i = 0; i < firstDay; i++) {
-                calendarHTML += '<div class="calendar-day empty"></div>';
-            }
-
-            // Calendar days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-                const dayBookings = bookingsMap[day] || [];
-
-                // Group bookings by property
-                const propertiesOnDay = {};
-                dayBookings.forEach(booking => {
-                    const propId = booking.property_id;
-                    if (!propertiesOnDay[propId]) {
-                        propertiesOnDay[propId] = [];
-                    }
-                    propertiesOnDay[propId].push(booking);
-                });
-
-                const propertyCount = Object.keys(propertiesOnDay).length;
-
-                let propertyBadgesHTML = '';
-                if (propertyCount > 0) {
-                    // Create property badges
-                    Object.entries(propertiesOnDay).forEach(([propId, bookings]) => {
-                        const property = properties.find(p => p.id == propId);
-                        const colorIndex = propertyColorMap.get(parseInt(propId)) || 0;
-                        const propName = property ? property.name : `Property ${propId}`;
-                        const shortName = propName.length > 8 ? propName.substring(0, 8) + '...' : propName;
-
-                        propertyBadgesHTML += `
-                            <div class="property-badge property-color-${colorIndex}"
-                                 title="${propName}: ${bookings.length} booking(s)">
-                                ${shortName} (${bookings.length})
-                            </div>
-                        `;
-                    });
-                }
-
-                calendarHTML += `
-                    <div class="calendar-day ${isToday ? 'today' : ''} ${propertyCount > 0 ? 'multi-property' : ''}"
-                         onclick="showDayBookingsMulti(${day}, ${month}, ${year})"
-                         title="${propertyCount} propert${propertyCount === 1 ? 'y' : 'ies'}">
-                        <div style="font-weight: 600; font-size: 14px;">${day}</div>
-                        ${propertyCount > 0 ? `<div class="property-badges">${propertyBadgesHTML}</div>` : ''}
-                    </div>
-                `;
-            }
-
-            document.getElementById('calendarGrid').innerHTML = calendarHTML;
-
-            // Show/hide appropriate legends
-            document.getElementById('calendarLegend').style.display = 'none';
-            document.getElementById('multiPropertyLegend').style.display = 'block';
-
-            // Render multi-property legend
-            renderMultiPropertyLegend(properties, propertyBookingCounts);
-        }
-
-        /**
-         * Render the multi-property legend showing all properties with their colors
-         */
-        function renderMultiPropertyLegend(properties, bookingCounts) {
-            const legendEl = document.getElementById('multiPropertyLegend');
-
-            const legendHTML = properties.map(prop => {
-                const colorIndex = propertyColorMap.get(prop.id) || 0;
-                const count = bookingCounts[prop.id] || 0;
-
-                return `
-                    <div class="legend-property-item">
-                        <div class="legend-property-color property-color-${colorIndex}"></div>
-                        <div class="legend-property-name" title="${prop.name}">${prop.name}</div>
-                        <div class="legend-property-count">${count} booking${count === 1 ? '' : 's'}</div>
-                    </div>
-                `;
-            }).join('');
-
-            legendEl.innerHTML = legendHTML || '<div style="text-align: center; color: var(--text-secondary);">No properties found</div>';
-        }
-
-        /**
-         * Show bookings for a specific day in multi-property mode
-         */
-        async function showDayBookingsMulti(day, month, year) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-            try {
-                const reservations = await db.getReservations();
-                const properties = await db.getProperties();
-
-                // Filter reservations for the selected date
-                const dayBookings = reservations.filter(r => {
-                    if (r.status === 'cancelled') return false;
-
-                    const checkIn = new Date(r.check_in);
-                    const checkOut = new Date(r.check_out);
-                    const selectedDate = new Date(dateStr);
-
-                    return checkIn <= selectedDate && checkOut >= selectedDate;
-                });
-
-                if (dayBookings.length === 0) {
-                    showToast('No bookings for this date', 'info');
-                    return;
-                }
-
-                // Group by property
-                const byProperty = {};
-                dayBookings.forEach(booking => {
-                    const propId = booking.property_id;
-                    if (!byProperty[propId]) {
-                        byProperty[propId] = [];
-                    }
-                    byProperty[propId].push(booking);
-                });
-
-                // Create modal content
-                let content = `<h3 style="margin-bottom: 16px;">Bookings for ${dateStr}</h3>`;
-
-                Object.entries(byProperty).forEach(([propId, bookings]) => {
-                    const property = properties.find(p => p.id == propId);
-                    const colorIndex = propertyColorMap.get(parseInt(propId)) || 0;
-                    const propName = property ? property.name : `Property ${propId}`;
-
-                    content += `
-                        <div style="margin-bottom: 20px;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                <div class="property-badge property-color-${colorIndex}">${propName}</div>
-                                <span style="font-weight: 600; color: var(--text-secondary);">(${bookings.length} booking${bookings.length === 1 ? '' : 's'})</span>
-                            </div>
-                            ${bookings.map(b => `
-                                <div style="padding: 12px; background: var(--background-alt); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid var(--primary);">
-                                    <div style="font-weight: 600; color: var(--text-primary);">${b.guest_name}</div>
-                                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                                        ${b.booking_id} | ${b.check_in} → ${b.check_out}
-                                    </div>
-                                    <div style="margin-top: 4px;">
-                                        <span class="badge badge-${b.status === 'confirmed' ? 'success' : b.status === 'pending' ? 'warning' : 'info'}">${b.status || 'confirmed'}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                });
-
-                showModal('Day Bookings', content);
-            } catch (error) {
-                console.error('Error loading day bookings:', error);
-                showToast('Failed to load bookings', 'error');
-            }
-        }
-
-        /**
-         * Render rate calendar view showing pricing for each day
-         */
-        function renderRateCalendar(reservations, propertyFilter) {
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
-
-            // Build rates map by day
-            const ratesMap = {};
-
-            // Filter reservations by property if needed
             let filteredReservations = reservations.filter(r => r.status !== 'cancelled');
-            if (propertyFilter) {
-                filteredReservations = filteredReservations.filter(r => r.property_id == propertyFilter);
+            if (currentPropertyFilter) {
+                filteredReservations = filteredReservations.filter(r => r.property_id == currentPropertyFilter);
             }
 
-            // Calculate rate for each day based on reservations
-            filteredReservations.forEach(r => {
-                const checkIn = new Date(r.check_in);
-                const checkOut = new Date(r.check_out);
-                const totalAmount = parseFloat(r.total_amount) || 0;
+            // Fetch synced availability dates (OTA blocked dates)
+            let syncedDates = [];
+            try {
+                if (currentPropertyFilter) {
+                    const { data: syncedData, error: syncError } = await supabase
+                        .from('synced_availability')
+                        .select('*')
+                        .eq('property_id', currentPropertyFilter);
 
-                // Calculate nights
-                const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
-                const ratePerNight = nights > 0 ? totalAmount / nights : totalAmount;
-
-                let currentDate = new Date(checkIn);
-
-                while (currentDate < checkOut) {
-                    if (currentDate.getMonth() === month && currentDate.getFullYear() === year) {
-                        const day = currentDate.getDate();
-                        if (!ratesMap[day]) {
-                            ratesMap[day] = [];
-                        }
-                        ratesMap[day].push(ratePerNight);
-                    }
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
-            });
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const today = new Date();
-
-            let calendarHTML = '';
-
-            // Calendar headers
-            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
-                calendarHTML += `<div class="calendar-day-header">${day}</div>`;
-            });
-
-            // Empty days before month starts
-            for (let i = 0; i < firstDay; i++) {
-                calendarHTML += '<div class="calendar-day empty"></div>';
-            }
-
-            // Calculate stats for this month
-            let totalRevenue = 0;
-            let daysWithRates = 0;
-
-            // Calendar days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-                const dayRates = ratesMap[day] || [];
-                const avgRate = dayRates.length > 0 ? dayRates.reduce((a, b) => a + b, 0) / dayRates.length : 0;
-
-                if (avgRate > 0) {
-                    totalRevenue += avgRate;
-                    daysWithRates++;
-                }
-
-                // Determine rate category
-                let rateClass = 'rate-none';
-                let rateDisplay = 'No rate';
-
-                if (avgRate > 0) {
-                    if (avgRate >= 10000) {
-                        rateClass = 'rate-premium';
-                        rateDisplay = `₹${(avgRate / 1000).toFixed(1)}K`;
-                    } else if (avgRate >= 5000) {
-                        rateClass = 'rate-high';
-                        rateDisplay = `₹${(avgRate / 1000).toFixed(1)}K`;
-                    } else if (avgRate >= 2000) {
-                        rateClass = 'rate-medium';
-                        rateDisplay = `₹${(avgRate / 1000).toFixed(1)}K`;
-                    } else {
-                        rateClass = 'rate-low';
-                        rateDisplay = `₹${Math.round(avgRate)}`;
+                    if (!syncError && syncedData) {
+                        syncedDates = syncedData;
                     }
                 }
-
-                calendarHTML += `
-                    <div class="calendar-day ${isToday ? 'today' : ''} ${rateClass}"
-                         onclick="showDayRate(${day}, ${month}, ${year}, ${avgRate})"
-                         title="Average rate: ₹${Math.round(avgRate)}">
-                        <div style="font-weight: 600; font-size: 14px;">${day}</div>
-                        <div class="rate-amount">${rateDisplay}</div>
-                        ${dayRates.length > 1 ? `<div class="rate-indicator">${dayRates.length} bookings</div>` : ''}
-                    </div>
-                `;
+            } catch (error) {
+                console.error('Error fetching synced dates:', error);
             }
 
-            document.getElementById('calendarGrid').innerHTML = calendarHTML;
-
-            // Show/hide appropriate legends
-            document.getElementById('calendarLegend').style.display = 'none';
-            document.getElementById('multiPropertyLegend').style.display = 'none';
-            document.getElementById('rateCalendarLegend').style.display = 'block';
-
-            // Update legend with stats
-            const legendEl = document.getElementById('rateCalendarLegend');
-
-            // Remove existing stats if present
-            const existingStats = legendEl.querySelector('.rate-stats');
-            if (existingStats) {
-                existingStats.remove();
-            }
-
-            const avgMonthlyRate = daysWithRates > 0 ? totalRevenue / daysWithRates : 0;
-            const statsHTML = `
-                <div class="rate-stats" style="margin-top: 12px; padding: 12px; background: var(--primary-light); border-radius: 6px; border-left: 3px solid var(--primary);">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; font-size: 13px;">
-                        <div>
-                            <div style="color: var(--text-secondary); font-size: 11px;">Total Revenue</div>
-                            <div style="font-weight: 700; font-size: 16px;">₹${Math.round(totalRevenue).toLocaleString('en-IN')}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-secondary); font-size: 11px;">Avg Rate/Night</div>
-                            <div style="font-weight: 700; font-size: 16px;">₹${Math.round(avgMonthlyRate).toLocaleString('en-IN')}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-secondary); font-size: 11px;">Days with Bookings</div>
-                            <div style="font-weight: 700; font-size: 16px;">${daysWithRates} / ${daysInMonth}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            legendEl.insertAdjacentHTML('beforeend', statsHTML);
-        }
-
-        /**
-         * Show rate details for a specific day
-         */
-        function showDayRate(day, month, year, avgRate) {
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-
-            const content = `
-                <h3 style="margin-bottom: 16px;">${monthNames[month]} ${day}, ${year}</h3>
-                <div style="padding: 20px; background: var(--background-alt); border-radius: 8px; text-align: center;">
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Average Rate</div>
-                    <div style="font-size: 36px; font-weight: 700; color: var(--primary);">₹${Math.round(avgRate).toLocaleString('en-IN')}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">per night</div>
-                </div>
-                <div style="margin-top: 16px; padding: 12px; background: var(--warning-light); color: white; border-radius: 6px; font-size: 13px;">
-                    💡 Rates are calculated from active reservations. Click on a day to view booking details.
-                </div>
-            `;
-
-            showModal('Rate Details', content);
+            renderCalendar(filteredReservations, syncedDates);
         }
 
         function renderCalendar(reservations, syncedDates = []) {
@@ -21073,11 +20610,6 @@ function printPropertyView() {
             }
 
             document.getElementById('calendarGrid').innerHTML = calendarHTML;
-
-            // Show/hide appropriate legends (single property mode)
-            document.getElementById('calendarLegend').style.display = 'block';
-            document.getElementById('multiPropertyLegend').style.display = 'none';
-            document.getElementById('rateCalendarLegend').style.display = 'none';
 
             // Initialize drag-to-book functionality
             initializeDragToBook();
