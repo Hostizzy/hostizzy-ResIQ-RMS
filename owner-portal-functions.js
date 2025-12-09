@@ -23,39 +23,8 @@ let propertyBarChart = null;
 let currentCalendarDate = new Date();
 let calendarBookings = [];
 
-// Show Owner View
-function showOwnerView(viewName) {
-    // Hide all owner views
-    document.querySelectorAll('.owner-view').forEach(view => {
-        view.classList.add('hidden');
-    });
-
-    // Show selected view
-    document.getElementById(viewName + 'View').classList.remove('hidden');
-
-    // Update nav buttons
-    document.querySelectorAll('.owner-nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-
-    // Load data for the view
-    if (viewName === 'ownerDashboard') {
-        loadOwnerDashboard();
-    } else if (viewName === 'ownerBookings') {
-        loadOwnerBookings();
-    } else if (viewName === 'ownerPayments') {
-        loadOwnerPayments();
-    } else if (viewName === 'ownerCalendar') {
-        loadOwnerCalendar();
-    } else if (viewName === 'ownerPayouts') {
-        loadOwnerPayouts();
-    } else if (viewName === 'ownerBankDetails') {
-        loadOwnerBankDetails();
-    } else if (viewName === 'ownerProperties') {
-        loadOwnerProperties();
-    }
-}
+// NOTE: showOwnerView is now defined in owner-portal.html
+// to support the new home view and sidebar navigation
 
 // =====================================================
 // ENHANCED DASHBOARD WITH ANALYTICS

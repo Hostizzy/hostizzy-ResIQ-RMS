@@ -49,8 +49,276 @@
         /* Owner Portal Styles */
         #ownerApp {
             display: flex;
-            flex-direction: column;
             height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 100;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-280px);
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .sidebar-header p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 12px;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            font-size: 14px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .sidebar-nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .sidebar-nav-item .icon {
+            font-size: 20px;
+            width: 24px;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transition: all 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .quick-action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--background);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .quick-action-btn.primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+        }
+
+        .quick-action-btn.primary:hover {
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* User Menu */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-menu:hover {
+            background: var(--background);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background: var(--background);
+        }
+
+        /* Home Page Grid */
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .home-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--border);
+            text-align: center;
+        }
+
+        .home-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .home-card-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .home-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .home-card-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .home-card.primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .home-card.primary .home-card-title,
+        .home-card.primary .home-card-description {
+            color: white;
+        }
+
+        .home-card.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .home-card.success .home-card-title,
+        .home-card.success .home-card-description {
+            color: white;
+        }
+
+        .home-card.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .home-card.warning .home-card-title,
+        .home-card.warning .home-card-description {
+            color: white;
         }
 
         .owner-nav-btn {
@@ -295,6 +563,78 @@
                 font-size: 14px;
             }
 
+            /* Sidebar on mobile */
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar.collapsed {
+                transform: translateX(-280px);
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            /* Top bar on mobile */
+            .top-bar {
+                padding: 12px 16px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+
+            .quick-actions {
+                display: none; /* Hide quick actions on mobile */
+            }
+
+            .user-menu {
+                padding: 4px 8px;
+            }
+
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .top-bar-left > div:not(.page-title) {
+                display: none; /* Hide extra elements */
+            }
+
+            /* Content area on mobile */
+            .content-area {
+                padding: 16px;
+            }
+
+            /* Home grid on mobile */
+            .home-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .home-card {
+                padding: 24px;
+            }
+
+            .home-card-icon {
+                font-size: 40px;
+            }
+
+            .home-card-title {
+                font-size: 16px;
+            }
+
+            .home-card-description {
+                font-size: 13px;
+            }
+
             .stat-card {
                 padding: 16px;
             }
@@ -509,49 +849,152 @@
 
     <!-- Owner Portal App -->
     <div id="ownerApp" class="hidden">
-        <!-- Owner Header -->
-        <header style="background: var(--primary); color: white; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h2 style="margin: 0; font-size: 20px;">🏠 Owner Portal</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.9;" id="ownerUserName">Owner Name</p>
+        <!-- Sidebar Toggle Button -->
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="ownerSidebar">
+            <div class="sidebar-header">
+                <h2>🏠 Owner Portal</h2>
+                <p id="ownerUserName">Owner Name</p>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-nav-item active" onclick="showOwnerView('ownerHome')">
+                    <span class="icon">🏠</span> Home
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerDashboard')">
+                    <span class="icon">📊</span> Analytics
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerBookings')">
+                    <span class="icon">📅</span> Bookings
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerPayments')">
+                    <span class="icon">💵</span> Payments
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerCalendar')">
+                    <span class="icon">🗓️</span> Calendar
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerPayouts')">
+                    <span class="icon">💰</span> Payouts
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerBankDetails')">
+                    <span class="icon">🏦</span> Bank Details
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerProperties')">
+                    <span class="icon">🏘️</span> Properties
+                </button>
+            </nav>
+            <div style="padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <button onclick="logout()" style="width: 100%; background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    🚪 Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <h1 class="page-title" id="pageTitle">Home</h1>
                 </div>
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    <span style="font-size: 13px;" id="ownerUserEmail">owner@email.com</span>
-                    <button onclick="logout()" style="background: white; color: var(--primary); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                        Logout
-                    </button>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn primary" onclick="openPayoutRequestModal()">
+                            💰 Request Payout
+                        </button>
+                        <button class="quick-action-btn" onclick="showOwnerView('ownerCalendar')">
+                            🗓️ Calendar
+                        </button>
+                    </div>
+                    <div class="user-menu" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">O</div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text);" id="topBarUserName">Owner Name</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="ownerUserEmail">owner@email.com</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </header>
 
-        <!-- Owner Navigation -->
-        <nav style="background: white; border-bottom: 1px solid var(--border); padding: 0 16px; display: flex; gap: 8px; overflow-x: auto;">
-            <button class="owner-nav-btn active" onclick="showOwnerView('ownerDashboard')">
-                📊 Dashboard
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerBookings')">
-                📅 Bookings
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerPayments')">
-                💵 Payments
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerCalendar')">
-                🗓️ Calendar
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerPayouts')">
-                💰 Payouts
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerBankDetails')">
-                🏦 Bank Details
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerProperties')">
-                🏠 Properties
-            </button>
-        </nav>
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Home View (NEW) -->
+                <div id="ownerHomeView" class="owner-view">
+                    <div style="max-width: 1200px; margin: 0 auto;">
+                        <div style="margin-bottom: 32px; text-align: center;">
+                            <h2 style="font-size: 32px; margin-bottom: 8px;">Welcome back, <span id="welcomeUserName">Owner</span>! 👋</h2>
+                            <p style="color: var(--text-secondary); font-size: 16px;">Manage your properties and track your earnings</p>
+                        </div>
 
-        <!-- Owner Content Area -->
-        <main style="flex: 1; overflow-y: auto; padding: 24px; background: var(--background);">
+                        <!-- Quick Stats Row -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #10b981;" id="homeQuickTotalCollected">₹0</div>
+                                <div class="stat-label">Total Collected</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #8b5cf6;" id="homeQuickNetEarnings">₹0</div>
+                                <div class="stat-label">Your Earnings</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #6366f1;" id="homeQuickPendingPayout">₹0</div>
+                                <div class="stat-label">Pending Payout</div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Grid -->
+                        <div class="home-grid">
+                            <div class="home-card primary" onclick="showOwnerView('ownerDashboard')">
+                                <div class="home-card-icon">📊</div>
+                                <div class="home-card-title">Analytics Dashboard</div>
+                                <div class="home-card-description">View detailed revenue analytics, charts, and monthly breakdowns</div>
+                            </div>
+
+                            <div class="home-card success" onclick="showOwnerView('ownerBookings')">
+                                <div class="home-card-icon">📅</div>
+                                <div class="home-card-title">Bookings</div>
+                                <div class="home-card-description">View all your property bookings and reservations</div>
+                            </div>
+
+                            <div class="home-card warning" onclick="showOwnerView('ownerPayments')">
+                                <div class="home-card-icon">💵</div>
+                                <div class="home-card-title">Payment Collections</div>
+                                <div class="home-card-description">Track all payments received for your properties</div>
+                            </div>
+
+                            <div class="home-card" onclick="showOwnerView('ownerCalendar')">
+                                <div class="home-card-icon">🗓️</div>
+                                <div class="home-card-title">Calendar</div>
+                                <div class="home-card-description">Check availability and booking schedules</div>
+                            </div>
+
+                            <div class="home-card" onclick="showOwnerView('ownerPayouts')">
+                                <div class="home-card-icon">💰</div>
+                                <div class="home-card-title">Payout History</div>
+                                <div class="home-card-description">View your payout requests and payment history</div>
+                            </div>
+
+                            <div class="home-card" onclick="showOwnerView('ownerBankDetails')">
+                                <div class="home-card-icon">🏦</div>
+                                <div class="home-card-title">Bank Details</div>
+                                <div class="home-card-description">Manage your bank account and UPI information</div>
+                            </div>
+
+                            <div class="home-card" onclick="showOwnerView('ownerProperties')">
+                                <div class="home-card-icon">🏘️</div>
+                                <div class="home-card-title">My Properties</div>
+                                <div class="home-card-description">View all properties linked to your account</div>
+                            </div>
+
+                            <div class="home-card primary" onclick="openPayoutRequestModal()">
+                                <div class="home-card-icon">💸</div>
+                                <div class="home-card-title">Request Payout</div>
+                                <div class="home-card-description">Withdraw your earned amount to your bank account</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             <!-- Dashboard View -->
             <div id="ownerDashboardView" class="owner-view">
@@ -764,8 +1207,12 @@
                 <div id="ownerPropertiesList"></div>
             </div>
 
-        </main>
+            </div>
+            <!-- End Content Area -->
+        </div>
+        <!-- End Main Content -->
     </div>
+    <!-- End Owner App -->
 
     <!-- Payout Request Modal -->
     <div id="payoutRequestModal" class="modal">
@@ -953,6 +1400,120 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('ownerSidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Toggle User Menu (placeholder)
+        function toggleUserMenu() {
+            // Could add dropdown menu here
+        }
+
+        // Show Owner View (Updated for new layout)
+        function showOwnerView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.owner-view').forEach(view => {
+                view.classList.add('hidden');
+            });
+
+            // Show selected view
+            document.getElementById(viewName + 'View').classList.remove('hidden');
+
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar-nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.sidebar-nav-item')?.classList.add('active');
+
+            // Update page title
+            const pageTitles = {
+                'ownerHome': 'Home',
+                'ownerDashboard': 'Analytics Dashboard',
+                'ownerBookings': 'Bookings',
+                'ownerPayments': 'Payment Collections',
+                'ownerCalendar': 'Availability Calendar',
+                'ownerPayouts': 'Payout History',
+                'ownerBankDetails': 'Bank Details',
+                'ownerProperties': 'My Properties'
+            };
+            document.getElementById('pageTitle').textContent = pageTitles[viewName] || 'Owner Portal';
+
+            // Load data for specific views
+            if (viewName === 'ownerHome') {
+                loadOwnerHome();
+            } else if (viewName === 'ownerDashboard') {
+                loadOwnerDashboard();
+            } else if (viewName === 'ownerBookings') {
+                loadOwnerBookings();
+            } else if (viewName === 'ownerPayments') {
+                loadOwnerPayments();
+            } else if (viewName === 'ownerCalendar') {
+                loadOwnerCalendar();
+            } else if (viewName === 'ownerPayouts') {
+                loadOwnerPayouts();
+            } else if (viewName === 'ownerBankDetails') {
+                loadOwnerBankDetails();
+            } else if (viewName === 'ownerProperties') {
+                loadOwnerProperties();
+            }
+        }
+
+        // Load Owner Home (Quick Stats)
+        async function loadOwnerHome() {
+            try {
+                const ownerId = currentUser.id;
+                const owner = await db.getOwner(ownerId);
+                const propertyIds = owner.property_ids || [];
+
+                if (propertyIds.length === 0) {
+                    document.getElementById('homeQuickTotalCollected').textContent = '₹0';
+                    document.getElementById('homeQuickNetEarnings').textContent = '₹0';
+                    document.getElementById('homeQuickPendingPayout').textContent = '₹0';
+                    return;
+                }
+
+                // Get quick stats (reuse dashboard logic)
+                const { data: payments } = await supabase
+                    .from('payments')
+                    .select('*, reservations!inner(property_id, property_name)')
+                    .in('reservations.property_id', propertyIds);
+
+                const { data: properties } = await supabase
+                    .from('properties')
+                    .select('*')
+                    .in('id', propertyIds);
+
+                const { data: bookings } = await supabase
+                    .from('reservations')
+                    .select('*')
+                    .in('property_id', propertyIds);
+
+                const totalCollected = (payments || []).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+
+                let totalHostizzyShare = 0;
+                (payments || []).forEach(payment => {
+                    const booking = (bookings || []).find(b => b.booking_id === payment.booking_id);
+                    if (booking) {
+                        const property = (properties || []).find(p => p.id === booking.property_id);
+                        const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
+                        totalHostizzyShare += (parseFloat(payment.amount) || 0) * (commissionRate / 100);
+                    }
+                });
+
+                const netEarnings = totalCollected - totalHostizzyShare;
+                const pendingPayout = await db.getOwnerPendingPayout(ownerId);
+
+                document.getElementById('homeQuickTotalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                document.getElementById('homeQuickNetEarnings').textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                document.getElementById('homeQuickPendingPayout').textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+            } catch (error) {
+                // Silently fail for home view
+            }
+        }
+
         // Owner Login Function
         async function ownerLogin() {
             const email = document.getElementById('ownerLoginEmail').value.trim();
@@ -987,12 +1548,15 @@
                     document.getElementById('ownerLoginScreen').classList.add('hidden');
                     document.getElementById('ownerApp').classList.remove('hidden');
 
-                    // Update UI
+                    // Update UI in multiple places
                     document.getElementById('ownerUserEmail').textContent = currentUser.email;
                     document.getElementById('ownerUserName').textContent = currentUser.name;
+                    document.getElementById('topBarUserName').textContent = currentUser.name;
+                    document.getElementById('welcomeUserName').textContent = currentUser.name.split(' ')[0];
+                    document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
-                    // Load dashboard
-                    await loadOwnerDashboard();
+                    // Load home view
+                    await loadOwnerHome();
 
                     showToast('Welcome!', `Logged in as ${owner.name}`, '👋');
                 } else {
@@ -1038,12 +1602,15 @@
             document.getElementById('ownerLoginScreen').classList.add('hidden');
             document.getElementById('ownerApp').classList.remove('hidden');
 
-            // Update UI with user info
+            // Update UI with user info in multiple places
             document.getElementById('ownerUserEmail').textContent = currentUser.email;
             document.getElementById('ownerUserName').textContent = currentUser.name;
+            document.getElementById('topBarUserName').textContent = currentUser.name;
+            document.getElementById('welcomeUserName').textContent = currentUser.name.split(' ')[0];
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
-            // Load dashboard
-            await loadOwnerDashboard();
+            // Load home view
+            await loadOwnerHome();
         });
     </script>
 
