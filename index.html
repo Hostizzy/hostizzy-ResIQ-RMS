@@ -8354,6 +8354,18 @@
                 </div>
             </div>
 
+            <!-- Commission Rate -->
+            <div style="margin-bottom: 24px; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fbbf24;">
+                <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">
+                    💰 Hostizzy Commission Rate (%)
+                </label>
+                <input type="number" id="settingsCommissionRate" min="0" max="100" step="0.1" placeholder="15"
+                    style="width: 100%; padding: 12px; border: 2px solid #fbbf24; border-radius: 8px; font-size: 14px; background: white;">
+                <div style="margin-top: 8px; font-size: 13px; color: #92400e;">
+                    💡 Percentage of revenue retained by Hostizzy (0-100%). Default: 15%
+                </div>
+            </div>
+
             <!-- iCal Sync Configuration -->
             <div style="margin-bottom: 24px;">
                 <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">
@@ -15315,6 +15327,9 @@
                 };
                 document.getElementById('settingsPropertyIcon').textContent = iconMap[property.type] || '🏠';
 
+                // Populate commission rate
+                document.getElementById('settingsCommissionRate').value = property.revenue_share_percent || 15;
+
                 // Populate iCal URL if exists
                 document.getElementById('icalUrlInput').value = property.ical_url || '';
 
@@ -15364,12 +15379,19 @@
         async function savePropertySettings() {
             const propertyId = document.getElementById('settingsPropertyId').value;
             const icalUrl = document.getElementById('icalUrlInput').value.trim();
+            const commissionRate = parseFloat(document.getElementById('settingsCommissionRate').value);
+
+            // Validate commission rate
+            if (isNaN(commissionRate) || commissionRate < 0 || commissionRate > 100) {
+                showToast('Please enter a valid commission rate (0-100%)', 'error');
+                return;
+            }
 
             // Validate URL if provided
             if (icalUrl) {
                 try {
                     new URL(icalUrl);
-                    
+
                     // Check if it's a valid iCal URL pattern
                     if (!icalUrl.includes('ical') && !icalUrl.includes('.ics')) {
                         showToast('Please enter a valid iCal URL (should contain "ical" or ".ics")', 'error');
@@ -15388,8 +15410,9 @@
                 saveButton.innerHTML = '⏳ Saving...';
                 saveButton.disabled = true;
 
-                // Update property with new iCal URL
+                // Update property with new settings
                 const updateData = {
+                    revenue_share_percent: commissionRate,
                     ical_url: icalUrl || null,
                     ical_sync_status: icalUrl ? 'idle' : null,
                     updated_at: new Date().toISOString()
@@ -15408,7 +15431,7 @@
                 if (error) throw error;
 
                 // Success
-                showToast(icalUrl ? '✅ iCal URL saved successfully!' : '✅ iCal URL removed', 'success');
+                showToast('✅ Property settings saved successfully!', 'success');
                 
                 // Close modal
                 closePropertySettings();

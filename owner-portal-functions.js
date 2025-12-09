@@ -68,10 +68,17 @@ async function loadOwnerDashboard() {
         const propertyIds = owner.property_ids || [];
 
         if (propertyIds.length === 0) {
-            document.getElementById('ownerTotalCollected').textContent = '₹0';
-            document.getElementById('ownerHostizzyShare').textContent = '₹0';
-            document.getElementById('ownerNetEarnings').textContent = '₹0';
-            document.getElementById('ownerPendingPayout').textContent = '₹0';
+            const elements = {
+                ownerTotalCollected: document.getElementById('ownerTotalCollected'),
+                ownerHostizzyShare: document.getElementById('ownerHostizzyShare'),
+                ownerNetEarnings: document.getElementById('ownerNetEarnings'),
+                ownerPendingPayout: document.getElementById('ownerPendingPayout')
+            };
+
+            if (elements.ownerTotalCollected) elements.ownerTotalCollected.textContent = '₹0';
+            if (elements.ownerHostizzyShare) elements.ownerHostizzyShare.textContent = '₹0';
+            if (elements.ownerNetEarnings) elements.ownerNetEarnings.textContent = '₹0';
+            if (elements.ownerPendingPayout) elements.ownerPendingPayout.textContent = '₹0';
             return;
         }
 
@@ -127,15 +134,21 @@ async function loadOwnerDashboard() {
         // Get pending payout
         const pendingPayout = await db.getOwnerPendingPayout(ownerId);
 
-        // Update cards
-        document.getElementById('ownerTotalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        document.getElementById('ownerHostizzyShare').textContent = '₹' + totalHostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        document.getElementById('ownerNetEarnings').textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        document.getElementById('ownerPendingPayout').textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        // Update cards with null checks
+        const collectedEl = document.getElementById('ownerTotalCollected');
+        const shareEl = document.getElementById('ownerHostizzyShare');
+        const earningsEl = document.getElementById('ownerNetEarnings');
+        const payoutEl = document.getElementById('ownerPendingPayout');
+        const percentEl = document.getElementById('ownerHostizzyPercent');
+
+        if (collectedEl) collectedEl.textContent = '₹' + totalCollected.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        if (shareEl) shareEl.textContent = '₹' + totalHostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        if (earningsEl) earningsEl.textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        if (payoutEl) payoutEl.textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
         // Calculate average commission percentage
         const avgCommission = totalCollected > 0 ? ((totalHostizzyShare / totalCollected) * 100).toFixed(1) : 0;
-        document.getElementById('ownerHostizzyPercent').textContent = `${avgCommission}% average`;
+        if (percentEl) percentEl.textContent = `${avgCommission}% average`;
 
         // Load monthly breakdown
         loadMonthlyBreakdown();
