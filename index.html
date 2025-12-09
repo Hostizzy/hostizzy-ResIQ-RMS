@@ -9623,6 +9623,15 @@
                 const { error } = await supabase.from('reservations').delete().eq('booking_id', bookingId);
                 if (error) throw error;
             },
+            async updateReservation(reservationId, updates) {
+                const { data, error } = await supabase
+                    .from('reservations')
+                    .update(updates)
+                    .eq('id', reservationId)
+                    .select();
+                if (error) throw error;
+                return data?.[0];
+            },
             async getPayments(bookingId) {
                 const { data, error } = await supabase
                     .from('payments')
@@ -20379,8 +20388,8 @@ function printPropertyView() {
                 if (checkInInput) checkInInput.value = checkInStr;
                 if (checkOutInput) checkOutInput.value = checkOutStr;
 
-                // Calculate and update total amount if property is selected
-                calculateTotalAmount();
+                // Note: User will need to manually calculate total after selecting property
+                // calculateTotalAmount() function would need to be implemented
             }, 100);
 
             // Reset drag state
