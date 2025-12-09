@@ -19790,22 +19790,15 @@ function printPropertyView() {
                 }
 
                 tbody.innerHTML = owners.map(owner => {
-                    // Get assigned property names (parse from JSON string or array)
-                    let assignedProps = [];
-                    try {
-                        if (owner.property_ids) {
-                            assignedProps = Array.isArray(owner.property_ids) ? owner.property_ids : [];
-                        } else if (owner.properties) {
-                            assignedProps = JSON.parse(owner.properties);
-                        }
-                    } catch (e) {
-                        console.error('Error parsing properties:', e);
-                    }
-
+                    // Get assigned property names
+                    const assignedProps = owner.property_ids || [];
                     const propNames = assignedProps.map(id => {
                         const prop = properties.find(p => p.id === id);
                         return prop ? prop.name : `Property ${id}`;
                     }).join(', ') || 'None';
+
+                    const statusText = owner.is_active ? 'ACTIVE' : 'INACTIVE';
+                    const statusBadge = owner.is_active ? 'badge-success' : 'badge-warning';
 
                     return `
                         <tr>
@@ -19813,10 +19806,10 @@ function printPropertyView() {
                             <td>${owner.email}</td>
                             <td>${owner.phone || '-'}</td>
                             <td><span class="badge badge-info">${assignedProps.length} propert${assignedProps.length === 1 ? 'y' : 'ies'}</span><br><small style="color: var(--text-secondary);">${propNames}</small></td>
-                            <td><span class="badge ${owner.status === 'active' ? 'badge-success' : 'badge-warning'}">${owner.status.toUpperCase()}</span></td>
+                            <td><span class="badge ${statusBadge}">${statusText}</span></td>
                             <td>
-                                <button class="btn btn-secondary btn-sm" onclick="editOwner(${owner.id})">Edit</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteOwner(${owner.id})">Delete</button>
+                                <button class="btn btn-secondary btn-sm" onclick="editOwner('${owner.id}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteOwner('${owner.id}')">Delete</button>
                             </td>
                         </tr>
                     `;
@@ -19847,21 +19840,11 @@ function printPropertyView() {
                     document.getElementById('ownerName').value = owner.name;
                     document.getElementById('ownerEmail').value = owner.email;
                     document.getElementById('ownerPhone').value = owner.phone || '';
-                    document.getElementById('ownerStatus').value = owner.status;
+                    document.getElementById('ownerStatus').value = owner.is_active ? 'active' : 'inactive';
                     document.querySelector('.modal-title').textContent = 'Edit Property Owner';
 
-                    // Check assigned properties (handle both array and JSON string)
-                    let assignedProps = [];
-                    try {
-                        if (owner.property_ids) {
-                            assignedProps = Array.isArray(owner.property_ids) ? owner.property_ids : [];
-                        } else if (owner.properties) {
-                            assignedProps = JSON.parse(owner.properties);
-                        }
-                    } catch (e) {
-                        console.error('Error parsing properties for edit:', e);
-                    }
-
+                    // Check assigned properties
+                    const assignedProps = owner.property_ids || [];
                     assignedProps.forEach(propId => {
                         const checkbox = document.querySelector(`.property-checkbox[value="${propId}"]`);
                         if (checkbox) checkbox.checked = true;
@@ -19935,15 +19918,9 @@ function printPropertyView() {
                     name,
                     email,
                     phone,
-                    status
+                    is_active: status === 'active',
+                    property_ids: selectedProperties
                 };
-
-                // Store property IDs as JSON string (workaround for missing array column)
-                // TODO: Run this SQL in Supabase to add proper array column:
-                // ALTER TABLE property_owners ADD COLUMN property_ids INTEGER[] DEFAULT '{}';
-                if (selectedProperties && selectedProperties.length > 0) {
-                    ownerData.properties = JSON.stringify(selectedProperties);
-                }
 
                 // Add password only for new owners
                 if (!ownerId) {
