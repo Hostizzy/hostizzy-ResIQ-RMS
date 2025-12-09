@@ -288,10 +288,193 @@
             from { transform: translateX(400px); }
             to { transform: translateX(0); }
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            .owner-nav-btn {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            /* Stack charts vertically on mobile */
+            #ownerDashboardView > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Mobile table cards */
+            .data-table {
+                display: none;
+            }
+
+            .mobile-card-list {
+                display: block !important;
+            }
+
+            .booking-mobile-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+
+            .booking-mobile-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .booking-mobile-card-body {
+                display: grid;
+                gap: 8px;
+            }
+
+            .booking-mobile-row {
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+            }
+
+            .booking-mobile-label {
+                color: var(--text-secondary);
+                font-weight: 500;
+            }
+
+            .booking-mobile-value {
+                font-weight: 600;
+                text-align: right;
+            }
+
+            /* Touch-friendly buttons */
+            .btn {
+                min-height: 48px;
+                padding: 14px 24px;
+            }
+
+            /* Reduce padding on mobile */
+            main {
+                padding: 16px !important;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            /* Calendar mobile styles */
+            .calendar-grid {
+                font-size: 12px;
+            }
+
+            .calendar-day {
+                min-height: 50px;
+            }
+        }
+
+        /* Calendar Styles */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day-header {
+            font-weight: 700;
+            text-align: center;
+            padding: 12px;
+            background: var(--background);
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            min-height: 80px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.empty {
+            background: var(--background-alt);
+            cursor: default;
+        }
+
+        .calendar-day.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .calendar-day.available {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+
+        .calendar-day.booked {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .calendar-day.blocked {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+
+        .calendar-day-number {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .calendar-day-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .mobile-card-list {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                display: none;
+            }
+
+            .mobile-card-list {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <!-- Owner Login Screen -->
     <div id="ownerLoginScreen" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--background); padding: 20px;">
@@ -348,7 +531,13 @@
                 📊 Dashboard
             </button>
             <button class="owner-nav-btn" onclick="showOwnerView('ownerBookings')">
-                📅 My Bookings
+                📅 Bookings
+            </button>
+            <button class="owner-nav-btn" onclick="showOwnerView('ownerPayments')">
+                💵 Payments
+            </button>
+            <button class="owner-nav-btn" onclick="showOwnerView('ownerCalendar')">
+                🗓️ Calendar
             </button>
             <button class="owner-nav-btn" onclick="showOwnerView('ownerPayouts')">
                 💰 Payouts
@@ -357,7 +546,7 @@
                 🏦 Bank Details
             </button>
             <button class="owner-nav-btn" onclick="showOwnerView('ownerProperties')">
-                🏠 My Properties
+                🏠 Properties
             </button>
         </nav>
 
@@ -369,32 +558,60 @@
                 <h3 style="margin: 0 0 24px 0;">Revenue Dashboard</h3>
 
                 <!-- Revenue Cards -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <div class="stat-card">
-                        <div class="stat-value" id="ownerTotalRevenue">₹0</div>
-                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value" style="color: #10b981;" id="ownerTotalCollected">₹0</div>
+                        <div class="stat-label">Total Collected</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerTotalCollectedChange">From payments received</small>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="ownerHostizzyCommission">₹0</div>
-                        <div class="stat-label">Hostizzy Commission</div>
+                        <div class="stat-value" style="color: #f59e0b;" id="ownerHostizzyShare">₹0</div>
+                        <div class="stat-label">Hostizzy Share</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerHostizzyPercent">Average commission</small>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="ownerNetEarnings">₹0</div>
-                        <div class="stat-label">Net Earnings</div>
+                        <div class="stat-value" style="color: #8b5cf6;" id="ownerNetEarnings">₹0</div>
+                        <div class="stat-label">Your Earnings</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerEarningsPercent">Available for payout</small>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="ownerPendingPayout">₹0</div>
+                        <div class="stat-value" style="color: #6366f1;" id="ownerPendingPayout">₹0</div>
                         <div class="stat-label">Pending Payout</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Not yet requested</small>
                     </div>
                 </div>
 
                 <!-- Request Payout Button -->
-                <button onclick="openPayoutRequestModal()" class="btn btn-primary" style="margin-bottom: 24px;">
+                <button onclick="openPayoutRequestModal()" class="btn btn-primary" style="margin-bottom: 24px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
                     💰 Request Payout
                 </button>
 
+                <!-- Revenue Charts -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div class="card">
+                        <h4 style="margin: 0 0 16px 0;">Monthly Revenue Trend</h4>
+                        <canvas id="revenueLineChart"></canvas>
+                    </div>
+                    <div class="card">
+                        <h4 style="margin: 0 0 16px 0;">Revenue Split</h4>
+                        <canvas id="revenuePieChart" style="max-height: 250px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Property Performance -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h4 style="margin: 0 0 16px 0;">Property Performance</h4>
+                    <canvas id="propertyBarChart"></canvas>
+                </div>
+
+                <!-- Monthly Breakdown -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h4 style="margin: 0 0 16px 0;">📅 Month-by-Month Breakdown</h4>
+                    <div id="monthlyBreakdown"></div>
+                </div>
+
                 <!-- Recent Bookings -->
-                <h4>Recent Bookings</h4>
+                <h4 style="margin-bottom: 16px;">Recent Bookings</h4>
                 <div id="ownerRecentBookings"></div>
             </div>
 
@@ -402,6 +619,105 @@
             <div id="ownerBookingsView" class="owner-view hidden">
                 <h3 style="margin: 0 0 24px 0;">My Bookings</h3>
                 <div id="ownerBookingsList"></div>
+            </div>
+
+            <!-- Payments View -->
+            <div id="ownerPaymentsView" class="owner-view hidden">
+                <h3 style="margin: 0 0 24px 0;">Payment Collections</h3>
+
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Month</label>
+                            <select id="paymentMonthFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="">All Months</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Property</label>
+                            <select id="paymentPropertyFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Payout Status</label>
+                            <select id="paymentPayoutFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="">All</option>
+                                <option value="eligible">Eligible for Payout</option>
+                                <option value="paid_out">Already Paid Out</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="paymentsTotal">₹0</div>
+                        <div class="stat-label">Total Payments</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="paymentsToOwner">₹0</div>
+                        <div class="stat-label">Paid to Owner</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="paymentsToHostizzy">₹0</div>
+                        <div class="stat-label">Paid to Hostizzy</div>
+                    </div>
+                </div>
+
+                <!-- Payments List -->
+                <div id="ownerPaymentsList"></div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="ownerCalendarView" class="owner-view hidden">
+                <h3 style="margin: 0 0 24px 0;">Availability Calendar</h3>
+
+                <!-- Calendar Controls -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Select Property</label>
+                            <select id="calendarPropertyFilter" onchange="loadOwnerCalendar()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: flex-end;">
+                            <button onclick="changeCalendarMonth(-1)" class="btn" style="padding: 8px 16px;">← Prev</button>
+                            <div style="text-align: center; min-width: 150px;">
+                                <span id="currentCalendarMonth" style="font-weight: 700; font-size: 16px;">December 2024</span>
+                            </div>
+                            <button onclick="changeCalendarMonth(1)" class="btn" style="padding: 8px 16px;">Next →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Legend -->
+                <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: #10b981; border-radius: 4px;"></div>
+                        <span style="font-size: 14px;">Available</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: #3b82f6; border-radius: 4px;"></div>
+                        <span style="font-size: 14px;">Booked</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: #ef4444; border-radius: 4px;"></div>
+                        <span style="font-size: 14px;">Blocked</span>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div id="ownerCalendarGrid" class="card"></div>
+
+                <!-- Booking Details -->
+                <div id="calendarBookingDetails" class="card hidden" style="margin-top: 16px;">
+                    <h4 style="margin: 0 0 16px 0;">Booking Details</h4>
+                    <div id="calendarBookingDetailsContent"></div>
+                </div>
             </div>
 
             <!-- Payouts View -->
@@ -639,13 +955,8 @@
 
         // Owner Login Function
         async function ownerLogin() {
-            console.log('🚀 Owner login function called');
-
             const email = document.getElementById('ownerLoginEmail').value.trim();
             const password = document.getElementById('ownerLoginPassword').value;
-
-            console.log('📧 Email:', email);
-            console.log('🔑 Password length:', password.length);
 
             if (!email || !password) {
                 showToast('Login Error', 'Please enter email and password', '❌');
@@ -653,8 +964,6 @@
             }
 
             try {
-                console.log('🔍 Fetching owners from database...');
-
                 // Get all owners
                 const { data: owners, error } = await supabase
                     .from('property_owners')
@@ -662,25 +971,17 @@
 
                 if (error) throw error;
 
-                console.log('📋 Owners fetched:', owners ? owners.length : 0);
-
                 const owner = owners.find(o => o.email === email && o.password === password);
-                console.log('🔎 Owner match found:', !!owner);
 
                 if (owner) {
                     if (!owner.is_active) {
-                        console.log('❌ Owner account is inactive');
                         showToast('Account Inactive', 'Your account has been deactivated', '❌');
                         return;
                     }
 
-                    console.log('✅ Login successful');
                     currentUser = owner;
                     currentUser.userType = 'owner';
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-                    console.log('💾 User saved to localStorage');
-                    console.log('🔄 Showing owner portal app...');
 
                     // Hide login screen, show app
                     document.getElementById('ownerLoginScreen').classList.add('hidden');
@@ -695,12 +996,10 @@
 
                     showToast('Welcome!', `Logged in as ${owner.name}`, '👋');
                 } else {
-                    console.log('❌ Invalid credentials');
                     showToast('Login Failed', 'Invalid email or password', '❌');
                 }
 
             } catch (error) {
-                console.error('Login error:', error);
                 showToast('Login Error', error.message, '❌');
             }
         }
@@ -716,13 +1015,9 @@
 
         // Check authentication on page load
         window.addEventListener('DOMContentLoaded', async () => {
-            console.log('🔍 Owner Portal: Checking authentication...');
-
             const storedUser = localStorage.getItem('currentUser');
-            console.log('📦 Stored user:', storedUser);
 
             if (!storedUser) {
-                console.log('❌ No stored user found, showing login screen');
                 // Show login screen
                 document.getElementById('ownerLoginScreen').style.display = 'flex';
                 document.getElementById('ownerApp').classList.add('hidden');
@@ -730,19 +1025,14 @@
             }
 
             currentUser = JSON.parse(storedUser);
-            console.log('👤 Current user parsed:', currentUser);
-            console.log('🏷️ User type:', currentUser.userType);
 
             // Verify user type
             if (currentUser.userType !== 'owner') {
-                console.log('❌ User type mismatch. Expected: owner, Got:', currentUser.userType);
                 // Show login screen
                 document.getElementById('ownerLoginScreen').style.display = 'flex';
                 document.getElementById('ownerApp').classList.add('hidden');
                 return;
             }
-
-            console.log('✅ Authentication successful, loading owner portal...');
 
             // Hide login, show app
             document.getElementById('ownerLoginScreen').classList.add('hidden');

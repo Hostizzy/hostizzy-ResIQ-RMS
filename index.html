@@ -7862,6 +7862,11 @@
                     <input type="number" id="propertyCapacity" min="1" value="4">
                 </div>
             </div>
+            <div class="form-group">
+                <label>Hostizzy Commission Rate (%) *</label>
+                <input type="number" id="propertyCommissionRate" min="0" max="100" step="0.1" value="15" required>
+                <small style="color: var(--text-secondary);">Percentage of revenue retained by Hostizzy (0-100%). Default: 15%</small>
+            </div>
             <button class="btn btn-primary" style="width: 100%;" onclick="saveProperty()">Save Property</button>
         </div>
     </div>
@@ -15212,15 +15217,23 @@
 
         async function saveProperty() {
             try {
+                const commissionRate = parseFloat(document.getElementById('propertyCommissionRate').value);
+
                 const property = {
                     name: document.getElementById('propertyName').value,
                     location: document.getElementById('propertyLocation').value,
                     type: document.getElementById('propertyType').value,
-                    capacity: parseInt(document.getElementById('propertyCapacity').value)
+                    capacity: parseInt(document.getElementById('propertyCapacity').value),
+                    revenue_share_percent: commissionRate || 15
                 };
-                
+
                 if (!property.name || !property.location) {
                     showToast('Validation Error', 'Please fill in all required fields', '❌');
+                    return;
+                }
+
+                if (commissionRate < 0 || commissionRate > 100) {
+                    showToast('Validation Error', 'Commission rate must be between 0 and 100%', '❌');
                     return;
                 }
 
@@ -15234,7 +15247,7 @@
                 if (fetchError) throw fetchError;
 
                 // Calculate next available ID
-                const nextId = existingProperties?.length > 0 ? 
+                const nextId = existingProperties?.length > 0 ?
                     (existingProperties[0].id + 1) : 1;
 
                 // Add the ID to property object
@@ -15252,7 +15265,6 @@
                 await loadProperties(); // Refresh the properties list
                 showToast('Success', 'Property saved!', '✅');
             } catch (error) {
-                console.error('Save property error:', error);
                 showToast('Error', 'Failed to save property: ' + error.message, '❌');
             }
         }
