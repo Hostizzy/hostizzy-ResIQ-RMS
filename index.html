@@ -4720,6 +4720,10 @@
                             <span class="sidebar-item-icon">👨‍💼</span>
                             <span class="sidebar-item-label">Team</span>
                         </a>
+                        <a class="sidebar-item" onclick="showView('owners')">
+                            <span class="sidebar-item-icon">🏠</span>
+                            <span class="sidebar-item-label">Owners</span>
+                        </a>
                         <a class="sidebar-item" onclick="showView('availability')">
                             <span class="sidebar-item-icon">📆</span>
                             <span class="sidebar-item-label">Availability</span>
@@ -6850,6 +6854,34 @@
             </div>
         </div>
 
+        <!-- Property Owners View -->
+        <div id="ownersView" class="container hidden">
+            <div class="card-header">
+                <h2>🏠 Property Owners</h2>
+                <button class="btn btn-primary" onclick="openOwnerModal()">+ Add Owner</button>
+            </div>
+            <div class="card">
+                <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                    Manage property owner credentials. Owners can access their assigned properties via the Owner Portal.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Assigned Properties</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ownersTableBody">
+                        <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Meals Management View -->
         <div id="mealsView" class="container hidden">
             <div class="card-header">
@@ -7811,6 +7843,49 @@
                 </select>
             </div>
             <button class="btn btn-primary" style="width: 100%;" onclick="saveTeamMember()">Add Member</button>
+        </div>
+    </div>
+
+    <!-- Owner Modal -->
+    <div id="ownerModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Property Owner</h3>
+                <button class="close-btn" onclick="closeOwnerModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Owner Name *</label>
+                <input type="text" id="ownerName" placeholder="Enter owner's full name" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="ownerEmail" placeholder="owner@example.com" required>
+                <small style="color: var(--text-secondary);">Owner will use this email to login to Owner Portal</small>
+            </div>
+            <div class="form-group">
+                <label>Password *</label>
+                <input type="password" id="ownerPassword" placeholder="Minimum 6 characters" required>
+                <small style="color: var(--text-secondary);">Owner will use this password to access their portal</small>
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="ownerPhone" placeholder="+91 1234567890">
+            </div>
+            <div class="form-group">
+                <label>Assign Properties *</label>
+                <div id="propertyCheckboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                    <!-- Will be populated dynamically -->
+                </div>
+                <small style="color: var(--text-secondary);">Owner will only see data from selected properties</small>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="ownerStatus">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="saveOwner()">Add Owner</button>
         </div>
     </div>
 
@@ -9626,9 +9701,50 @@
                     .from('reservations')
                     .select('*')
                     .eq('owner_id', ownerId)
-                    .order('check_in', { ascending: false });
+                    .order('check_in', { ascending: false});
                 if (error) throw error;
                 return data || [];
+            },
+            async getOwners() {
+                const { data, error } = await supabase
+                    .from('property_owners')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            },
+            async getOwner(ownerId) {
+                const { data, error } = await supabase
+                    .from('property_owners')
+                    .select('*')
+                    .eq('id', ownerId)
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+            async createOwner(ownerData) {
+                const { data, error } = await supabase
+                    .from('property_owners')
+                    .insert([ownerData])
+                    .select();
+                if (error) throw error;
+                return data?.[0];
+            },
+            async updateOwner(ownerId, ownerData) {
+                const { data, error } = await supabase
+                    .from('property_owners')
+                    .update(ownerData)
+                    .eq('id', ownerId)
+                    .select();
+                if (error) throw error;
+                return data?.[0];
+            },
+            async deleteOwner(ownerId) {
+                const { error } = await supabase
+                    .from('property_owners')
+                    .delete()
+                    .eq('id', ownerId);
+                if (error) throw error;
             }
         };
 
@@ -10220,6 +10336,7 @@
                 else if (viewName === 'business') await loadBusinessView();
                 else if (viewName === 'financials') await loadBusinessIntelligence();
                 else if (viewName === 'team') await loadTeam();
+                else if (viewName === 'owners') await loadOwners();
                 else if (viewName === 'settings') loadSettings(); // Synchronous
                 else if (viewName === 'communication') loadCommunication(); // Synchronous
 
@@ -19542,6 +19659,192 @@ function printPropertyView() {
             } catch (error) {
                 console.error('Delete team member error:', error);
                 showToast('Error', 'Failed to remove team member', '❌');
+            }
+        }
+
+        // ========== PROPERTY OWNERS MANAGEMENT ==========
+
+        async function loadOwners() {
+            try {
+                const owners = await db.getOwners();
+                const properties = await db.getProperties();
+                const tbody = document.getElementById('ownersTableBody');
+
+                if (!owners || owners.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color: var(--text-secondary);">No owners added yet. Click "+ Add Owner" to get started.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = owners.map(owner => {
+                    // Get assigned property names
+                    const assignedProps = owner.property_ids || [];
+                    const propNames = assignedProps.map(id => {
+                        const prop = properties.find(p => p.id === id);
+                        return prop ? prop.name : `Property ${id}`;
+                    }).join(', ') || 'None';
+
+                    return `
+                        <tr>
+                            <td>${owner.name}</td>
+                            <td>${owner.email}</td>
+                            <td>${owner.phone || '-'}</td>
+                            <td><span class="badge badge-info">${assignedProps.length} propert${assignedProps.length === 1 ? 'y' : 'ies'}</span><br><small style="color: var(--text-secondary);">${propNames}</small></td>
+                            <td><span class="badge ${owner.status === 'active' ? 'badge-success' : 'badge-warning'}">${owner.status.toUpperCase()}</span></td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="editOwner(${owner.id})">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteOwner(${owner.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Load owners error:', error);
+                showToast('Error', 'Failed to load owners', '❌');
+            }
+        }
+
+        async function openOwnerModal(ownerId = null) {
+            try {
+                const properties = await db.getProperties();
+                const modal = document.getElementById('ownerModal');
+
+                // Populate property checkboxes
+                const checkboxContainer = document.getElementById('propertyCheckboxes');
+                checkboxContainer.innerHTML = properties.map(prop => `
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer; border-radius: 4px;" onmouseover="this.style.background='var(--background-alt)'" onmouseout="this.style.background='transparent'">
+                        <input type="checkbox" value="${prop.id}" class="property-checkbox" style="width: 18px; height: 18px;">
+                        <span>${prop.name}</span>
+                    </label>
+                `).join('');
+
+                if (ownerId) {
+                    // Edit mode - load owner data
+                    const owner = await db.getOwner(ownerId);
+                    document.getElementById('ownerName').value = owner.name;
+                    document.getElementById('ownerEmail').value = owner.email;
+                    document.getElementById('ownerPhone').value = owner.phone || '';
+                    document.getElementById('ownerStatus').value = owner.status;
+                    document.querySelector('.modal-title').textContent = 'Edit Property Owner';
+
+                    // Check assigned properties
+                    if (owner.property_ids) {
+                        owner.property_ids.forEach(propId => {
+                            const checkbox = document.querySelector(`.property-checkbox[value="${propId}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+
+                    // Hide password field for edit
+                    document.getElementById('ownerPassword').parentElement.style.display = 'none';
+
+                    // Store owner ID for update
+                    modal.dataset.ownerId = ownerId;
+                } else {
+                    // Add mode
+                    document.querySelector('.modal-title').textContent = 'Add Property Owner';
+                    document.getElementById('ownerPassword').parentElement.style.display = 'block';
+                    delete modal.dataset.ownerId;
+                }
+
+                modal.classList.add('active');
+            } catch (error) {
+                console.error('Open owner modal error:', error);
+                showToast('Error', 'Failed to open owner modal', '❌');
+            }
+        }
+
+        function closeOwnerModal() {
+            const modal = document.getElementById('ownerModal');
+            modal.classList.remove('active');
+
+            // Reset form
+            document.getElementById('ownerName').value = '';
+            document.getElementById('ownerEmail').value = '';
+            document.getElementById('ownerPassword').value = '';
+            document.getElementById('ownerPhone').value = '';
+            document.getElementById('ownerStatus').value = 'active';
+            document.querySelectorAll('.property-checkbox').forEach(cb => cb.checked = false);
+            delete modal.dataset.ownerId;
+        }
+
+        async function saveOwner() {
+            try {
+                const modal = document.getElementById('ownerModal');
+                const ownerId = modal.dataset.ownerId;
+
+                const name = document.getElementById('ownerName').value.trim();
+                const email = document.getElementById('ownerEmail').value.trim();
+                const password = document.getElementById('ownerPassword').value;
+                const phone = document.getElementById('ownerPhone').value.trim();
+                const status = document.getElementById('ownerStatus').value;
+
+                // Get selected properties
+                const selectedProperties = Array.from(document.querySelectorAll('.property-checkbox:checked'))
+                    .map(cb => parseInt(cb.value));
+
+                // Validation
+                if (!name || !email) {
+                    showToast('Validation Error', 'Please fill in name and email', '❌');
+                    return;
+                }
+
+                if (!ownerId && (!password || password.length < 6)) {
+                    showToast('Validation Error', 'Password must be at least 6 characters', '❌');
+                    return;
+                }
+
+                if (selectedProperties.length === 0) {
+                    showToast('Validation Error', 'Please assign at least one property', '❌');
+                    return;
+                }
+
+                const ownerData = {
+                    name,
+                    email,
+                    phone,
+                    status,
+                    property_ids: selectedProperties
+                };
+
+                // Add password only for new owners
+                if (!ownerId) {
+                    ownerData.password = password;
+                }
+
+                if (ownerId) {
+                    // Update existing owner
+                    await db.updateOwner(ownerId, ownerData);
+                    showToast('Success', 'Owner updated successfully!', '✅');
+                } else {
+                    // Create new owner
+                    await db.createOwner(ownerData);
+                    showToast('Success', 'Owner created successfully!', '✅');
+                }
+
+                closeOwnerModal();
+                await loadOwners();
+            } catch (error) {
+                console.error('Save owner error:', error);
+                showToast('Error', error.message || 'Failed to save owner', '❌');
+            }
+        }
+
+        async function editOwner(ownerId) {
+            await openOwnerModal(ownerId);
+        }
+
+        async function deleteOwner(ownerId) {
+            if (!confirm('Are you sure you want to delete this owner? They will lose access to the Owner Portal.')) {
+                return;
+            }
+
+            try {
+                await db.deleteOwner(ownerId);
+                await loadOwners();
+                showToast('Success', 'Owner deleted successfully', '✅');
+            } catch (error) {
+                console.error('Delete owner error:', error);
+                showToast('Error', 'Failed to delete owner', '❌');
             }
         }
 
