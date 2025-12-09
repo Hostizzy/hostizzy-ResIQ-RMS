@@ -615,19 +615,29 @@
 
         // Check authentication on page load
         window.addEventListener('DOMContentLoaded', async () => {
+            console.log('🔍 Owner Portal: Checking authentication...');
+
             const storedUser = localStorage.getItem('currentUser');
+            console.log('📦 Stored user:', storedUser);
+
             if (!storedUser) {
+                console.log('❌ No stored user found, redirecting to login');
                 window.location.href = 'index.html';
                 return;
             }
 
             currentUser = JSON.parse(storedUser);
+            console.log('👤 Current user parsed:', currentUser);
+            console.log('🏷️ User type:', currentUser.userType);
 
             // Verify user type
             if (currentUser.userType !== 'owner') {
+                console.log('❌ User type mismatch. Expected: owner, Got:', currentUser.userType);
                 window.location.href = 'index.html';
                 return;
             }
+
+            console.log('✅ Authentication successful, loading owner portal...');
 
             // Update UI with user info
             document.getElementById('ownerUserEmail').textContent = currentUser.email;

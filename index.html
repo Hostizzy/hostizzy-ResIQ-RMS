@@ -9860,20 +9860,35 @@
                 }
 
                 // Try owner login
+                console.log('🔍 Attempting owner login...');
                 const owners = await db.getOwners();
+                console.log('📋 Owners fetched:', owners.length);
+
                 const ownerUser = owners.find(o => o.email === email && o.password === password);
+                console.log('🔎 Owner match found:', !!ownerUser);
 
                 if (ownerUser) {
+                    console.log('👤 Owner user:', ownerUser);
+
                     if (!ownerUser.is_active) {
+                        console.log('❌ Owner account is inactive');
                         showToast('Account Inactive', 'Your account has been deactivated', '❌');
                         return;
                     }
 
                     currentUser = ownerUser;
                     currentUser.userType = 'owner';
+                    console.log('✅ Setting userType to "owner"');
+                    console.log('💾 Saving to localStorage:', currentUser);
+
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
+                    // Verify it was saved
+                    const saved = localStorage.getItem('currentUser');
+                    console.log('✔️ Verified saved user:', JSON.parse(saved));
+
                     // Redirect to owner portal
+                    console.log('🔄 Redirecting to owner-portal.html');
                     window.location.href = 'owner-portal.html';
                     return;
                 }
