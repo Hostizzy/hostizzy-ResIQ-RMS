@@ -293,8 +293,39 @@
 <body>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- Owner Login Screen -->
+    <div id="ownerLoginScreen" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--background); padding: 20px;">
+        <div style="width: 100%; max-width: 400px; background: var(--surface); border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <h1 style="font-size: 28px; margin: 0 0 8px 0; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🏠 Owner Portal</h1>
+                <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Login to manage your properties</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Email</label>
+                <input type="email" id="ownerLoginEmail" placeholder="your@email.com" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Password</label>
+                <input type="password" id="ownerLoginPassword" placeholder="Enter your password" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+            </div>
+
+            <button onclick="ownerLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(139, 92, 246, 0.4)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(139, 92, 246, 0.3)';">
+                Login to Owner Portal
+            </button>
+
+            <div style="margin-top: 24px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Admin or Staff?</p>
+                <a href="index.html" style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 14px;">← Back to Admin Login</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Owner Portal App -->
-    <div id="ownerApp">
+    <div id="ownerApp" class="hidden">
         <!-- Owner Header -->
         <header style="background: var(--primary); color: white; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -606,11 +637,81 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
+        // Owner Login Function
+        async function ownerLogin() {
+            console.log('🚀 Owner login function called');
+
+            const email = document.getElementById('ownerLoginEmail').value.trim();
+            const password = document.getElementById('ownerLoginPassword').value;
+
+            console.log('📧 Email:', email);
+            console.log('🔑 Password length:', password.length);
+
+            if (!email || !password) {
+                showToast('Login Error', 'Please enter email and password', '❌');
+                return;
+            }
+
+            try {
+                console.log('🔍 Fetching owners from database...');
+
+                // Get all owners
+                const { data: owners, error } = await supabase
+                    .from('property_owners')
+                    .select('*');
+
+                if (error) throw error;
+
+                console.log('📋 Owners fetched:', owners ? owners.length : 0);
+
+                const owner = owners.find(o => o.email === email && o.password === password);
+                console.log('🔎 Owner match found:', !!owner);
+
+                if (owner) {
+                    if (!owner.is_active) {
+                        console.log('❌ Owner account is inactive');
+                        showToast('Account Inactive', 'Your account has been deactivated', '❌');
+                        return;
+                    }
+
+                    console.log('✅ Login successful');
+                    currentUser = owner;
+                    currentUser.userType = 'owner';
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                    console.log('💾 User saved to localStorage');
+                    console.log('🔄 Showing owner portal app...');
+
+                    // Hide login screen, show app
+                    document.getElementById('ownerLoginScreen').classList.add('hidden');
+                    document.getElementById('ownerApp').classList.remove('hidden');
+
+                    // Update UI
+                    document.getElementById('ownerUserEmail').textContent = currentUser.email;
+                    document.getElementById('ownerUserName').textContent = currentUser.name;
+
+                    // Load dashboard
+                    await loadOwnerDashboard();
+
+                    showToast('Welcome!', `Logged in as ${owner.name}`, '👋');
+                } else {
+                    console.log('❌ Invalid credentials');
+                    showToast('Login Failed', 'Invalid email or password', '❌');
+                }
+
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('Login Error', error.message, '❌');
+            }
+        }
+
         // Logout function
         function logout() {
             localStorage.removeItem('currentUser');
             currentUser = null;
-            window.location.href = 'index.html';
+            // Show login screen
+            document.getElementById('ownerApp').classList.add('hidden');
+            document.getElementById('ownerLoginScreen').classList.remove('hidden');
         }
 
         // Check authentication on page load
@@ -621,8 +722,10 @@
             console.log('📦 Stored user:', storedUser);
 
             if (!storedUser) {
-                console.log('❌ No stored user found, redirecting to login');
-                window.location.href = 'index.html';
+                console.log('❌ No stored user found, showing login screen');
+                // Show login screen
+                document.getElementById('ownerLoginScreen').style.display = 'flex';
+                document.getElementById('ownerApp').classList.add('hidden');
                 return;
             }
 
@@ -633,11 +736,17 @@
             // Verify user type
             if (currentUser.userType !== 'owner') {
                 console.log('❌ User type mismatch. Expected: owner, Got:', currentUser.userType);
-                window.location.href = 'index.html';
+                // Show login screen
+                document.getElementById('ownerLoginScreen').style.display = 'flex';
+                document.getElementById('ownerApp').classList.add('hidden');
                 return;
             }
 
             console.log('✅ Authentication successful, loading owner portal...');
+
+            // Hide login, show app
+            document.getElementById('ownerLoginScreen').classList.add('hidden');
+            document.getElementById('ownerApp').classList.remove('hidden');
 
             // Update UI with user info
             document.getElementById('ownerUserEmail').textContent = currentUser.email;
