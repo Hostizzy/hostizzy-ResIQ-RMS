@@ -514,10 +514,18 @@
             },
 
             getOwnerRevenue: async (ownerId, startDate = null, endDate = null) => {
+                // Get owner's property IDs
+                const owner = await db.getOwner(ownerId);
+                const propertyIds = owner.property_ids || [];
+
+                if (propertyIds.length === 0) {
+                    return { totalRevenue: 0, hostizzyCommission: 0, netEarnings: 0, totalBookings: 0, bookings: [] };
+                }
+
                 let query = supabase
                     .from('reservations')
                     .select('*')
-                    .eq('owner_id', ownerId)
+                    .in('property_id', propertyIds)
                     .in('status', ['confirmed', 'checked_in', 'completed']);
                 if (startDate) query = query.gte('check_in', startDate);
                 if (endDate) query = query.lte('check_in', endDate);
@@ -535,13 +543,21 @@
             },
 
             getOwnerPendingPayout: async (ownerId) => {
+                // Get owner's property IDs
+                const owner = await db.getOwner(ownerId);
+                const propertyIds = owner.property_ids || [];
+
+                if (propertyIds.length === 0) {
+                    return 0;
+                }
+
                 const { data: reservations } = await supabase
                     .from('reservations')
                     .select('total_amount, hostizzy_revenue')
-                    .eq('owner_id', ownerId)
+                    .in('property_id', propertyIds)
                     .eq('payment_status', 'paid')
                     .in('status', ['confirmed', 'checked_in', 'completed']);
-                const totalEarned = reservations.reduce((sum, r) =>
+                const totalEarned = (reservations || []).reduce((sum, r) =>
                     sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.hostizzy_revenue) || 0)), 0
                 );
                 const { data: payouts } = await supabase
@@ -549,15 +565,23 @@
                     .select('amount')
                     .eq('owner_id', ownerId)
                     .eq('status', 'completed');
-                const totalPaidOut = payouts.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const totalPaidOut = (payouts || []).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
                 return Math.max(totalEarned - totalPaidOut, 0);
             },
 
             getOwnerBookings: async (ownerId) => {
+                // Get owner's property IDs
+                const owner = await db.getOwner(ownerId);
+                const propertyIds = owner.property_ids || [];
+
+                if (propertyIds.length === 0) {
+                    return [];
+                }
+
                 const { data, error } = await supabase
                     .from('reservations')
                     .select('*')
-                    .eq('owner_id', ownerId)
+                    .in('property_id', propertyIds)
                     .order('check_in', { ascending: false });
                 if (error) throw error;
                 return data || [];

@@ -298,7 +298,9 @@ async function saveOwnerBankDetails() {
 async function loadOwnerProperties() {
     try {
         const properties = await db.getProperties();
-        ownerData.properties = properties.filter(p => p.owner_id === currentUser.id);
+        // Filter by property_ids array (owner can have multiple properties)
+        const ownerPropertyIds = currentUser.property_ids || [];
+        ownerData.properties = properties.filter(p => ownerPropertyIds.includes(p.id));
 
         const container = document.getElementById('ownerPropertiesList');
 
