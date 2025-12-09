@@ -9813,13 +9813,21 @@
 
         // Authentication (Hybrid: Staff + Owner)
         async function login() {
+            console.log('🚀 LOGIN FUNCTION CALLED');
+
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
 
+            console.log('📧 Email:', email);
+            console.log('🔑 Password length:', password.length);
+
             if (!email || !password) {
+                console.log('❌ Missing credentials');
                 showToast('Login Error', 'Please enter email and password', '❌');
                 return;
             }
+
+            console.log('✅ Credentials provided, attempting login...');
 
             try {
                 // Try staff/admin login first
