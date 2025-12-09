@@ -8712,8 +8712,7 @@
             }
         }
 
-        // Start automation engine on page load
-        startSmartAutomation();
+        // Smart Automation will be started after db initialization (see loadInitialData)
 
         // Notification System
         let notifications = [];
@@ -9324,6 +9323,58 @@
             document.getElementById('notificationToast').classList.remove('show');
         }
 
+        /**
+         * Show a generic modal with custom content
+         */
+        function showModal(title, content, onClose = null) {
+            // Create modal element if it doesn't exist
+            let modal = document.getElementById('genericModal');
+
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'genericModal';
+                modal.className = 'modal';
+                document.body.appendChild(modal);
+            }
+
+            // Set modal content
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 style="margin: 0;">${title}</h2>
+                        <button class="close-btn" onclick="closeGenericModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                        ${content}
+                    </div>
+                </div>
+            `;
+
+            // Show modal
+            modal.classList.add('active');
+
+            // Store onClose callback
+            if (onClose) {
+                modal._onClose = onClose;
+            }
+        }
+
+        /**
+         * Close the generic modal
+         */
+        function closeGenericModal() {
+            const modal = document.getElementById('genericModal');
+            if (modal) {
+                modal.classList.remove('active');
+
+                // Call onClose callback if it exists
+                if (modal._onClose) {
+                    modal._onClose();
+                    delete modal._onClose;
+                }
+            }
+        }
+
         // Sync Status Management
         function updateSyncIndicator() {
             const indicator = document.getElementById('syncIndicator');
@@ -9921,6 +9972,9 @@
                     properties: properties.length,
                     payments: payments.length
                 });
+
+                // Start Smart Automation Engine after data is loaded
+                startSmartAutomation();
             } catch (error) {
                 console.error('Error loading initial data:', error);
             }
