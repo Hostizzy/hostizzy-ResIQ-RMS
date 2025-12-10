@@ -149,6 +149,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-width: 0; /* Fix for flex wrapping */
         }
 
         /* Top Bar */
@@ -160,6 +161,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            flex-shrink: 0; /* Prevent shrinking */
         }
 
         .top-bar-left {
@@ -243,8 +245,11 @@
         .content-area {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden; /* Prevent horizontal scroll */
             padding: 24px;
             background: var(--background);
+            min-width: 0; /* Fix for flex wrapping */
+            width: 100%; /* Ensure full width */
         }
 
         /* Home Page Grid */
@@ -436,13 +441,16 @@
         .table-container {
             background: var(--surface);
             border-radius: 12px;
-            overflow: hidden;
+            overflow-x: auto; /* Allow horizontal scroll on overflow */
+            overflow-y: visible;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 800px; /* Ensure minimum width for proper table display */
         }
 
         .data-table thead {
@@ -483,6 +491,19 @@
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Charts Grid - Responsive */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 16px;
+        }
+
+        /* Ensure charts fit container */
+        .charts-grid canvas {
+            max-width: 100%;
+            height: auto !important;
         }
 
         /* Modal Styles */
@@ -555,6 +576,54 @@
         @keyframes slideIn {
             from { transform: translateX(400px); }
             to { transform: translateX(0); }
+        }
+
+        /* Tablet Responsive Styles */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .sidebar {
+                width: 240px; /* Narrower sidebar on tablet */
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .top-bar {
+                padding: 14px 20px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .home-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 16px;
+            }
+
+            .stat-card {
+                padding: 18px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            /* Improve chart containers on tablet */
+            .charts-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 16px;
+            }
+
+            /* Better table wrapping on tablet */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .data-table {
+                min-width: 100%;
+            }
         }
 
         /* Mobile Responsive Styles */
@@ -670,8 +739,10 @@
             }
 
             /* Stack charts vertically on mobile */
-            #ownerDashboardView > div[style*="grid-template-columns: 1fr 1fr"] {
+            /* Charts grid on mobile - single column */
+            .charts-grid {
                 grid-template-columns: 1fr !important;
+                gap: 12px;
             }
 
             /* Mobile table cards */
@@ -1126,7 +1197,7 @@
                 </button>
 
                 <!-- Revenue Charts -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <div class="charts-grid" style="margin-bottom: 24px;">
                     <div class="card">
                         <h4 style="margin: 0 0 16px 0;">Monthly Revenue Trend</h4>
                         <canvas id="revenueLineChart"></canvas>
