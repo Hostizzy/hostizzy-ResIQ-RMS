@@ -97,10 +97,8 @@ async function loadOwnerDashboard() {
 
         ownerData.properties = properties || [];
 
-        // Calculate metrics from bookings (confirmed and completed only)
-        const confirmedBookings = ownerData.bookings.filter(b =>
-            ['confirmed', 'checked_in', 'completed'].includes(b.status)
-        );
+        // Calculate metrics from bookings (exclude only cancelled - same as main app)
+        const confirmedBookings = ownerData.bookings.filter(b => b.status !== 'cancelled');
 
         // Calculate total revenue from all bookings
         const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);

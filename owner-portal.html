@@ -1510,10 +1510,8 @@
                     .select('*')
                     .in('property_id', propertyIds);
 
-                // Filter confirmed/completed bookings
-                const confirmedBookings = (bookings || []).filter(b =>
-                    ['confirmed', 'checked_in', 'completed'].includes(b.status)
-                );
+                // Filter bookings (exclude only cancelled - same as main app)
+                const confirmedBookings = (bookings || []).filter(b => b.status !== 'cancelled');
 
                 // Calculate total revenue
                 const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
@@ -1525,16 +1523,8 @@
                     return sum + adults + children;
                 }, 0);
 
-                // Calculate commission using Stay Amount + Additional Guests
-                let totalHostizzyShare = 0;
-                confirmedBookings.forEach(booking => {
-                    const property = (properties || []).find(p => p.id === booking.property_id);
-                    const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                    const stayAmount = parseFloat(booking.stay_amount) || 0;
-                    const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
-                    const baseAmount = stayAmount + additionalGuests;
-                    totalHostizzyShare += baseAmount * (commissionRate / 100);
-                });
+                // Calculate Hostizzy revenue using the hostizzy_revenue field from database (same as main app)
+                const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
 
                 const netEarnings = totalRevenue - totalHostizzyShare;
                 const pendingPayout = await db.getOwnerPendingPayout(ownerId);
