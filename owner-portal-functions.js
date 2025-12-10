@@ -75,6 +75,18 @@ async function loadOwnerDashboard() {
 
         ownerData.bookings = bookings || [];
 
+        // Debug: Log bookings data
+        console.log('[Owner Portal] Property IDs:', propertyIds);
+        console.log('[Owner Portal] Total bookings fetched:', bookings.length);
+        console.log('[Owner Portal] Bookings by status:', {
+            all: bookings.length,
+            confirmed: bookings.filter(b => b.status === 'confirmed').length,
+            checked_in: bookings.filter(b => b.status === 'checked_in').length,
+            completed: bookings.filter(b => b.status === 'completed').length,
+            pending: bookings.filter(b => b.status === 'pending').length,
+            cancelled: bookings.filter(b => b.status === 'cancelled').length
+        });
+
         // Get properties
         const { data: properties, error: propertiesError } = await supabase
             .from('properties')
@@ -92,6 +104,17 @@ async function loadOwnerDashboard() {
 
         // Calculate total revenue from all bookings
         const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
+
+        // Debug: Log revenue calculation
+        console.log('[Owner Portal] Confirmed bookings:', confirmedBookings.length);
+        console.log('[Owner Portal] Total Revenue calculated:', totalRevenue);
+        console.log('[Owner Portal] Sample bookings:', confirmedBookings.slice(0, 3).map(b => ({
+            id: b.booking_id,
+            status: b.status,
+            payment_status: b.payment_status,
+            total_amount: b.total_amount,
+            hostizzy_revenue: b.hostizzy_revenue
+        })));
 
         // Calculate total guests (adults + children)
         const totalGuests = confirmedBookings.reduce((sum, b) => {
