@@ -1021,6 +1021,10 @@ function renderOwnerBookingsList(bookings) {
                 // Use hostizzy_revenue field from booking (same as main app)
                 const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const mealsChef = parseFloat(booking.meals_chef) || 0;
+                const bonfireOther = parseFloat(booking.bonfire_other) || 0;
+                const extraGuests = parseFloat(booking.extra_guest_charges) || 0;
 
                 html += `
                     <div class="booking-mobile-card">
@@ -1028,29 +1032,50 @@ function renderOwnerBookingsList(bookings) {
                             <div>
                                 <strong style="font-size: 16px;">${booking.booking_id}</strong>
                                 <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">${booking.property_name}</div>
+                                <div style="font-size: 12px; color: var(--primary); margin-top: 2px;">📍 ${booking.booking_source || 'DIRECT'}</div>
                             </div>
                             <span class="badge" style="background: ${booking.status === 'confirmed' ? 'blue' : booking.status === 'completed' ? 'green' : 'orange'};">${booking.status}</span>
                         </div>
                         <div class="booking-mobile-card-body">
                             <div class="booking-mobile-row">
                                 <span class="booking-mobile-label">Guest</span>
-                                <span class="booking-mobile-value">${booking.guest_name}</span>
+                                <span class="booking-mobile-value">${booking.guest_name} (${booking.guest_phone})</span>
                             </div>
                             <div class="booking-mobile-row">
-                                <span class="booking-mobile-label">Check-in</span>
-                                <span class="booking-mobile-value">${new Date(booking.check_in).toLocaleDateString('en-IN')} - ${new Date(booking.check_out).toLocaleDateString('en-IN')}</span>
+                                <span class="booking-mobile-label">Dates</span>
+                                <span class="booking-mobile-value">${new Date(booking.check_in).toLocaleDateString('en-IN')} → ${new Date(booking.check_out).toLocaleDateString('en-IN')} (${booking.nights}N)</span>
                             </div>
+                            <div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Stay Amount</span>
+                                <span class="booking-mobile-value">₹${stayAmount.toLocaleString('en-IN')}</span>
+                            </div>
+                            ${extraGuests > 0 ? `<div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Extra Guests</span>
+                                <span class="booking-mobile-value">₹${extraGuests.toLocaleString('en-IN')}</span>
+                            </div>` : ''}
+                            ${mealsChef > 0 ? `<div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Meals/Chef</span>
+                                <span class="booking-mobile-value">₹${mealsChef.toLocaleString('en-IN')}</span>
+                            </div>` : ''}
+                            ${bonfireOther > 0 ? `<div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Bonfire/Other</span>
+                                <span class="booking-mobile-value">₹${bonfireOther.toLocaleString('en-IN')}</span>
+                            </div>` : ''}
                             <div class="booking-mobile-row">
                                 <span class="booking-mobile-label">Total Amount</span>
-                                <span class="booking-mobile-value">₹${parseFloat(booking.total_amount).toLocaleString('en-IN')}</span>
+                                <span class="booking-mobile-value" style="font-weight: 700;">₹${parseFloat(booking.total_amount).toLocaleString('en-IN')}</span>
+                            </div>
+                            <div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Hostizzy Commission (15%)</span>
+                                <span class="booking-mobile-value" style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                             </div>
                             <div class="booking-mobile-row">
                                 <span class="booking-mobile-label">Your Earnings</span>
                                 <span class="booking-mobile-value" style="color: var(--success); font-weight: 700;">₹${yourEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                             </div>
                             <div class="booking-mobile-row">
-                                <span class="booking-mobile-label">Hostizzy Commission</span>
-                                <span class="booking-mobile-value" style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                                <span class="booking-mobile-label">Payment Status</span>
+                                <span class="badge" style="background: ${booking.payment_status === 'paid' ? 'green' : booking.payment_status === 'partial' ? 'blue' : 'orange'}; font-size: 11px;">${booking.payment_status}</span>
                             </div>
                         </div>
                     </div>
@@ -1059,20 +1084,21 @@ function renderOwnerBookingsList(bookings) {
             html += '</div>';
             container.innerHTML = html;
         } else {
-            // Desktop table layout
+            // Desktop table layout with ALL fields
             let html = '<div class="table-container"><table class="data-table"><thead><tr>';
             html += '<th>Booking ID</th>';
-            html += '<th>Guest Name</th>';
-            html += '<th>Phone</th>';
+            html += '<th>Guest</th>';
             html += '<th>Property</th>';
+            html += '<th>Source</th>';
             html += '<th>Check In</th>';
-            html += '<th>Check Out</th>';
             html += '<th>Nights</th>';
-            html += '<th>Guests</th>';
-            html += '<th>Total Amount</th>';
-            html += '<th>Commission</th>';
+            html += '<th>Stay</th>';
+            html += '<th>Meals</th>';
+            html += '<th>Other</th>';
+            html += '<th>Total</th>';
+            html += '<th>Commission (15%)</th>';
             html += '<th>Your Earnings</th>';
-            html += '<th>Payment Status</th>';
+            html += '<th>Payment</th>';
             html += '<th>Status</th>';
             html += '</tr></thead><tbody>';
 
@@ -1081,9 +1107,9 @@ function renderOwnerBookingsList(bookings) {
                 const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 const totalAmount = parseFloat(booking.total_amount) || 0;
                 const yourEarnings = totalAmount - hostizzyShare;
-
-                // Calculate commission percentage for display
-                const commissionPercent = totalAmount > 0 ? ((hostizzyShare / totalAmount) * 100).toFixed(1) : 0;
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const mealsChef = parseFloat(booking.meals_chef) || 0;
+                const bonfireOther = parseFloat(booking.bonfire_other) || 0;
 
                 const paymentStatusColors = {
                     'pending': 'orange',
@@ -1101,15 +1127,16 @@ function renderOwnerBookingsList(bookings) {
 
                 html += '<tr>';
                 html += `<td><strong>${booking.booking_id}</strong></td>`;
-                html += `<td>${booking.guest_name}</td>`;
-                html += `<td>${booking.guest_phone}</td>`;
+                html += `<td>${booking.guest_name}<br><small style="color: var(--text-secondary);">${booking.guest_phone}</small></td>`;
                 html += `<td>${booking.property_name}</td>`;
+                html += `<td><span style="font-size: 12px;">${booking.booking_source || 'DIRECT'}</span></td>`;
                 html += `<td>${new Date(booking.check_in).toLocaleDateString('en-IN')}</td>`;
-                html += `<td>${new Date(booking.check_out).toLocaleDateString('en-IN')}</td>`;
                 html += `<td>${booking.nights}</td>`;
-                html += `<td>${booking.adults}${booking.kids ? ' + ' + booking.kids + ' kids' : ''}</td>`;
+                html += `<td>₹${stayAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
+                html += `<td>${mealsChef > 0 ? '₹' + mealsChef.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '-'}</td>`;
+                html += `<td>${bonfireOther > 0 ? '₹' + bonfireOther.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '-'}</td>`;
                 html += `<td><strong>₹${totalAmount.toLocaleString('en-IN')}</strong></td>`;
-                html += `<td style="color: var(--warning);">${commissionPercent}% (₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })})</td>`;
+                html += `<td style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
                 html += `<td style="color: var(--success); font-weight: 700;">₹${yourEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
                 html += `<td><span class="badge" style="background: ${paymentStatusColors[booking.payment_status]};">${booking.payment_status}</span></td>`;
                 html += `<td><span class="badge" style="background: ${statusColors[booking.status]};">${booking.status}</span></td>`;
