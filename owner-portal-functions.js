@@ -100,18 +100,8 @@ async function loadOwnerDashboard() {
             return sum + adults + children;
         }, 0);
 
-        // Calculate commission based on each property's revenue_share_percent
-        // Formula: Hostizzy Share = (Stay Amount + Additional Guests) × (Commission Rate ÷ 100)
-        let totalHostizzyShare = 0;
-        confirmedBookings.forEach(booking => {
-            const property = ownerData.properties.find(p => p.id === booking.property_id);
-            const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-            const stayAmount = parseFloat(booking.stay_amount) || 0;
-            const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
-            const baseAmount = stayAmount + additionalGuests;
-            const hostizzyShare = baseAmount * (commissionRate / 100);
-            totalHostizzyShare += hostizzyShare;
-        });
+        // Calculate Hostizzy revenue using the hostizzy_revenue field from database (same as main app)
+        const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
 
         const netEarnings = totalRevenue - totalHostizzyShare;
 
@@ -170,14 +160,9 @@ function loadMonthlyBreakdown() {
         }
 
         const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-        const property = booking ? ownerData.properties.find(p => p.id === booking.property_id) : null;
-        const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
         const amount = parseFloat(payment.amount) || 0;
-        // Calculate commission on Stay Amount + Additional Guests
-        const stayAmount = booking ? (parseFloat(booking.stay_amount) || 0) : 0;
-        const additionalGuests = booking ? (parseFloat(booking.extra_guest_charges) || 0) : 0;
-        const baseAmount = stayAmount + additionalGuests;
-        const hostizzyShare = baseAmount * (commissionRate / 100);
+        // Use hostizzy_revenue field from booking (same as main app)
+        const hostizzyShare = booking ? (parseFloat(booking.hostizzy_revenue) || 0) : 0;
 
         monthlyData[monthKey].collected += amount;
         monthlyData[monthKey].hostizzyShare += hostizzyShare;
@@ -350,17 +335,12 @@ function loadRevenueCharts() {
         if (revenuePieChart) revenuePieChart.destroy();
 
         const totalCollected = ownerData.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        // Use hostizzy_revenue field from bookings (same as main app)
         let totalHostizzyShare = 0;
         ownerData.payments.forEach(payment => {
             const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
             if (booking) {
-                const property = ownerData.properties.find(p => p.id === booking.property_id);
-                const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                // Calculate commission on Stay Amount + Additional Guests
-                const stayAmount = parseFloat(booking.stay_amount) || 0;
-                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
-                const baseAmount = stayAmount + additionalGuests;
-                totalHostizzyShare += baseAmount * (commissionRate / 100);
+                totalHostizzyShare += parseFloat(booking.hostizzy_revenue) || 0;
             }
         });
         const ownerEarnings = totalCollected - totalHostizzyShare;
@@ -409,19 +389,14 @@ function loadRevenueCharts() {
             if (booking) {
                 const propertyName = booking.property_name;
                 if (!propertyPerformance[propertyName]) {
-                    const property = ownerData.properties.find(p => p.id === booking.property_id);
                     propertyPerformance[propertyName] = {
                         collected: 0,
-                        ownerEarnings: 0,
-                        commissionRate: property ? (parseFloat(property.revenue_share_percent) || 15) : 15
+                        ownerEarnings: 0
                     };
                 }
                 const amount = parseFloat(payment.amount) || 0;
-                // Calculate commission on Stay Amount + Additional Guests
-                const stayAmount = parseFloat(booking.stay_amount) || 0;
-                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
-                const baseAmount = stayAmount + additionalGuests;
-                const hostizzyShare = baseAmount * (propertyPerformance[propertyName].commissionRate / 100);
+                // Use hostizzy_revenue field from booking (same as main app)
+                const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 propertyPerformance[propertyName].collected += amount;
                 propertyPerformance[propertyName].ownerEarnings += (amount - hostizzyShare);
             }
@@ -930,13 +905,8 @@ async function loadOwnerBookings() {
             // Mobile card layout
             let html = '<div class="mobile-card-list">';
             ownerData.bookings.forEach(booking => {
-                const property = ownerData.properties.find(p => p.id === booking.property_id);
-                const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                // Calculate commission on Stay Amount + Additional Guests
-                const stayAmount = parseFloat(booking.stay_amount) || 0;
-                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
-                const baseAmount = stayAmount + additionalGuests;
-                const hostizzyShare = baseAmount * (commissionRate / 100);
+                // Use hostizzy_revenue field from booking (same as main app)
+                const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
 
                 html += `
@@ -966,7 +936,7 @@ async function loadOwnerBookings() {
                                 <span class="booking-mobile-value" style="color: var(--success); font-weight: 700;">₹${yourEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                             </div>
                             <div class="booking-mobile-row">
-                                <span class="booking-mobile-label">Commission (${commissionRate}%)</span>
+                                <span class="booking-mobile-label">Hostizzy Commission</span>
                                 <span class="booking-mobile-value" style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                             </div>
                         </div>
@@ -994,14 +964,13 @@ async function loadOwnerBookings() {
             html += '</tr></thead><tbody>';
 
             ownerData.bookings.forEach(booking => {
-                const property = ownerData.properties.find(p => p.id === booking.property_id);
-                const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                // Calculate commission on Stay Amount + Additional Guests
-                const stayAmount = parseFloat(booking.stay_amount) || 0;
-                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
-                const baseAmount = stayAmount + additionalGuests;
-                const hostizzyShare = baseAmount * (commissionRate / 100);
-                const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
+                // Use hostizzy_revenue field from booking (same as main app)
+                const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
+                const totalAmount = parseFloat(booking.total_amount) || 0;
+                const yourEarnings = totalAmount - hostizzyShare;
+
+                // Calculate commission percentage for display
+                const commissionPercent = totalAmount > 0 ? ((hostizzyShare / totalAmount) * 100).toFixed(1) : 0;
 
                 const paymentStatusColors = {
                     'pending': 'orange',
@@ -1026,8 +995,8 @@ async function loadOwnerBookings() {
                 html += `<td>${new Date(booking.check_out).toLocaleDateString('en-IN')}</td>`;
                 html += `<td>${booking.nights}</td>`;
                 html += `<td>${booking.adults}${booking.kids ? ' + ' + booking.kids + ' kids' : ''}</td>`;
-                html += `<td><strong>₹${parseFloat(booking.total_amount).toLocaleString('en-IN')}</strong></td>`;
-                html += `<td style="color: var(--warning);">${commissionRate}% (₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })})</td>`;
+                html += `<td><strong>₹${totalAmount.toLocaleString('en-IN')}</strong></td>`;
+                html += `<td style="color: var(--warning);">${commissionPercent}% (₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })})</td>`;
                 html += `<td style="color: var(--success); font-weight: 700;">₹${yourEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
                 html += `<td><span class="badge" style="background: ${paymentStatusColors[booking.payment_status]};">${booking.payment_status}</span></td>`;
                 html += `<td><span class="badge" style="background: ${statusColors[booking.status]};">${booking.status}</span></td>`;
