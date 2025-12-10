@@ -563,7 +563,12 @@
                 font-size: 14px;
             }
 
-            /* Sidebar on mobile */
+            /* App container adjustments */
+            #ownerApp {
+                padding-bottom: 80px; /* Space for bottom nav */
+            }
+
+            /* Sidebar on mobile - hidden by default */
             .sidebar {
                 position: fixed;
                 left: 0;
@@ -571,10 +576,11 @@
                 height: 100vh;
                 z-index: 1000;
                 box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+                transform: translateX(-280px); /* Hidden by default on mobile */
             }
 
-            .sidebar.collapsed {
-                transform: translateX(-280px);
+            .sidebar.show-mobile {
+                transform: translateX(0) !important;
             }
 
             .sidebar-toggle {
@@ -611,6 +617,17 @@
             /* Content area on mobile */
             .content-area {
                 padding: 16px;
+                padding-bottom: 96px; /* Extra space for bottom nav */
+            }
+
+            /* Mobile Bottom Navigation */
+            .mobile-bottom-nav {
+                display: flex !important;
+            }
+
+            /* Hide sidebar nav items text on mobile */
+            .sidebar-nav {
+                display: none; /* Hide regular sidebar nav on mobile */
             }
 
             /* Home grid on mobile */
@@ -809,6 +826,72 @@
             .mobile-card-list {
                 display: block;
             }
+        }
+
+        /* Mobile Bottom Navigation */
+        .mobile-bottom-nav {
+            display: none; /* Hidden on desktop */
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 900;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            flex: 1;
+            min-width: 60px;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--primary);
+        }
+
+        .bottom-nav-item .icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .bottom-nav-item .label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .bottom-nav-item:active {
+            transform: scale(0.95);
+        }
+
+        /* Mobile overlay for sidebar */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .mobile-overlay.show {
+            display: block;
         }
     </style>
 </head>
@@ -1235,6 +1318,34 @@
             <!-- End Content Area -->
         </div>
         <!-- End Main Content -->
+
+        <!-- Mobile Overlay for Sidebar -->
+        <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-bottom-nav">
+            <button class="bottom-nav-item active" onclick="showOwnerViewMobile('ownerHome')" data-view="ownerHome">
+                <span class="icon">🏠</span>
+                <span class="label">Home</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerDashboard')" data-view="ownerDashboard">
+                <span class="icon">📊</span>
+                <span class="label">Analytics</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerBookings')" data-view="ownerBookings">
+                <span class="icon">📅</span>
+                <span class="label">Bookings</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerPayments')" data-view="ownerPayments">
+                <span class="icon">💵</span>
+                <span class="label">Payments</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerPayouts')" data-view="ownerPayouts">
+                <span class="icon">💰</span>
+                <span class="label">Payouts</span>
+            </button>
+        </nav>
+
     </div>
     <!-- End Owner App -->
 
@@ -1427,12 +1538,40 @@
         // Toggle Sidebar
         function toggleSidebar() {
             const sidebar = document.getElementById('ownerSidebar');
-            sidebar.classList.toggle('collapsed');
+            const overlay = document.getElementById('mobileOverlay');
+
+            // Check if mobile
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show-mobile');
+                overlay.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
         }
 
         // Toggle User Menu (placeholder)
         function toggleUserMenu() {
             // Could add dropdown menu here
+        }
+
+        // Mobile navigation handler
+        function showOwnerViewMobile(viewName) {
+            // Update bottom nav active state
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-view') === viewName) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Close sidebar if open
+            const sidebar = document.getElementById('ownerSidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            sidebar.classList.remove('show-mobile');
+            overlay.classList.remove('show');
+
+            // Show the view
+            showOwnerView(viewName);
         }
 
         // Show Owner View (Updated for new layout)
