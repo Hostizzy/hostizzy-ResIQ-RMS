@@ -3447,7 +3447,12 @@
             div[style*="grid-template-columns: repeat(2, 1fr)"] {
                 grid-template-columns: 1fr !important;
             }
-            
+
+            /* Fix charts grid overflow - stack vertically on mobile */
+            div[style*="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr))"] {
+                grid-template-columns: 1fr !important;
+            }
+
             /* This Month Performance - Better mobile layout */
             .month-stat-card {
                 padding: 20px 16px;
@@ -3618,19 +3623,25 @@
 
         /* Small Mobile (max 480px) */
         @media (max-width: 480px) {
+            /* Stack all grid-based analytics on very small screens */
+            div[style*="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))"],
+            div[style*="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))"] {
+                grid-template-columns: 1fr !important;
+            }
+
             /* Smaller text sizes for very small screens */
             .month-stat-value {
                 font-size: 24px;
             }
-            
+
             .split-amount {
                 font-size: 24px;
             }
-            
+
             .metric-value {
                 font-size: 28px;
             }
-            
+
             /* Tighter spacing */
             .container {
                 padding: 12px;
