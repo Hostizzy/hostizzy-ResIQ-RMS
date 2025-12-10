@@ -38,13 +38,15 @@ async function loadOwnerDashboard() {
 
         if (propertyIds.length === 0) {
             const elements = {
-                ownerTotalCollected: document.getElementById('ownerTotalCollected'),
+                ownerTotalRevenue: document.getElementById('ownerTotalRevenue'),
+                ownerTotalGuests: document.getElementById('ownerTotalGuests'),
                 ownerHostizzyShare: document.getElementById('ownerHostizzyShare'),
                 ownerNetEarnings: document.getElementById('ownerNetEarnings'),
                 ownerPendingPayout: document.getElementById('ownerPendingPayout')
             };
 
-            if (elements.ownerTotalCollected) elements.ownerTotalCollected.textContent = '₹0';
+            if (elements.ownerTotalRevenue) elements.ownerTotalRevenue.textContent = '₹0';
+            if (elements.ownerTotalGuests) elements.ownerTotalGuests.textContent = '0';
             if (elements.ownerHostizzyShare) elements.ownerHostizzyShare.textContent = '₹0';
             if (elements.ownerNetEarnings) elements.ownerNetEarnings.textContent = '₹0';
             if (elements.ownerPendingPayout) elements.ownerPendingPayout.textContent = '₹0';
@@ -83,44 +85,55 @@ async function loadOwnerDashboard() {
 
         ownerData.properties = properties || [];
 
-        // Calculate metrics from payments
-        const totalCollected = ownerData.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        // Calculate metrics from bookings (confirmed and completed only)
+        const confirmedBookings = ownerData.bookings.filter(b =>
+            ['confirmed', 'checked_in', 'completed'].includes(b.status)
+        );
+
+        // Calculate total revenue from all bookings
+        const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
+
+        // Calculate total guests (adults + children)
+        const totalGuests = confirmedBookings.reduce((sum, b) => {
+            const adults = parseInt(b.adults) || 0;
+            const children = parseInt(b.children) || 0;
+            return sum + adults + children;
+        }, 0);
 
         // Calculate commission based on each property's revenue_share_percent
         // Formula: Hostizzy Share = (Stay Amount + Additional Guests) × (Commission Rate ÷ 100)
         let totalHostizzyShare = 0;
-        ownerData.payments.forEach(payment => {
-            const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-            if (booking) {
-                const property = ownerData.properties.find(p => p.id === booking.property_id);
-                const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                const stayAmount = parseFloat(booking.stay_amount) || 0;
-                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
-                const baseAmount = stayAmount + additionalGuests;
-                const hostizzyShare = baseAmount * (commissionRate / 100);
-                totalHostizzyShare += hostizzyShare;
-            }
+        confirmedBookings.forEach(booking => {
+            const property = ownerData.properties.find(p => p.id === booking.property_id);
+            const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
+            const stayAmount = parseFloat(booking.stay_amount) || 0;
+            const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
+            const baseAmount = stayAmount + additionalGuests;
+            const hostizzyShare = baseAmount * (commissionRate / 100);
+            totalHostizzyShare += hostizzyShare;
         });
 
-        const netEarnings = totalCollected - totalHostizzyShare;
+        const netEarnings = totalRevenue - totalHostizzyShare;
 
         // Get pending payout
         const pendingPayout = await db.getOwnerPendingPayout(ownerId);
 
         // Update cards with null checks
-        const collectedEl = document.getElementById('ownerTotalCollected');
+        const revenueEl = document.getElementById('ownerTotalRevenue');
+        const guestsEl = document.getElementById('ownerTotalGuests');
         const shareEl = document.getElementById('ownerHostizzyShare');
         const earningsEl = document.getElementById('ownerNetEarnings');
         const payoutEl = document.getElementById('ownerPendingPayout');
         const percentEl = document.getElementById('ownerHostizzyPercent');
 
-        if (collectedEl) collectedEl.textContent = '₹' + totalCollected.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        if (revenueEl) revenueEl.textContent = '₹' + totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        if (guestsEl) guestsEl.textContent = totalGuests.toLocaleString('en-IN');
         if (shareEl) shareEl.textContent = '₹' + totalHostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 });
         if (earningsEl) earningsEl.textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
         if (payoutEl) payoutEl.textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
         // Calculate average commission percentage
-        const avgCommission = totalCollected > 0 ? ((totalHostizzyShare / totalCollected) * 100).toFixed(1) : 0;
+        const avgCommission = totalRevenue > 0 ? ((totalHostizzyShare / totalRevenue) * 100).toFixed(1) : 0;
         if (percentEl) percentEl.textContent = `${avgCommission}% average`;
 
         // Load monthly breakdown
