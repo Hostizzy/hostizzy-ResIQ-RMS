@@ -1049,7 +1049,18 @@
 
                 <!-- Monthly Breakdown -->
                 <div class="card" style="margin-bottom: 24px;">
-                    <h4 style="margin: 0 0 16px 0;">📅 Month-by-Month Breakdown</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <h4 style="margin: 0;">📅 Month-by-Month Breakdown</h4>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size: 14px; color: var(--text-secondary); white-space: nowrap;">View:</label>
+                            <select id="monthlyBreakdownFilter" onchange="filterMonthlyBreakdown()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; min-width: 180px;">
+                                <option value="last6">Last 6 Months</option>
+                                <option value="last12">Last 12 Months</option>
+                                <option value="all">All Time</option>
+                                <option value="" disabled>──────────</option>
+                            </select>
+                        </div>
+                    </div>
                     <div id="monthlyBreakdown"></div>
                 </div>
 

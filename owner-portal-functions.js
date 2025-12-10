@@ -87,13 +87,17 @@ async function loadOwnerDashboard() {
         const totalCollected = ownerData.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
         // Calculate commission based on each property's revenue_share_percent
+        // Formula: Hostizzy Share = (Stay Amount + Additional Guests) × (Commission Rate ÷ 100)
         let totalHostizzyShare = 0;
         ownerData.payments.forEach(payment => {
             const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
             if (booking) {
                 const property = ownerData.properties.find(p => p.id === booking.property_id);
                 const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                const hostizzyShare = (parseFloat(payment.amount) || 0) * (commissionRate / 100);
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
+                const baseAmount = stayAmount + additionalGuests;
+                const hostizzyShare = baseAmount * (commissionRate / 100);
                 totalHostizzyShare += hostizzyShare;
             }
         });
@@ -156,7 +160,11 @@ function loadMonthlyBreakdown() {
         const property = booking ? ownerData.properties.find(p => p.id === booking.property_id) : null;
         const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
         const amount = parseFloat(payment.amount) || 0;
-        const hostizzyShare = amount * (commissionRate / 100);
+        // Calculate commission on Stay Amount + Additional Guests
+        const stayAmount = booking ? (parseFloat(booking.stay_amount) || 0) : 0;
+        const additionalGuests = booking ? (parseFloat(booking.extra_guest_charges) || 0) : 0;
+        const baseAmount = stayAmount + additionalGuests;
+        const hostizzyShare = baseAmount * (commissionRate / 100);
 
         monthlyData[monthKey].collected += amount;
         monthlyData[monthKey].hostizzyShare += hostizzyShare;
@@ -164,13 +172,16 @@ function loadMonthlyBreakdown() {
         monthlyData[monthKey].payments.push(payment);
     });
 
-    // Convert to array and sort by month (descending)
-    ownerData.monthlyData = Object.keys(monthlyData)
+    // Convert to array and sort by month (descending) - store ALL data
+    ownerData.allMonthlyData = Object.keys(monthlyData)
         .sort((a, b) => b.localeCompare(a))
-        .slice(0, 6)
-        .map(key => monthlyData[key]);
+        .map(key => ({ ...monthlyData[key], monthKey: key }));
 
-    renderMonthlyBreakdown();
+    // Populate dropdown with individual months
+    populateMonthlyDropdown();
+
+    // Initial render - show last 6 months
+    filterMonthlyBreakdown();
 }
 
 // Render Monthly Breakdown
@@ -209,6 +220,58 @@ function renderMonthlyBreakdown() {
     });
 
     container.innerHTML = html;
+}
+
+// Populate Monthly Breakdown Dropdown
+function populateMonthlyDropdown() {
+    const dropdown = document.getElementById('monthlyBreakdownFilter');
+    if (!dropdown || !ownerData.allMonthlyData) return;
+
+    // Remove existing month options (keep preset options)
+    const options = dropdown.querySelectorAll('option');
+    options.forEach(opt => {
+        if (opt.value && !['last6', 'last12', 'all'].includes(opt.value)) {
+            opt.remove();
+        }
+    });
+
+    // Add individual month options
+    ownerData.allMonthlyData.forEach(monthData => {
+        const option = document.createElement('option');
+        option.value = monthData.monthKey;
+        option.textContent = monthData.month;
+        dropdown.appendChild(option);
+    });
+}
+
+// Filter Monthly Breakdown based on dropdown selection
+function filterMonthlyBreakdown() {
+    const filterValue = document.getElementById('monthlyBreakdownFilter')?.value || 'last6';
+
+    if (!ownerData.allMonthlyData) {
+        ownerData.monthlyData = [];
+        renderMonthlyBreakdown();
+        return;
+    }
+
+    let filteredData = [];
+
+    if (filterValue === 'all') {
+        // Show all months
+        filteredData = ownerData.allMonthlyData;
+    } else if (filterValue === 'last6') {
+        // Show last 6 months
+        filteredData = ownerData.allMonthlyData.slice(0, 6);
+    } else if (filterValue === 'last12') {
+        // Show last 12 months
+        filteredData = ownerData.allMonthlyData.slice(0, 12);
+    } else {
+        // Show specific month
+        filteredData = ownerData.allMonthlyData.filter(m => m.monthKey === filterValue);
+    }
+
+    ownerData.monthlyData = filteredData;
+    renderMonthlyBreakdown();
 }
 
 // Load Revenue Charts
@@ -280,7 +343,11 @@ function loadRevenueCharts() {
             if (booking) {
                 const property = ownerData.properties.find(p => p.id === booking.property_id);
                 const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                totalHostizzyShare += (parseFloat(payment.amount) || 0) * (commissionRate / 100);
+                // Calculate commission on Stay Amount + Additional Guests
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
+                const baseAmount = stayAmount + additionalGuests;
+                totalHostizzyShare += baseAmount * (commissionRate / 100);
             }
         });
         const ownerEarnings = totalCollected - totalHostizzyShare;
@@ -337,7 +404,11 @@ function loadRevenueCharts() {
                     };
                 }
                 const amount = parseFloat(payment.amount) || 0;
-                const hostizzyShare = amount * (propertyPerformance[propertyName].commissionRate / 100);
+                // Calculate commission on Stay Amount + Additional Guests
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
+                const baseAmount = stayAmount + additionalGuests;
+                const hostizzyShare = baseAmount * (propertyPerformance[propertyName].commissionRate / 100);
                 propertyPerformance[propertyName].collected += amount;
                 propertyPerformance[propertyName].ownerEarnings += (amount - hostizzyShare);
             }
@@ -848,7 +919,11 @@ async function loadOwnerBookings() {
             ownerData.bookings.forEach(booking => {
                 const property = ownerData.properties.find(p => p.id === booking.property_id);
                 const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                const hostizzyShare = (parseFloat(booking.total_amount) || 0) * (commissionRate / 100);
+                // Calculate commission on Stay Amount + Additional Guests
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
+                const baseAmount = stayAmount + additionalGuests;
+                const hostizzyShare = baseAmount * (commissionRate / 100);
                 const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
 
                 html += `
@@ -908,7 +983,11 @@ async function loadOwnerBookings() {
             ownerData.bookings.forEach(booking => {
                 const property = ownerData.properties.find(p => p.id === booking.property_id);
                 const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                const hostizzyShare = (parseFloat(booking.total_amount) || 0) * (commissionRate / 100);
+                // Calculate commission on Stay Amount + Additional Guests
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const additionalGuests = parseFloat(booking.extra_guest_charges) || 0;
+                const baseAmount = stayAmount + additionalGuests;
+                const hostizzyShare = baseAmount * (commissionRate / 100);
                 const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
 
                 const paymentStatusColors = {
