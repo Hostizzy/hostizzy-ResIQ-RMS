@@ -908,6 +908,9 @@ function renderOwnerRecentBookings(bookings) {
 }
 
 // Load Owner Bookings (with mobile support)
+// Store filtered bookings for export or other operations
+let filteredOwnerBookings = [];
+
 async function loadOwnerBookings() {
     try {
         const ownerId = currentUser.id;
@@ -916,16 +919,105 @@ async function loadOwnerBookings() {
         const container = document.getElementById('ownerBookingsList');
 
         if (ownerData.bookings.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">No bookings found</p>';
+            container.innerHTML = '<div class="card"><p style="color: var(--text-secondary); text-align: center; padding: 40px;">No bookings found</p></div>';
+            updateBookingsSummary([]);
             return;
         }
 
-        const isMobile = window.innerWidth <= 768;
+        // Populate property filter
+        const propertyFilter = document.getElementById('bookingsPropertyFilter');
+        if (propertyFilter) {
+            const uniqueProperties = [...new Set(ownerData.bookings.map(b => b.property_name))].sort();
+            propertyFilter.innerHTML = '<option value="">All Properties</option>' +
+                uniqueProperties.map(p => `<option value="${p}">${p}</option>`).join('');
+        }
 
-        if (isMobile) {
+        // Apply filters and render
+        filterOwnerBookings();
+
+    } catch (error) {
+        console.error('Error loading bookings:', error);
+        showToast('Error', 'Failed to load bookings', '❌');
+    }
+}
+
+// Filter Owner Bookings
+function filterOwnerBookings() {
+    if (!ownerData.bookings || ownerData.bookings.length === 0) return;
+
+    const searchTerm = document.getElementById('bookingsSearch')?.value.toLowerCase() || '';
+    const propertyFilter = document.getElementById('bookingsPropertyFilter')?.value || '';
+    const statusFilter = document.getElementById('bookingsStatusFilter')?.value || '';
+    const paymentFilter = document.getElementById('bookingsPaymentFilter')?.value || '';
+
+    filteredOwnerBookings = ownerData.bookings.filter(booking => {
+        // Search filter
+        const matchesSearch = !searchTerm ||
+            booking.booking_id?.toLowerCase().includes(searchTerm) ||
+            booking.guest_name?.toLowerCase().includes(searchTerm) ||
+            booking.guest_phone?.includes(searchTerm);
+
+        // Property filter
+        const matchesProperty = !propertyFilter || booking.property_name === propertyFilter;
+
+        // Status filter
+        const matchesStatus = !statusFilter || booking.status === statusFilter;
+
+        // Payment filter
+        const matchesPayment = !paymentFilter || booking.payment_status === paymentFilter;
+
+        return matchesSearch && matchesProperty && matchesStatus && matchesPayment;
+    });
+
+    // Update count
+    const countEl = document.getElementById('bookingsCount');
+    if (countEl) countEl.textContent = filteredOwnerBookings.length;
+
+    // Update summary cards
+    updateBookingsSummary(filteredOwnerBookings);
+
+    // Render bookings
+    renderOwnerBookingsList(filteredOwnerBookings);
+}
+
+// Clear Bookings Filters
+function clearBookingsFilters() {
+    document.getElementById('bookingsSearch').value = '';
+    document.getElementById('bookingsPropertyFilter').value = '';
+    document.getElementById('bookingsStatusFilter').value = '';
+    document.getElementById('bookingsPaymentFilter').value = '';
+    filterOwnerBookings();
+}
+
+// Update Bookings Summary Cards
+function updateBookingsSummary(bookings) {
+    const completed = bookings.filter(b => b.status === 'completed').length;
+    const confirmed = bookings.filter(b => b.status === 'confirmed').length;
+    const checkedIn = bookings.filter(b => b.status === 'checked_in').length;
+    const pending = bookings.filter(b => b.status === 'pending').length;
+
+    document.getElementById('bookingsCompleted').textContent = completed;
+    document.getElementById('bookingsConfirmed').textContent = confirmed;
+    document.getElementById('bookingsCheckedIn').textContent = checkedIn;
+    document.getElementById('bookingsPending').textContent = pending;
+}
+
+// Render Owner Bookings List
+function renderOwnerBookingsList(bookings) {
+    const container = document.getElementById('ownerBookingsList');
+    if (!container) return;
+
+    if (bookings.length === 0) {
+        container.innerHTML = '<div class="card"><p style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">No bookings match your filters</p></div>';
+        return;
+    }
+
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
             // Mobile card layout
             let html = '<div class="mobile-card-list">';
-            ownerData.bookings.forEach(booking => {
+            bookings.forEach(booking => {
                 // Use hostizzy_revenue field from booking (same as main app)
                 const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
@@ -984,7 +1076,7 @@ async function loadOwnerBookings() {
             html += '<th>Status</th>';
             html += '</tr></thead><tbody>';
 
-            ownerData.bookings.forEach(booking => {
+            bookings.forEach(booking => {
                 // Use hostizzy_revenue field from booking (same as main app)
                 const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 const totalAmount = parseFloat(booking.total_amount) || 0;
@@ -1027,10 +1119,6 @@ async function loadOwnerBookings() {
             html += '</tbody></table></div>';
             container.innerHTML = html;
         }
-
-    } catch (error) {
-        showToast('Error', 'Failed to load bookings: ' + error.message, '❌');
-    }
 }
 
 // Load Owner Payouts

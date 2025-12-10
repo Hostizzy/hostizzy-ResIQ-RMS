@@ -1239,6 +1239,72 @@
             <!-- Bookings View -->
             <div id="ownerBookingsView" class="owner-view hidden">
                 <h3 style="margin: 0 0 24px 0;">My Bookings</h3>
+
+                <!-- Filters & Search -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Search</label>
+                            <input type="text" id="bookingsSearch" placeholder="Search booking ID, guest name, phone..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;" oninput="filterOwnerBookings()">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Property</label>
+                            <select id="bookingsPropertyFilter" onchange="filterOwnerBookings()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Booking Status</label>
+                            <select id="bookingsStatusFilter" onchange="filterOwnerBookings()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="checked_in">Checked In</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Payment Status</label>
+                            <select id="bookingsPaymentFilter" onchange="filterOwnerBookings()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;">
+                                <option value="">All Payment Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="partial">Partial</option>
+                                <option value="paid">Paid</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="color: var(--text-secondary); font-size: 14px;">
+                            <span id="bookingsCount">0</span> bookings found
+                        </div>
+                        <button onclick="clearBookingsFilters()" style="padding: 8px 16px; border: 1px solid var(--border); background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bookings Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                        <div class="stat-value" style="color: white; font-size: 24px;" id="bookingsCompleted">0</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">Completed</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">
+                        <div class="stat-value" style="color: white; font-size: 24px;" id="bookingsConfirmed">0</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">Confirmed</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white;">
+                        <div class="stat-value" style="color: white; font-size: 24px;" id="bookingsCheckedIn">0</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">Checked In</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                        <div class="stat-value" style="color: white; font-size: 24px;" id="bookingsPending">0</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">Pending</div>
+                    </div>
+                </div>
+
+                <!-- Bookings List -->
                 <div id="ownerBookingsList"></div>
             </div>
 
