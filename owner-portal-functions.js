@@ -143,8 +143,13 @@ async function loadOwnerDashboard() {
         if (earningsEl) earningsEl.textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
         if (payoutEl) payoutEl.textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
-        // Calculate average commission percentage
-        const avgCommission = totalRevenue > 0 ? ((totalHostizzyShare / totalRevenue) * 100).toFixed(1) : 0;
+        // Calculate average commission percentage (based on stay amount + extra guests only, not total)
+        const commissionBase = confirmedBookings.reduce((sum, b) => {
+            const stayAmount = parseFloat(b.stay_amount) || 0;
+            const extraGuests = parseFloat(b.extra_guest_charges) || 0;
+            return sum + stayAmount + extraGuests;
+        }, 0);
+        const avgCommission = commissionBase > 0 ? ((totalHostizzyShare / commissionBase) * 100).toFixed(1) : 0;
         if (percentEl) percentEl.textContent = `${avgCommission}% average`;
 
         // Load monthly breakdown
@@ -1026,6 +1031,11 @@ function renderOwnerBookingsList(bookings) {
                 const bonfireOther = parseFloat(booking.bonfire_other) || 0;
                 const extraGuests = parseFloat(booking.extra_guest_charges) || 0;
 
+                // Calculate ACTUAL commission percentage from booking data
+                // Formula: (hostizzy_revenue / (stay_amount + extra_guest_charges)) × 100
+                const commissionBase = stayAmount + extraGuests;
+                const actualCommissionPercent = commissionBase > 0 ? ((hostizzyShare / commissionBase) * 100).toFixed(1) : 0;
+
                 html += `
                     <div class="booking-mobile-card">
                         <div class="booking-mobile-card-header">
@@ -1066,7 +1076,7 @@ function renderOwnerBookingsList(bookings) {
                                 <span class="booking-mobile-value" style="font-weight: 700;">₹${parseFloat(booking.total_amount).toLocaleString('en-IN')}</span>
                             </div>
                             <div class="booking-mobile-row">
-                                <span class="booking-mobile-label">Hostizzy Commission (15%)</span>
+                                <span class="booking-mobile-label">Hostizzy Commission (${actualCommissionPercent}%)</span>
                                 <span class="booking-mobile-value" style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                             </div>
                             <div class="booking-mobile-row">
@@ -1096,7 +1106,7 @@ function renderOwnerBookingsList(bookings) {
             html += '<th>Meals</th>';
             html += '<th>Other</th>';
             html += '<th>Total</th>';
-            html += '<th>Commission (15%)</th>';
+            html += '<th>Commission</th>';
             html += '<th>Your Earnings</th>';
             html += '<th>Payment</th>';
             html += '<th>Status</th>';
@@ -1110,6 +1120,12 @@ function renderOwnerBookingsList(bookings) {
                 const stayAmount = parseFloat(booking.stay_amount) || 0;
                 const mealsChef = parseFloat(booking.meals_chef) || 0;
                 const bonfireOther = parseFloat(booking.bonfire_other) || 0;
+                const extraGuests = parseFloat(booking.extra_guest_charges) || 0;
+
+                // Calculate ACTUAL commission percentage from booking data
+                // Formula: (hostizzy_revenue / (stay_amount + extra_guest_charges)) × 100
+                const commissionBase = stayAmount + extraGuests;
+                const actualCommissionPercent = commissionBase > 0 ? ((hostizzyShare / commissionBase) * 100).toFixed(1) : 0;
 
                 const paymentStatusColors = {
                     'pending': 'orange',
@@ -1136,7 +1152,7 @@ function renderOwnerBookingsList(bookings) {
                 html += `<td>${mealsChef > 0 ? '₹' + mealsChef.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '-'}</td>`;
                 html += `<td>${bonfireOther > 0 ? '₹' + bonfireOther.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '-'}</td>`;
                 html += `<td><strong>₹${totalAmount.toLocaleString('en-IN')}</strong></td>`;
-                html += `<td style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
+                html += `<td style="color: var(--warning);">${actualCommissionPercent}% (₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })})</td>`;
                 html += `<td style="color: var(--success); font-weight: 700;">₹${yourEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
                 html += `<td><span class="badge" style="background: ${paymentStatusColors[booking.payment_status]};">${booking.payment_status}</span></td>`;
                 html += `<td><span class="badge" style="background: ${statusColors[booking.status]};">${booking.status}</span></td>`;
