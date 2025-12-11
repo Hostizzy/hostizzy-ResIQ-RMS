@@ -1036,8 +1036,17 @@ function renderOwnerBookingsList(bookings) {
                 const bonfireOther = parseFloat(booking.bonfire_other) || 0;
                 const extraGuests = parseFloat(booking.extra_guest_charges) || 0;
 
-                // Get commission percentage directly from properties table
-                const commissionPercent = booking.properties?.revenue_share_percent || 0;
+                // Get commission percentage with fallbacks:
+                // 1. Try from properties table
+                // 2. If not set, calculate from booking amounts
+                // 3. Default to 20% if can't calculate
+                let commissionPercent = booking.properties?.revenue_share_percent || 0;
+                if (commissionPercent === 0) {
+                    const commissionBase = stayAmount + extraGuests;
+                    commissionPercent = commissionBase > 0
+                        ? parseFloat(((hostizzyShare / commissionBase) * 100).toFixed(1))
+                        : 20;
+                }
 
                 html += `
                     <div class="booking-mobile-card">
@@ -1125,8 +1134,17 @@ function renderOwnerBookingsList(bookings) {
                 const bonfireOther = parseFloat(booking.bonfire_other) || 0;
                 const extraGuests = parseFloat(booking.extra_guest_charges) || 0;
 
-                // Get commission percentage directly from properties table
-                const commissionPercent = booking.properties?.revenue_share_percent || 0;
+                // Get commission percentage with fallbacks:
+                // 1. Try from properties table
+                // 2. If not set, calculate from booking amounts
+                // 3. Default to 20% if can't calculate
+                let commissionPercent = booking.properties?.revenue_share_percent || 0;
+                if (commissionPercent === 0) {
+                    const commissionBase = stayAmount + extraGuests;
+                    commissionPercent = commissionBase > 0
+                        ? parseFloat(((hostizzyShare / commissionBase) * 100).toFixed(1))
+                        : 20;
+                }
 
                 const paymentStatusColors = {
                     'pending': 'orange',
