@@ -38,13 +38,15 @@ async function loadOwnerDashboard() {
 
         if (propertyIds.length === 0) {
             const elements = {
-                ownerTotalCollected: document.getElementById('ownerTotalCollected'),
+                ownerTotalRevenue: document.getElementById('ownerTotalRevenue'),
+                ownerTotalGuests: document.getElementById('ownerTotalGuests'),
                 ownerHostizzyShare: document.getElementById('ownerHostizzyShare'),
                 ownerNetEarnings: document.getElementById('ownerNetEarnings'),
                 ownerPendingPayout: document.getElementById('ownerPendingPayout')
             };
 
-            if (elements.ownerTotalCollected) elements.ownerTotalCollected.textContent = '₹0';
+            if (elements.ownerTotalRevenue) elements.ownerTotalRevenue.textContent = '₹0';
+            if (elements.ownerTotalGuests) elements.ownerTotalGuests.textContent = '0';
             if (elements.ownerHostizzyShare) elements.ownerHostizzyShare.textContent = '₹0';
             if (elements.ownerNetEarnings) elements.ownerNetEarnings.textContent = '₹0';
             if (elements.ownerPendingPayout) elements.ownerPendingPayout.textContent = '₹0';
@@ -73,6 +75,18 @@ async function loadOwnerDashboard() {
 
         ownerData.bookings = bookings || [];
 
+        // Debug: Log bookings data
+        console.log('[Owner Portal] Property IDs:', propertyIds);
+        console.log('[Owner Portal] Total bookings fetched:', bookings.length);
+        console.log('[Owner Portal] Bookings by status:', {
+            all: bookings.length,
+            confirmed: bookings.filter(b => b.status === 'confirmed').length,
+            checked_in: bookings.filter(b => b.status === 'checked_in').length,
+            completed: bookings.filter(b => b.status === 'completed').length,
+            pending: bookings.filter(b => b.status === 'pending').length,
+            cancelled: bookings.filter(b => b.status === 'cancelled').length
+        });
+
         // Get properties
         const { data: properties, error: propertiesError } = await supabase
             .from('properties')
@@ -83,40 +97,59 @@ async function loadOwnerDashboard() {
 
         ownerData.properties = properties || [];
 
-        // Calculate metrics from payments
-        const totalCollected = ownerData.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        // Calculate metrics from bookings (exclude only cancelled - same as main app)
+        const confirmedBookings = ownerData.bookings.filter(b => b.status !== 'cancelled');
 
-        // Calculate commission based on each property's revenue_share_percent
-        let totalHostizzyShare = 0;
-        ownerData.payments.forEach(payment => {
-            const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-            if (booking) {
-                const property = ownerData.properties.find(p => p.id === booking.property_id);
-                const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                const hostizzyShare = (parseFloat(payment.amount) || 0) * (commissionRate / 100);
-                totalHostizzyShare += hostizzyShare;
-            }
-        });
+        // Calculate total revenue from all bookings
+        const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
 
-        const netEarnings = totalCollected - totalHostizzyShare;
+        // Debug: Log revenue calculation
+        console.log('[Owner Portal] Confirmed bookings:', confirmedBookings.length);
+        console.log('[Owner Portal] Total Revenue calculated:', totalRevenue);
+        console.log('[Owner Portal] Sample bookings:', confirmedBookings.slice(0, 3).map(b => ({
+            id: b.booking_id,
+            status: b.status,
+            payment_status: b.payment_status,
+            total_amount: b.total_amount,
+            hostizzy_revenue: b.hostizzy_revenue
+        })));
+
+        // Calculate total guests (adults + children)
+        const totalGuests = confirmedBookings.reduce((sum, b) => {
+            const adults = parseInt(b.adults) || 0;
+            const children = parseInt(b.children) || 0;
+            return sum + adults + children;
+        }, 0);
+
+        // Calculate Hostizzy revenue using the hostizzy_revenue field from database (same as main app)
+        const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
+
+        const netEarnings = totalRevenue - totalHostizzyShare;
 
         // Get pending payout
         const pendingPayout = await db.getOwnerPendingPayout(ownerId);
 
         // Update cards with null checks
-        const collectedEl = document.getElementById('ownerTotalCollected');
+        const revenueEl = document.getElementById('ownerTotalRevenue');
+        const guestsEl = document.getElementById('ownerTotalGuests');
         const shareEl = document.getElementById('ownerHostizzyShare');
         const earningsEl = document.getElementById('ownerNetEarnings');
         const payoutEl = document.getElementById('ownerPendingPayout');
         const percentEl = document.getElementById('ownerHostizzyPercent');
 
-        if (collectedEl) collectedEl.textContent = '₹' + totalCollected.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        if (revenueEl) revenueEl.textContent = '₹' + totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        if (guestsEl) guestsEl.textContent = totalGuests.toLocaleString('en-IN');
         if (shareEl) shareEl.textContent = '₹' + totalHostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 });
         if (earningsEl) earningsEl.textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
         if (payoutEl) payoutEl.textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
-        // Calculate average commission percentage
-        const avgCommission = totalCollected > 0 ? ((totalHostizzyShare / totalCollected) * 100).toFixed(1) : 0;
+        // Calculate average commission percentage (based on stay amount + extra guests only, not total)
+        const commissionBase = confirmedBookings.reduce((sum, b) => {
+            const stayAmount = parseFloat(b.stay_amount) || 0;
+            const extraGuests = parseFloat(b.extra_guest_charges) || 0;
+            return sum + stayAmount + extraGuests;
+        }, 0);
+        const avgCommission = commissionBase > 0 ? ((totalHostizzyShare / commissionBase) * 100).toFixed(1) : 0;
         if (percentEl) percentEl.textContent = `${avgCommission}% average`;
 
         // Load monthly breakdown
@@ -153,10 +186,9 @@ function loadMonthlyBreakdown() {
         }
 
         const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-        const property = booking ? ownerData.properties.find(p => p.id === booking.property_id) : null;
-        const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
         const amount = parseFloat(payment.amount) || 0;
-        const hostizzyShare = amount * (commissionRate / 100);
+        // Use hostizzy_revenue field from booking (same as main app)
+        const hostizzyShare = booking ? (parseFloat(booking.hostizzy_revenue) || 0) : 0;
 
         monthlyData[monthKey].collected += amount;
         monthlyData[monthKey].hostizzyShare += hostizzyShare;
@@ -164,13 +196,16 @@ function loadMonthlyBreakdown() {
         monthlyData[monthKey].payments.push(payment);
     });
 
-    // Convert to array and sort by month (descending)
-    ownerData.monthlyData = Object.keys(monthlyData)
+    // Convert to array and sort by month (descending) - store ALL data
+    ownerData.allMonthlyData = Object.keys(monthlyData)
         .sort((a, b) => b.localeCompare(a))
-        .slice(0, 6)
-        .map(key => monthlyData[key]);
+        .map(key => ({ ...monthlyData[key], monthKey: key }));
 
-    renderMonthlyBreakdown();
+    // Populate dropdown with individual months
+    populateMonthlyDropdown();
+
+    // Initial render - show last 6 months
+    filterMonthlyBreakdown();
 }
 
 // Render Monthly Breakdown
@@ -209,6 +244,58 @@ function renderMonthlyBreakdown() {
     });
 
     container.innerHTML = html;
+}
+
+// Populate Monthly Breakdown Dropdown
+function populateMonthlyDropdown() {
+    const dropdown = document.getElementById('monthlyBreakdownFilter');
+    if (!dropdown || !ownerData.allMonthlyData) return;
+
+    // Remove existing month options (keep preset options)
+    const options = dropdown.querySelectorAll('option');
+    options.forEach(opt => {
+        if (opt.value && !['last6', 'last12', 'all'].includes(opt.value)) {
+            opt.remove();
+        }
+    });
+
+    // Add individual month options
+    ownerData.allMonthlyData.forEach(monthData => {
+        const option = document.createElement('option');
+        option.value = monthData.monthKey;
+        option.textContent = monthData.month;
+        dropdown.appendChild(option);
+    });
+}
+
+// Filter Monthly Breakdown based on dropdown selection
+function filterMonthlyBreakdown() {
+    const filterValue = document.getElementById('monthlyBreakdownFilter')?.value || 'last6';
+
+    if (!ownerData.allMonthlyData) {
+        ownerData.monthlyData = [];
+        renderMonthlyBreakdown();
+        return;
+    }
+
+    let filteredData = [];
+
+    if (filterValue === 'all') {
+        // Show all months
+        filteredData = ownerData.allMonthlyData;
+    } else if (filterValue === 'last6') {
+        // Show last 6 months
+        filteredData = ownerData.allMonthlyData.slice(0, 6);
+    } else if (filterValue === 'last12') {
+        // Show last 12 months
+        filteredData = ownerData.allMonthlyData.slice(0, 12);
+    } else {
+        // Show specific month
+        filteredData = ownerData.allMonthlyData.filter(m => m.monthKey === filterValue);
+    }
+
+    ownerData.monthlyData = filteredData;
+    renderMonthlyBreakdown();
 }
 
 // Load Revenue Charts
@@ -274,13 +361,17 @@ function loadRevenueCharts() {
         if (revenuePieChart) revenuePieChart.destroy();
 
         const totalCollected = ownerData.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        // Calculate proportional hostizzy share based on payments collected
         let totalHostizzyShare = 0;
         ownerData.payments.forEach(payment => {
             const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
             if (booking) {
-                const property = ownerData.properties.find(p => p.id === booking.property_id);
-                const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                totalHostizzyShare += (parseFloat(payment.amount) || 0) * (commissionRate / 100);
+                const bookingTotal = parseFloat(booking.total_amount) || 0;
+                const bookingCommission = parseFloat(booking.hostizzy_revenue) || 0;
+                const paymentAmount = parseFloat(payment.amount) || 0;
+                // Calculate proportional commission for this payment
+                const proportionalCommission = bookingTotal > 0 ? (paymentAmount / bookingTotal) * bookingCommission : 0;
+                totalHostizzyShare += proportionalCommission;
             }
         });
         const ownerEarnings = totalCollected - totalHostizzyShare;
@@ -329,15 +420,14 @@ function loadRevenueCharts() {
             if (booking) {
                 const propertyName = booking.property_name;
                 if (!propertyPerformance[propertyName]) {
-                    const property = ownerData.properties.find(p => p.id === booking.property_id);
                     propertyPerformance[propertyName] = {
                         collected: 0,
-                        ownerEarnings: 0,
-                        commissionRate: property ? (parseFloat(property.revenue_share_percent) || 15) : 15
+                        ownerEarnings: 0
                     };
                 }
                 const amount = parseFloat(payment.amount) || 0;
-                const hostizzyShare = amount * (propertyPerformance[propertyName].commissionRate / 100);
+                // Use hostizzy_revenue field from booking (same as main app)
+                const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 propertyPerformance[propertyName].collected += amount;
                 propertyPerformance[propertyName].ownerEarnings += (amount - hostizzyShare);
             }
@@ -828,6 +918,9 @@ function renderOwnerRecentBookings(bookings) {
 }
 
 // Load Owner Bookings (with mobile support)
+// Store filtered bookings for export or other operations
+let filteredOwnerBookings = [];
+
 async function loadOwnerBookings() {
     try {
         const ownerId = currentUser.id;
@@ -836,20 +929,112 @@ async function loadOwnerBookings() {
         const container = document.getElementById('ownerBookingsList');
 
         if (ownerData.bookings.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">No bookings found</p>';
+            container.innerHTML = '<div class="card"><p style="color: var(--text-secondary); text-align: center; padding: 40px;">No bookings found</p></div>';
+            updateBookingsSummary([]);
             return;
         }
 
-        const isMobile = window.innerWidth <= 768;
+        // Populate property filter
+        const propertyFilter = document.getElementById('bookingsPropertyFilter');
+        if (propertyFilter) {
+            const uniqueProperties = [...new Set(ownerData.bookings.map(b => b.property_name))].sort();
+            propertyFilter.innerHTML = '<option value="">All Properties</option>' +
+                uniqueProperties.map(p => `<option value="${p}">${p}</option>`).join('');
+        }
 
-        if (isMobile) {
+        // Apply filters and render
+        filterOwnerBookings();
+
+    } catch (error) {
+        console.error('Error loading bookings:', error);
+        showToast('Error', 'Failed to load bookings', '❌');
+    }
+}
+
+// Filter Owner Bookings
+function filterOwnerBookings() {
+    if (!ownerData.bookings || ownerData.bookings.length === 0) return;
+
+    const searchTerm = document.getElementById('bookingsSearch')?.value.toLowerCase() || '';
+    const propertyFilter = document.getElementById('bookingsPropertyFilter')?.value || '';
+    const statusFilter = document.getElementById('bookingsStatusFilter')?.value || '';
+    const paymentFilter = document.getElementById('bookingsPaymentFilter')?.value || '';
+
+    filteredOwnerBookings = ownerData.bookings.filter(booking => {
+        // Search filter
+        const matchesSearch = !searchTerm ||
+            booking.booking_id?.toLowerCase().includes(searchTerm) ||
+            booking.guest_name?.toLowerCase().includes(searchTerm) ||
+            booking.guest_phone?.includes(searchTerm);
+
+        // Property filter
+        const matchesProperty = !propertyFilter || booking.property_name === propertyFilter;
+
+        // Status filter
+        const matchesStatus = !statusFilter || booking.status === statusFilter;
+
+        // Payment filter
+        const matchesPayment = !paymentFilter || booking.payment_status === paymentFilter;
+
+        return matchesSearch && matchesProperty && matchesStatus && matchesPayment;
+    });
+
+    // Update count
+    const countEl = document.getElementById('bookingsCount');
+    if (countEl) countEl.textContent = filteredOwnerBookings.length;
+
+    // Update summary cards
+    updateBookingsSummary(filteredOwnerBookings);
+
+    // Render bookings
+    renderOwnerBookingsList(filteredOwnerBookings);
+}
+
+// Clear Bookings Filters
+function clearBookingsFilters() {
+    document.getElementById('bookingsSearch').value = '';
+    document.getElementById('bookingsPropertyFilter').value = '';
+    document.getElementById('bookingsStatusFilter').value = '';
+    document.getElementById('bookingsPaymentFilter').value = '';
+    filterOwnerBookings();
+}
+
+// Update Bookings Summary Cards
+function updateBookingsSummary(bookings) {
+    const completed = bookings.filter(b => b.status === 'completed').length;
+    const confirmed = bookings.filter(b => b.status === 'confirmed').length;
+    const checkedIn = bookings.filter(b => b.status === 'checked_in').length;
+    const pending = bookings.filter(b => b.status === 'pending').length;
+
+    document.getElementById('bookingsCompleted').textContent = completed;
+    document.getElementById('bookingsConfirmed').textContent = confirmed;
+    document.getElementById('bookingsCheckedIn').textContent = checkedIn;
+    document.getElementById('bookingsPending').textContent = pending;
+}
+
+// Render Owner Bookings List
+function renderOwnerBookingsList(bookings) {
+    const container = document.getElementById('ownerBookingsList');
+    if (!container) return;
+
+    if (bookings.length === 0) {
+        container.innerHTML = '<div class="card"><p style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">No bookings match your filters</p></div>';
+        return;
+    }
+
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
             // Mobile card layout
             let html = '<div class="mobile-card-list">';
-            ownerData.bookings.forEach(booking => {
-                const property = ownerData.properties.find(p => p.id === booking.property_id);
-                const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                const hostizzyShare = (parseFloat(booking.total_amount) || 0) * (commissionRate / 100);
+            bookings.forEach(booking => {
+                // Use hostizzy_revenue field from booking (same as main app)
+                const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const mealsChef = parseFloat(booking.meals_chef) || 0;
+                const bonfireOther = parseFloat(booking.bonfire_other) || 0;
+                const extraGuests = parseFloat(booking.extra_guest_charges) || 0;
 
                 html += `
                     <div class="booking-mobile-card">
@@ -857,29 +1042,50 @@ async function loadOwnerBookings() {
                             <div>
                                 <strong style="font-size: 16px;">${booking.booking_id}</strong>
                                 <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">${booking.property_name}</div>
+                                <div style="font-size: 12px; color: var(--primary); margin-top: 2px;">📍 ${booking.booking_source || 'DIRECT'}</div>
                             </div>
                             <span class="badge" style="background: ${booking.status === 'confirmed' ? 'blue' : booking.status === 'completed' ? 'green' : 'orange'};">${booking.status}</span>
                         </div>
                         <div class="booking-mobile-card-body">
                             <div class="booking-mobile-row">
                                 <span class="booking-mobile-label">Guest</span>
-                                <span class="booking-mobile-value">${booking.guest_name}</span>
+                                <span class="booking-mobile-value">${booking.guest_name} (${booking.guest_phone})</span>
                             </div>
                             <div class="booking-mobile-row">
-                                <span class="booking-mobile-label">Check-in</span>
-                                <span class="booking-mobile-value">${new Date(booking.check_in).toLocaleDateString('en-IN')} - ${new Date(booking.check_out).toLocaleDateString('en-IN')}</span>
+                                <span class="booking-mobile-label">Dates</span>
+                                <span class="booking-mobile-value">${new Date(booking.check_in).toLocaleDateString('en-IN')} → ${new Date(booking.check_out).toLocaleDateString('en-IN')} (${booking.nights}N)</span>
                             </div>
+                            <div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Stay Amount</span>
+                                <span class="booking-mobile-value">₹${stayAmount.toLocaleString('en-IN')}</span>
+                            </div>
+                            ${extraGuests > 0 ? `<div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Extra Guests</span>
+                                <span class="booking-mobile-value">₹${extraGuests.toLocaleString('en-IN')}</span>
+                            </div>` : ''}
+                            ${mealsChef > 0 ? `<div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Meals/Chef</span>
+                                <span class="booking-mobile-value">₹${mealsChef.toLocaleString('en-IN')}</span>
+                            </div>` : ''}
+                            ${bonfireOther > 0 ? `<div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Bonfire/Other</span>
+                                <span class="booking-mobile-value">₹${bonfireOther.toLocaleString('en-IN')}</span>
+                            </div>` : ''}
                             <div class="booking-mobile-row">
                                 <span class="booking-mobile-label">Total Amount</span>
-                                <span class="booking-mobile-value">₹${parseFloat(booking.total_amount).toLocaleString('en-IN')}</span>
+                                <span class="booking-mobile-value" style="font-weight: 700;">₹${parseFloat(booking.total_amount).toLocaleString('en-IN')}</span>
+                            </div>
+                            <div class="booking-mobile-row">
+                                <span class="booking-mobile-label">Hostizzy Commission</span>
+                                <span class="booking-mobile-value" style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                             </div>
                             <div class="booking-mobile-row">
                                 <span class="booking-mobile-label">Your Earnings</span>
                                 <span class="booking-mobile-value" style="color: var(--success); font-weight: 700;">₹${yourEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                             </div>
                             <div class="booking-mobile-row">
-                                <span class="booking-mobile-label">Commission (${commissionRate}%)</span>
-                                <span class="booking-mobile-value" style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                                <span class="booking-mobile-label">Payment Status</span>
+                                <span class="badge" style="background: ${booking.payment_status === 'paid' ? 'green' : booking.payment_status === 'partial' ? 'blue' : 'orange'}; font-size: 11px;">${booking.payment_status}</span>
                             </div>
                         </div>
                     </div>
@@ -888,28 +1094,33 @@ async function loadOwnerBookings() {
             html += '</div>';
             container.innerHTML = html;
         } else {
-            // Desktop table layout
+            // Desktop table layout with ALL fields
             let html = '<div class="table-container"><table class="data-table"><thead><tr>';
             html += '<th>Booking ID</th>';
-            html += '<th>Guest Name</th>';
-            html += '<th>Phone</th>';
+            html += '<th>Guest</th>';
             html += '<th>Property</th>';
+            html += '<th>Source</th>';
             html += '<th>Check In</th>';
-            html += '<th>Check Out</th>';
             html += '<th>Nights</th>';
-            html += '<th>Guests</th>';
-            html += '<th>Total Amount</th>';
+            html += '<th>Stay</th>';
+            html += '<th>Meals</th>';
+            html += '<th>Other</th>';
+            html += '<th>Total</th>';
             html += '<th>Commission</th>';
             html += '<th>Your Earnings</th>';
-            html += '<th>Payment Status</th>';
+            html += '<th>Payment</th>';
             html += '<th>Status</th>';
             html += '</tr></thead><tbody>';
 
-            ownerData.bookings.forEach(booking => {
-                const property = ownerData.properties.find(p => p.id === booking.property_id);
-                const commissionRate = property ? (parseFloat(property.revenue_share_percent) || 15) : 15;
-                const hostizzyShare = (parseFloat(booking.total_amount) || 0) * (commissionRate / 100);
-                const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
+            bookings.forEach(booking => {
+                // Use hostizzy_revenue field from booking (same as main app)
+                const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
+                const totalAmount = parseFloat(booking.total_amount) || 0;
+                const yourEarnings = totalAmount - hostizzyShare;
+                const stayAmount = parseFloat(booking.stay_amount) || 0;
+                const mealsChef = parseFloat(booking.meals_chef) || 0;
+                const bonfireOther = parseFloat(booking.bonfire_other) || 0;
+                const extraGuests = parseFloat(booking.extra_guest_charges) || 0;
 
                 const paymentStatusColors = {
                     'pending': 'orange',
@@ -927,15 +1138,16 @@ async function loadOwnerBookings() {
 
                 html += '<tr>';
                 html += `<td><strong>${booking.booking_id}</strong></td>`;
-                html += `<td>${booking.guest_name}</td>`;
-                html += `<td>${booking.guest_phone}</td>`;
+                html += `<td>${booking.guest_name}<br><small style="color: var(--text-secondary);">${booking.guest_phone}</small></td>`;
                 html += `<td>${booking.property_name}</td>`;
+                html += `<td><span style="font-size: 12px;">${booking.booking_source || 'DIRECT'}</span></td>`;
                 html += `<td>${new Date(booking.check_in).toLocaleDateString('en-IN')}</td>`;
-                html += `<td>${new Date(booking.check_out).toLocaleDateString('en-IN')}</td>`;
                 html += `<td>${booking.nights}</td>`;
-                html += `<td>${booking.adults}${booking.kids ? ' + ' + booking.kids + ' kids' : ''}</td>`;
-                html += `<td><strong>₹${parseFloat(booking.total_amount).toLocaleString('en-IN')}</strong></td>`;
-                html += `<td style="color: var(--warning);">${commissionRate}% (₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })})</td>`;
+                html += `<td>₹${stayAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
+                html += `<td>${mealsChef > 0 ? '₹' + mealsChef.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '-'}</td>`;
+                html += `<td>${bonfireOther > 0 ? '₹' + bonfireOther.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '-'}</td>`;
+                html += `<td><strong>₹${totalAmount.toLocaleString('en-IN')}</strong></td>`;
+                html += `<td style="color: var(--warning);">₹${hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
                 html += `<td style="color: var(--success); font-weight: 700;">₹${yourEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>`;
                 html += `<td><span class="badge" style="background: ${paymentStatusColors[booking.payment_status]};">${booking.payment_status}</span></td>`;
                 html += `<td><span class="badge" style="background: ${statusColors[booking.status]};">${booking.status}</span></td>`;
@@ -945,10 +1157,6 @@ async function loadOwnerBookings() {
             html += '</tbody></table></div>';
             container.innerHTML = html;
         }
-
-    } catch (error) {
-        showToast('Error', 'Failed to load bookings: ' + error.message, '❌');
-    }
 }
 
 // Load Owner Payouts

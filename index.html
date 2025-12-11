@@ -99,6 +99,63 @@
             line-height: 1.6;
         }
 
+        /* Comprehensive Dark Mode Overrides */
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .modal-content,
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .kanban-card,
+        [data-theme="dark"] .property-card,
+        [data-theme="dark"] .payment-card {
+            background: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] .navbar,
+        [data-theme="dark"] .top-bar,
+        [data-theme="dark"] .filters,
+        [data-theme="dark"] .table-container table thead {
+            background: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] input,
+        [data-theme="dark"] select,
+        [data-theme="dark"] textarea {
+            background: var(--background-alt) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] input::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: var(--text-tertiary) !important;
+        }
+
+        [data-theme="dark"] button {
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] .table-container,
+        [data-theme="dark"] table {
+            background: var(--surface) !important;
+        }
+
+        [data-theme="dark"] table tbody tr {
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] table tbody tr:hover {
+            background: var(--background-alt) !important;
+        }
+
+        [data-theme="dark"] .modal {
+            background: rgba(15, 23, 42, 0.75) !important;
+        }
+
+        [data-theme="dark"] hr {
+            border-color: var(--border) !important;
+        }
+
         /* Loading Spinner */
         .loading-spinner {
             display: inline-block;
@@ -3447,7 +3504,12 @@
             div[style*="grid-template-columns: repeat(2, 1fr)"] {
                 grid-template-columns: 1fr !important;
             }
-            
+
+            /* Fix charts grid overflow - stack vertically on mobile */
+            div[style*="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr))"] {
+                grid-template-columns: 1fr !important;
+            }
+
             /* This Month Performance - Better mobile layout */
             .month-stat-card {
                 padding: 20px 16px;
@@ -3618,19 +3680,25 @@
 
         /* Small Mobile (max 480px) */
         @media (max-width: 480px) {
+            /* Stack all grid-based analytics on very small screens */
+            div[style*="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))"],
+            div[style*="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))"] {
+                grid-template-columns: 1fr !important;
+            }
+
             /* Smaller text sizes for very small screens */
             .month-stat-value {
                 font-size: 24px;
             }
-            
+
             .split-amount {
                 font-size: 24px;
             }
-            
+
             .metric-value {
                 font-size: 28px;
             }
-            
+
             /* Tighter spacing */
             .container {
                 padding: 12px;
