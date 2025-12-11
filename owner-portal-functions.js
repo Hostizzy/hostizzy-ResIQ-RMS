@@ -53,7 +53,7 @@ async function loadOwnerDashboard() {
             return;
         }
 
-        // PERFORMANCE: Only load bookings data - no payments needed for revenue display
+        // Load bookings data
         const { data: bookings, error: bookingsError } = await supabase
             .from('reservations')
             .select('*')
@@ -63,6 +63,17 @@ async function loadOwnerDashboard() {
         if (bookingsError) throw bookingsError;
 
         ownerData.bookings = bookings || [];
+
+        // Load payments data (needed for Payments view)
+        const { data: payments, error: paymentsError } = await supabase
+            .from('payments')
+            .select('*')
+            .in('booking_id', (bookings || []).map(b => b.booking_id))
+            .order('payment_date', { ascending: false });
+
+        if (paymentsError) console.error('Payments load error:', paymentsError);
+
+        ownerData.payments = payments || [];
 
         // Get properties
         const { data: properties, error: propertiesError } = await supabase
@@ -158,7 +169,7 @@ function loadMonthlyBreakdown() {
 
         const totalRevenue = parseFloat(booking.total_amount) || 0;
         const stayAmount = parseFloat(booking.stay_amount) || 0;
-        const mealAmount = parseFloat(booking.meal_amount) || 0;
+        const mealAmount = parseFloat(booking.meals_chef) || parseFloat(booking.meal_amount) || 0;
         const hostizzyCommission = parseFloat(booking.hostizzy_revenue) || 0;
         const ownerEarnings = totalRevenue - hostizzyCommission;
 
@@ -1176,13 +1187,21 @@ async function loadOwnerPayouts() {
 
         // Show current month settlement (only from November 2024 onwards)
         if (now >= novemberDate) {
+            // Get first day of current month
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+            // Get first day of next month (handles year rollover automatically)
+            const firstDayOfNextMonth = new Date(currentYear, currentMonth + 1, 1);
+
+            const startDate = firstDayOfMonth.toISOString().split('T')[0];
+            const endDate = firstDayOfNextMonth.toISOString().split('T')[0];
+
             // Get payments for current month
             const { data: payments, error: paymentsError } = await supabase
                 .from('payments')
-                .select('*, reservations!inner(property_id, hostizzy_revenue)')
+                .select('*, reservations!inner(property_id, hostizzy_revenue, total_amount)')
                 .in('reservations.property_id', propertyIds)
-                .gte('payment_date', `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`)
-                .lt('payment_date', `${currentYear}-${String(currentMonth + 2).padStart(2, '0')}-01`);
+                .gte('payment_date', startDate)
+                .lt('payment_date', endDate);
 
             if (paymentsError) throw paymentsError;
 
