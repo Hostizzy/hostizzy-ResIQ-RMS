@@ -9847,10 +9847,7 @@
             async getOwnerBookings(ownerId) {
                 const { data, error } = await supabase
                     .from('reservations')
-                    .select(`
-                        *,
-                        properties!inner(revenue_share_percent)
-                    `)
+                    .select('*')
                     .eq('owner_id', ownerId)
                     .order('check_in', { ascending: false});
                 if (error) throw error;
