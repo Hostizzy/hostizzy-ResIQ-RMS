@@ -80,13 +80,15 @@
             color: white;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
+            transition: width 0.3s ease, margin-left 0.3s ease;
             position: relative;
             z-index: 100;
+            overflow: hidden;
         }
 
         .sidebar.collapsed {
-            transform: translateX(-280px);
+            width: 0;
+            margin-left: 0;
         }
 
         .sidebar-header {

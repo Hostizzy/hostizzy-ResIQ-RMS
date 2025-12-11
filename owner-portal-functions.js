@@ -361,12 +361,17 @@ function loadRevenueCharts() {
         if (revenuePieChart) revenuePieChart.destroy();
 
         const totalCollected = ownerData.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-        // Use hostizzy_revenue field from bookings (same as main app)
+        // Calculate proportional hostizzy share based on payments collected
         let totalHostizzyShare = 0;
         ownerData.payments.forEach(payment => {
             const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
             if (booking) {
-                totalHostizzyShare += parseFloat(booking.hostizzy_revenue) || 0;
+                const bookingTotal = parseFloat(booking.total_amount) || 0;
+                const bookingCommission = parseFloat(booking.hostizzy_revenue) || 0;
+                const paymentAmount = parseFloat(payment.amount) || 0;
+                // Calculate proportional commission for this payment
+                const proportionalCommission = bookingTotal > 0 ? (paymentAmount / bookingTotal) * bookingCommission : 0;
+                totalHostizzyShare += proportionalCommission;
             }
         });
         const ownerEarnings = totalCollected - totalHostizzyShare;
