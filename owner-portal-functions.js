@@ -53,18 +53,7 @@ async function loadOwnerDashboard() {
             return;
         }
 
-        // Get all payments for owner's properties
-        const { data: payments, error: paymentsError } = await supabase
-            .from('payments')
-            .select('*, reservations!inner(property_id, property_name, total_amount, hostizzy_revenue)')
-            .in('reservations.property_id', propertyIds)
-            .order('payment_date', { ascending: false });
-
-        if (paymentsError) throw paymentsError;
-
-        ownerData.payments = payments || [];
-
-        // Get all bookings
+        // PERFORMANCE: Only load bookings data - no payments needed for revenue display
         const { data: bookings, error: bookingsError } = await supabase
             .from('reservations')
             .select('*')
@@ -74,18 +63,6 @@ async function loadOwnerDashboard() {
         if (bookingsError) throw bookingsError;
 
         ownerData.bookings = bookings || [];
-
-        // Debug: Log bookings data
-        console.log('[Owner Portal] Property IDs:', propertyIds);
-        console.log('[Owner Portal] Total bookings fetched:', bookings.length);
-        console.log('[Owner Portal] Bookings by status:', {
-            all: bookings.length,
-            confirmed: bookings.filter(b => b.status === 'confirmed').length,
-            checked_in: bookings.filter(b => b.status === 'checked_in').length,
-            completed: bookings.filter(b => b.status === 'completed').length,
-            pending: bookings.filter(b => b.status === 'pending').length,
-            cancelled: bookings.filter(b => b.status === 'cancelled').length
-        });
 
         // Get properties
         const { data: properties, error: propertiesError } = await supabase
@@ -97,31 +74,20 @@ async function loadOwnerDashboard() {
 
         ownerData.properties = properties || [];
 
-        // Calculate metrics from bookings (exclude only cancelled - same as main app)
+        // Calculate metrics from bookings (exclude cancelled)
         const confirmedBookings = ownerData.bookings.filter(b => b.status !== 'cancelled');
 
         // Calculate total revenue from all bookings
         const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
 
-        // Debug: Log revenue calculation
-        console.log('[Owner Portal] Confirmed bookings:', confirmedBookings.length);
-        console.log('[Owner Portal] Total Revenue calculated:', totalRevenue);
-        console.log('[Owner Portal] Sample bookings:', confirmedBookings.slice(0, 3).map(b => ({
-            id: b.booking_id,
-            status: b.status,
-            payment_status: b.payment_status,
-            total_amount: b.total_amount,
-            hostizzy_revenue: b.hostizzy_revenue
-        })));
-
-        // Calculate total guests (adults + children)
+        // Calculate total guests
         const totalGuests = confirmedBookings.reduce((sum, b) => {
             const adults = parseInt(b.adults) || 0;
             const children = parseInt(b.children) || 0;
             return sum + adults + children;
         }, 0);
 
-        // Calculate Hostizzy revenue using the hostizzy_revenue field from database (same as main app)
+        // Calculate Hostizzy commission
         const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
 
         const netEarnings = totalRevenue - totalHostizzyShare;
@@ -129,7 +95,7 @@ async function loadOwnerDashboard() {
         // Get pending payout
         const pendingPayout = await db.getOwnerPendingPayout(ownerId);
 
-        // Update cards with null checks
+        // Update cards
         const revenueEl = document.getElementById('ownerTotalRevenue');
         const guestsEl = document.getElementById('ownerTotalGuests');
         const shareEl = document.getElementById('ownerHostizzyShare');
@@ -143,7 +109,7 @@ async function loadOwnerDashboard() {
         if (earningsEl) earningsEl.textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
         if (payoutEl) payoutEl.textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
-        // Calculate average commission percentage (based on stay amount + extra guests only, not total)
+        // Calculate average commission percentage
         const commissionBase = confirmedBookings.reduce((sum, b) => {
             const stayAmount = parseFloat(b.stay_amount) || 0;
             const extraGuests = parseFloat(b.extra_guest_charges) || 0;
@@ -152,10 +118,10 @@ async function loadOwnerDashboard() {
         const avgCommission = commissionBase > 0 ? ((totalHostizzyShare / commissionBase) * 100).toFixed(1) : 0;
         if (percentEl) percentEl.textContent = `${avgCommission}% average`;
 
-        // Load monthly breakdown
+        // Load monthly breakdown (REVENUE-based, not payment-based)
         loadMonthlyBreakdown();
 
-        // Load charts
+        // Load charts (REVENUE-based)
         loadRevenueCharts();
 
         // Load recent bookings
@@ -167,36 +133,32 @@ async function loadOwnerDashboard() {
     }
 }
 
-// Load Monthly Breakdown
+// Load Monthly Breakdown (REVENUE-based from bookings, not payments)
 function loadMonthlyBreakdown() {
     const monthlyData = {};
 
-    ownerData.payments.forEach(payment => {
-        const date = new Date(payment.payment_date);
+    // Group by check-in month to show REVENUE (not payment collections)
+    const confirmedBookings = ownerData.bookings.filter(b => b.status !== 'cancelled');
+
+    confirmedBookings.forEach(booking => {
+        const date = new Date(booking.check_in);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
         if (!monthlyData[monthKey]) {
             monthlyData[monthKey] = {
                 month: date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
-                collected: 0,
-                hostizzyShare: 0,
-                ownerEarnings: 0,
-                payments: []
+                revenue: 0,
+                bookings: []
             };
         }
 
-        const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-        const amount = parseFloat(payment.amount) || 0;
-        // Use hostizzy_revenue field from booking (same as main app)
-        const hostizzyShare = booking ? (parseFloat(booking.hostizzy_revenue) || 0) : 0;
+        const revenue = parseFloat(booking.total_amount) || 0;
 
-        monthlyData[monthKey].collected += amount;
-        monthlyData[monthKey].hostizzyShare += hostizzyShare;
-        monthlyData[monthKey].ownerEarnings += (amount - hostizzyShare);
-        monthlyData[monthKey].payments.push(payment);
+        monthlyData[monthKey].revenue += revenue;
+        monthlyData[monthKey].bookings.push(booking);
     });
 
-    // Convert to array and sort by month (descending) - store ALL data
+    // Convert to array and sort by month (descending)
     ownerData.allMonthlyData = Object.keys(monthlyData)
         .sort((a, b) => b.localeCompare(a))
         .map(key => ({ ...monthlyData[key], monthKey: key }));
@@ -208,12 +170,12 @@ function loadMonthlyBreakdown() {
     filterMonthlyBreakdown();
 }
 
-// Render Monthly Breakdown
+// Render Monthly Breakdown (REVENUE only - simplified)
 function renderMonthlyBreakdown() {
     const container = document.getElementById('monthlyBreakdown');
 
     if (ownerData.monthlyData.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No payment data available</p>';
+        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No booking data available</p>';
         return;
     }
 
@@ -221,23 +183,12 @@ function renderMonthlyBreakdown() {
     ownerData.monthlyData.forEach(month => {
         html += `
             <div style="border-bottom: 1px solid var(--border); padding: 16px 0; last-child:border-bottom: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <h4 style="margin: 0; font-size: 16px;">${month.month}</h4>
-                    <span style="color: var(--success); font-weight: 700;">₹${month.collected.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                    <span style="color: var(--success); font-weight: 700; font-size: 18px;">₹${month.revenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 8px;">
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Hostizzy Share</div>
-                        <div style="font-weight: 600; color: var(--warning);">₹${month.hostizzyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Your Earnings</div>
-                        <div style="font-weight: 600; color: var(--success);">₹${month.ownerEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Payments Count</div>
-                        <div style="font-weight: 600;">${month.payments.length}</div>
-                    </div>
+                <div style="font-size: 13px; color: var(--text-secondary);">
+                    ${month.bookings.length} booking${month.bookings.length !== 1 ? 's' : ''}
                 </div>
             </div>
         `;
@@ -298,16 +249,15 @@ function filterMonthlyBreakdown() {
     renderMonthlyBreakdown();
 }
 
-// Load Revenue Charts
+// Load Revenue Charts (REVENUE-based, not payment-based)
 function loadRevenueCharts() {
-    // Revenue Line Chart (Monthly Trend)
+    // Monthly Revenue Trend - LINE CHART (Revenue only)
     const lineCtx = document.getElementById('revenueLineChart');
     if (lineCtx) {
         if (revenueLineChart) revenueLineChart.destroy();
 
         const months = ownerData.monthlyData.slice().reverse().map(m => m.month.split(' ')[0]);
-        const collectedData = ownerData.monthlyData.slice().reverse().map(m => m.collected);
-        const earningsData = ownerData.monthlyData.slice().reverse().map(m => m.ownerEarnings);
+        const revenueData = ownerData.monthlyData.slice().reverse().map(m => m.revenue);
 
         revenueLineChart = new Chart(lineCtx, {
             type: 'line',
@@ -315,18 +265,10 @@ function loadRevenueCharts() {
                 labels: months,
                 datasets: [
                     {
-                        label: 'Total Collected',
-                        data: collectedData,
+                        label: 'Total Revenue',
+                        data: revenueData,
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'Your Earnings',
-                        data: earningsData,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
                         tension: 0.4,
                         fill: true
                     }
@@ -355,26 +297,15 @@ function loadRevenueCharts() {
         });
     }
 
-    // Revenue Pie Chart (Split)
+    // Revenue Split - PIE CHART (Owner vs Hostizzy)
     const pieCtx = document.getElementById('revenuePieChart');
     if (pieCtx) {
         if (revenuePieChart) revenuePieChart.destroy();
 
-        const totalCollected = ownerData.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-        // Calculate proportional hostizzy share based on payments collected
-        let totalHostizzyShare = 0;
-        ownerData.payments.forEach(payment => {
-            const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-            if (booking) {
-                const bookingTotal = parseFloat(booking.total_amount) || 0;
-                const bookingCommission = parseFloat(booking.hostizzy_revenue) || 0;
-                const paymentAmount = parseFloat(payment.amount) || 0;
-                // Calculate proportional commission for this payment
-                const proportionalCommission = bookingTotal > 0 ? (paymentAmount / bookingTotal) * bookingCommission : 0;
-                totalHostizzyShare += proportionalCommission;
-            }
-        });
-        const ownerEarnings = totalCollected - totalHostizzyShare;
+        const confirmedBookings = ownerData.bookings.filter(b => b.status !== 'cancelled');
+        const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
+        const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
+        const ownerEarnings = totalRevenue - totalHostizzyShare;
 
         revenuePieChart = new Chart(pieCtx, {
             type: 'doughnut',
@@ -399,7 +330,7 @@ function loadRevenueCharts() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.parsed || 0;
-                                const percentage = ((value / totalCollected) * 100).toFixed(1);
+                                const percentage = ((value / totalRevenue) * 100).toFixed(1);
                                 return `${label}: ₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })} (${percentage}%)`;
                             }
                         }
@@ -409,33 +340,29 @@ function loadRevenueCharts() {
         });
     }
 
-    // Property Performance Bar Chart
+    // Property Performance Bar Chart (REVENUE only per property)
     const barCtx = document.getElementById('propertyBarChart');
     if (barCtx) {
         if (propertyBarChart) propertyBarChart.destroy();
 
         const propertyPerformance = {};
-        ownerData.payments.forEach(payment => {
-            const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-            if (booking) {
-                const propertyName = booking.property_name;
-                if (!propertyPerformance[propertyName]) {
-                    propertyPerformance[propertyName] = {
-                        collected: 0,
-                        ownerEarnings: 0
-                    };
-                }
-                const amount = parseFloat(payment.amount) || 0;
-                // Use hostizzy_revenue field from booking (same as main app)
-                const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
-                propertyPerformance[propertyName].collected += amount;
-                propertyPerformance[propertyName].ownerEarnings += (amount - hostizzyShare);
+        const confirmedBookings = ownerData.bookings.filter(b => b.status !== 'cancelled');
+
+        confirmedBookings.forEach(booking => {
+            const propertyName = booking.property_name;
+            if (!propertyPerformance[propertyName]) {
+                propertyPerformance[propertyName] = {
+                    revenue: 0,
+                    bookings: 0
+                };
             }
+            const revenue = parseFloat(booking.total_amount) || 0;
+            propertyPerformance[propertyName].revenue += revenue;
+            propertyPerformance[propertyName].bookings += 1;
         });
 
         const propertyNames = Object.keys(propertyPerformance);
-        const collectedData = propertyNames.map(name => propertyPerformance[name].collected);
-        const earningsData = propertyNames.map(name => propertyPerformance[name].ownerEarnings);
+        const revenueData = propertyNames.map(name => propertyPerformance[name].revenue);
 
         propertyBarChart = new Chart(barCtx, {
             type: 'bar',
@@ -443,14 +370,9 @@ function loadRevenueCharts() {
                 labels: propertyNames,
                 datasets: [
                     {
-                        label: 'Total Collected',
-                        data: collectedData,
+                        label: 'Total Revenue',
+                        data: revenueData,
                         backgroundColor: '#10b981'
-                    },
-                    {
-                        label: 'Your Earnings',
-                        data: earningsData,
-                        backgroundColor: '#8b5cf6'
                     }
                 ]
             },
