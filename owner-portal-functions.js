@@ -27,6 +27,43 @@ let calendarBookings = [];
 // to support the new home view and sidebar navigation
 
 // =====================================================
+// IST TIMEZONE UTILITIES
+// =====================================================
+
+// Parse date string as local IST date (prevents timezone shifting)
+function parseLocalDate(dateString) {
+    if (!dateString) return null;
+    const dateOnly = dateString.split('T')[0];
+    const parts = dateOnly.split('-');
+    if (parts.length !== 3) return null;
+    return new Date(
+        parseInt(parts[0]),      // year
+        parseInt(parts[1]) - 1,  // month (0-indexed)
+        parseInt(parts[2])       // day
+    );
+}
+
+// Format date as IST (Indian Standard Time)
+function formatDateIST(date, options = {}) {
+    if (!date) return '';
+    const dateObj = typeof date === 'string' ? parseLocalDate(date) : date;
+    if (!dateObj) return '';
+    const defaultOptions = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        ...options
+    };
+    return dateObj.toLocaleDateString('en-IN', defaultOptions);
+}
+
+// Get month label from date
+function getMonthLabel(year, month) {
+    const date = new Date(year, month, 1);
+    return date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+}
+
+// =====================================================
 // ENHANCED DASHBOARD WITH ANALYTICS
 // =====================================================
 
@@ -1166,140 +1203,238 @@ function renderOwnerBookingsList(bookings) {
         }
 }
 
-// Load Owner Payouts
+// Load Owner Payouts with Dual-Flow Settlement Tracking
 async function loadOwnerPayouts() {
     try {
         const ownerId = currentUser.id;
         const owner = await db.getOwner(ownerId);
         const propertyIds = owner.property_ids || [];
 
-        // Get current date
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-
-        // Settlement starts from November 2024 onwards
-        const novemberDate = new Date(2024, 10, 1); // November is month 10 (0-indexed)
+        if (propertyIds.length === 0) {
+            document.getElementById('ownerPayoutsList').innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No properties linked to your account</p>';
+            return;
+        }
 
         const container = document.getElementById('ownerPayoutsList');
-
         let html = '';
 
-        // Show current month settlement (only from November 2024 onwards)
-        if (now >= novemberDate) {
-            // Get first day of current month
-            const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-            // Get first day of next month (handles year rollover automatically)
-            const firstDayOfNextMonth = new Date(currentYear, currentMonth + 1, 1);
+        // Settlement starts from November 2024 onwards
+        const startYear = 2024;
+        const startMonth = 10; // November (0-indexed)
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
 
-            const startDate = firstDayOfMonth.toISOString().split('T')[0];
-            const endDate = firstDayOfNextMonth.toISOString().split('T')[0];
+        // Generate monthly settlements from November 2024 to current month
+        const monthlySettlements = [];
 
-            // Get payments for current month
-            const { data: payments, error: paymentsError } = await supabase
-                .from('payments')
-                .select('*, reservations!inner(property_id, hostizzy_revenue, total_amount)')
-                .in('reservations.property_id', propertyIds)
-                .gte('payment_date', startDate)
-                .lt('payment_date', endDate);
+        for (let year = startYear; year <= currentYear; year++) {
+            const monthStart = (year === startYear) ? startMonth : 0;
+            const monthEnd = (year === currentYear) ? currentMonth : 11;
 
-            if (paymentsError) throw paymentsError;
+            for (let month = monthStart; month <= monthEnd; month++) {
+                const firstDayOfMonth = new Date(year, month, 1);
+                const firstDayOfNextMonth = new Date(year, month + 1, 1);
 
-            const totalCollections = (payments || []).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const startDate = firstDayOfMonth.toISOString().split('T')[0];
+                const endDate = firstDayOfNextMonth.toISOString().split('T')[0];
 
-            // Calculate proportional commission based on collections
-            let totalCommission = 0;
-            (payments || []).forEach(payment => {
-                const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-                if (booking) {
-                    const bookingTotal = parseFloat(booking.total_amount) || 0;
-                    const bookingCommission = parseFloat(booking.hostizzy_revenue) || 0;
-                    const paymentAmount = parseFloat(payment.amount) || 0;
-                    const proportionalCommission = bookingTotal > 0 ? (paymentAmount / bookingTotal) * bookingCommission : 0;
-                    totalCommission += proportionalCommission;
+                // Get payments for this month
+                const { data: monthPayments, error: paymentsError } = await supabase
+                    .from('payments')
+                    .select('*')
+                    .in('booking_id', ownerData.bookings.map(b => b.booking_id))
+                    .gte('payment_date', startDate)
+                    .lt('payment_date', endDate);
+
+                if (paymentsError) {
+                    console.error('Error loading payments for month:', paymentsError);
+                    continue;
                 }
+
+                // Separate payments by recipient
+                const paymentsToOwner = (monthPayments || []).filter(p =>
+                    p.payment_recipient && p.payment_recipient.toLowerCase().includes('owner')
+                );
+                const paymentsToHostizzy = (monthPayments || []).filter(p =>
+                    p.payment_recipient && p.payment_recipient.toLowerCase().includes('hostizzy')
+                );
+
+                // Calculate commission from payments to owner
+                let commissionFromOwnerPayments = 0;
+                let totalToOwner = 0;
+                paymentsToOwner.forEach(payment => {
+                    const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
+                    if (booking) {
+                        const bookingTotal = parseFloat(booking.total_amount) || 0;
+                        const bookingCommission = parseFloat(booking.hostizzy_revenue) || 0;
+                        const paymentAmount = parseFloat(payment.amount) || 0;
+                        totalToOwner += paymentAmount;
+
+                        // Proportional commission
+                        const proportionalCommission = bookingTotal > 0 ? (paymentAmount / bookingTotal) * bookingCommission : 0;
+                        commissionFromOwnerPayments += proportionalCommission;
+                    }
+                });
+
+                // Calculate owner share from payments to Hostizzy
+                let ownerShareFromHostizzyPayments = 0;
+                let totalToHostizzy = 0;
+                paymentsToHostizzy.forEach(payment => {
+                    const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
+                    if (booking) {
+                        const bookingTotal = parseFloat(booking.total_amount) || 0;
+                        const bookingCommission = parseFloat(booking.hostizzy_revenue) || 0;
+                        const paymentAmount = parseFloat(payment.amount) || 0;
+                        totalToHostizzy += paymentAmount;
+
+                        // Proportional commission and owner share
+                        const proportionalCommission = bookingTotal > 0 ? (paymentAmount / bookingTotal) * bookingCommission : 0;
+                        const ownerShare = paymentAmount - proportionalCommission;
+                        ownerShareFromHostizzyPayments += ownerShare;
+                    }
+                });
+
+                // Net settlement: (Hostizzy owes Owner) - (Owner owes Hostizzy)
+                const netSettlement = ownerShareFromHostizzyPayments - commissionFromOwnerPayments;
+
+                monthlySettlements.push({
+                    year,
+                    month,
+                    monthLabel: getMonthLabel(year, month),
+                    paymentsToOwner: totalToOwner,
+                    commissionDue: commissionFromOwnerPayments,
+                    paymentsToHostizzy: totalToHostizzy,
+                    ownerShare: ownerShareFromHostizzyPayments,
+                    netSettlement,
+                    isCurrent: year === currentYear && month === currentMonth
+                });
+            }
+        }
+
+        // Reverse to show most recent first
+        monthlySettlements.reverse();
+
+        // Render monthly settlement cards
+        html += '<h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Monthly Settlements (Since November 2024)</h3>';
+
+        if (monthlySettlements.length === 0) {
+            html += '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">No settlements available</p>';
+        } else {
+            monthlySettlements.forEach(settlement => {
+                const isPositive = settlement.netSettlement >= 0;
+                const cardColor = settlement.isCurrent
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    : 'var(--card-bg)';
+                const textColor = settlement.isCurrent ? 'white' : 'var(--text-primary)';
+                const secondaryColor = settlement.isCurrent ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)';
+
+                html += `
+                    <div style="background: ${cardColor}; color: ${textColor}; border-radius: 12px; padding: 20px; margin-bottom: 16px; ${!settlement.isCurrent ? 'border: 1px solid var(--border);' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h4 style="margin: 0; font-size: 16px; font-weight: 600;">
+                                ${settlement.isCurrent ? '🗓️ ' : ''}${settlement.monthLabel}${settlement.isCurrent ? ' (Current)' : ''}
+                            </h4>
+                            <div style="text-align: right;">
+                                <div style="font-size: 13px; opacity: 0.9; margin-bottom: 4px;">Net Settlement</div>
+                                <div style="font-size: 28px; font-weight: 700; color: ${settlement.isCurrent ? 'white' : (isPositive ? 'var(--success)' : 'var(--warning)')};">
+                                    ${isPositive ? '+' : ''}₹${settlement.netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">💰 Payments to You</div>
+                                <div style="font-size: 20px; font-weight: 700;">₹${settlement.paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 12px; color: ${secondaryColor}; margin-top: 4px;">Commission due: ₹${settlement.commissionDue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                            </div>
+
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">🏢 Payments to Hostizzy</div>
+                                <div style="font-size: 20px; font-weight: 700;">₹${settlement.paymentsToHostizzy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 12px; color: ${secondaryColor}; margin-top: 4px;">Your share: ₹${settlement.ownerShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; border-radius: 8px;">
+                            <span style="font-size: 14px; font-weight: 600;">
+                                ${isPositive
+                                    ? `✅ Payout Pending: ₹${settlement.netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+                                    : `⚠️ Payment Pending: ₹${Math.abs(settlement.netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+                                }
+                            </span>
+                            <button
+                                onclick="markSettlement('${settlement.year}-${settlement.month}', ${isPositive})"
+                                style="padding: 8px 16px; background: ${settlement.isCurrent ? 'white' : 'var(--primary)'}; color: ${settlement.isCurrent ? 'var(--primary)' : 'white'}; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;"
+                            >
+                                ${isPositive ? 'Mark Payout Received' : 'Mark Payment Done'}
+                            </button>
+                        </div>
+                    </div>
+                `;
             });
-
-            const netSettlement = totalCollections - totalCommission;
-            const settlementStatus = netSettlement >= 0 ? 'eligible' : 'owes';
-
-            // Current Month Settlement Card
-            html += `
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">
-                        🗓️ Current Month Settlement (${new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })})
-                    </h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                        <div>
-                            <div style="font-size: 13px; opacity: 0.9; margin-bottom: 4px;">💰 Collections Received</div>
-                            <div style="font-size: 24px; font-weight: 700;">₹${totalCollections.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 13px; opacity: 0.9; margin-bottom: 4px;">💳 Hostizzy Commission Due</div>
-                            <div style="font-size: 24px; font-weight: 700;">₹${totalCommission.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 13px; opacity: 0.9; margin-bottom: 4px;">${settlementStatus === 'eligible' ? '✅' : '⚠️'} Net Settlement</div>
-                            <div style="font-size: 24px; font-weight: 700;">${netSettlement >= 0 ? '+' : ''}₹${netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.15); border-radius: 8px; font-size: 14px;">
-                        ${settlementStatus === 'eligible'
-                            ? `<strong>✅ Status:</strong> Eligible for payout of ₹${netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                            : `<strong>⚠️ Status:</strong> Pending payment to Hostizzy of ₹${Math.abs(netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                        }
-                    </div>
-                </div>
-            `;
         }
 
         // Payout Requests History
         ownerData.payouts = await db.getPayoutRequests(ownerId);
 
-        html += '<h3 style="margin: 24px 0 16px 0; font-size: 16px; font-weight: 600;">Payout Requests History</h3>';
+        html += '<h3 style="margin: 32px 0 16px 0; font-size: 16px; font-weight: 600;">Payout Requests History</h3>';
 
         if (ownerData.payouts.length === 0) {
             html += '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">No payout requests yet</p>';
-            container.innerHTML = html;
-            return;
+        } else {
+            html += '<div class="table-container"><table class="data-table"><thead><tr>';
+            html += '<th>Request Date</th>';
+            html += '<th>Amount</th>';
+            html += '<th>Method</th>';
+            html += '<th>Status</th>';
+            html += '<th>Processed Date</th>';
+            html += '<th>Transaction ID</th>';
+            html += '<th>Notes</th>';
+            html += '</tr></thead><tbody>';
+
+            ownerData.payouts.forEach(payout => {
+                const statusColors = {
+                    'pending': 'orange',
+                    'approved': 'blue',
+                    'processing': 'purple',
+                    'completed': 'green',
+                    'rejected': 'red'
+                };
+
+                html += '<tr>';
+                html += `<td>${formatDateIST(payout.requested_at)}</td>`;
+                html += `<td><strong>₹${parseFloat(payout.amount).toLocaleString('en-IN')}</strong></td>`;
+                html += `<td>${payout.payout_method}</td>`;
+                html += `<td><span class="badge" style="background: ${statusColors[payout.status]};">${payout.status}</span></td>`;
+                html += `<td>${payout.processed_at ? formatDateIST(payout.processed_at) : '-'}</td>`;
+                html += `<td>${payout.transaction_id || '-'}</td>`;
+                html += `<td>${payout.admin_notes || payout.owner_notes || '-'}</td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
         }
 
-        html += '<div class="table-container"><table class="data-table"><thead><tr>';
-        html += '<th>Request Date</th>';
-        html += '<th>Amount</th>';
-        html += '<th>Method</th>';
-        html += '<th>Status</th>';
-        html += '<th>Processed Date</th>';
-        html += '<th>Transaction ID</th>';
-        html += '<th>Notes</th>';
-        html += '</tr></thead><tbody>';
-
-        ownerData.payouts.forEach(payout => {
-            const statusColors = {
-                'pending': 'orange',
-                'approved': 'blue',
-                'processing': 'purple',
-                'completed': 'green',
-                'rejected': 'red'
-            };
-
-            html += '<tr>';
-            html += `<td>${new Date(payout.requested_at).toLocaleDateString('en-IN')}</td>`;
-            html += `<td><strong>₹${parseFloat(payout.amount).toLocaleString('en-IN')}</strong></td>`;
-            html += `<td>${payout.payout_method}</td>`;
-            html += `<td><span class="badge" style="background: ${statusColors[payout.status]};">${payout.status}</span></td>`;
-            html += `<td>${payout.processed_at ? new Date(payout.processed_at).toLocaleDateString('en-IN') : '-'}</td>`;
-            html += `<td>${payout.transaction_id || '-'}</td>`;
-            html += `<td>${payout.admin_notes || payout.owner_notes || '-'}</td>`;
-            html += '</tr>';
-        });
-
-        html += '</tbody></table></div>';
         container.innerHTML = html;
 
     } catch (error) {
+        console.error('Settlement tracking error:', error);
         showToast('Error', 'Failed to load payouts: ' + error.message, '❌');
     }
+}
+
+// Mark settlement as completed
+function markSettlement(monthKey, isPayoutReceived) {
+    const action = isPayoutReceived ? 'Payout Received' : 'Payment Done';
+    showToast('Info', `Mark ${action} for ${monthKey} - This feature will be integrated with database tracking`, 'ℹ️');
+
+    // TODO: Implement database tracking for settlement status
+    // This would involve:
+    // 1. Creating a settlement_status table
+    // 2. Storing month, status, and timestamp
+    // 3. Updating the UI to reflect the status
 }
 
 // Load Owner Bank Details
