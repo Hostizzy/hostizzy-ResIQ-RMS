@@ -99,6 +99,63 @@
             line-height: 1.6;
         }
 
+        /* Comprehensive Dark Mode Overrides */
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .modal-content,
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .kanban-card,
+        [data-theme="dark"] .property-card,
+        [data-theme="dark"] .payment-card {
+            background: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] .navbar,
+        [data-theme="dark"] .top-bar,
+        [data-theme="dark"] .filters,
+        [data-theme="dark"] .table-container table thead {
+            background: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] input,
+        [data-theme="dark"] select,
+        [data-theme="dark"] textarea {
+            background: var(--background-alt) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] input::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: var(--text-tertiary) !important;
+        }
+
+        [data-theme="dark"] button {
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] .table-container,
+        [data-theme="dark"] table {
+            background: var(--surface) !important;
+        }
+
+        [data-theme="dark"] table tbody tr {
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] table tbody tr:hover {
+            background: var(--background-alt) !important;
+        }
+
+        [data-theme="dark"] .modal {
+            background: rgba(15, 23, 42, 0.75) !important;
+        }
+
+        [data-theme="dark"] hr {
+            border-color: var(--border) !important;
+        }
+
         /* Loading Spinner */
         .loading-spinner {
             display: inline-block;
@@ -3447,7 +3504,12 @@
             div[style*="grid-template-columns: repeat(2, 1fr)"] {
                 grid-template-columns: 1fr !important;
             }
-            
+
+            /* Fix charts grid overflow - stack vertically on mobile */
+            div[style*="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr))"] {
+                grid-template-columns: 1fr !important;
+            }
+
             /* This Month Performance - Better mobile layout */
             .month-stat-card {
                 padding: 20px 16px;
@@ -3618,19 +3680,25 @@
 
         /* Small Mobile (max 480px) */
         @media (max-width: 480px) {
+            /* Stack all grid-based analytics on very small screens */
+            div[style*="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))"],
+            div[style*="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))"] {
+                grid-template-columns: 1fr !important;
+            }
+
             /* Smaller text sizes for very small screens */
             .month-stat-value {
                 font-size: 24px;
             }
-            
+
             .split-amount {
                 font-size: 24px;
             }
-            
+
             .metric-value {
                 font-size: 28px;
             }
-            
+
             /* Tighter spacing */
             .container {
                 padding: 12px;
@@ -4656,16 +4724,16 @@
                 <!-- Analytics Category -->
                 <div class="sidebar-category">
                     <div class="sidebar-category-header" onclick="toggleSidebarCategory('analytics')">
-                        <span class="sidebar-category-title">📊 Analytics</span>
+                        <span class="sidebar-category-title">📈 Analytics</span>
                         <span class="sidebar-category-arrow">▼</span>
                     </div>
                     <div class="sidebar-category-items" id="sidebar-analytics" style="display: block;">
                         <a class="sidebar-item" onclick="showView('property')">
-                            <span class="sidebar-item-icon">🏠</span>
+                            <span class="sidebar-item-icon">🏢</span>
                             <span class="sidebar-item-label">Property</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('business')">
-                            <span class="sidebar-item-icon">📊</span>
+                            <span class="sidebar-item-icon">💼</span>
                             <span class="sidebar-item-label">Business</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('financials')">
@@ -4678,7 +4746,7 @@
                 <!-- Operations Category -->
                 <div class="sidebar-category">
                     <div class="sidebar-category-header" onclick="toggleSidebarCategory('operations')">
-                        <span class="sidebar-category-title">⚙️ Operations</span>
+                        <span class="sidebar-category-title">⚡ Operations</span>
                         <span class="sidebar-category-arrow">▼</span>
                     </div>
                     <div class="sidebar-category-items" id="sidebar-operations" style="display: block;">
@@ -4708,7 +4776,7 @@
                 <!-- Management Category -->
                 <div class="sidebar-category">
                     <div class="sidebar-category-header" onclick="toggleSidebarCategory('management')">
-                        <span class="sidebar-category-title">⚙️ Management</span>
+                        <span class="sidebar-category-title">🔧 Management</span>
                         <span class="sidebar-category-arrow">▼</span>
                     </div>
                     <div class="sidebar-category-items" id="sidebar-management" style="display: block;">
@@ -4719,6 +4787,10 @@
                         <a class="sidebar-item" onclick="showView('team')">
                             <span class="sidebar-item-icon">👨‍💼</span>
                             <span class="sidebar-item-label">Team</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('owners')">
+                            <span class="sidebar-item-icon">👑</span>
+                            <span class="sidebar-item-label">Owners</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('availability')">
                             <span class="sidebar-item-icon">📆</span>
@@ -6850,6 +6922,34 @@
             </div>
         </div>
 
+        <!-- Property Owners View -->
+        <div id="ownersView" class="container hidden">
+            <div class="card-header">
+                <h2>🏠 Property Owners</h2>
+                <button class="btn btn-primary" onclick="openOwnerModal()">+ Add Owner</button>
+            </div>
+            <div class="card">
+                <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                    Manage property owner credentials. Owners can access their assigned properties via the Owner Portal.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Assigned Properties</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ownersTableBody">
+                        <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Meals Management View -->
         <div id="mealsView" class="container hidden">
             <div class="card-header">
@@ -7031,6 +7131,17 @@
                             <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                             <option value="YYYY-MM-DD">YYYY-MM-DD</option>
                         </select>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Dark Mode</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Use dark theme for better readability at night</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="darkModeToggle" onchange="toggleThemeFromSettings()">
+                            <span class="slider"></span>
+                        </label>
                     </div>
 
                     <button class="btn btn-primary" onclick="saveGeneralSettings()">💾 Save General Settings</button>
@@ -7223,6 +7334,34 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+
+                    <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+
+                    <h4 style="margin-bottom: 16px; color: var(--text-primary);">🤖 Smart Automation</h4>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Enable Smart Automation</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Automatically update booking statuses (check-in/check-out) based on dates</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="smartAutomationEnabled" checked onchange="toggleSmartAutomation()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label>Automation Check Interval (minutes)</label>
+                        <select id="automationInterval" style="max-width: 200px;">
+                            <option value="15">Every 15 minutes</option>
+                            <option value="30" selected>Every 30 minutes</option>
+                            <option value="60">Every hour</option>
+                            <option value="120">Every 2 hours</option>
+                        </select>
+                        <small style="color: var(--text-secondary); display: block; margin-top: 4px;">How often to run automated tasks</small>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveAutomationSettings()">💾 Save Automation Settings</button>
 
                     <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
 
@@ -7779,6 +7918,11 @@
                     <input type="number" id="propertyCapacity" min="1" value="4">
                 </div>
             </div>
+            <div class="form-group">
+                <label>Hostizzy Commission Rate (%) *</label>
+                <input type="number" id="propertyCommissionRate" min="0" max="100" step="0.1" value="15" required>
+                <small style="color: var(--text-secondary);">Percentage of revenue retained by Hostizzy (0-100%). Default: 15%</small>
+            </div>
             <button class="btn btn-primary" style="width: 100%;" onclick="saveProperty()">Save Property</button>
         </div>
     </div>
@@ -7811,6 +7955,49 @@
                 </select>
             </div>
             <button class="btn btn-primary" style="width: 100%;" onclick="saveTeamMember()">Add Member</button>
+        </div>
+    </div>
+
+    <!-- Owner Modal -->
+    <div id="ownerModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Property Owner</h3>
+                <button class="close-btn" onclick="closeOwnerModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Owner Name *</label>
+                <input type="text" id="ownerName" placeholder="Enter owner's full name" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="ownerEmail" placeholder="owner@example.com" required>
+                <small style="color: var(--text-secondary);">Owner will use this email to login to Owner Portal</small>
+            </div>
+            <div class="form-group">
+                <label>Password *</label>
+                <input type="password" id="ownerPassword" placeholder="Minimum 6 characters" required>
+                <small style="color: var(--text-secondary);">Owner will use this password to access their portal</small>
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="ownerPhone" placeholder="+91 1234567890">
+            </div>
+            <div class="form-group">
+                <label>Assign Properties *</label>
+                <div id="propertyCheckboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                    <!-- Will be populated dynamically -->
+                </div>
+                <small style="color: var(--text-secondary);">Owner will only see data from selected properties</small>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="ownerStatus">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="saveOwner()">Add Owner</button>
         </div>
     </div>
 
@@ -8223,6 +8410,18 @@
                 </div>
             </div>
 
+            <!-- Commission Rate -->
+            <div style="margin-bottom: 24px; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fbbf24;">
+                <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">
+                    💰 Hostizzy Commission Rate (%)
+                </label>
+                <input type="number" id="settingsCommissionRate" min="0" max="100" step="0.1" placeholder="15"
+                    style="width: 100%; padding: 12px; border: 2px solid #fbbf24; border-radius: 8px; font-size: 14px; background: white;">
+                <div style="margin-top: 8px; font-size: 13px; color: #92400e;">
+                    💡 Percentage of revenue retained by Hostizzy (0-100%). Default: 15%
+                </div>
+            </div>
+
             <!-- iCal Sync Configuration -->
             <div style="margin-bottom: 24px;">
                 <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">
@@ -8420,74 +8619,6 @@
                     }
                 }
 
-                // 2. Payment Reminder Flags: Flag overdue payments
-                for (const reservation of reservations) {
-                    const total = parseFloat(reservation.total_amount) || 0;
-                    const paid = parseFloat(reservation.paid_amount) || 0;
-                    const pending = total - paid;
-
-                    if (pending > 0 && reservation.status !== 'cancelled') {
-                        const checkIn = new Date(reservation.check_in);
-                        const daysUntilCheckIn = Math.floor((checkIn - today) / (1000 * 60 * 60 * 24));
-
-                        // Flag if payment is pending and check-in is within 7 days
-                        if (daysUntilCheckIn <= 7 && daysUntilCheckIn >= 0) {
-                            if (!reservation.payment_reminder_sent) {
-                                console.log(`⚠️ Payment reminder needed for ${reservation.booking_id} (₹${pending} pending)`);
-
-                                // Add notification
-                                addNotification(
-                                    'Payment Reminder',
-                                    `₹${pending.toLocaleString('en-IN')} pending for ${reservation.booking_id}. Check-in in ${daysUntilCheckIn} day(s).`,
-                                    'payments',
-                                    'viewPayment'
-                                );
-
-                                // Mark for reminder
-                                await db.updateReservation(reservation.id, {
-                                    payment_reminder_sent: true,
-                                    last_reminder_date: new Date().toISOString()
-                                });
-                                updatesMade++;
-                            }
-                        }
-                    }
-                }
-
-                // 3. Document Expiry Alerts: Check for expiring documents
-                // (This would check guest documents table if available)
-                // Example: ID cards, licenses, permits
-                try {
-                    const { data: documents } = await supabase
-                        .from('guest_documents')
-                        .select('*')
-                        .not('expiry_date', 'is', null);
-
-                    if (documents && documents.length > 0) {
-                        const expiringDocs = documents.filter(doc => {
-                            const expiry = new Date(doc.expiry_date);
-                            const daysUntilExpiry = Math.floor((expiry - today) / (1000 * 60 * 60 * 24));
-                            return daysUntilExpiry >= 0 && daysUntilExpiry <= 30; // Expiring in 30 days
-                        });
-
-                        if (expiringDocs.length > 0) {
-                            console.log(`📄 ${expiringDocs.length} document(s) expiring soon`);
-
-                            // Add notification
-                            addNotification(
-                                'Documents Expiring Soon',
-                                `${expiringDocs.length} document(s) will expire within 30 days. Review and renew as needed.`,
-                                'documentExpiry',
-                                'viewDocuments'
-                            );
-
-                            updatesMade += expiringDocs.length;
-                        }
-                    }
-                } catch (error) {
-                    // Document table may not exist, skip silently
-                }
-
                 if (updatesMade > 0) {
                     console.log(`✅ Smart Automation: Made ${updatesMade} updates`);
                 }
@@ -8500,12 +8631,21 @@
         }
 
         function startSmartAutomation() {
+            // Check if automation is enabled
+            if (localStorage.getItem('smartAutomationEnabled') === 'false') {
+                console.log('🛑 Smart Automation is disabled in settings');
+                return;
+            }
+
             // Run immediately on start
             runSmartAutomation();
 
-            // Run every 30 minutes
-            automationIntervalId = setInterval(runSmartAutomation, 30 * 60 * 1000);
-            console.log('🤖 Smart Automation Engine started (runs every 30 min)');
+            // Get interval from settings (default 30 minutes)
+            const intervalMinutes = parseInt(localStorage.getItem('automationInterval') || '30');
+            const intervalMs = intervalMinutes * 60 * 1000;
+
+            automationIntervalId = setInterval(runSmartAutomation, intervalMs);
+            console.log(`🤖 Smart Automation Engine started (runs every ${intervalMinutes} min)`);
         }
 
         function stopSmartAutomation() {
@@ -9626,21 +9766,70 @@
                     .from('reservations')
                     .select('*')
                     .eq('owner_id', ownerId)
-                    .order('check_in', { ascending: false });
+                    .order('check_in', { ascending: false});
                 if (error) throw error;
                 return data || [];
+            },
+            async getOwners() {
+                const { data, error } = await supabase
+                    .from('property_owners')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            },
+            async getOwner(ownerId) {
+                const { data, error } = await supabase
+                    .from('property_owners')
+                    .select('*')
+                    .eq('id', ownerId)
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+            async createOwner(ownerData) {
+                const { data, error } = await supabase
+                    .from('property_owners')
+                    .insert([ownerData])
+                    .select();
+                if (error) throw error;
+                return data?.[0];
+            },
+            async updateOwner(ownerId, ownerData) {
+                const { data, error } = await supabase
+                    .from('property_owners')
+                    .update(ownerData)
+                    .eq('id', ownerId)
+                    .select();
+                if (error) throw error;
+                return data?.[0];
+            },
+            async deleteOwner(ownerId) {
+                const { error } = await supabase
+                    .from('property_owners')
+                    .delete()
+                    .eq('id', ownerId);
+                if (error) throw error;
             }
         };
 
         // Authentication (Hybrid: Staff + Owner)
         async function login() {
+            console.log('🚀 LOGIN FUNCTION CALLED');
+
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
 
+            console.log('📧 Email:', email);
+            console.log('🔑 Password length:', password.length);
+
             if (!email || !password) {
+                console.log('❌ Missing credentials');
                 showToast('Login Error', 'Please enter email and password', '❌');
                 return;
             }
+
+            console.log('✅ Credentials provided, attempting login...');
 
             try {
                 // Try staff/admin login first
@@ -9681,20 +9870,35 @@
                 }
 
                 // Try owner login
+                console.log('🔍 Attempting owner login...');
                 const owners = await db.getOwners();
+                console.log('📋 Owners fetched:', owners.length);
+
                 const ownerUser = owners.find(o => o.email === email && o.password === password);
+                console.log('🔎 Owner match found:', !!ownerUser);
 
                 if (ownerUser) {
+                    console.log('👤 Owner user:', ownerUser);
+
                     if (!ownerUser.is_active) {
+                        console.log('❌ Owner account is inactive');
                         showToast('Account Inactive', 'Your account has been deactivated', '❌');
                         return;
                     }
 
                     currentUser = ownerUser;
                     currentUser.userType = 'owner';
+                    console.log('✅ Setting userType to "owner"');
+                    console.log('💾 Saving to localStorage:', currentUser);
+
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
+                    // Verify it was saved
+                    const saved = localStorage.getItem('currentUser');
+                    console.log('✔️ Verified saved user:', JSON.parse(saved));
+
                     // Redirect to owner portal
+                    console.log('🔄 Redirecting to owner-portal.html');
                     window.location.href = 'owner-portal.html';
                     return;
                 }
@@ -10220,6 +10424,7 @@
                 else if (viewName === 'business') await loadBusinessView();
                 else if (viewName === 'financials') await loadBusinessIntelligence();
                 else if (viewName === 'team') await loadTeam();
+                else if (viewName === 'owners') await loadOwners();
                 else if (viewName === 'settings') loadSettings(); // Synchronous
                 else if (viewName === 'communication') loadCommunication(); // Synchronous
 
@@ -10293,8 +10498,59 @@
                 document.getElementById('pwaMode').checked = true;
                 document.getElementById('autoBackup').checked = localStorage.getItem('autoBackup') !== 'false';
                 document.getElementById('developerMode').checked = localStorage.getItem('developerMode') === 'true';
+
+                // Load dark mode toggle state
+                const currentTheme = localStorage.getItem('theme') || 'light';
+                document.getElementById('darkModeToggle').checked = currentTheme === 'dark';
+
+                // Load automation settings
+                document.getElementById('smartAutomationEnabled').checked = localStorage.getItem('smartAutomationEnabled') !== 'false';
+                document.getElementById('paymentReminderDays').value = localStorage.getItem('paymentReminderDays') || '7';
+                document.getElementById('documentExpiryDays').value = localStorage.getItem('documentExpiryDays') || '30';
+                document.getElementById('automationInterval').value = localStorage.getItem('automationInterval') || '30';
             } catch (error) {
                 console.error('Error loading settings:', error);
+            }
+        }
+
+        function toggleThemeFromSettings() {
+            const isDark = document.getElementById('darkModeToggle').checked;
+            const newTheme = isDark ? 'dark' : 'light';
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function toggleSmartAutomation() {
+            const isEnabled = document.getElementById('smartAutomationEnabled').checked;
+            if (isEnabled) {
+                startSmartAutomation();
+                showToast('Automation Enabled', 'Smart Automation is now running', '✅');
+            } else {
+                stopSmartAutomation();
+                showToast('Automation Disabled', 'Smart Automation has been stopped', '⚠️');
+            }
+            localStorage.setItem('smartAutomationEnabled', isEnabled);
+        }
+
+        function saveAutomationSettings() {
+            try {
+                const paymentReminderDays = document.getElementById('paymentReminderDays').value;
+                const documentExpiryDays = document.getElementById('documentExpiryDays').value;
+                const automationInterval = document.getElementById('automationInterval').value;
+
+                localStorage.setItem('paymentReminderDays', paymentReminderDays);
+                localStorage.setItem('documentExpiryDays', documentExpiryDays);
+                localStorage.setItem('automationInterval', automationInterval);
+
+                // Restart automation with new interval
+                if (document.getElementById('smartAutomationEnabled').checked) {
+                    stopSmartAutomation();
+                    startSmartAutomation();
+                }
+
+                showToast('✅ Settings Saved', 'Automation settings updated successfully', '🤖');
+            } catch (error) {
+                showToast('❌ Error', 'Failed to save automation settings', '⚠️');
             }
         }
 
@@ -14958,15 +15214,23 @@
 
         async function saveProperty() {
             try {
+                const commissionRate = parseFloat(document.getElementById('propertyCommissionRate').value);
+
                 const property = {
                     name: document.getElementById('propertyName').value,
                     location: document.getElementById('propertyLocation').value,
                     type: document.getElementById('propertyType').value,
-                    capacity: parseInt(document.getElementById('propertyCapacity').value)
+                    capacity: parseInt(document.getElementById('propertyCapacity').value),
+                    revenue_share_percent: commissionRate || 15
                 };
-                
+
                 if (!property.name || !property.location) {
                     showToast('Validation Error', 'Please fill in all required fields', '❌');
+                    return;
+                }
+
+                if (commissionRate < 0 || commissionRate > 100) {
+                    showToast('Validation Error', 'Commission rate must be between 0 and 100%', '❌');
                     return;
                 }
 
@@ -14980,7 +15244,7 @@
                 if (fetchError) throw fetchError;
 
                 // Calculate next available ID
-                const nextId = existingProperties?.length > 0 ? 
+                const nextId = existingProperties?.length > 0 ?
                     (existingProperties[0].id + 1) : 1;
 
                 // Add the ID to property object
@@ -14998,7 +15262,6 @@
                 await loadProperties(); // Refresh the properties list
                 showToast('Success', 'Property saved!', '✅');
             } catch (error) {
-                console.error('Save property error:', error);
                 showToast('Error', 'Failed to save property: ' + error.message, '❌');
             }
         }
@@ -15049,6 +15312,9 @@
                 };
                 document.getElementById('settingsPropertyIcon').textContent = iconMap[property.type] || '🏠';
 
+                // Populate commission rate
+                document.getElementById('settingsCommissionRate').value = property.revenue_share_percent || 15;
+
                 // Populate iCal URL if exists
                 document.getElementById('icalUrlInput').value = property.ical_url || '';
 
@@ -15098,12 +15364,19 @@
         async function savePropertySettings() {
             const propertyId = document.getElementById('settingsPropertyId').value;
             const icalUrl = document.getElementById('icalUrlInput').value.trim();
+            const commissionRate = parseFloat(document.getElementById('settingsCommissionRate').value);
+
+            // Validate commission rate
+            if (isNaN(commissionRate) || commissionRate < 0 || commissionRate > 100) {
+                showToast('Please enter a valid commission rate (0-100%)', 'error');
+                return;
+            }
 
             // Validate URL if provided
             if (icalUrl) {
                 try {
                     new URL(icalUrl);
-                    
+
                     // Check if it's a valid iCal URL pattern
                     if (!icalUrl.includes('ical') && !icalUrl.includes('.ics')) {
                         showToast('Please enter a valid iCal URL (should contain "ical" or ".ics")', 'error');
@@ -15122,8 +15395,9 @@
                 saveButton.innerHTML = '⏳ Saving...';
                 saveButton.disabled = true;
 
-                // Update property with new iCal URL
+                // Update property with new settings
                 const updateData = {
+                    revenue_share_percent: commissionRate,
                     ical_url: icalUrl || null,
                     ical_sync_status: icalUrl ? 'idle' : null,
                     updated_at: new Date().toISOString()
@@ -15142,7 +15416,7 @@
                 if (error) throw error;
 
                 // Success
-                showToast(icalUrl ? '✅ iCal URL saved successfully!' : '✅ iCal URL removed', 'success');
+                showToast('✅ Property settings saved successfully!', 'success');
                 
                 // Close modal
                 closePropertySettings();
@@ -19542,6 +19816,194 @@ function printPropertyView() {
             } catch (error) {
                 console.error('Delete team member error:', error);
                 showToast('Error', 'Failed to remove team member', '❌');
+            }
+        }
+
+        // ========== PROPERTY OWNERS MANAGEMENT ==========
+
+        async function loadOwners() {
+            try {
+                const owners = await db.getOwners();
+                const properties = await db.getProperties();
+                const tbody = document.getElementById('ownersTableBody');
+
+                if (!owners || owners.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color: var(--text-secondary);">No owners added yet. Click "+ Add Owner" to get started.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = owners.map(owner => {
+                    // Get assigned property names
+                    const assignedProps = owner.property_ids || [];
+                    const propNames = assignedProps.map(id => {
+                        const prop = properties.find(p => p.id === id);
+                        return prop ? prop.name : `Property ${id}`;
+                    }).join(', ') || 'None';
+
+                    const statusText = owner.is_active ? 'ACTIVE' : 'INACTIVE';
+                    const statusBadge = owner.is_active ? 'badge-success' : 'badge-warning';
+
+                    return `
+                        <tr>
+                            <td>${owner.name}</td>
+                            <td>${owner.email}</td>
+                            <td>${owner.phone || '-'}</td>
+                            <td><span class="badge badge-info">${assignedProps.length} propert${assignedProps.length === 1 ? 'y' : 'ies'}</span><br><small style="color: var(--text-secondary);">${propNames}</small></td>
+                            <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="editOwner('${owner.id}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteOwner('${owner.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Load owners error:', error);
+                showToast('Error', 'Failed to load owners', '❌');
+            }
+        }
+
+        async function openOwnerModal(ownerId = null) {
+            try {
+                const properties = await db.getProperties();
+                const modal = document.getElementById('ownerModal');
+
+                // Populate property checkboxes
+                const checkboxContainer = document.getElementById('propertyCheckboxes');
+                checkboxContainer.innerHTML = properties.map(prop => `
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer; border-radius: 4px;" onmouseover="this.style.background='var(--background-alt)'" onmouseout="this.style.background='transparent'">
+                        <input type="checkbox" value="${prop.id}" class="property-checkbox" style="width: 18px; height: 18px;">
+                        <span>${prop.name}</span>
+                    </label>
+                `).join('');
+
+                if (ownerId) {
+                    // Edit mode - load owner data
+                    const owner = await db.getOwner(ownerId);
+                    document.getElementById('ownerName').value = owner.name;
+                    document.getElementById('ownerEmail').value = owner.email;
+                    document.getElementById('ownerPhone').value = owner.phone || '';
+                    document.getElementById('ownerStatus').value = owner.is_active ? 'active' : 'inactive';
+                    document.querySelector('.modal-title').textContent = 'Edit Property Owner';
+
+                    // Check assigned properties
+                    const assignedProps = owner.property_ids || [];
+                    assignedProps.forEach(propId => {
+                        const checkbox = document.querySelector(`.property-checkbox[value="${propId}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+
+                    // Hide password field for edit
+                    document.getElementById('ownerPassword').parentElement.style.display = 'none';
+
+                    // Store owner ID for update
+                    modal.dataset.ownerId = ownerId;
+                } else {
+                    // Add mode
+                    document.querySelector('.modal-title').textContent = 'Add Property Owner';
+                    document.getElementById('ownerPassword').parentElement.style.display = 'block';
+                    delete modal.dataset.ownerId;
+                }
+
+                modal.classList.add('active');
+            } catch (error) {
+                console.error('Open owner modal error:', error);
+                showToast('Error', 'Failed to open owner modal', '❌');
+            }
+        }
+
+        function closeOwnerModal() {
+            const modal = document.getElementById('ownerModal');
+            modal.classList.remove('active');
+
+            // Reset form
+            document.getElementById('ownerName').value = '';
+            document.getElementById('ownerEmail').value = '';
+            document.getElementById('ownerPassword').value = '';
+            document.getElementById('ownerPhone').value = '';
+            document.getElementById('ownerStatus').value = 'active';
+            document.querySelectorAll('.property-checkbox').forEach(cb => cb.checked = false);
+            delete modal.dataset.ownerId;
+        }
+
+        async function saveOwner() {
+            try {
+                const modal = document.getElementById('ownerModal');
+                const ownerId = modal.dataset.ownerId;
+
+                const name = document.getElementById('ownerName').value.trim();
+                const email = document.getElementById('ownerEmail').value.trim();
+                const password = document.getElementById('ownerPassword').value;
+                const phone = document.getElementById('ownerPhone').value.trim();
+                const status = document.getElementById('ownerStatus').value;
+
+                // Get selected properties
+                const selectedProperties = Array.from(document.querySelectorAll('.property-checkbox:checked'))
+                    .map(cb => parseInt(cb.value));
+
+                // Validation
+                if (!name || !email) {
+                    showToast('Validation Error', 'Please fill in name and email', '❌');
+                    return;
+                }
+
+                if (!ownerId && (!password || password.length < 6)) {
+                    showToast('Validation Error', 'Password must be at least 6 characters', '❌');
+                    return;
+                }
+
+                if (selectedProperties.length === 0) {
+                    showToast('Validation Error', 'Please assign at least one property', '❌');
+                    return;
+                }
+
+                const ownerData = {
+                    name,
+                    email,
+                    phone,
+                    is_active: status === 'active',
+                    property_ids: selectedProperties
+                };
+
+                // Add password only for new owners
+                if (!ownerId) {
+                    ownerData.password = password;
+                }
+
+                if (ownerId) {
+                    // Update existing owner
+                    await db.updateOwner(ownerId, ownerData);
+                    showToast('Success', 'Owner updated successfully!', '✅');
+                } else {
+                    // Create new owner
+                    await db.createOwner(ownerData);
+                    showToast('Success', 'Owner created successfully!', '✅');
+                }
+
+                closeOwnerModal();
+                await loadOwners();
+            } catch (error) {
+                console.error('Save owner error:', error);
+                showToast('Error', error.message || 'Failed to save owner', '❌');
+            }
+        }
+
+        async function editOwner(ownerId) {
+            await openOwnerModal(ownerId);
+        }
+
+        async function deleteOwner(ownerId) {
+            if (!confirm('Are you sure you want to delete this owner? They will lose access to the Owner Portal.')) {
+                return;
+            }
+
+            try {
+                await db.deleteOwner(ownerId);
+                await loadOwners();
+                showToast('Success', 'Owner deleted successfully', '✅');
+            } catch (error) {
+                console.error('Delete owner error:', error);
+                showToast('Error', 'Failed to delete owner', '❌');
             }
         }
 

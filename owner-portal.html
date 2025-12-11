@@ -34,6 +34,26 @@
             --text-secondary: #64748b;
         }
 
+        /* Dark Mode */
+        [data-theme="dark"] {
+            --primary: #818cf8;
+            --primary-dark: #6366f1;
+            --primary-light: #a5b4fc;
+            --secondary: #94a3b8;
+            --success: #34d399;
+            --success-light: #6ee7b7;
+            --danger: #f87171;
+            --danger-light: #fca5a5;
+            --warning: #fbbf24;
+            --warning-light: #fcd34d;
+            --background: #0f172a;
+            --background-alt: #1e293b;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: var(--background);
@@ -49,8 +69,283 @@
         /* Owner Portal Styles */
         #ownerApp {
             display: flex;
-            flex-direction: column;
             height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease, margin-left 0.3s ease;
+            position: relative;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            margin-left: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .sidebar-header p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 12px;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            font-size: 14px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .sidebar-nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .sidebar-nav-item .icon {
+            font-size: 20px;
+            width: 24px;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transition: all 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0; /* Fix for flex wrapping */
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .quick-action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--background);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .quick-action-btn.primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+        }
+
+        .quick-action-btn.primary:hover {
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* User Menu */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-menu:hover {
+            background: var(--background);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            padding: 24px;
+            background: var(--background);
+            min-width: 0; /* Fix for flex wrapping */
+            width: 100%; /* Ensure full width */
+        }
+
+        /* Home Page Grid */
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .home-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--border);
+            text-align: center;
+        }
+
+        .home-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .home-card-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .home-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .home-card-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .home-card.primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .home-card.primary .home-card-title,
+        .home-card.primary .home-card-description {
+            color: white;
+        }
+
+        .home-card.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .home-card.success .home-card-title,
+        .home-card.success .home-card-description {
+            color: white;
+        }
+
+        .home-card.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .home-card.warning .home-card-title,
+        .home-card.warning .home-card-description {
+            color: white;
         }
 
         .owner-nav-btn {
@@ -168,13 +463,16 @@
         .table-container {
             background: var(--surface);
             border-radius: 12px;
-            overflow: hidden;
+            overflow-x: auto; /* Allow horizontal scroll on overflow */
+            overflow-y: visible;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 800px; /* Ensure minimum width for proper table display */
         }
 
         .data-table thead {
@@ -215,6 +513,19 @@
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Charts Grid - Responsive */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 16px;
+        }
+
+        /* Ensure charts fit container */
+        .charts-grid canvas {
+            max-width: 100%;
+            height: auto !important;
         }
 
         /* Modal Styles */
@@ -288,89 +599,839 @@
             from { transform: translateX(400px); }
             to { transform: translateX(0); }
         }
+
+        /* Tablet Responsive Styles */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .sidebar {
+                width: 240px; /* Narrower sidebar on tablet */
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .top-bar {
+                padding: 14px 20px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .home-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 16px;
+            }
+
+            .stat-card {
+                padding: 18px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            /* Improve chart containers on tablet */
+            .charts-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 16px;
+            }
+
+            /* Better table wrapping on tablet */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .data-table {
+                min-width: 100%;
+            }
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
+            /* App container adjustments */
+            #ownerApp {
+                padding-bottom: 80px; /* Space for bottom nav */
+            }
+
+            /* Sidebar on mobile - hidden by default */
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+                transform: translateX(-280px); /* Hidden by default on mobile */
+            }
+
+            .sidebar.show-mobile {
+                transform: translateX(0) !important;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            /* Top bar on mobile */
+            .top-bar {
+                padding: 12px 16px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+
+            .quick-actions {
+                display: none; /* Hide quick actions on mobile */
+            }
+
+            .user-menu {
+                padding: 4px 8px;
+            }
+
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .top-bar-left > div:not(.page-title) {
+                display: none; /* Hide extra elements */
+            }
+
+            /* Content area on mobile */
+            .content-area {
+                padding: 16px;
+                padding-bottom: 96px; /* Extra space for bottom nav */
+            }
+
+            /* Mobile Bottom Navigation */
+            .mobile-bottom-nav {
+                display: flex !important;
+            }
+
+            /* Hide sidebar nav items text on mobile */
+            .sidebar-nav {
+                display: none; /* Hide regular sidebar nav on mobile */
+            }
+
+            /* Home grid on mobile */
+            .home-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .home-card {
+                padding: 24px;
+            }
+
+            .home-card-icon {
+                font-size: 40px;
+            }
+
+            .home-card-title {
+                font-size: 16px;
+            }
+
+            .home-card-description {
+                font-size: 13px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            .owner-nav-btn {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            /* Stack charts vertically on mobile */
+            /* Charts grid on mobile - single column */
+            .charts-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px;
+            }
+
+            /* Mobile table cards */
+            .data-table {
+                display: none;
+            }
+
+            .mobile-card-list {
+                display: block !important;
+            }
+
+            .booking-mobile-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+
+            .booking-mobile-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .booking-mobile-card-body {
+                display: grid;
+                gap: 8px;
+            }
+
+            .booking-mobile-row {
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+            }
+
+            .booking-mobile-label {
+                color: var(--text-secondary);
+                font-weight: 500;
+            }
+
+            .booking-mobile-value {
+                font-weight: 600;
+                text-align: right;
+            }
+
+            /* Touch-friendly buttons */
+            .btn {
+                min-height: 48px;
+                padding: 14px 24px;
+            }
+
+            /* Reduce padding on mobile */
+            main {
+                padding: 16px !important;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            /* Calendar mobile styles */
+            .calendar-grid {
+                font-size: 12px;
+            }
+
+            .calendar-day {
+                min-height: 50px;
+            }
+        }
+
+        /* Calendar Styles */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day-header {
+            font-weight: 700;
+            text-align: center;
+            padding: 12px;
+            background: var(--background);
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            min-height: 80px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.empty {
+            background: var(--background-alt);
+            cursor: default;
+        }
+
+        .calendar-day.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .calendar-day.available {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+
+        .calendar-day.booked {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .calendar-day.blocked {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+
+        .calendar-day-number {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .calendar-day-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .mobile-card-list {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                display: none;
+            }
+
+            .mobile-card-list {
+                display: block;
+            }
+        }
+
+        /* Mobile Bottom Navigation */
+        .mobile-bottom-nav {
+            display: none; /* Hidden on desktop */
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 900;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            flex: 1;
+            min-width: 60px;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--primary);
+        }
+
+        .bottom-nav-item .icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .bottom-nav-item .label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .bottom-nav-item:active {
+            transform: scale(0.95);
+        }
+
+        /* Mobile overlay for sidebar */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .mobile-overlay.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Owner Login Screen -->
+    <div id="ownerLoginScreen" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--background); padding: 20px;">
+        <div style="width: 100%; max-width: 400px; background: var(--surface); border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <h1 style="font-size: 28px; margin: 0 0 8px 0; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🏠 Owner Portal</h1>
+                <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Login to manage your properties</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Email</label>
+                <input type="email" id="ownerLoginEmail" placeholder="your@email.com" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Password</label>
+                <input type="password" id="ownerLoginPassword" placeholder="Enter your password" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+            </div>
+
+            <button onclick="ownerLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(139, 92, 246, 0.4)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(139, 92, 246, 0.3)';">
+                Login to Owner Portal
+            </button>
+
+            <div style="margin-top: 24px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Admin or Staff?</p>
+                <a href="index.html" style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 14px;">← Back to Admin Login</a>
+            </div>
+        </div>
+    </div>
 
     <!-- Owner Portal App -->
-    <div id="ownerApp">
-        <!-- Owner Header -->
-        <header style="background: var(--primary); color: white; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h2 style="margin: 0; font-size: 20px;">🏠 Owner Portal</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.9;" id="ownerUserName">Owner Name</p>
+    <div id="ownerApp" class="hidden">
+        <!-- Sidebar Toggle Button -->
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="ownerSidebar">
+            <div class="sidebar-header">
+                <h2>🏠 Owner Portal</h2>
+                <p id="ownerUserName">Owner Name</p>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-nav-item active" onclick="showOwnerView('ownerHome')">
+                    <span class="icon">🏠</span> Home
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerDashboard')">
+                    <span class="icon">📊</span> Analytics
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerBookings')">
+                    <span class="icon">📅</span> Bookings
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerPayments')">
+                    <span class="icon">💵</span> Payments
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerCalendar')">
+                    <span class="icon">🗓️</span> Calendar
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerPayouts')">
+                    <span class="icon">💰</span> Payouts
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerBankDetails')">
+                    <span class="icon">🏦</span> Bank Details
+                </button>
+                <button class="sidebar-nav-item" onclick="showOwnerView('ownerProperties')">
+                    <span class="icon">🏘️</span> Properties
+                </button>
+            </nav>
+            <div style="padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <button onclick="logout()" style="width: 100%; background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    🚪 Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <h1 class="page-title" id="pageTitle">Home</h1>
                 </div>
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    <span style="font-size: 13px;" id="ownerUserEmail">owner@email.com</span>
-                    <button onclick="logout()" style="background: white; color: var(--primary); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                        Logout
+                    <div class="quick-actions">
+                        <button class="quick-action-btn primary" onclick="openPayoutRequestModal()">
+                            💰 Request Payout
+                        </button>
+                        <button class="quick-action-btn" onclick="showOwnerView('ownerCalendar')">
+                            🗓️ Calendar
+                        </button>
+                    </div>
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleOwnerTheme()" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.3s;" title="Toggle Dark Mode">
+                        <span class="theme-icon-light" style="display: block;">🌙</span>
+                        <span class="theme-icon-dark" style="display: none;">☀️</span>
                     </button>
+                    <div class="user-menu" onclick="toggleUserMenu()">
+                        <div class="user-avatar" id="userAvatar">O</div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text);" id="topBarUserName">Owner Name</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="ownerUserEmail">owner@email.com</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </header>
 
-        <!-- Owner Navigation -->
-        <nav style="background: white; border-bottom: 1px solid var(--border); padding: 0 16px; display: flex; gap: 8px; overflow-x: auto;">
-            <button class="owner-nav-btn active" onclick="showOwnerView('ownerDashboard')">
-                📊 Dashboard
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerBookings')">
-                📅 My Bookings
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerPayouts')">
-                💰 Payouts
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerBankDetails')">
-                🏦 Bank Details
-            </button>
-            <button class="owner-nav-btn" onclick="showOwnerView('ownerProperties')">
-                🏠 My Properties
-            </button>
-        </nav>
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Home View (NEW) -->
+                <div id="ownerHomeView" class="owner-view">
+                    <div style="max-width: 1200px; margin: 0 auto;">
+                        <div style="margin-bottom: 32px; text-align: center;">
+                            <h2 style="font-size: 32px; margin-bottom: 8px;">Welcome back, <span id="welcomeUserName">Owner</span>! 👋</h2>
+                            <p style="color: var(--text-secondary); font-size: 16px;">Manage your properties and track your earnings</p>
+                        </div>
 
-        <!-- Owner Content Area -->
-        <main style="flex: 1; overflow-y: auto; padding: 24px; background: var(--background);">
+                        <!-- Quick Stats Row -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #10b981;" id="homeQuickTotalRevenue">₹0</div>
+                                <div class="stat-label">Total Revenue</div>
+                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">From all bookings</small>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #6366f1;" id="homeQuickTotalGuests">0</div>
+                                <div class="stat-label">Total Guests</div>
+                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Across all properties</small>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #8b5cf6;" id="homeQuickNetEarnings">₹0</div>
+                                <div class="stat-label">Your Earnings</div>
+                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">After commission</small>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #f59e0b;" id="homeQuickPendingPayout">₹0</div>
+                                <div class="stat-label">Pending Payout</div>
+                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Available to withdraw</small>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Grid -->
+                        <div class="home-grid">
+                            <div class="home-card primary" onclick="showOwnerView('ownerDashboard')">
+                                <div class="home-card-icon">📊</div>
+                                <div class="home-card-title">Analytics Dashboard</div>
+                                <div class="home-card-description">View detailed revenue analytics, charts, and monthly breakdowns</div>
+                            </div>
+
+                            <div class="home-card success" onclick="showOwnerView('ownerBookings')">
+                                <div class="home-card-icon">📅</div>
+                                <div class="home-card-title">Bookings</div>
+                                <div class="home-card-description">View all your property bookings and reservations</div>
+                            </div>
+
+                            <div class="home-card warning" onclick="showOwnerView('ownerPayments')">
+                                <div class="home-card-icon">💵</div>
+                                <div class="home-card-title">Payment Collections</div>
+                                <div class="home-card-description">Track all payments received for your properties</div>
+                            </div>
+
+                            <div class="home-card" onclick="showOwnerView('ownerCalendar')">
+                                <div class="home-card-icon">🗓️</div>
+                                <div class="home-card-title">Calendar</div>
+                                <div class="home-card-description">Check availability and booking schedules</div>
+                            </div>
+
+                            <div class="home-card" onclick="showOwnerView('ownerPayouts')">
+                                <div class="home-card-icon">💰</div>
+                                <div class="home-card-title">Payout History</div>
+                                <div class="home-card-description">View your payout requests and payment history</div>
+                            </div>
+
+                            <div class="home-card" onclick="showOwnerView('ownerBankDetails')">
+                                <div class="home-card-icon">🏦</div>
+                                <div class="home-card-title">Bank Details</div>
+                                <div class="home-card-description">Manage your bank account and UPI information</div>
+                            </div>
+
+                            <div class="home-card" onclick="showOwnerView('ownerProperties')">
+                                <div class="home-card-icon">🏘️</div>
+                                <div class="home-card-title">My Properties</div>
+                                <div class="home-card-description">View all properties linked to your account</div>
+                            </div>
+
+                            <div class="home-card primary" onclick="openPayoutRequestModal()">
+                                <div class="home-card-icon">💸</div>
+                                <div class="home-card-title">Request Payout</div>
+                                <div class="home-card-description">Withdraw your earned amount to your bank account</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             <!-- Dashboard View -->
             <div id="ownerDashboardView" class="owner-view">
                 <h3 style="margin: 0 0 24px 0;">Revenue Dashboard</h3>
 
                 <!-- Revenue Cards -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <div class="stat-card">
-                        <div class="stat-value" id="ownerTotalRevenue">₹0</div>
+                        <div class="stat-value" style="color: #10b981;" id="ownerTotalRevenue">₹0</div>
                         <div class="stat-label">Total Revenue</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerTotalRevenueChange">From all bookings</small>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="ownerHostizzyCommission">₹0</div>
-                        <div class="stat-label">Hostizzy Commission</div>
+                        <div class="stat-value" style="color: #6366f1;" id="ownerTotalGuests">0</div>
+                        <div class="stat-label">Total Guests</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Across all properties</small>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="ownerNetEarnings">₹0</div>
-                        <div class="stat-label">Net Earnings</div>
+                        <div class="stat-value" style="color: #f59e0b;" id="ownerHostizzyShare">₹0</div>
+                        <div class="stat-label">Hostizzy Share</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerHostizzyPercent">Average commission</small>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="ownerPendingPayout">₹0</div>
+                        <div class="stat-value" style="color: #8b5cf6;" id="ownerNetEarnings">₹0</div>
+                        <div class="stat-label">Your Earnings</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerEarningsPercent">After commission</small>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #ec4899;" id="ownerPendingPayout">₹0</div>
                         <div class="stat-label">Pending Payout</div>
+                        <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Available to withdraw</small>
                     </div>
                 </div>
 
                 <!-- Request Payout Button -->
-                <button onclick="openPayoutRequestModal()" class="btn btn-primary" style="margin-bottom: 24px;">
+                <button onclick="openPayoutRequestModal()" class="btn btn-primary" style="margin-bottom: 24px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
                     💰 Request Payout
                 </button>
 
+                <!-- Revenue Charts -->
+                <div class="charts-grid" style="margin-bottom: 24px;">
+                    <div class="card">
+                        <h4 style="margin: 0 0 16px 0;">Monthly Revenue Trend</h4>
+                        <canvas id="revenueLineChart"></canvas>
+                    </div>
+                    <div class="card">
+                        <h4 style="margin: 0 0 16px 0;">Revenue Split</h4>
+                        <canvas id="revenuePieChart" style="max-height: 250px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Property Performance -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h4 style="margin: 0 0 16px 0;">Property Performance</h4>
+                    <canvas id="propertyBarChart"></canvas>
+                </div>
+
+                <!-- Monthly Breakdown -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <h4 style="margin: 0;">📅 Month-by-Month Breakdown</h4>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size: 14px; color: var(--text-secondary); white-space: nowrap;">View:</label>
+                            <select id="monthlyBreakdownFilter" onchange="filterMonthlyBreakdown()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; min-width: 180px;">
+                                <option value="last6">Last 6 Months</option>
+                                <option value="last12">Last 12 Months</option>
+                                <option value="all">All Time</option>
+                                <option value="" disabled>──────────</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="monthlyBreakdown"></div>
+                </div>
+
                 <!-- Recent Bookings -->
-                <h4>Recent Bookings</h4>
+                <h4 style="margin-bottom: 16px;">Recent Bookings</h4>
                 <div id="ownerRecentBookings"></div>
             </div>
 
             <!-- Bookings View -->
             <div id="ownerBookingsView" class="owner-view hidden">
                 <h3 style="margin: 0 0 24px 0;">My Bookings</h3>
+
+                <!-- Filters & Search -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Search</label>
+                            <input type="text" id="bookingsSearch" placeholder="Search booking ID, guest name, phone..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;" oninput="filterOwnerBookings()">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Property</label>
+                            <select id="bookingsPropertyFilter" onchange="filterOwnerBookings()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Booking Status</label>
+                            <select id="bookingsStatusFilter" onchange="filterOwnerBookings()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="checked_in">Checked In</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Payment Status</label>
+                            <select id="bookingsPaymentFilter" onchange="filterOwnerBookings()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;">
+                                <option value="">All Payment Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="partial">Partial</option>
+                                <option value="paid">Paid</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="color: var(--text-secondary); font-size: 14px;">
+                            <span id="bookingsCount">0</span> bookings found
+                        </div>
+                        <button onclick="clearBookingsFilters()" style="padding: 8px 16px; border: 1px solid var(--border); background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bookings Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                        <div class="stat-value" style="color: white; font-size: 24px;" id="bookingsCompleted">0</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">Completed</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">
+                        <div class="stat-value" style="color: white; font-size: 24px;" id="bookingsConfirmed">0</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">Confirmed</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white;">
+                        <div class="stat-value" style="color: white; font-size: 24px;" id="bookingsCheckedIn">0</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">Checked In</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                        <div class="stat-value" style="color: white; font-size: 24px;" id="bookingsPending">0</div>
+                        <div class="stat-label" style="color: rgba(255,255,255,0.9);">Pending</div>
+                    </div>
+                </div>
+
+                <!-- Bookings List -->
                 <div id="ownerBookingsList"></div>
+            </div>
+
+            <!-- Payments View -->
+            <div id="ownerPaymentsView" class="owner-view hidden">
+                <h3 style="margin: 0 0 24px 0;">Payment Collections</h3>
+
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Month</label>
+                            <select id="paymentMonthFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="">All Months</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Property</label>
+                            <select id="paymentPropertyFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Payout Status</label>
+                            <select id="paymentPayoutFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="">All</option>
+                                <option value="eligible">Eligible for Payout</option>
+                                <option value="paid_out">Already Paid Out</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="paymentsTotal">₹0</div>
+                        <div class="stat-label">Total Payments</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="paymentsToOwner">₹0</div>
+                        <div class="stat-label">Paid to Owner</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="paymentsToHostizzy">₹0</div>
+                        <div class="stat-label">Paid to Hostizzy</div>
+                    </div>
+                </div>
+
+                <!-- Payments List -->
+                <div id="ownerPaymentsList"></div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="ownerCalendarView" class="owner-view hidden">
+                <h3 style="margin: 0 0 24px 0;">Availability Calendar</h3>
+
+                <!-- Calendar Controls -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Select Property</label>
+                            <select id="calendarPropertyFilter" onchange="loadOwnerCalendar()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: flex-end;">
+                            <button onclick="changeCalendarMonth(-1)" class="btn" style="padding: 8px 16px;">← Prev</button>
+                            <div style="text-align: center; min-width: 150px;">
+                                <span id="currentCalendarMonth" style="font-weight: 700; font-size: 16px;">December 2024</span>
+                            </div>
+                            <button onclick="changeCalendarMonth(1)" class="btn" style="padding: 8px 16px;">Next →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Legend -->
+                <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: #10b981; border-radius: 4px;"></div>
+                        <span style="font-size: 14px;">Available</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: #3b82f6; border-radius: 4px;"></div>
+                        <span style="font-size: 14px;">Booked</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 20px; height: 20px; background: #ef4444; border-radius: 4px;"></div>
+                        <span style="font-size: 14px;">Blocked</span>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div id="ownerCalendarGrid" class="card"></div>
+
+                <!-- Booking Details -->
+                <div id="calendarBookingDetails" class="card hidden" style="margin-top: 16px;">
+                    <h4 style="margin: 0 0 16px 0;">Booking Details</h4>
+                    <div id="calendarBookingDetailsContent"></div>
+                </div>
             </div>
 
             <!-- Payouts View -->
@@ -417,8 +1478,40 @@
                 <div id="ownerPropertiesList"></div>
             </div>
 
-        </main>
+            </div>
+            <!-- End Content Area -->
+        </div>
+        <!-- End Main Content -->
+
+        <!-- Mobile Overlay for Sidebar -->
+        <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-bottom-nav">
+            <button class="bottom-nav-item active" onclick="showOwnerViewMobile('ownerHome')" data-view="ownerHome">
+                <span class="icon">🏠</span>
+                <span class="label">Home</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerDashboard')" data-view="ownerDashboard">
+                <span class="icon">📊</span>
+                <span class="label">Analytics</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerBookings')" data-view="ownerBookings">
+                <span class="icon">📅</span>
+                <span class="label">Bookings</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerPayments')" data-view="ownerPayments">
+                <span class="icon">💵</span>
+                <span class="label">Payments</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerPayouts')" data-view="ownerPayouts">
+                <span class="icon">💰</span>
+                <span class="label">Payouts</span>
+            </button>
+        </nav>
+
     </div>
+    <!-- End Owner App -->
 
     <!-- Payout Request Modal -->
     <div id="payoutRequestModal" class="modal">
@@ -514,10 +1607,18 @@
             },
 
             getOwnerRevenue: async (ownerId, startDate = null, endDate = null) => {
+                // Get owner's property IDs
+                const owner = await db.getOwner(ownerId);
+                const propertyIds = owner.property_ids || [];
+
+                if (propertyIds.length === 0) {
+                    return { totalRevenue: 0, hostizzyCommission: 0, netEarnings: 0, totalBookings: 0, bookings: [] };
+                }
+
                 let query = supabase
                     .from('reservations')
                     .select('*')
-                    .eq('owner_id', ownerId)
+                    .in('property_id', propertyIds)
                     .in('status', ['confirmed', 'checked_in', 'completed']);
                 if (startDate) query = query.gte('check_in', startDate);
                 if (endDate) query = query.lte('check_in', endDate);
@@ -535,13 +1636,21 @@
             },
 
             getOwnerPendingPayout: async (ownerId) => {
+                // Get owner's property IDs
+                const owner = await db.getOwner(ownerId);
+                const propertyIds = owner.property_ids || [];
+
+                if (propertyIds.length === 0) {
+                    return 0;
+                }
+
                 const { data: reservations } = await supabase
                     .from('reservations')
                     .select('total_amount, hostizzy_revenue')
-                    .eq('owner_id', ownerId)
+                    .in('property_id', propertyIds)
                     .eq('payment_status', 'paid')
                     .in('status', ['confirmed', 'checked_in', 'completed']);
-                const totalEarned = reservations.reduce((sum, r) =>
+                const totalEarned = (reservations || []).reduce((sum, r) =>
                     sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.hostizzy_revenue) || 0)), 0
                 );
                 const { data: payouts } = await supabase
@@ -549,15 +1658,23 @@
                     .select('amount')
                     .eq('owner_id', ownerId)
                     .eq('status', 'completed');
-                const totalPaidOut = payouts.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const totalPaidOut = (payouts || []).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
                 return Math.max(totalEarned - totalPaidOut, 0);
             },
 
             getOwnerBookings: async (ownerId) => {
+                // Get owner's property IDs
+                const owner = await db.getOwner(ownerId);
+                const propertyIds = owner.property_ids || [];
+
+                if (propertyIds.length === 0) {
+                    return [];
+                }
+
                 const { data, error } = await supabase
                     .from('reservations')
                     .select('*')
-                    .eq('owner_id', ownerId)
+                    .in('property_id', propertyIds)
                     .order('check_in', { ascending: false });
                 if (error) throw error;
                 return data || [];
@@ -582,18 +1699,250 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('ownerSidebar');
+            const overlay = document.getElementById('mobileOverlay');
+
+            // Check if mobile
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show-mobile');
+                overlay.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+
+        // Toggle User Menu (placeholder)
+        function toggleUserMenu() {
+            // Could add dropdown menu here
+        }
+
+        // Toggle Theme (Dark/Light Mode)
+        function toggleOwnerTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyOwnerTheme(newTheme);
+            localStorage.setItem('ownerPortalTheme', newTheme);
+        }
+
+        function applyOwnerTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // Update theme icons
+            const lightIcon = document.querySelector('.theme-icon-light');
+            const darkIcon = document.querySelector('.theme-icon-dark');
+
+            if (lightIcon && darkIcon) {
+                if (theme === 'dark') {
+                    lightIcon.style.display = 'none';
+                    darkIcon.style.display = 'block';
+                } else {
+                    lightIcon.style.display = 'block';
+                    darkIcon.style.display = 'none';
+                }
+            }
+        }
+
+        // Mobile navigation handler
+        function showOwnerViewMobile(viewName) {
+            // Update bottom nav active state
+            document.querySelectorAll('.bottom-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-view') === viewName) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Close sidebar if open
+            const sidebar = document.getElementById('ownerSidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            sidebar.classList.remove('show-mobile');
+            overlay.classList.remove('show');
+
+            // Show the view
+            showOwnerView(viewName);
+        }
+
+        // Show Owner View (Updated for new layout)
+        function showOwnerView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.owner-view').forEach(view => {
+                view.classList.add('hidden');
+            });
+
+            // Show selected view
+            document.getElementById(viewName + 'View').classList.remove('hidden');
+
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar-nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.sidebar-nav-item')?.classList.add('active');
+
+            // Update page title
+            const pageTitles = {
+                'ownerHome': 'Home',
+                'ownerDashboard': 'Analytics Dashboard',
+                'ownerBookings': 'Bookings',
+                'ownerPayments': 'Payment Collections',
+                'ownerCalendar': 'Availability Calendar',
+                'ownerPayouts': 'Payout History',
+                'ownerBankDetails': 'Bank Details',
+                'ownerProperties': 'My Properties'
+            };
+            document.getElementById('pageTitle').textContent = pageTitles[viewName] || 'Owner Portal';
+
+            // Load data for specific views
+            if (viewName === 'ownerHome') {
+                loadOwnerHome();
+            } else if (viewName === 'ownerDashboard') {
+                loadOwnerDashboard();
+            } else if (viewName === 'ownerBookings') {
+                loadOwnerBookings();
+            } else if (viewName === 'ownerPayments') {
+                loadOwnerPayments();
+            } else if (viewName === 'ownerCalendar') {
+                loadOwnerCalendar();
+            } else if (viewName === 'ownerPayouts') {
+                loadOwnerPayouts();
+            } else if (viewName === 'ownerBankDetails') {
+                loadOwnerBankDetails();
+            } else if (viewName === 'ownerProperties') {
+                loadOwnerProperties();
+            }
+        }
+
+        // Load Owner Home (Quick Stats)
+        async function loadOwnerHome() {
+            try {
+                const ownerId = currentUser.id;
+                const owner = await db.getOwner(ownerId);
+                const propertyIds = owner.property_ids || [];
+
+                if (propertyIds.length === 0) {
+                    document.getElementById('homeQuickTotalRevenue').textContent = '₹0';
+                    document.getElementById('homeQuickTotalGuests').textContent = '0';
+                    document.getElementById('homeQuickNetEarnings').textContent = '₹0';
+                    document.getElementById('homeQuickPendingPayout').textContent = '₹0';
+                    return;
+                }
+
+                // Get quick stats
+                const { data: properties } = await supabase
+                    .from('properties')
+                    .select('*')
+                    .in('id', propertyIds);
+
+                const { data: bookings } = await supabase
+                    .from('reservations')
+                    .select('*')
+                    .in('property_id', propertyIds);
+
+                // Filter bookings (exclude only cancelled - same as main app)
+                const confirmedBookings = (bookings || []).filter(b => b.status !== 'cancelled');
+
+                // Calculate total revenue
+                const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
+
+                // Calculate total guests
+                const totalGuests = confirmedBookings.reduce((sum, b) => {
+                    const adults = parseInt(b.adults) || 0;
+                    const children = parseInt(b.children) || 0;
+                    return sum + adults + children;
+                }, 0);
+
+                // Calculate Hostizzy revenue using the hostizzy_revenue field from database (same as main app)
+                const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
+
+                const netEarnings = totalRevenue - totalHostizzyShare;
+                const pendingPayout = await db.getOwnerPendingPayout(ownerId);
+
+                document.getElementById('homeQuickTotalRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                document.getElementById('homeQuickTotalGuests').textContent = totalGuests.toLocaleString('en-IN');
+                document.getElementById('homeQuickNetEarnings').textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                document.getElementById('homeQuickPendingPayout').textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+            } catch (error) {
+                // Silently fail for home view
+            }
+        }
+
+        // Owner Login Function
+        async function ownerLogin() {
+            const email = document.getElementById('ownerLoginEmail').value.trim();
+            const password = document.getElementById('ownerLoginPassword').value;
+
+            if (!email || !password) {
+                showToast('Login Error', 'Please enter email and password', '❌');
+                return;
+            }
+
+            try {
+                // Get all owners
+                const { data: owners, error } = await supabase
+                    .from('property_owners')
+                    .select('*');
+
+                if (error) throw error;
+
+                const owner = owners.find(o => o.email === email && o.password === password);
+
+                if (owner) {
+                    if (!owner.is_active) {
+                        showToast('Account Inactive', 'Your account has been deactivated', '❌');
+                        return;
+                    }
+
+                    currentUser = owner;
+                    currentUser.userType = 'owner';
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                    // Hide login screen, show app
+                    document.getElementById('ownerLoginScreen').classList.add('hidden');
+                    document.getElementById('ownerApp').classList.remove('hidden');
+
+                    // Update UI in multiple places
+                    document.getElementById('ownerUserEmail').textContent = currentUser.email;
+                    document.getElementById('ownerUserName').textContent = currentUser.name;
+                    document.getElementById('topBarUserName').textContent = currentUser.name;
+                    document.getElementById('welcomeUserName').textContent = currentUser.name.split(' ')[0];
+                    document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+
+                    // Load home view
+                    await loadOwnerHome();
+
+                    showToast('Welcome!', `Logged in as ${owner.name}`, '👋');
+                } else {
+                    showToast('Login Failed', 'Invalid email or password', '❌');
+                }
+
+            } catch (error) {
+                showToast('Login Error', error.message, '❌');
+            }
+        }
+
         // Logout function
         function logout() {
             localStorage.removeItem('currentUser');
             currentUser = null;
-            window.location.href = 'index.html';
+            // Show login screen
+            document.getElementById('ownerApp').classList.add('hidden');
+            document.getElementById('ownerLoginScreen').classList.remove('hidden');
         }
 
         // Check authentication on page load
         window.addEventListener('DOMContentLoaded', async () => {
+            // Load saved theme preference
+            const savedTheme = localStorage.getItem('ownerPortalTheme') || 'light';
+            applyOwnerTheme(savedTheme);
+
             const storedUser = localStorage.getItem('currentUser');
+
             if (!storedUser) {
-                window.location.href = 'index.html';
+                // Show login screen
+                document.getElementById('ownerLoginScreen').style.display = 'flex';
+                document.getElementById('ownerApp').classList.add('hidden');
                 return;
             }
 
@@ -601,16 +1950,25 @@
 
             // Verify user type
             if (currentUser.userType !== 'owner') {
-                window.location.href = 'index.html';
+                // Show login screen
+                document.getElementById('ownerLoginScreen').style.display = 'flex';
+                document.getElementById('ownerApp').classList.add('hidden');
                 return;
             }
 
-            // Update UI with user info
+            // Hide login, show app
+            document.getElementById('ownerLoginScreen').classList.add('hidden');
+            document.getElementById('ownerApp').classList.remove('hidden');
+
+            // Update UI with user info in multiple places
             document.getElementById('ownerUserEmail').textContent = currentUser.email;
             document.getElementById('ownerUserName').textContent = currentUser.name;
+            document.getElementById('topBarUserName').textContent = currentUser.name;
+            document.getElementById('welcomeUserName').textContent = currentUser.name.split(' ')[0];
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
-            // Load dashboard
-            await loadOwnerDashboard();
+            // Load home view
+            await loadOwnerHome();
         });
     </script>
 
