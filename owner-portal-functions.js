@@ -1203,7 +1203,7 @@ function renderOwnerBookingsList(bookings) {
         }
 }
 
-// Load Owner Payouts with Dual-Flow Settlement Tracking
+// Load Owner Payouts with Simplified Settlement Tracking
 async function loadOwnerPayouts() {
     try {
         const ownerId = currentUser.id;
@@ -1239,6 +1239,19 @@ async function loadOwnerPayouts() {
                 const startDate = firstDayOfMonth.toISOString().split('T')[0];
                 const endDate = firstDayOfNextMonth.toISOString().split('T')[0];
 
+                // Get bookings for this month to calculate total commission
+                const monthBookings = ownerData.bookings.filter(booking => {
+                    const checkInDate = new Date(booking.check_in);
+                    const checkInMonth = checkInDate.getMonth();
+                    const checkInYear = checkInDate.getFullYear();
+                    return checkInYear === year && checkInMonth === month && booking.status !== 'cancelled';
+                });
+
+                // Calculate total commission from bookings (from reservation table)
+                const totalCommission = monthBookings.reduce((sum, booking) => {
+                    return sum + (parseFloat(booking.hostizzy_revenue) || 0);
+                }, 0);
+
                 // Get payments for this month
                 const { data: monthPayments, error: paymentsError } = await supabase
                     .from('payments')
@@ -1252,60 +1265,25 @@ async function loadOwnerPayouts() {
                     continue;
                 }
 
-                // Separate payments by recipient
-                const paymentsToOwner = (monthPayments || []).filter(p =>
-                    p.payment_recipient && p.payment_recipient.toLowerCase().includes('owner')
-                );
-                const paymentsToHostizzy = (monthPayments || []).filter(p =>
-                    p.payment_recipient && p.payment_recipient.toLowerCase().includes('hostizzy')
-                );
+                // Separate payments by recipient and sum amounts
+                const totalToOwner = (monthPayments || [])
+                    .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('owner'))
+                    .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
-                // Calculate commission from payments to owner
-                let commissionFromOwnerPayments = 0;
-                let totalToOwner = 0;
-                paymentsToOwner.forEach(payment => {
-                    const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-                    if (booking) {
-                        const bookingTotal = parseFloat(booking.total_amount) || 0;
-                        const bookingCommission = parseFloat(booking.hostizzy_revenue) || 0;
-                        const paymentAmount = parseFloat(payment.amount) || 0;
-                        totalToOwner += paymentAmount;
+                const totalToHostizzy = (monthPayments || [])
+                    .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('hostizzy'))
+                    .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
-                        // Proportional commission
-                        const proportionalCommission = bookingTotal > 0 ? (paymentAmount / bookingTotal) * bookingCommission : 0;
-                        commissionFromOwnerPayments += proportionalCommission;
-                    }
-                });
-
-                // Calculate owner share from payments to Hostizzy
-                let ownerShareFromHostizzyPayments = 0;
-                let totalToHostizzy = 0;
-                paymentsToHostizzy.forEach(payment => {
-                    const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
-                    if (booking) {
-                        const bookingTotal = parseFloat(booking.total_amount) || 0;
-                        const bookingCommission = parseFloat(booking.hostizzy_revenue) || 0;
-                        const paymentAmount = parseFloat(payment.amount) || 0;
-                        totalToHostizzy += paymentAmount;
-
-                        // Proportional commission and owner share
-                        const proportionalCommission = bookingTotal > 0 ? (paymentAmount / bookingTotal) * bookingCommission : 0;
-                        const ownerShare = paymentAmount - proportionalCommission;
-                        ownerShareFromHostizzyPayments += ownerShare;
-                    }
-                });
-
-                // Net settlement: (Hostizzy owes Owner) - (Owner owes Hostizzy)
-                const netSettlement = ownerShareFromHostizzyPayments - commissionFromOwnerPayments;
+                // Simple calculation: Net Settlement = Hostizzy Payment - Total Commission
+                const netSettlement = totalToHostizzy - totalCommission;
 
                 monthlySettlements.push({
                     year,
                     month,
                     monthLabel: getMonthLabel(year, month),
+                    totalCommission,
                     paymentsToOwner: totalToOwner,
-                    commissionDue: commissionFromOwnerPayments,
                     paymentsToHostizzy: totalToHostizzy,
-                    ownerShare: ownerShareFromHostizzyPayments,
                     netSettlement,
                     isCurrent: year === currentYear && month === currentMonth
                 });
@@ -1343,17 +1321,23 @@ async function loadOwnerPayouts() {
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
                             <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">💰 Payments to You</div>
-                                <div style="font-size: 20px; font-weight: 700;">₹${settlement.paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                                <div style="font-size: 12px; color: ${secondaryColor}; margin-top: 4px;">Commission due: ₹${settlement.commissionDue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">💳 Total Commission</div>
+                                <div style="font-size: 20px; font-weight: 700;">₹${settlement.totalCommission.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px;">From bookings</div>
                             </div>
 
                             <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">🏢 Payments to Hostizzy</div>
+                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">🏢 Hostizzy Payment</div>
                                 <div style="font-size: 20px; font-weight: 700;">₹${settlement.paymentsToHostizzy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                                <div style="font-size: 12px; color: ${secondaryColor}; margin-top: 4px;">Your share: ₹${settlement.ownerShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px;">Received by Hostizzy</div>
+                            </div>
+
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; padding: 12px; border-radius: 8px;">
+                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">💰 Owner Payment</div>
+                                <div style="font-size: 20px; font-weight: 700;">₹${settlement.paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px;">Received by you</div>
                             </div>
                         </div>
 
@@ -1361,15 +1345,19 @@ async function loadOwnerPayouts() {
                             <span style="font-size: 14px; font-weight: 600;">
                                 ${isPositive
                                     ? `✅ Payout Pending: ₹${settlement.netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+                                    : settlement.netSettlement === 0
+                                    ? `✅ Settled: No payment due`
                                     : `⚠️ Payment Pending: ₹${Math.abs(settlement.netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
                                 }
                             </span>
+                            ${settlement.netSettlement !== 0 ? `
                             <button
                                 onclick="markSettlement('${settlement.year}-${settlement.month}', ${isPositive})"
                                 style="padding: 8px 16px; background: ${settlement.isCurrent ? 'white' : 'var(--primary)'}; color: ${settlement.isCurrent ? 'var(--primary)' : 'white'}; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;"
                             >
                                 ${isPositive ? 'Mark Payout Received' : 'Mark Payment Done'}
                             </button>
+                            ` : ''}
                         </div>
                     </div>
                 `;
