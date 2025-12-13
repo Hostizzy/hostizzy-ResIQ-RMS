@@ -1252,17 +1252,22 @@ async function loadOwnerPayouts() {
                     return sum + (parseFloat(booking.hostizzy_revenue) || 0);
                 }, 0);
 
-                // Get payments for this month
-                const { data: monthPayments, error: paymentsError } = await supabase
-                    .from('payments')
-                    .select('*')
-                    .in('booking_id', ownerData.bookings.map(b => b.booking_id))
-                    .gte('payment_date', startDate)
-                    .lt('payment_date', endDate);
+                // Get ALL payments for these bookings (regardless of payment date)
+                // Example: Oct payment for Nov reservation counts in Nov settlement
+                const monthBookingIds = monthBookings.map(b => b.booking_id);
 
-                if (paymentsError) {
-                    console.error('Error loading payments for month:', paymentsError);
-                    continue;
+                let monthPayments = [];
+                if (monthBookingIds.length > 0) {
+                    const { data, error: paymentsError } = await supabase
+                        .from('payments')
+                        .select('*')
+                        .in('booking_id', monthBookingIds);
+
+                    if (paymentsError) {
+                        console.error('Error loading payments for month:', paymentsError);
+                    } else {
+                        monthPayments = data || [];
+                    }
                 }
 
                 // Separate payments by recipient and sum amounts
