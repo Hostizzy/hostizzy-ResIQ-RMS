@@ -8637,15 +8637,23 @@
                 return;
             }
 
-            // Run immediately on start
-            runSmartAutomation();
+            const isMobile = window.innerWidth <= 768;
 
-            // Get interval from settings (default 30 minutes)
-            const intervalMinutes = parseInt(localStorage.getItem('automationInterval') || '30');
-            const intervalMs = intervalMinutes * 60 * 1000;
+            if (isMobile) {
+                // Mobile: Don't run immediately, run every 60 minutes to save battery/data
+                automationIntervalId = setInterval(runSmartAutomation, 60 * 60 * 1000);
+                console.log('🤖 Smart Automation Engine started for mobile (runs every 60 min)');
+            } else {
+                // Desktop: Run immediately and use configured interval
+                runSmartAutomation();
 
-            automationIntervalId = setInterval(runSmartAutomation, intervalMs);
-            console.log(`🤖 Smart Automation Engine started (runs every ${intervalMinutes} min)`);
+                // Get interval from settings (default 30 minutes)
+                const intervalMinutes = parseInt(localStorage.getItem('automationInterval') || '30');
+                const intervalMs = intervalMinutes * 60 * 1000;
+
+                automationIntervalId = setInterval(runSmartAutomation, intervalMs);
+                console.log(`🤖 Smart Automation Engine started (runs every ${intervalMinutes} min)`);
+            }
         }
 
         function stopSmartAutomation() {
@@ -9967,28 +9975,61 @@
 
         /**
          * Load initial data in background without blocking UI
+         * On mobile: Load only recent data to improve performance
          */
         async function loadInitialData() {
             try {
-                // Load data asynchronously without blocking
-                const [reservations, properties, payments] = await Promise.all([
-                    db.getReservations(),
-                    db.getProperties(),
-                    db.getAllPayments()
-                ]);
-                
-                // Update global state
-                state.reservations = reservations;
-                state.properties = properties;
-                state.payments = payments;
-                allReservations = reservations;
-                allPayments = payments;
-                
-                console.log('Initial data loaded:', {
-                    reservations: reservations.length,
-                    properties: properties.length,
-                    payments: payments.length
-                });
+                const isMobile = window.innerWidth <= 768;
+
+                if (isMobile) {
+                    console.log('📱 Loading optimized data for mobile...');
+                    // Mobile: Load only recent reservations (last 60 days) and properties
+                    const sixtyDaysAgo = new Date();
+                    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+                    const { data: recentReservations, error: resError } = await supabase
+                        .from('reservations')
+                        .select('*')
+                        .gte('check_in', sixtyDaysAgo.toISOString().split('T')[0])
+                        .order('check_in', { ascending: false });
+
+                    if (resError) throw resError;
+
+                    const properties = await db.getProperties();
+
+                    // Update global state with limited data
+                    state.reservations = recentReservations || [];
+                    state.properties = properties;
+                    state.payments = []; // Load payments on-demand on mobile
+                    allReservations = recentReservations || [];
+                    allPayments = [];
+
+                    console.log('Mobile-optimized data loaded:', {
+                        reservations: (recentReservations || []).length,
+                        properties: properties.length,
+                        note: 'Payments will load on-demand'
+                    });
+                } else {
+                    // Desktop: Load all data
+                    const [reservations, properties, payments] = await Promise.all([
+                        db.getReservations(),
+                        db.getProperties(),
+                        db.getAllPayments()
+                    ]);
+
+                    // Update global state
+                    state.reservations = reservations;
+                    state.properties = properties;
+                    state.payments = payments;
+                    allReservations = reservations;
+                    allPayments = payments;
+
+                    console.log('Full data loaded:', {
+                        reservations: reservations.length,
+                        properties: properties.length,
+                        payments: payments.length
+                    });
+                }
 
                 // Start Smart Automation Engine after data is loaded
                 startSmartAutomation();
@@ -11102,13 +11143,18 @@
          * Schedule auto-status updates
          */
         function scheduleAutoStatusUpdates() {
-            // Run immediately on load (after 2 seconds to let app initialize)
-            setTimeout(() => autoUpdateReservationStatuses(), 2000);
-            
-            // Run every hour (3600000 ms = 1 hour)
-            setInterval(() => autoUpdateReservationStatuses(), 3600000);
-            
-            console.log('✅ Auto status update scheduler initialized');
+            const isMobile = window.innerWidth <= 768;
+
+            if (isMobile) {
+                // Mobile: Run every 2 hours to save battery/data, don't run immediately
+                setInterval(() => autoUpdateReservationStatuses(), 2 * 3600000);
+                console.log('✅ Auto status update scheduler initialized for mobile (every 2 hours)');
+            } else {
+                // Desktop: Run immediately and every hour
+                setTimeout(() => autoUpdateReservationStatuses(), 2000);
+                setInterval(() => autoUpdateReservationStatuses(), 3600000);
+                console.log('✅ Auto status update scheduler initialized (every hour)');
+            }
         }
 
         /**
@@ -21338,21 +21384,39 @@ function printPropertyView() {
                         hidePerformanceForStaff();
                     }
                     
-                    // ✅ REMOVED: await loadDashboard();
-                    // ✅ NEW: Load basic data in background without blocking
-                    loadInitialData();
-                    
+                    // ✅ MOBILE PERFORMANCE: Detect mobile and optimize loading
+                    const isMobile = window.innerWidth <= 768;
+                    const isSlowConnection = navigator.connection &&
+                        (navigator.connection.effectiveType === 'slow-2g' ||
+                         navigator.connection.effectiveType === '2g' ||
+                         navigator.connection.effectiveType === '3g');
+
+                    // Show UI first, then load data
                     initializeSplashScreen();
-                    // Restore last view or default to home
                     const lastView = localStorage.getItem('lastView') || 'home';
                     setTimeout(() => showView(lastView), 1000);
-                    
-                    if (navigator.onLine) {
-                        setTimeout(autoSync, 2000);
-                        // Initialize auto-sync for properties with iCal URLs
-                        setTimeout(initializeAutoSync, 3000);
-                        // Initialize auto status update scheduler
-                        setTimeout(scheduleAutoStatusUpdates, 3000);
+
+                    // Load data with delays on mobile to prevent freezing
+                    if (isMobile || isSlowConnection) {
+                        console.log('📱 Mobile/slow connection detected - optimizing load sequence');
+                        // Delay heavy data loading on mobile
+                        setTimeout(() => loadInitialData(), 2000);
+
+                        if (navigator.onLine) {
+                            // Delay non-critical operations longer on mobile
+                            setTimeout(autoSync, 10000); // 10s delay
+                            setTimeout(initializeAutoSync, 15000); // 15s delay
+                            setTimeout(scheduleAutoStatusUpdates, 20000); // 20s delay
+                        }
+                    } else {
+                        // Desktop - load normally
+                        loadInitialData();
+
+                        if (navigator.onLine) {
+                            setTimeout(autoSync, 2000);
+                            setTimeout(initializeAutoSync, 3000);
+                            setTimeout(scheduleAutoStatusUpdates, 3000);
+                        }
                     }
                 } catch (error) {
                     console.error('Session restore error:', error);
