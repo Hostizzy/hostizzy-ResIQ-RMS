@@ -85,6 +85,35 @@ CREATE TABLE IF NOT EXISTS payout_requests (
 );
 
 -- =====================================================
+-- TABLE: settlement_status
+-- Purpose: Track monthly settlement completion status
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS settlement_status (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- Owner Reference
+    owner_id UUID NOT NULL REFERENCES property_owners(id) ON DELETE CASCADE,
+
+    -- Settlement Period (format: "YYYY-M", e.g., "2024-11")
+    settlement_month TEXT NOT NULL,
+
+    -- Status
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
+
+    -- Settlement Type
+    settlement_type TEXT CHECK (settlement_type IN ('payout_received', 'payment_done')),
+
+    -- Timestamps
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+    -- Ensure one status per owner per month
+    UNIQUE(owner_id, settlement_month)
+);
+
+-- =====================================================
 -- MODIFY EXISTING TABLES
 -- =====================================================
 
@@ -111,6 +140,9 @@ CREATE INDEX IF NOT EXISTS idx_payout_requests_status ON payout_requests(status)
 CREATE INDEX IF NOT EXISTS idx_payout_requests_date ON payout_requests(requested_at DESC);
 CREATE INDEX IF NOT EXISTS idx_properties_owner ON properties(owner_id);
 CREATE INDEX IF NOT EXISTS idx_reservations_owner ON reservations(owner_id);
+CREATE INDEX IF NOT EXISTS idx_settlement_status_owner ON settlement_status(owner_id);
+CREATE INDEX IF NOT EXISTS idx_settlement_status_month ON settlement_status(settlement_month);
+CREATE INDEX IF NOT EXISTS idx_settlement_status_owner_month ON settlement_status(owner_id, settlement_month);
 
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -206,6 +238,49 @@ CREATE POLICY "Admin can manage payouts"
         )
     );
 
+-- Enable RLS on settlement_status
+ALTER TABLE settlement_status ENABLE ROW LEVEL SECURITY;
+
+-- Policy 9: Owners can view their own settlement status
+CREATE POLICY "Owners can view own settlements"
+    ON settlement_status
+    FOR SELECT
+    USING (
+        owner_id IN (
+            SELECT id FROM property_owners
+            WHERE email = current_setting('app.user_email', true)
+        )
+    );
+
+-- Policy 10: Owners can create/update their own settlement status
+CREATE POLICY "Owners can manage own settlements"
+    ON settlement_status
+    FOR ALL
+    USING (
+        owner_id IN (
+            SELECT id FROM property_owners
+            WHERE email = current_setting('app.user_email', true)
+        )
+    )
+    WITH CHECK (
+        owner_id IN (
+            SELECT id FROM property_owners
+            WHERE email = current_setting('app.user_email', true)
+        )
+    );
+
+-- Policy 11: Staff can view all settlement statuses
+CREATE POLICY "Staff can view all settlements"
+    ON settlement_status
+    FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM team_members
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
 -- =====================================================
 -- TRIGGERS
 -- =====================================================
@@ -226,6 +301,11 @@ CREATE TRIGGER update_property_owners_updated_at
 
 CREATE TRIGGER update_payout_requests_updated_at
     BEFORE UPDATE ON payout_requests
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_settlement_status_updated_at
+    BEFORE UPDATE ON settlement_status
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -327,7 +407,7 @@ WHERE r.property_id = p.id
 -- Check if tables were created
 SELECT table_name
 FROM information_schema.tables
-WHERE table_name IN ('property_owners', 'payout_requests')
+WHERE table_name IN ('property_owners', 'payout_requests', 'settlement_status')
     AND table_schema = 'public';
 
 -- Check if columns were added
