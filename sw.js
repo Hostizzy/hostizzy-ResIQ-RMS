@@ -15,7 +15,9 @@ const STATIC_CACHE = [
   '/offline.html',
   '/manifest.json',
   '/assets/logo.png',
+  '/assets/logo-132.png',
   '/assets/logo-192.png',
+  '/assets/logo-192-maskable.png',
   '/assets/logo-512-maskable.png'
 ];
 
@@ -84,27 +86,31 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Handle navigation requests (HTML pages)
+  // IMPORTANT: Cache a single app shell (index.html) instead of caching per-URL navigations.
+  // Caching per-URL can serve stale/broken boot code after login and lead to “infinite loading”.
   if (request.mode === 'navigate') {
+    const appShellRequest = new Request('/index.html', {
+      headers: request.headers,
+      redirect: 'follow'
+    });
+
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-store', redirect: 'follow' })
         .then((response) => {
-          // Cache successful navigation responses
-          if (response.status === 200) {
+          // Only cache clean, non-redirected HTML responses.
+          if (response && response.status === 200 && !response.redirected) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
+              cache.put(appShellRequest, responseClone);
             });
           }
           return response;
         })
         .catch(() => {
-          // Return cached page or offline page
-          return caches.match(request)
+          // Offline fallback: serve cached app shell, then offline page.
+          return caches.match(appShellRequest)
             .then((cachedResponse) => {
-              if (cachedResponse) {
-                return cachedResponse;
-              }
-              // Return offline page for navigation requests
+              if (cachedResponse) return cachedResponse;
               return caches.match(OFFLINE_URL);
             });
         })

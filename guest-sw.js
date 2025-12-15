@@ -2,14 +2,13 @@
 const CACHE_VERSION = 'hostizzy-guest-v2.0.0';
 const CACHE_NAME = `${CACHE_VERSION}`;
 const STATIC_ASSETS = [
-  '/guest-portal-v2.html',
-  '/guest-manifest.v2.json',
+  '/guest-portal.html',
+  '/guest-manifest.json',
   '/menu-template-standard.json',
   '/assets/logo-192.png',
   '/assets/logo-192-maskable.png',
   '/assets/logo-512-maskable.png',
-  '/assets/logo.png',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
+  '/assets/logo.png'
 ];
 
 self.addEventListener('install', (event) => {
