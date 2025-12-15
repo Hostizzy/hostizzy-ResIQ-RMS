@@ -21394,6 +21394,16 @@ function printPropertyView() {
 
                     // Show UI first, then load data
                     initializeSplashScreen();
+                    setTimeout(() => {
+                        const splash = document.getElementById('splashScreen');
+                        if (splash && splash.style.display !== 'none') {
+                            splash.style.opacity = '0';
+                            setTimeout(() => {
+                                const splash2 = document.getElementById('splashScreen');
+                                if (splash2) splash2.style.display = 'none';
+                            }, 500);
+                        }
+                    }, 12000);
                     const lastView = localStorage.getItem('lastView') || 'home';
                     setTimeout(() => showView(lastView), 1000);
 
@@ -21457,9 +21467,11 @@ function printPropertyView() {
             // Show splash for 2.5 seconds (2 sec display + 0.5 sec fade)
             setTimeout(() => {
                 const splash = document.getElementById('splashScreen');
+                if (!splash) return;
                 splash.style.opacity = '0';
                 
                 setTimeout(() => {
+                    if (!splash) return;
                     splash.style.display = 'none';
                     // Restore last view or default to home
                     const lastView = localStorage.getItem('lastView') || 'home';
@@ -21471,6 +21483,40 @@ function printPropertyView() {
                 }, 500);
             }, 2500);
         }
+
+        function handleAppResume() {
+            try {
+                const storedUser = localStorage.getItem('currentUser');
+                if (!storedUser) return;
+
+                // Ensure app is visible if user is logged in
+                const loginScreen = document.getElementById('loginScreen');
+                const mainApp = document.getElementById('mainApp');
+                if (loginScreen) loginScreen.classList.add('hidden');
+                if (mainApp) mainApp.classList.remove('hidden');
+
+                const splash = document.getElementById('splashScreen');
+                if (splash && splash.style.display !== 'none') {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        const splash2 = document.getElementById('splashScreen');
+                        if (splash2) splash2.style.display = 'none';
+                    }, 250);
+                }
+
+                const lastView = localStorage.getItem('lastView') || 'home';
+                if (typeof showView === 'function') {
+                    setTimeout(() => showView(lastView), 0);
+                }
+            } catch (e) {
+                console.error('Resume handler error:', e);
+            }
+        }
+
+        window.addEventListener('pageshow', handleAppResume);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) handleAppResume();
+        });
 
         // Push Notifications
         async function requestNotificationPermission() {
