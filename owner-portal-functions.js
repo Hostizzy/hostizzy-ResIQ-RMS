@@ -1270,6 +1270,17 @@ async function loadOwnerPayouts() {
                     }
                 }
 
+                // Check if this month's settlement has been marked as completed
+                const settlementKey = `${year}-${month}`;
+                const { data: settlementStatus } = await supabase
+                    .from('settlement_status')
+                    .select('*')
+                    .eq('owner_id', ownerId)
+                    .eq('settlement_month', settlementKey)
+                    .single();
+
+                const isSettlementCompleted = settlementStatus?.status === 'completed';
+
                 // Separate payments by recipient and sum amounts
                 const totalToOwner = (monthPayments || [])
                     .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('owner'))
@@ -1290,7 +1301,9 @@ async function loadOwnerPayouts() {
                     paymentsToOwner: totalToOwner,
                     paymentsToHostizzy: totalToHostizzy,
                     netSettlement,
-                    isCurrent: year === currentYear && month === currentMonth
+                    isCurrent: year === currentYear && month === currentMonth,
+                    isCompleted: isSettlementCompleted,
+                    completedAt: settlementStatus?.completed_at || null
                 });
             }
         }
@@ -1347,22 +1360,29 @@ async function loadOwnerPayouts() {
                         </div>
 
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; border-radius: 8px;">
-                            <span style="font-size: 14px; font-weight: 600;">
-                                ${isPositive
-                                    ? `✅ Payout Pending: ₹${settlement.netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                                    : settlement.netSettlement === 0
-                                    ? `✅ Settled: No payment due`
-                                    : `⚠️ Payment Pending: ₹${Math.abs(settlement.netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                                }
-                            </span>
-                            ${settlement.netSettlement !== 0 ? `
-                            <button
-                                onclick="markSettlement('${settlement.year}-${settlement.month}', ${isPositive})"
-                                style="padding: 8px 16px; background: ${settlement.isCurrent ? 'white' : 'var(--primary)'}; color: ${settlement.isCurrent ? 'var(--primary)' : 'white'}; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;"
-                            >
-                                ${isPositive ? 'Mark Payout Received' : 'Mark Payment Done'}
-                            </button>
-                            ` : ''}
+                            ${settlement.isCompleted ? `
+                                <span style="font-size: 14px; font-weight: 600; color: var(--success);">
+                                    ✅ Settlement Completed ${settlement.completedAt ? '• ' + formatDateIST(settlement.completedAt, { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                                </span>
+                                <span style="font-size: 12px; opacity: 0.8;">Amount: ₹${Math.abs(settlement.netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                            ` : `
+                                <span style="font-size: 14px; font-weight: 600;">
+                                    ${isPositive
+                                        ? `✅ Payout Pending: ₹${settlement.netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+                                        : settlement.netSettlement === 0
+                                        ? `✅ Settled: No payment due`
+                                        : `⚠️ Payment Pending: ₹${Math.abs(settlement.netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+                                    }
+                                </span>
+                                ${settlement.netSettlement !== 0 ? `
+                                <button
+                                    onclick="markSettlement('${settlement.year}', '${settlement.month}', ${isPositive})"
+                                    style="padding: 8px 16px; background: ${settlement.isCurrent ? 'white' : 'var(--primary)'}; color: ${settlement.isCurrent ? 'var(--primary)' : 'white'}; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;"
+                                >
+                                    ${isPositive ? 'Mark Payout Received' : 'Mark Payment Done'}
+                                </button>
+                                ` : ''}
+                            `}
                         </div>
                     </div>
                 `;
@@ -1419,15 +1439,44 @@ async function loadOwnerPayouts() {
 }
 
 // Mark settlement as completed
-function markSettlement(monthKey, isPayoutReceived) {
-    const action = isPayoutReceived ? 'Payout Received' : 'Payment Done';
-    showToast('Info', `Mark ${action} for ${monthKey} - This feature will be integrated with database tracking`, 'ℹ️');
+async function markSettlement(year, month, isPayoutReceived) {
+    try {
+        const settlementKey = `${year}-${month}`;
+        const action = isPayoutReceived ? 'Payout Received' : 'Payment Done';
 
-    // TODO: Implement database tracking for settlement status
-    // This would involve:
-    // 1. Creating a settlement_status table
-    // 2. Storing month, status, and timestamp
-    // 3. Updating the UI to reflect the status
+        // Confirm with user
+        const confirmed = confirm(`Are you sure you want to mark this settlement as "${action}"?\n\nMonth: ${getMonthLabel(parseInt(year), parseInt(month))}\n\nThis action will record that the settlement has been completed.`);
+
+        if (!confirmed) return;
+
+        // Save settlement status to database
+        const { error } = await supabase
+            .from('settlement_status')
+            .upsert({
+                owner_id: currentUser.id,
+                settlement_month: settlementKey,
+                status: 'completed',
+                completed_at: new Date().toISOString(),
+                settlement_type: isPayoutReceived ? 'payout_received' : 'payment_done',
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'owner_id,settlement_month'
+            });
+
+        if (error) {
+            console.error('Error saving settlement status:', error);
+            showToast('Error', 'Failed to save settlement status: ' + error.message, '❌');
+            return;
+        }
+
+        // Success - reload payouts view
+        showToast('Success', `Settlement marked as ${action}!`, '✅');
+        await loadOwnerPayouts();
+
+    } catch (error) {
+        console.error('Error marking settlement:', error);
+        showToast('Error', 'Failed to mark settlement: ' + error.message, '❌');
+    }
 }
 
 // Load Owner Bank Details
