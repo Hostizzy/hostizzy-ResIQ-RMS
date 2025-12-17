@@ -2698,19 +2698,9 @@
             border-left: 4px solid #10b981;
         }
 
-        .calendar-day.status-pending {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-left: 4px solid #f59e0b;
-        }
-
         .calendar-day.status-checked-in {
             background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
             border-left: 4px solid #3b82f6;
-        }
-
-        .calendar-day.status-checked-out {
-            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-            border-left: 4px solid #818cf8;
         }
 
         .calendar-day.status-cancelled {
@@ -2730,16 +2720,8 @@
             background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
         }
 
-        [data-theme="dark"] .calendar-day.status-pending {
-            background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
-        }
-
         [data-theme="dark"] .calendar-day.status-checked-in {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-        }
-
-        [data-theme="dark"] .calendar-day.status-checked-out {
-            background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
         }
 
         [data-theme="dark"] .calendar-day.status-cancelled {
@@ -2865,64 +2847,6 @@
 
         [data-theme="dark"] .drop-zone.drag-over {
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%);
-        }
-
-
-        /* Drag-to-Book Calendar Styles */
-        .calendar-day.drag-selecting {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%) !important;
-            border: 2px solid var(--primary) !important;
-            cursor: grabbing !important;
-        }
-
-        .calendar-day.drag-start {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-            color: white !important;
-            border: 2px solid var(--primary) !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-        }
-
-        .calendar-day.drag-end {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-            color: white !important;
-            border: 2px solid var(--primary) !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-        }
-
-        .calendar-day.draggable {
-            cursor: grab;
-            user-select: none;
-        }
-
-        .calendar-day.dragging-active {
-            cursor: grabbing;
-        }
-
-        .drag-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--primary);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
-            z-index: 10000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .drag-hint.show {
-            opacity: 1;
-        }
-
-        /* Dark mode drag styles */
-        [data-theme="dark"] .calendar-day.drag-selecting {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%) !important;
         }
 
         /* Revenue Split Card */
@@ -6093,15 +6017,6 @@
                 <!-- Kanban View -->
                 <div id="kanbanView" class="kanban-view">
                     <div class="kanban-container">
-                        <!-- Pending Column -->
-                        <div class="kanban-column">
-                            <div class="kanban-column-header" style="background: var(--warning-light); color: #7f5f01;">
-                                <span>⏳ Pending</span>
-                                <span class="kanban-column-count" id="kanbanPendingCount" style="background: var(--warning);">0</span>
-                            </div>
-                            <div class="kanban-cards" id="kanban-pending" data-status="pending"></div>
-                        </div>
-
                         <!-- Confirmed Column -->
                         <div class="kanban-column">
                             <div class="kanban-column-header" style="background: var(--primary-light); color: var(--primary-dark);">
@@ -6252,16 +6167,8 @@
                                 <span>✅ Confirmed</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 3px solid #f59e0b; border-radius: 3px;"></div>
-                                <span>⏳ Pending</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
                                 <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-left: 3px solid #3b82f6; border-radius: 3px;"></div>
                                 <span>🔵 Checked In</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe); border-left: 3px solid #818cf8; border-radius: 3px;"></div>
-                                <span>🏁 Checked Out</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-left: 3px solid #ef4444; border-radius: 3px;"></div>
@@ -6283,12 +6190,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Drag-to-Book Hint -->
-        <div id="dragHint" class="drag-hint">
-            Drag across dates to create a booking
-        </div>
-
         <!-- Properties View -->
         <div id="propertiesView" class="container hidden">
             <div class="card-header">
@@ -7459,8 +7360,7 @@
                 <div class="form-group">
                     <label>Booking Status *</label>
                     <select id="bookingStatus">
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
+                        <option value="confirmed" selected>Confirmed</option>
                         <option value="checked-in">Checked In</option>
                         <option value="checked-out">Checked Out</option>
                         <option value="cancelled">Cancelled</option>
@@ -17315,7 +17215,12 @@ function renderPropertyOccupancyHeatmap(reservations, dateFilter) {
         // Mark each night as occupied
         const currentDate = new Date(checkIn);
         while (currentDate < checkOut) {
-            const dateKey = currentDate.toISOString().split('T')[0];
+            // Format date as YYYY-MM-DD without timezone conversion
+            const year = currentDate.getFullYear();
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const dateKey = `${year}-${month}-${day}`;
+
             occupancyMap[dateKey] = (occupancyMap[dateKey] || 0) + 1;
             currentDate.setDate(currentDate.getDate() + 1);
         }
@@ -17380,8 +17285,8 @@ function renderMonthHeatmap(month, occupancyMap) {
 
     // Add cells for each day of month
     for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, monthIndex, day);
-        const dateKey = date.toISOString().split('T')[0];
+        // Format date as YYYY-MM-DD without timezone conversion
+        const dateKey = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const occupancy = occupancyMap[dateKey] || 0;
 
         // Determine color based on occupancy
@@ -17400,7 +17305,8 @@ function renderMonthHeatmap(month, occupancyMap) {
 
         // Check if today
         const today = new Date();
-        const isToday = date.toDateString() === today.toDateString();
+        const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const isToday = dateKey === todayKey;
 
         calendarHTML += `
             <div
@@ -20562,201 +20468,6 @@ function printPropertyView() {
         // Availability Calendar
         let currentCalendarDate = new Date();
 
-        // Drag-to-Book Calendar State
-        let isDragging = false;
-        let dragStartDate = null;
-        let dragEndDate = null;
-        let dragHintTimeout = null;
-
-        /**
-         * Initialize drag-to-book functionality on calendar
-         */
-        function initializeDragToBook() {
-            const calendarGrid = document.getElementById('calendarGrid');
-            if (!calendarGrid) return;
-
-            // Add event listeners for drag
-            calendarGrid.addEventListener('mousedown', handleDragStart);
-            calendarGrid.addEventListener('mouseover', handleDragMove);
-            calendarGrid.addEventListener('mouseup', handleDragEnd);
-            document.addEventListener('mouseup', handleDragEnd); // Global mouseup to catch outside calendar
-
-            // Show hint on first hover
-            calendarGrid.addEventListener('mouseenter', showDragHint, { once: true });
-        }
-
-        /**
-         * Show drag hint to user
-         */
-        function showDragHint() {
-            const hint = document.getElementById('dragHint');
-            if (!hint) return;
-
-            hint.classList.add('show');
-
-            // Hide after 3 seconds
-            clearTimeout(dragHintTimeout);
-            dragHintTimeout = setTimeout(() => {
-                hint.classList.remove('show');
-            }, 3000);
-        }
-
-        /**
-         * Handle drag start on calendar day
-         */
-        function handleDragStart(e) {
-            const dayEl = e.target.closest('.calendar-day');
-            if (!dayEl || dayEl.classList.contains('empty')) return;
-
-            e.preventDefault();
-            isDragging = true;
-
-            // Get day number from the day element
-            const dayText = dayEl.querySelector('div')?.textContent;
-            const day = parseInt(dayText);
-
-            if (isNaN(day)) return;
-
-            // Build date
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            dragStartDate = new Date(year, month, day);
-            dragEndDate = dragStartDate;
-
-            // Clear previous selection
-            clearDragSelection();
-
-            // Mark start day
-            dayEl.classList.add('drag-start', 'drag-selecting');
-        }
-
-        /**
-         * Handle drag move over calendar days
-         */
-        function handleDragMove(e) {
-            if (!isDragging) return;
-
-            const dayEl = e.target.closest('.calendar-day');
-            if (!dayEl || dayEl.classList.contains('empty')) return;
-
-            // Get day number
-            const dayText = dayEl.querySelector('div')?.textContent;
-            const day = parseInt(dayText);
-
-            if (isNaN(day)) return;
-
-            // Build date
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            dragEndDate = new Date(year, month, day);
-
-            // Update selection visual
-            updateDragSelection();
-        }
-
-        /**
-         * Handle drag end
-         */
-        function handleDragEnd(e) {
-            if (!isDragging) return;
-
-            isDragging = false;
-
-            if (!dragStartDate || !dragEndDate) {
-                clearDragSelection();
-                return;
-            }
-
-            // Ensure start is before end
-            let checkIn = dragStartDate;
-            let checkOut = dragEndDate;
-
-            if (checkIn > checkOut) {
-                [checkIn, checkOut] = [checkOut, checkIn];
-            }
-
-            // Format dates for reservation modal
-            const checkInStr = checkIn.toISOString().split('T')[0];
-            const checkOutStr = checkOut.toISOString().split('T')[0];
-
-            // Clear selection
-            clearDragSelection();
-
-            // Open reservation modal with pre-filled dates
-            openReservationModal();
-
-            // Pre-fill check-in and check-out dates
-            setTimeout(() => {
-                const checkInInput = document.getElementById('checkIn');
-                const checkOutInput = document.getElementById('checkOut');
-
-                if (checkInInput) checkInInput.value = checkInStr;
-                if (checkOutInput) checkOutInput.value = checkOutStr;
-
-                // Note: User will need to manually calculate total after selecting property
-                // calculateTotalAmount() function would need to be implemented
-            }, 100);
-
-            // Reset drag state
-            dragStartDate = null;
-            dragEndDate = null;
-        }
-
-        /**
-         * Update visual feedback during drag selection
-         */
-        function updateDragSelection() {
-            if (!dragStartDate || !dragEndDate) return;
-
-            clearDragSelection();
-
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-
-            // Ensure start is before end
-            let start = dragStartDate;
-            let end = dragEndDate;
-
-            if (start > end) {
-                [start, end] = [end, start];
-            }
-
-            // Highlight all days in range
-            const calendarDays = document.querySelectorAll('.calendar-day');
-
-            calendarDays.forEach(dayEl => {
-                if (dayEl.classList.contains('empty')) return;
-
-                const dayText = dayEl.querySelector('div')?.textContent;
-                const day = parseInt(dayText);
-
-                if (isNaN(day)) return;
-
-                const dayDate = new Date(year, month, day);
-
-                if (dayDate >= start && dayDate <= end) {
-                    dayEl.classList.add('drag-selecting');
-
-                    if (dayDate.getTime() === start.getTime()) {
-                        dayEl.classList.add('drag-start');
-                    }
-                    if (dayDate.getTime() === end.getTime()) {
-                        dayEl.classList.add('drag-end');
-                    }
-                }
-            });
-        }
-
-        /**
-         * Clear drag selection from calendar
-         */
-        function clearDragSelection() {
-            const calendarDays = document.querySelectorAll('.calendar-day');
-            calendarDays.forEach(dayEl => {
-                dayEl.classList.remove('drag-selecting', 'drag-start', 'drag-end');
-            });
-        }
-
         /**
          * Show property calendar - switches to availability view and filters by property
          */
@@ -20840,19 +20551,30 @@ function printPropertyView() {
             document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
             
             // Build bookings map (direct bookings)
+            // NOTE: Check-out date is NOT blocked (industry standard - available for new bookings)
             const bookingsMap = {};
+            const checkoutMap = {}; // Track checkout dates separately for visual indicators
+
             reservations.forEach(r => {
                 const checkIn = new Date(r.check_in);
                 const checkOut = new Date(r.check_out);
                 let currentDate = new Date(checkIn);
-                
-                while (currentDate <= checkOut) {
+
+                // Loop from check-in to (check-out - 1) - checkout date remains available
+                while (currentDate < checkOut) {
                     if (currentDate.getMonth() === month && currentDate.getFullYear() === year) {
                         const day = currentDate.getDate();
                         if (!bookingsMap[day]) bookingsMap[day] = [];
                         bookingsMap[day].push(r);
                     }
                     currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                // Track checkout date separately (for visual indicator only)
+                if (checkOut.getMonth() === month && checkOut.getFullYear() === year) {
+                    const checkoutDay = checkOut.getDate();
+                    if (!checkoutMap[checkoutDay]) checkoutMap[checkoutDay] = [];
+                    checkoutMap[checkoutDay].push(r);
                 }
             });
             
@@ -20905,24 +20627,26 @@ function printPropertyView() {
             for (let day = 1; day <= daysInMonth; day++) {
                 const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
                 const hasBooking = bookingsMap[day] && bookingsMap[day].length > 0;
+                const hasCheckout = checkoutMap[day] && checkoutMap[day].length > 0;
                 const hasSynced = syncedMap[day] && syncedMap[day].length > 0;
                 const bookingCount = hasBooking ? bookingsMap[day].length : 0;
+                const checkoutCount = hasCheckout ? checkoutMap[day].length : 0;
                 const syncedCount = hasSynced ? syncedMap[day].length : 0;
 
                 // Determine day styling based on booking status
                 let statusClass = '';
                 let indicator = '';
+                let checkoutIndicator = '';
                 let statusEmoji = '';
                 let statusColor = '';
+                let tooltip = '';
 
                 if (hasBooking) {
                     // Determine primary status for the day
                     const statuses = bookingsMap[day].map(b => b.status || 'confirmed');
                     const statusPriority = {
-                        'checked-in': 5,
-                        'confirmed': 4,
-                        'pending': 3,
-                        'checked-out': 2,
+                        'checked-in': 3,
+                        'confirmed': 2,
                         'cancelled': 1
                     };
 
@@ -20936,9 +20660,7 @@ function printPropertyView() {
                     // Status-specific emoji and color
                     const statusConfig = {
                         'confirmed': { emoji: '✅', color: '#10b981' },
-                        'pending': { emoji: '⏳', color: '#f59e0b' },
                         'checked-in': { emoji: '🔵', color: '#3b82f6' },
-                        'checked-out': { emoji: '🏁', color: '#818cf8' },
                         'cancelled': { emoji: '❌', color: '#9ca3af' }
                     };
 
@@ -20947,12 +20669,20 @@ function printPropertyView() {
                     statusColor = config.color;
 
                     indicator = `<div style="font-size: 10px; color: ${statusColor}; font-weight: 600; margin-top: 2px;">${statusEmoji} ${bookingCount}</div>`;
+                    tooltip = `${bookingCount} booking(s) staying`;
                 } else if (hasSynced) {
                     statusClass = 'status-blocked';
                     indicator = `<div style="font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 2px;">🔴 ${syncedCount}</div>`;
+                    tooltip = `${syncedCount} OTA block(s)`;
+                } else {
+                    tooltip = 'Available';
                 }
 
-                const tooltip = hasBooking ? `${bookingCount} booking(s)` : (hasSynced ? `${syncedCount} OTA block(s)` : 'Available');
+                // Add checkout indicator if guests are checking out (date remains available)
+                if (hasCheckout && !hasBooking) {
+                    checkoutIndicator = `<div style="font-size: 14px; color: #6366f1; font-weight: 700; margin-top: 2px;">↓</div>`;
+                    tooltip = `${checkoutCount} guest(s) checking out • Available for new booking`;
+                }
 
                 calendarHTML += `
                     <div class="calendar-day ${isToday ? 'today' : ''} ${statusClass}"
@@ -20960,14 +20690,12 @@ function printPropertyView() {
                         title="${tooltip}">
                         <div style="font-weight: 600;">${day}</div>
                         ${indicator}
+                        ${checkoutIndicator}
                     </div>
                 `;
             }
 
             document.getElementById('calendarGrid').innerHTML = calendarHTML;
-
-            // Initialize drag-to-book functionality
-            initializeDragToBook();
         }
 
         async function showDayBookings(day, month, year) {
@@ -24836,7 +24564,7 @@ function printPropertyView() {
         function renderKanbanBoard() {
             if (!state.reservations) return;
 
-            const statuses = ['pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled'];
+            const statuses = ['confirmed', 'checked-in', 'checked-out', 'cancelled'];
 
             // Clear all columns
             statuses.forEach(status => {
@@ -24917,7 +24645,7 @@ function printPropertyView() {
             kanbanSortables.forEach(sortable => sortable.destroy());
             kanbanSortables = [];
 
-            const statuses = ['pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled'];
+            const statuses = ['confirmed', 'checked-in', 'checked-out', 'cancelled'];
 
             statuses.forEach(status => {
                 const column = document.getElementById(`kanban-${status}`);

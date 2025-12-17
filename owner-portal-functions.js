@@ -1270,6 +1270,17 @@ async function loadOwnerPayouts() {
                     }
                 }
 
+                // Check if this month's settlement has been marked as completed
+                const settlementKey = `${year}-${month}`;
+                const { data: settlementStatus } = await supabase
+                    .from('settlement_status')
+                    .select('*')
+                    .eq('owner_id', ownerId)
+                    .eq('settlement_month', settlementKey)
+                    .single();
+
+                const isSettlementCompleted = settlementStatus?.status === 'completed';
+
                 // Separate payments by recipient and sum amounts
                 const totalToOwner = (monthPayments || [])
                     .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('owner'))
@@ -1290,7 +1301,9 @@ async function loadOwnerPayouts() {
                     paymentsToOwner: totalToOwner,
                     paymentsToHostizzy: totalToHostizzy,
                     netSettlement,
-                    isCurrent: year === currentYear && month === currentMonth
+                    isCurrent: year === currentYear && month === currentMonth,
+                    isCompleted: isSettlementCompleted,
+                    completedAt: settlementStatus?.completed_at || null
                 });
             }
         }
@@ -1306,63 +1319,112 @@ async function loadOwnerPayouts() {
         } else {
             monthlySettlements.forEach(settlement => {
                 const isPositive = settlement.netSettlement >= 0;
-                const cardColor = settlement.isCurrent
-                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                    : 'var(--card-bg)';
-                const textColor = settlement.isCurrent ? 'white' : 'var(--text-primary)';
-                const secondaryColor = settlement.isCurrent ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)';
+
+                // Enhanced styling for different states
+                let cardColor, textColor, secondaryColor, borderStyle, boxShadow;
+
+                if (settlement.isCompleted) {
+                    // Completed settlements - Soft success gradient
+                    cardColor = 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)';
+                    textColor = '#166534';
+                    secondaryColor = '#16a34a';
+                    borderStyle = '2px solid #86efac';
+                    boxShadow = '0 4px 16px rgba(34, 197, 94, 0.15)';
+                } else if (settlement.isCurrent) {
+                    // Current month - Bold purple gradient
+                    cardColor = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
+                    textColor = 'white';
+                    secondaryColor = 'rgba(255,255,255,0.9)';
+                    borderStyle = 'none';
+                    boxShadow = '0 8px 24px rgba(99, 102, 241, 0.3)';
+                } else {
+                    // Pending settlements - Clean white
+                    cardColor = 'var(--surface)';
+                    textColor = 'var(--text)';
+                    secondaryColor = 'var(--text-secondary)';
+                    borderStyle = '2px solid var(--border)';
+                    boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+                }
 
                 html += `
-                    <div style="background: ${cardColor}; color: ${textColor}; border-radius: 12px; padding: 20px; margin-bottom: 16px; ${!settlement.isCurrent ? 'border: 1px solid var(--border);' : ''}">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                            <h4 style="margin: 0; font-size: 16px; font-weight: 600;">
-                                ${settlement.isCurrent ? '🗓️ ' : ''}${settlement.monthLabel}${settlement.isCurrent ? ' (Current)' : ''}
-                            </h4>
+                    <div style="background: ${cardColor}; color: ${textColor}; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: ${borderStyle}; box-shadow: ${boxShadow}; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                        ${settlement.isCompleted ? '<div style="position: absolute; top: 12px; right: 12px; background: #22c55e; color: white; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">✓ Completed</div>' : ''}
+                        ${settlement.isCurrent ? '<div style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.3); backdrop-filter: blur(10px); color: white; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">📅 Current</div>' : ''}
+
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                            <div>
+                                <h4 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">
+                                    ${settlement.monthLabel}
+                                </h4>
+                                ${settlement.isCompleted && settlement.completedAt ? `<div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Completed on ${formatDateIST(settlement.completedAt, { day: 'numeric', month: 'short', year: 'numeric' })}</div>` : ''}
+                            </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 13px; opacity: 0.9; margin-bottom: 4px;">Net Settlement</div>
-                                <div style="font-size: 28px; font-weight: 700; color: ${settlement.isCurrent ? 'white' : (isPositive ? 'var(--success)' : 'var(--warning)')};">
+                                <div style="font-size: 12px; opacity: 0.8; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Net Settlement</div>
+                                <div style="font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1;">
                                     ${isPositive ? '+' : ''}₹${settlement.netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                 </div>
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">💳 Total Commission</div>
-                                <div style="font-size: 20px; font-weight: 700;">₹${settlement.totalCommission.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px;">From bookings</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">💳 Commission</div>
+                                <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.totalCommission.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">From bookings</div>
                             </div>
 
-                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">🏢 Hostizzy Payment</div>
-                                <div style="font-size: 20px; font-weight: 700;">₹${settlement.paymentsToHostizzy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px;">Received by Hostizzy</div>
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🏢 Hostizzy</div>
+                                <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.paymentsToHostizzy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Received</div>
                             </div>
 
-                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; padding: 12px; border-radius: 8px;">
-                                <div style="font-size: 12px; color: ${secondaryColor}; margin-bottom: 8px;">💰 Owner Payment</div>
-                                <div style="font-size: 20px; font-weight: 700;">₹${settlement.paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px;">Received by you</div>
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">💰 Owner</div>
+                                <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Received</div>
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${settlement.isCurrent ? 'rgba(255,255,255,0.15)' : 'var(--bg)'}; border-radius: 8px;">
-                            <span style="font-size: 14px; font-weight: 600;">
-                                ${isPositive
-                                    ? `✅ Payout Pending: ₹${settlement.netSettlement.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                                    : settlement.netSettlement === 0
-                                    ? `✅ Settled: No payment due`
-                                    : `⚠️ Payment Pending: ₹${Math.abs(settlement.netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
-                                }
-                            </span>
-                            ${settlement.netSettlement !== 0 ? `
-                            <button
-                                onclick="markSettlement('${settlement.year}-${settlement.month}', ${isPositive})"
-                                style="padding: 8px 16px; background: ${settlement.isCurrent ? 'white' : 'var(--primary)'}; color: ${settlement.isCurrent ? 'var(--primary)' : 'white'}; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;"
-                            >
-                                ${isPositive ? 'Mark Payout Received' : 'Mark Payment Done'}
-                            </button>
-                            ` : ''}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
+                            ${settlement.isCompleted ? `
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">✓</div>
+                                    <div>
+                                        <div style="font-size: 14px; font-weight: 700; color: #166534; margin-bottom: 2px;">Settlement Completed</div>
+                                        <div style="font-size: 12px; color: #16a34a;">Amount: ₹${Math.abs(settlement.netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })} ${settlement.completedAt ? '• ' + formatDateIST(settlement.completedAt, { day: 'numeric', month: 'short' }) : ''}</div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; background: ${isPositive ? '#10b981' : '#f59e0b'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">
+                                        ${settlement.netSettlement === 0 ? '✓' : (isPositive ? '↓' : '↑')}
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 14px; font-weight: 700; color: ${textColor};">
+                                            ${isPositive
+                                                ? `Payout Pending`
+                                                : settlement.netSettlement === 0
+                                                ? `Settled`
+                                                : `Payment Pending`
+                                            }
+                                        </div>
+                                        <div style="font-size: 13px; color: ${secondaryColor}; font-weight: 600;">
+                                            ${settlement.netSettlement === 0 ? 'No payment due' : `₹${Math.abs(settlement.netSettlement).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                                        </div>
+                                    </div>
+                                </div>
+                                ${settlement.netSettlement !== 0 ? `
+                                <button
+                                    onclick="markSettlement('${settlement.year}', '${settlement.month}', ${isPositive})"
+                                    style="padding: 12px 20px; background: ${settlement.isCurrent ? 'white' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'}; color: ${settlement.isCurrent ? '#6366f1' : 'white'}; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); text-transform: uppercase; letter-spacing: 0.5px;"
+                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(99, 102, 241, 0.4)'"
+                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(99, 102, 241, 0.3)'"
+                                >
+                                    ${isPositive ? '✓ Mark Payout Received' : '✓ Mark Payment Done'}
+                                </button>
+                                ` : ''}
+                            `}
                         </div>
                     </div>
                 `;
@@ -1419,15 +1481,44 @@ async function loadOwnerPayouts() {
 }
 
 // Mark settlement as completed
-function markSettlement(monthKey, isPayoutReceived) {
-    const action = isPayoutReceived ? 'Payout Received' : 'Payment Done';
-    showToast('Info', `Mark ${action} for ${monthKey} - This feature will be integrated with database tracking`, 'ℹ️');
+async function markSettlement(year, month, isPayoutReceived) {
+    try {
+        const settlementKey = `${year}-${month}`;
+        const action = isPayoutReceived ? 'Payout Received' : 'Payment Done';
 
-    // TODO: Implement database tracking for settlement status
-    // This would involve:
-    // 1. Creating a settlement_status table
-    // 2. Storing month, status, and timestamp
-    // 3. Updating the UI to reflect the status
+        // Confirm with user
+        const confirmed = confirm(`Are you sure you want to mark this settlement as "${action}"?\n\nMonth: ${getMonthLabel(parseInt(year), parseInt(month))}\n\nThis action will record that the settlement has been completed.`);
+
+        if (!confirmed) return;
+
+        // Save settlement status to database
+        const { error } = await supabase
+            .from('settlement_status')
+            .upsert({
+                owner_id: currentUser.id,
+                settlement_month: settlementKey,
+                status: 'completed',
+                completed_at: new Date().toISOString(),
+                settlement_type: isPayoutReceived ? 'payout_received' : 'payment_done',
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'owner_id,settlement_month'
+            });
+
+        if (error) {
+            console.error('Error saving settlement status:', error);
+            showToast('Error', 'Failed to save settlement status: ' + error.message, '❌');
+            return;
+        }
+
+        // Success - reload payouts view
+        showToast('Success', `Settlement marked as ${action}!`, '✅');
+        await loadOwnerPayouts();
+
+    } catch (error) {
+        console.error('Error marking settlement:', error);
+        showToast('Error', 'Failed to mark settlement: ' + error.message, '❌');
+    }
 }
 
 // Load Owner Bank Details
