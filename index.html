@@ -2848,64 +2848,6 @@
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%);
         }
 
-
-        /* Drag-to-Book Calendar Styles */
-        .calendar-day.drag-selecting {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%) !important;
-            border: 2px solid var(--primary) !important;
-            cursor: grabbing !important;
-        }
-
-        .calendar-day.drag-start {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-            color: white !important;
-            border: 2px solid var(--primary) !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-        }
-
-        .calendar-day.drag-end {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
-            color: white !important;
-            border: 2px solid var(--primary) !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-        }
-
-        .calendar-day.draggable {
-            cursor: grab;
-            user-select: none;
-        }
-
-        .calendar-day.dragging-active {
-            cursor: grabbing;
-        }
-
-        .drag-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--primary);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
-            z-index: 10000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .drag-hint.show {
-            opacity: 1;
-        }
-
-        /* Dark mode drag styles */
-        [data-theme="dark"] .calendar-day.drag-selecting {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%) !important;
-        }
-
         /* Revenue Split Card */
         .split-card {
             display: grid;
@@ -6247,12 +6189,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Drag-to-Book Hint -->
-        <div id="dragHint" class="drag-hint">
-            Drag across dates to create a booking
-        </div>
-
         <!-- Properties View -->
         <div id="propertiesView" class="container hidden">
             <div class="card-header">
@@ -20531,201 +20467,6 @@ function printPropertyView() {
         // Availability Calendar
         let currentCalendarDate = new Date();
 
-        // Drag-to-Book Calendar State
-        let isDragging = false;
-        let dragStartDate = null;
-        let dragEndDate = null;
-        let dragHintTimeout = null;
-
-        /**
-         * Initialize drag-to-book functionality on calendar
-         */
-        function initializeDragToBook() {
-            const calendarGrid = document.getElementById('calendarGrid');
-            if (!calendarGrid) return;
-
-            // Add event listeners for drag
-            calendarGrid.addEventListener('mousedown', handleDragStart);
-            calendarGrid.addEventListener('mouseover', handleDragMove);
-            calendarGrid.addEventListener('mouseup', handleDragEnd);
-            document.addEventListener('mouseup', handleDragEnd); // Global mouseup to catch outside calendar
-
-            // Show hint on first hover
-            calendarGrid.addEventListener('mouseenter', showDragHint, { once: true });
-        }
-
-        /**
-         * Show drag hint to user
-         */
-        function showDragHint() {
-            const hint = document.getElementById('dragHint');
-            if (!hint) return;
-
-            hint.classList.add('show');
-
-            // Hide after 3 seconds
-            clearTimeout(dragHintTimeout);
-            dragHintTimeout = setTimeout(() => {
-                hint.classList.remove('show');
-            }, 3000);
-        }
-
-        /**
-         * Handle drag start on calendar day
-         */
-        function handleDragStart(e) {
-            const dayEl = e.target.closest('.calendar-day');
-            if (!dayEl || dayEl.classList.contains('empty')) return;
-
-            e.preventDefault();
-            isDragging = true;
-
-            // Get day number from the day element
-            const dayText = dayEl.querySelector('div')?.textContent;
-            const day = parseInt(dayText);
-
-            if (isNaN(day)) return;
-
-            // Build date
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            dragStartDate = new Date(year, month, day);
-            dragEndDate = dragStartDate;
-
-            // Clear previous selection
-            clearDragSelection();
-
-            // Mark start day
-            dayEl.classList.add('drag-start', 'drag-selecting');
-        }
-
-        /**
-         * Handle drag move over calendar days
-         */
-        function handleDragMove(e) {
-            if (!isDragging) return;
-
-            const dayEl = e.target.closest('.calendar-day');
-            if (!dayEl || dayEl.classList.contains('empty')) return;
-
-            // Get day number
-            const dayText = dayEl.querySelector('div')?.textContent;
-            const day = parseInt(dayText);
-
-            if (isNaN(day)) return;
-
-            // Build date
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            dragEndDate = new Date(year, month, day);
-
-            // Update selection visual
-            updateDragSelection();
-        }
-
-        /**
-         * Handle drag end
-         */
-        function handleDragEnd(e) {
-            if (!isDragging) return;
-
-            isDragging = false;
-
-            if (!dragStartDate || !dragEndDate) {
-                clearDragSelection();
-                return;
-            }
-
-            // Ensure start is before end
-            let checkIn = dragStartDate;
-            let checkOut = dragEndDate;
-
-            if (checkIn > checkOut) {
-                [checkIn, checkOut] = [checkOut, checkIn];
-            }
-
-            // Format dates for reservation modal
-            const checkInStr = checkIn.toISOString().split('T')[0];
-            const checkOutStr = checkOut.toISOString().split('T')[0];
-
-            // Clear selection
-            clearDragSelection();
-
-            // Open reservation modal with pre-filled dates
-            openReservationModal();
-
-            // Pre-fill check-in and check-out dates
-            setTimeout(() => {
-                const checkInInput = document.getElementById('checkIn');
-                const checkOutInput = document.getElementById('checkOut');
-
-                if (checkInInput) checkInInput.value = checkInStr;
-                if (checkOutInput) checkOutInput.value = checkOutStr;
-
-                // Note: User will need to manually calculate total after selecting property
-                // calculateTotalAmount() function would need to be implemented
-            }, 100);
-
-            // Reset drag state
-            dragStartDate = null;
-            dragEndDate = null;
-        }
-
-        /**
-         * Update visual feedback during drag selection
-         */
-        function updateDragSelection() {
-            if (!dragStartDate || !dragEndDate) return;
-
-            clearDragSelection();
-
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-
-            // Ensure start is before end
-            let start = dragStartDate;
-            let end = dragEndDate;
-
-            if (start > end) {
-                [start, end] = [end, start];
-            }
-
-            // Highlight all days in range
-            const calendarDays = document.querySelectorAll('.calendar-day');
-
-            calendarDays.forEach(dayEl => {
-                if (dayEl.classList.contains('empty')) return;
-
-                const dayText = dayEl.querySelector('div')?.textContent;
-                const day = parseInt(dayText);
-
-                if (isNaN(day)) return;
-
-                const dayDate = new Date(year, month, day);
-
-                if (dayDate >= start && dayDate <= end) {
-                    dayEl.classList.add('drag-selecting');
-
-                    if (dayDate.getTime() === start.getTime()) {
-                        dayEl.classList.add('drag-start');
-                    }
-                    if (dayDate.getTime() === end.getTime()) {
-                        dayEl.classList.add('drag-end');
-                    }
-                }
-            });
-        }
-
-        /**
-         * Clear drag selection from calendar
-         */
-        function clearDragSelection() {
-            const calendarDays = document.querySelectorAll('.calendar-day');
-            calendarDays.forEach(dayEl => {
-                dayEl.classList.remove('drag-selecting', 'drag-start', 'drag-end');
-            });
-        }
-
         /**
          * Show property calendar - switches to availability view and filters by property
          */
@@ -20811,6 +20552,8 @@ function printPropertyView() {
             // Build bookings map (direct bookings)
             // NOTE: Check-out date is NOT blocked (industry standard - available for new bookings)
             const bookingsMap = {};
+            const checkoutMap = {}; // Track checkout dates separately for visual indicators
+
             reservations.forEach(r => {
                 const checkIn = new Date(r.check_in);
                 const checkOut = new Date(r.check_out);
@@ -20824,6 +20567,13 @@ function printPropertyView() {
                         bookingsMap[day].push(r);
                     }
                     currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                // Track checkout date separately (for visual indicator only)
+                if (checkOut.getMonth() === month && checkOut.getFullYear() === year) {
+                    const checkoutDay = checkOut.getDate();
+                    if (!checkoutMap[checkoutDay]) checkoutMap[checkoutDay] = [];
+                    checkoutMap[checkoutDay].push(r);
                 }
             });
             
@@ -20876,15 +20626,19 @@ function printPropertyView() {
             for (let day = 1; day <= daysInMonth; day++) {
                 const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
                 const hasBooking = bookingsMap[day] && bookingsMap[day].length > 0;
+                const hasCheckout = checkoutMap[day] && checkoutMap[day].length > 0;
                 const hasSynced = syncedMap[day] && syncedMap[day].length > 0;
                 const bookingCount = hasBooking ? bookingsMap[day].length : 0;
+                const checkoutCount = hasCheckout ? checkoutMap[day].length : 0;
                 const syncedCount = hasSynced ? syncedMap[day].length : 0;
 
                 // Determine day styling based on booking status
                 let statusClass = '';
                 let indicator = '';
+                let checkoutIndicator = '';
                 let statusEmoji = '';
                 let statusColor = '';
+                let tooltip = '';
 
                 if (hasBooking) {
                     // Determine primary status for the day
@@ -20914,12 +20668,20 @@ function printPropertyView() {
                     statusColor = config.color;
 
                     indicator = `<div style="font-size: 10px; color: ${statusColor}; font-weight: 600; margin-top: 2px;">${statusEmoji} ${bookingCount}</div>`;
+                    tooltip = `${bookingCount} booking(s) staying`;
                 } else if (hasSynced) {
                     statusClass = 'status-blocked';
                     indicator = `<div style="font-size: 10px; color: #ef4444; font-weight: 600; margin-top: 2px;">🔴 ${syncedCount}</div>`;
+                    tooltip = `${syncedCount} OTA block(s)`;
+                } else {
+                    tooltip = 'Available';
                 }
 
-                const tooltip = hasBooking ? `${bookingCount} booking(s)` : (hasSynced ? `${syncedCount} OTA block(s)` : 'Available');
+                // Add checkout indicator if guests are checking out (date remains available)
+                if (hasCheckout && !hasBooking) {
+                    checkoutIndicator = `<div style="font-size: 14px; color: #6366f1; font-weight: 700; margin-top: 2px;">↓</div>`;
+                    tooltip = `${checkoutCount} guest(s) checking out • Available for new booking`;
+                }
 
                 calendarHTML += `
                     <div class="calendar-day ${isToday ? 'today' : ''} ${statusClass}"
@@ -20927,14 +20689,12 @@ function printPropertyView() {
                         title="${tooltip}">
                         <div style="font-weight: 600;">${day}</div>
                         ${indicator}
+                        ${checkoutIndicator}
                     </div>
                 `;
             }
 
             document.getElementById('calendarGrid').innerHTML = calendarHTML;
-
-            // Initialize drag-to-book functionality
-            initializeDragToBook();
         }
 
         async function showDayBookings(day, month, year) {
