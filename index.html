@@ -2697,19 +2697,9 @@
             border-left: 4px solid #10b981;
         }
 
-        .calendar-day.status-pending {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-left: 4px solid #f59e0b;
-        }
-
         .calendar-day.status-checked-in {
             background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
             border-left: 4px solid #3b82f6;
-        }
-
-        .calendar-day.status-checked-out {
-            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-            border-left: 4px solid #818cf8;
         }
 
         .calendar-day.status-cancelled {
@@ -2729,16 +2719,8 @@
             background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
         }
 
-        [data-theme="dark"] .calendar-day.status-pending {
-            background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
-        }
-
         [data-theme="dark"] .calendar-day.status-checked-in {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-        }
-
-        [data-theme="dark"] .calendar-day.status-checked-out {
-            background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
         }
 
         [data-theme="dark"] .calendar-day.status-cancelled {
@@ -6251,16 +6233,8 @@
                                 <span>✅ Confirmed</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 3px solid #f59e0b; border-radius: 3px;"></div>
-                                <span>⏳ Pending</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
                                 <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-left: 3px solid #3b82f6; border-radius: 3px;"></div>
                                 <span>🔵 Checked In</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe); border-left: 3px solid #818cf8; border-radius: 3px;"></div>
-                                <span>🏁 Checked Out</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-left: 3px solid #ef4444; border-radius: 3px;"></div>
@@ -20839,13 +20813,15 @@ function printPropertyView() {
             document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
             
             // Build bookings map (direct bookings)
+            // NOTE: Check-out date is NOT blocked (industry standard - available for new bookings)
             const bookingsMap = {};
             reservations.forEach(r => {
                 const checkIn = new Date(r.check_in);
                 const checkOut = new Date(r.check_out);
                 let currentDate = new Date(checkIn);
-                
-                while (currentDate <= checkOut) {
+
+                // Loop from check-in to (check-out - 1) - checkout date remains available
+                while (currentDate < checkOut) {
                     if (currentDate.getMonth() === month && currentDate.getFullYear() === year) {
                         const day = currentDate.getDate();
                         if (!bookingsMap[day]) bookingsMap[day] = [];
@@ -20918,10 +20894,8 @@ function printPropertyView() {
                     // Determine primary status for the day
                     const statuses = bookingsMap[day].map(b => b.status || 'confirmed');
                     const statusPriority = {
-                        'checked-in': 5,
-                        'confirmed': 4,
-                        'pending': 3,
-                        'checked-out': 2,
+                        'checked-in': 3,
+                        'confirmed': 2,
                         'cancelled': 1
                     };
 
@@ -20935,9 +20909,7 @@ function printPropertyView() {
                     // Status-specific emoji and color
                     const statusConfig = {
                         'confirmed': { emoji: '✅', color: '#10b981' },
-                        'pending': { emoji: '⏳', color: '#f59e0b' },
                         'checked-in': { emoji: '🔵', color: '#3b82f6' },
-                        'checked-out': { emoji: '🏁', color: '#818cf8' },
                         'cancelled': { emoji: '❌', color: '#9ca3af' }
                     };
 
