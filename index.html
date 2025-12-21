@@ -10213,6 +10213,10 @@
             }
         }
 
+        // Make functions globally accessible
+        window.toggleMobileSidebar = toggleMobileSidebar;
+        window.closeMobileSidebar = closeMobileSidebar;
+
         // Global Search
         let globalSearchResults = [];
 
@@ -24312,6 +24316,14 @@ function printPropertyView() {
         // ==========================================
         // NEW NAVIGATION FUNCTIONS
         // ==========================================
+
+        // Mobile Sidebar Functions (defined here for immediate availability)
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('mobile-open');
+            }
+        }
 
         // Toggle Sidebar (works for both mobile and tablet)
         function toggleSidebar() {
