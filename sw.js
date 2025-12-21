@@ -1,10 +1,10 @@
 /**
  * ResIQ Service Worker
- * Version: 4.0.0
+ * Version: 4.1.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  */
 
-const CACHE_VERSION = 'v4.0.0';
+const CACHE_VERSION = 'v4.1.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -24,11 +24,14 @@ const STATIC_CACHE = [
 // API endpoints to cache with network-first strategy
 const API_CACHE_NAME = `resiq-api-${CACHE_VERSION}`;
 
+// Cache duration for HTML files (5 minutes) to prevent serving stale code
+const HTML_CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes in milliseconds
+
 // ============================================
 // INSTALL EVENT - Cache static assets
 // ============================================
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker v4.0.0...');
+  console.log(`[SW] Installing service worker ${CACHE_VERSION}...`);
 
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -36,7 +39,10 @@ self.addEventListener('install', (event) => {
         console.log('[SW] Caching app shell and static assets');
         return cache.addAll(STATIC_CACHE);
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log(`[SW] ${CACHE_VERSION} installed, skipping waiting...`);
+        return self.skipWaiting();
+      })
       .catch((error) => {
         console.error('[SW] Cache failed:', error);
       })
@@ -47,7 +53,7 @@ self.addEventListener('install', (event) => {
 // ACTIVATE EVENT - Clean old caches
 // ============================================
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  console.log(`[SW] Activating service worker ${CACHE_VERSION}...`);
 
   event.waitUntil(
     caches.keys()
@@ -61,7 +67,21 @@ self.addEventListener('activate', (event) => {
             })
         );
       })
-      .then(() => self.clients.claim())
+      .then(() => {
+        console.log(`[SW] ${CACHE_VERSION} activated, claiming clients...`);
+        return self.clients.claim();
+      })
+      .then(() => {
+        // Notify all clients that service worker has updated
+        return self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'SW_UPDATED',
+              version: CACHE_VERSION
+            });
+          });
+        });
+      })
   );
 });
 
@@ -401,4 +421,4 @@ self.addEventListener('unhandledrejection', (event) => {
   console.error('[SW] Unhandled rejection:', event.reason);
 });
 
-console.log('[SW] Service Worker loaded - v4.0.0');
+console.log(`[SW] Service Worker loaded - ${CACHE_VERSION}`);
