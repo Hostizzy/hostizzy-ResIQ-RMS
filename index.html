@@ -8405,7 +8405,9 @@
         // Supabase Configuration
         const SUPABASE_URL = 'https://dxthxsguqrxpurorpokq.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Use var instead of const to prevent duplicate declaration errors
+        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Booking Type Constants
         const BOOKING_TYPES = {
@@ -10212,10 +10214,6 @@
                 sidebar.classList.remove('mobile-open');
             }
         }
-
-        // Make functions globally accessible
-        window.toggleMobileSidebar = toggleMobileSidebar;
-        window.closeMobileSidebar = closeMobileSidebar;
 
         // Global Search
         let globalSearchResults = [];
@@ -24317,7 +24315,7 @@ function printPropertyView() {
         // NEW NAVIGATION FUNCTIONS
         // ==========================================
 
-        // Mobile Sidebar Functions (defined here for immediate availability)
+        // Mobile Sidebar Toggle (needed here for resize event listener below)
         function closeMobileSidebar() {
             const sidebar = document.querySelector('.sidebar');
             if (sidebar) {
