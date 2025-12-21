@@ -4840,61 +4840,103 @@
                 </div>
                 <div class="quick-actions-grid">
                     <button class="quick-action-card" onclick="openReservationModal()">
-                        <div class="quick-action-icon" style="background: var(--gradient-primary);">➕</div>
+                        <div class="quick-action-icon">➕</div>
                         <div class="quick-action-title">New Booking</div>
                         <div class="quick-action-desc">Create reservation</div>
                     </button>
                     <button class="quick-action-card" onclick="openMultiPaymentModal()">
-                        <div class="quick-action-icon" style="background: var(--gradient-success);">💰</div>
+                        <div class="quick-action-icon">💰</div>
                         <div class="quick-action-title">Add Payment</div>
                         <div class="quick-action-desc">Record transaction</div>
                     </button>
                     <button class="quick-action-card" onclick="showView('guestDocuments')">
-                        <div class="quick-action-icon" style="background: var(--gradient-danger);">📄</div>
+                        <div class="quick-action-icon">📄</div>
                         <div class="quick-action-title">Review Docs</div>
                         <div class="quick-action-desc">Check documents</div>
                     </button>
                     <button class="quick-action-card" onclick="openPropertyModal()">
-                        <div class="quick-action-icon" style="background: var(--gradient-purple);">🏠</div>
+                        <div class="quick-action-icon">🏠</div>
                         <div class="quick-action-title">Add Property</div>
                         <div class="quick-action-desc">New property</div>
                     </button>
                 </div>
             </div>
 
+            <!-- Analytics Category -->
+            <div class="home-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">📈 Analytics</h2>
+                    <span class="home-section-subtitle">Performance insights</span>
+                </div>
+                <div class="category-grid">
+                    <div class="category-card" onclick="showView('property')">
+                        <div class="category-card-icon">🏢</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Property</div>
+                            <div class="category-card-stat">Property analytics</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('business')">
+                        <div class="category-card-icon">💼</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Business</div>
+                            <div class="category-card-stat">Business metrics</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('financials')">
+                        <div class="category-card-icon">💰</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Financials</div>
+                            <div class="category-card-stat">Financial reports</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Operations Category -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">🎯 Operations</h2>
+                    <h2 class="home-section-title">⚡ Operations</h2>
                     <span class="home-section-subtitle">Daily management</span>
                 </div>
                 <div class="category-grid">
                     <div class="category-card" onclick="showView('reservations')">
-                        <div class="category-card-icon" style="background: var(--gradient-success);">📅</div>
+                        <div class="category-card-icon">📅</div>
                         <div class="category-card-content">
                             <div class="category-card-title">Reservations</div>
                             <div class="category-card-stat" id="homeStatReservations">-- bookings</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
-                    <div class="category-card" onclick="showView('guestDocuments')">
-                        <div class="category-card-icon" style="background: var(--gradient-danger);">📋</div>
+                    <div class="category-card" onclick="showView('payments')">
+                        <div class="category-card-icon">💳</div>
                         <div class="category-card-content">
-                            <div class="category-card-title">Documents</div>
-                            <div class="category-card-stat">Document review</div>
+                            <div class="category-card-title">Payments</div>
+                            <div class="category-card-stat">Payment tracking</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
                     <div class="category-card" onclick="showView('guests')">
-                        <div class="category-card-icon" style="background: var(--gradient-ocean);">👥</div>
+                        <div class="category-card-icon">👥</div>
                         <div class="category-card-content">
                             <div class="category-card-title">Guests</div>
                             <div class="category-card-stat" id="homeStatGuests">-- guests</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
+                    <div class="category-card" onclick="showView('guestDocuments')">
+                        <div class="category-card-icon">📄</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Documents</div>
+                            <div class="category-card-stat">Document review</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
                     <div class="category-card" onclick="showView('meals')">
-                        <div class="category-card-icon" style="background: var(--gradient-warning);">🍽️</div>
+                        <div class="category-card-icon">🍽️</div>
                         <div class="category-card-content">
                             <div class="category-card-title">Meals</div>
                             <div class="category-card-stat">Meal planning</div>
@@ -4904,49 +4946,15 @@
                 </div>
             </div>
 
-            <!-- Finance Category -->
-            <div class="home-section">
-                <div class="home-section-header">
-                    <h2 class="home-section-title">💼 Finance & Analytics</h2>
-                    <span class="home-section-subtitle">Track performance</span>
-                </div>
-                <div class="category-grid">
-                    <div class="category-card" onclick="showView('payments')">
-                        <div class="category-card-icon" style="background: var(--gradient-warning);">💰</div>
-                        <div class="category-card-content">
-                            <div class="category-card-title">Payments</div>
-                            <div class="category-card-stat">Payment tracking</div>
-                        </div>
-                        <div class="category-card-arrow">›</div>
-                    </div>
-                    <div class="category-card" onclick="showView('performance')">
-                        <div class="category-card-icon" style="background: var(--gradient-purple);">📈</div>
-                        <div class="category-card-content">
-                            <div class="category-card-title">Analytics</div>
-                            <div class="category-card-stat">Performance metrics</div>
-                        </div>
-                        <div class="category-card-arrow">›</div>
-                    </div>
-                    <div class="category-card" onclick="showView('businessIntelligence')">
-                        <div class="category-card-icon" style="background: var(--gradient-primary);">🧠</div>
-                        <div class="category-card-content">
-                            <div class="category-card-title">Business Intelligence</div>
-                            <div class="category-card-stat">Deep insights</div>
-                        </div>
-                        <div class="category-card-arrow">›</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Management Category -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">⚙️ Management</h2>
+                    <h2 class="home-section-title">🔧 Management</h2>
                     <span class="home-section-subtitle">Settings & admin</span>
                 </div>
                 <div class="category-grid">
                     <div class="category-card" onclick="showView('properties')">
-                        <div class="category-card-icon" style="background: var(--gradient-danger);">🏠</div>
+                        <div class="category-card-icon">🏘️</div>
                         <div class="category-card-content">
                             <div class="category-card-title">Properties</div>
                             <div class="category-card-stat" id="homeStatProperties">-- properties</div>
@@ -4954,18 +4962,34 @@
                         <div class="category-card-arrow">›</div>
                     </div>
                     <div class="category-card" onclick="showView('team')">
-                        <div class="category-card-icon" style="background: var(--gradient-ocean);">👨‍💼</div>
+                        <div class="category-card-icon">👨‍💼</div>
                         <div class="category-card-content">
                             <div class="category-card-title">Team</div>
                             <div class="category-card-stat">Team management</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
+                    <div class="category-card" onclick="showView('owners')">
+                        <div class="category-card-icon">👑</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Owners</div>
+                            <div class="category-card-stat">Owner portal</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
                     <div class="category-card" onclick="showView('availability')">
-                        <div class="category-card-icon" style="background: var(--gradient-primary);">📆</div>
+                        <div class="category-card-icon">📆</div>
                         <div class="category-card-content">
                             <div class="category-card-title">Availability</div>
                             <div class="category-card-stat" id="homeStatUpcoming">-- upcoming</div>
+                        </div>
+                        <div class="category-card-arrow">›</div>
+                    </div>
+                    <div class="category-card" onclick="showView('communication')">
+                        <div class="category-card-icon">💬</div>
+                        <div class="category-card-content">
+                            <div class="category-card-title">Communication</div>
+                            <div class="category-card-stat">Messages & updates</div>
                         </div>
                         <div class="category-card-arrow">›</div>
                     </div>
@@ -5050,78 +5074,110 @@
         /* Today's Overview Stats */
         .today-stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
         }
 
         .today-stat-card {
-            background: white;
-            border-radius: var(--radius-md);
-            padding: 20px 16px;
-            box-shadow: var(--shadow);
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.06);
             position: relative;
             overflow: hidden;
-            border-left: 3px solid var(--primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .today-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
         }
 
         .today-stat-value {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
+            color: #1a202c;
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
         }
 
         .today-stat-label {
-            font-size: 12px;
-            color: var(--text-secondary);
+            font-size: 13px;
+            color: #718096;
             margin-bottom: 8px;
+            font-weight: 500;
         }
 
         .today-stat-icon {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 24px;
-            opacity: 0.2;
+            top: 16px;
+            right: 16px;
+            font-size: 28px;
+            opacity: 0.1;
         }
 
         /* Quick Actions */
         .quick-actions-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
+            gap: 16px;
         }
 
         .quick-action-card {
-            background: white;
-            border-radius: var(--radius-md);
-            padding: 20px 16px;
-            border: 2px solid transparent;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
             cursor: pointer;
-            transition: var(--transition);
-            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .quick-action-card:hover::before {
+            transform: scaleX(1);
         }
 
         .quick-action-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 8px 8px rgba(0, 0, 0, 0.08);
+            border-color: rgba(102, 126, 234, 0.2);
         }
 
         .quick-action-icon {
             width: 56px;
             height: 56px;
-            border-radius: var(--radius-md);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 28px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .quick-action-card:hover .quick-action-icon {
+            transform: scale(1.1);
         }
 
         .quick-action-title {
@@ -5138,64 +5194,98 @@
         /* Category Grid */
         .category-grid {
             display: grid;
-            gap: 12px;
+            gap: 16px;
         }
 
         .category-card {
-            background: white;
-            border-radius: var(--radius-md);
-            padding: 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
             display: flex;
             align-items: center;
             gap: 16px;
             cursor: pointer;
-            transition: var(--transition);
-            box-shadow: var(--shadow);
-            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .category-card:hover::before {
+            transform: scaleY(1);
         }
 
         .category-card:hover {
-            transform: translateX(4px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
+            border-color: rgba(102, 126, 234, 0.2);
         }
 
         .category-card:active {
-            transform: scale(0.98);
+            transform: translateY(0);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .category-card-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 28px;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .category-card:hover .category-card-icon {
+            transform: scale(1.05);
         }
 
         .category-card-content {
             flex: 1;
+            min-width: 0;
         }
 
         .category-card-title {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 2px;
+            color: #1a202c;
+            margin-bottom: 4px;
+            letter-spacing: -0.01em;
         }
 
         .category-card-stat {
             font-size: 13px;
-            color: var(--text-secondary);
+            color: #718096;
+            font-weight: 400;
         }
 
         .category-card-arrow {
-            font-size: 24px;
-            color: var(--text-tertiary);
-            font-weight: 300;
+            font-size: 20px;
+            color: #cbd5e0;
+            font-weight: 400;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .category-card:hover .category-card-arrow {
+            color: #667eea;
+            transform: translateX(4px);
         }
 
         /* Recent Activity */
