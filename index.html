@@ -157,6 +157,34 @@
             border-color: var(--border) !important;
         }
 
+        /* Dark Mode - Mobile Navigation */
+        [data-theme="dark"] .mobile-nav {
+            background: rgba(30, 41, 59, 0.98);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.05), 0 -3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .mobile-nav-item {
+            color: #8e8e93;
+        }
+
+        [data-theme="dark"] .mobile-nav-item.active {
+            color: #818cf8;
+        }
+
+        [data-theme="dark"] .mobile-nav-fab {
+            border-color: rgba(30, 41, 59, 0.98);
+        }
+
+        [data-theme="dark"] .mobile-header {
+            background: rgba(30, 41, 59, 0.98);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+
         /* Loading Spinner */
         .loading-spinner {
             display: inline-block;
@@ -344,41 +372,61 @@
         input, select, textarea {
             width: 100%;
             padding: 14px 16px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 10px;
             font-size: 14px;
             font-family: inherit;
-            transition: all 0.2s ease;
-            background: white;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #ffffff;
+            min-height: 44px; /* Mobile-friendly touch target */
+            -webkit-appearance: none; /* Remove iOS styling */
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        @media (max-width: 640px) {
+            input, select, textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 16px;
+            }
         }
 
         input:hover, select:hover, textarea:hover {
-            border-color: #bbb;
+            border-color: rgba(0, 0, 0, 0.2);
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: #ffffff;
         }
 
         /* Buttons */
         .btn {
             padding: 12px 24px;
             border: none;
-            border-radius: var(--radius-md);
+            border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
+            min-height: 44px; /* Mobile-friendly touch target */
+        }
+
+        @media (max-width: 640px) {
+            .btn {
+                padding: 12px 20px;
+                font-size: 13px;
+                width: 100%; /* Full width on mobile for easier tapping */
+            }
         }
 
         .btn::before {
@@ -389,9 +437,9 @@
             width: 0;
             height: 0;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
             transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+            transition: width 0.5s, height 0.5s;
         }
 
         .btn:hover::before {
@@ -400,63 +448,66 @@
         }
 
         .btn:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
 
         .btn-primary {
-            background: var(--gradient-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .btn-primary:hover {
-            box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.6);
-            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
-            background: var(--secondary);
+            background: #64748b;
             color: white;
-            box-shadow: 0 4px 14px 0 rgba(100, 116, 139, 0.3);
+            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.25);
         }
 
         .btn-secondary:hover {
             background: #475569;
-            box-shadow: 0 6px 20px 0 rgba(100, 116, 139, 0.5);
-            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(100, 116, 139, 0.35);
+            transform: translateY(-1px);
         }
 
         .btn-danger {
-            background: var(--gradient-danger);
+            background: #ef4444;
             color: white;
-            box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.4);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
         }
 
         .btn-danger:hover {
-            box-shadow: 0 6px 20px 0 rgba(239, 68, 68, 0.6);
-            transform: translateY(-2px);
+            background: #dc2626;
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+            transform: translateY(-1px);
         }
 
         .btn-success {
-            background: var(--gradient-success);
+            background: #10b981;
             color: white;
-            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
         }
 
         .btn-success:hover {
-            box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.6);
-            transform: translateY(-2px);
+            background: #059669;
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+            transform: translateY(-1px);
         }
 
         .btn-warning {
-            background: var(--gradient-warning);
+            background: #f59e0b;
             color: white;
-            box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.4);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
         }
 
         .btn-warning:hover {
-            box-shadow: 0 6px 20px 0 rgba(245, 158, 11, 0.6);
-            transform: translateY(-2px);
+            background: #d97706;
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+            transform: translateY(-1px);
         }
 
         #globalVoiceBtn {
@@ -1237,18 +1288,21 @@
             }
         }
 
-        /* Cards */
+        /* Cards - World-Class Design */
         .card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.06);
             margin-bottom: 24px;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
+            border-color: rgba(102, 126, 234, 0.2);
         }
 
         .communication-message:hover {
@@ -1268,24 +1322,32 @@
         .card-title {
             font-size: 20px;
             font-weight: 700;
-            color: var(--text-primary);
+            color: #1a202c;
+            letter-spacing: -0.01em;
         }
 
-        /* Stats Grid */
+        /* Stats Grid - Mobile Optimized */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
             margin-bottom: 24px;
         }
 
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+        }
+
         .stat-card {
-            background: white;
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            border-left: 4px solid var(--primary);
-            transition: var(--transition);
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
         }
@@ -1294,39 +1356,36 @@
             content: '';
             position: absolute;
             top: 0;
-            right: 0;
-            width: 100px;
-            height: 100px;
-            background: var(--gradient-primary);
-            opacity: 0.05;
-            border-radius: 50%;
-            transform: translate(30%, -30%);
-            transition: var(--transition);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-xl);
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .stat-card:hover::before {
-            transform: translate(25%, -25%) scale(1.2);
-            opacity: 0.08;
+            transform: scaleY(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
+            border-color: rgba(102, 126, 234, 0.2);
         }
 
         .stat-label {
-            font-size: 14px;
-            color: var(--text-secondary);
+            font-size: 13px;
+            color: #718096;
             margin-bottom: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
         .stat-value {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
-            color: var(--text-primary);
+            color: #1a202c;
+            letter-spacing: -0.02em;
         }
         
         /* Property Cards */
@@ -2332,19 +2391,22 @@
                 display: block;
             }
 
+            /* Native iOS/Android Bottom Tab Bar */
             .mobile-nav {
                 display: block;
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: white;
-                border-top: 1px solid var(--border);
-                padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: saturate(180%) blur(20px);
+                -webkit-backdrop-filter: saturate(180%) blur(20px);
+                border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+                padding: 4px 0 max(4px, env(safe-area-inset-bottom));
                 z-index: 1000;
-                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
-                backdrop-filter: blur(10px);
-                background: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04), 0 -3px 8px rgba(0, 0, 0, 0.04);
+                will-change: transform;
+                transform: translateZ(0);
             }
             
             .mobile-nav-items {
@@ -2352,56 +2414,56 @@
                 justify-content: space-around;
             }
             
+            /* Native Tab Bar Items */
             .mobile-nav-item {
                 flex: 1;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 4px;
+                gap: 2px;
                 text-decoration: none;
-                color: var(--text-secondary);
-                font-size: 11px;
+                color: #8e8e93;
+                font-size: 10px;
                 font-weight: 500;
-                padding: 8px 4px;
-                border-radius: 12px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                padding: 8px 4px 4px 4px;
+                border-radius: 0;
+                transition: all 0.2s ease;
                 position: relative;
+                -webkit-tap-highlight-color: transparent;
+                cursor: pointer;
             }
 
             .mobile-nav-item:active {
-                transform: scale(0.95);
+                transform: scale(0.92);
+                opacity: 0.6;
             }
 
             .mobile-nav-item.active {
-                color: var(--primary);
+                color: #667eea;
                 font-weight: 600;
-                background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
-            }
-
-            .mobile-nav-item.active::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 40px;
-                height: 3px;
-                background: var(--gradient-primary);
-                border-radius: 0 0 6px 6px;
-                box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
             }
 
             .mobile-nav-item.active .mobile-nav-icon {
-                transform: scale(1.1);
+                transform: translateY(-2px);
+                filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+            }
+
+            .mobile-nav-item.active .mobile-nav-label {
+                font-weight: 600;
             }
             
             .mobile-nav-icon {
-                font-size: 20px;
+                font-size: 24px;
+                transition: all 0.2s ease;
+                will-change: transform;
             }
 
             .mobile-nav-label {
-                font-size: 11px;
+                font-size: 10px;
+                font-weight: 500;
+                letter-spacing: -0.1px;
+                transition: all 0.2s ease;
             }
 
             /* Floating Action Button (FAB) */
@@ -4767,25 +4829,26 @@
         <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
 
         <!-- Mobile Bottom Navigation -->
+        <!-- Native-Feeling Mobile Bottom Navigation -->
         <div class="mobile-nav">
             <div class="mobile-nav-items">
-                <a class="mobile-nav-item" onclick="showView('home')">
+                <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('home');">
                     <div class="mobile-nav-icon">🏠</div>
                     <div class="mobile-nav-label">Home</div>
                 </a>
-                <a class="mobile-nav-item" onclick="showView('reservations')">
+                <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('reservations');">
                     <div class="mobile-nav-icon">📅</div>
                     <div class="mobile-nav-label">Bookings</div>
                 </a>
                 <!-- Floating Action Button (FAB) -->
-                <button class="mobile-nav-fab" onclick="openReservationModal()" title="New Booking">
+                <button class="mobile-nav-fab" onclick="triggerHaptic('medium'); openReservationModal();" title="New Booking">
                     <div class="mobile-nav-fab-icon">➕</div>
                 </button>
-                <a class="mobile-nav-item" onclick="showView('payments')">
+                <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('payments');">
                     <div class="mobile-nav-icon">💰</div>
                     <div class="mobile-nav-label">Payments</div>
                 </a>
-                <a class="mobile-nav-item" onclick="showView('guestDocuments')">
+                <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('guestDocuments');">
                     <div class="mobile-nav-icon">📄</div>
                     <div class="mobile-nav-label">Documents</div>
                 </a>
@@ -6030,13 +6093,13 @@
             <div class="card">
                 <div class="filters">
                     <div class="filter-item" style="flex: 1; max-width: 350px;">
-                        <input type="text" id="searchReservations" placeholder="🔍 Search by guest, booking ID, phone, property..." onkeypress="if(event.key==='Enter') filterReservations()" style="width: 100%;">
+                        <input type="text" id="searchReservations" placeholder="🔍 Search by guest, booking ID, phone, property..." style="width: 100%;">
                     </div>
                     <button class="btn btn-primary btn-sm" onclick="filterReservations()" style="white-space: nowrap;">
                         🔍 Search
                     </button>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="statusFilter" onchange="filterReservations()">
+                        <select id="statusFilter">
                             <option value="">All Status</option>
                             <option value="confirmed">Confirmed</option>
                             <option value="pending">Pending</option>
@@ -6046,12 +6109,12 @@
                         </select>
                     </div>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="propertyFilter" onchange="filterReservations()">
+                        <select id="propertyFilter">
                             <option value="">All Properties</option>
                         </select>
                     </div>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="bookingSourceFilter" onchange="filterReservations()">
+                        <select id="bookingSourceFilter">
                             <option value="">All Sources</option>
                             <option value="DIRECT">🟢 Direct</option>
                             <option value="AIRBNB">🔵 Airbnb</option>
@@ -6061,7 +6124,7 @@
                         </select>
                     </div>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="monthFilter" onchange="filterReservations()">
+                        <select id="monthFilter">
                             <option value="">All Months</option>
                         </select>
                     </div>
@@ -8528,6 +8591,137 @@
         let selectedReservations = new Set();
         let currentUser = null;
         let currentWhatsAppBooking = null;
+
+        // ==========================================
+        // PERFORMANCE UTILITIES
+        // ==========================================
+
+        /**
+         * Debounce function - delays execution until after wait milliseconds of inactivity
+         * @param {Function} func - Function to debounce
+         * @param {number} wait - Milliseconds to wait
+         * @returns {Function} Debounced function
+         */
+        function debounce(func, wait = 300) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        /**
+         * Data Cache with TTL (Time To Live)
+         * Reduces unnecessary database queries by caching data in memory
+         */
+        const dataCache = {
+            reservations: { data: null, timestamp: null, ttl: 5 * 60 * 1000 }, // 5 min
+            payments: { data: null, timestamp: null, ttl: 5 * 60 * 1000 },
+            guests: { data: null, timestamp: null, ttl: 5 * 60 * 1000 },
+            properties: { data: null, timestamp: null, ttl: 10 * 60 * 1000 }, // 10 min
+
+            get(key, forceRefresh = false) {
+                const cache = this[key];
+                if (!cache) return null;
+
+                const isExpired = Date.now() - (cache.timestamp || 0) > cache.ttl;
+                if (forceRefresh || !cache.data || isExpired) {
+                    return null; // Needs refresh
+                }
+
+                console.log(`📦 Cache HIT for ${key} (age: ${Math.round((Date.now() - cache.timestamp) / 1000)}s)`);
+                return cache.data;
+            },
+
+            set(key, data) {
+                if (this[key]) {
+                    this[key].data = data;
+                    this[key].timestamp = Date.now();
+                    console.log(`💾 Cache SET for ${key}`);
+                }
+            },
+
+            invalidate(key) {
+                if (this[key]) {
+                    this[key].data = null;
+                    this[key].timestamp = null;
+                    console.log(`🗑️ Cache INVALIDATED for ${key}`);
+                }
+            },
+
+            invalidateAll() {
+                Object.keys(this).forEach(key => {
+                    if (this[key]?.data !== undefined) {
+                        this[key].data = null;
+                        this[key].timestamp = null;
+                    }
+                });
+                console.log('🗑️ Cache CLEARED');
+            }
+        };
+
+        /**
+         * Haptic Feedback System - Native-feeling interactions
+         * Supports both Web Vibration API and Capacitor Haptics Engine
+         */
+        function triggerHaptic(type = 'light') {
+            // Web Vibration API (supported on Android, some iOS)
+            if ('vibrate' in navigator) {
+                switch(type) {
+                    case 'light':
+                        navigator.vibrate(10);
+                        break;
+                    case 'medium':
+                        navigator.vibrate(20);
+                        break;
+                    case 'heavy':
+                        navigator.vibrate(30);
+                        break;
+                    case 'success':
+                        navigator.vibrate([10, 50, 10]);
+                        break;
+                    case 'error':
+                        navigator.vibrate([20, 100, 20, 100, 20]);
+                        break;
+                    case 'warning':
+                        navigator.vibrate([15, 75, 15]);
+                        break;
+                }
+            }
+
+            // iOS Haptic Engine via Capacitor (if available)
+            if (window.Capacitor && window.Capacitor.Plugins.Haptics) {
+                const { Haptics, ImpactStyle, NotificationType } = window.Capacitor.Plugins;
+                try {
+                    switch(type) {
+                        case 'light':
+                            Haptics.impact({ style: ImpactStyle.Light });
+                            break;
+                        case 'medium':
+                            Haptics.impact({ style: ImpactStyle.Medium });
+                            break;
+                        case 'heavy':
+                            Haptics.impact({ style: ImpactStyle.Heavy });
+                            break;
+                        case 'success':
+                            Haptics.notification({ type: NotificationType.Success });
+                            break;
+                        case 'error':
+                            Haptics.notification({ type: NotificationType.Error });
+                            break;
+                        case 'warning':
+                            Haptics.notification({ type: NotificationType.Warning });
+                            break;
+                    }
+                } catch (e) {
+                    console.log('Haptic feedback not available');
+                }
+            }
+        }
 
         // Theme Management
         function initializeTheme() {
@@ -13311,11 +13505,118 @@
             }
         }
 
-         // Reservations
-        async function loadReservations() {
+         // Helper function to populate filters and display reservations
+        function populateFiltersAndDisplay(properties, reservations) {
+            const propertySelect = document.getElementById('propertySelect');
+            propertySelect.innerHTML = '<option value="">Select Property</option>' +
+                properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+            // Populate property filter
+            const propertyFilter = document.getElementById('propertyFilter');
+            propertyFilter.innerHTML = '<option value="">All Properties</option>' +
+                properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+            // Populate month filter with unique months from reservations
+            const months = [...new Set(reservations.map(r => r.month).filter(Boolean))].sort().reverse();
+            const monthFilter = document.getElementById('monthFilter');
+            monthFilter.innerHTML = '<option value="">All Months</option>' +
+                months.map(m => `<option value="${m}">${m}</option>`).join('');
+
+            displayReservations(reservations);
+
+            // Attach debounced event listeners (prevents lag with large datasets)
+            const debouncedFilter = debounce(filterReservations, 300);
+
+            const searchInput = document.getElementById('searchReservations');
+            const statusFilter = document.getElementById('statusFilter');
+            const propertyFilterEl = document.getElementById('propertyFilter');
+            const bookingSourceFilter = document.getElementById('bookingSourceFilter');
+            const monthFilterEl = document.getElementById('monthFilter');
+
+            // Remove any existing listeners by cloning elements
+            if (searchInput) {
+                searchInput.removeEventListener('input', debouncedFilter);
+                searchInput.addEventListener('input', debouncedFilter);
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') filterReservations(); // Immediate on Enter
+                });
+            }
+
+            // Select filters update immediately (no debounce needed)
+            if (statusFilter) {
+                statusFilter.removeEventListener('change', filterReservations);
+                statusFilter.addEventListener('change', filterReservations);
+            }
+            if (propertyFilterEl) {
+                propertyFilterEl.removeEventListener('change', filterReservations);
+                propertyFilterEl.addEventListener('change', filterReservations);
+            }
+            if (bookingSourceFilter) {
+                bookingSourceFilter.removeEventListener('change', filterReservations);
+                bookingSourceFilter.addEventListener('change', filterReservations);
+            }
+            if (monthFilterEl) {
+                monthFilterEl.removeEventListener('change', filterReservations);
+                monthFilterEl.addEventListener('change', filterReservations);
+            }
+
+            // Restore saved filters
+            setTimeout(() => {
+                const savedFilters = loadFilterState('reservations');
+                if (savedFilters) {
+                    console.log('🔄 Restoring reservation filters:', savedFilters);
+
+                    // Restore each filter
+                    if (savedFilters.search) {
+                        const searchInput = document.getElementById('searchReservations');
+                        if (searchInput) searchInput.value = savedFilters.search;
+                    }
+                    if (savedFilters.status) {
+                        const statusFilterEl = document.getElementById('statusFilter');
+                        if (statusFilterEl) statusFilterEl.value = savedFilters.status;
+                    }
+                    if (savedFilters.property) {
+                        const propertyFilterEl = document.getElementById('propertyFilter');
+                        if (propertyFilterEl) propertyFilterEl.value = savedFilters.property;
+                    }
+                    if (savedFilters.bookingSource) {
+                        const bookingSourceFilterEl = document.getElementById('bookingSourceFilter');
+                        if (bookingSourceFilterEl) bookingSourceFilterEl.value = savedFilters.bookingSource;
+                    }
+                    if (savedFilters.month) {
+                        const monthFilterEl = document.getElementById('monthFilter');
+                        if (monthFilterEl) monthFilterEl.value = savedFilters.month;
+                    }
+
+                    // Apply the filters
+                    setTimeout(() => filterReservations(), 200);
+                }
+            }, 500);
+        }
+
+        // Reservations
+        async function loadReservations(forceRefresh = false) {
             try {
+                // Try to get from cache first
+                const cachedReservations = dataCache.get('reservations', forceRefresh);
+                const cachedProperties = dataCache.get('properties', forceRefresh);
+
+                if (cachedReservations && cachedProperties) {
+                    allReservations = cachedReservations;
+                    const properties = cachedProperties;
+
+                    // Quick render from cache
+                    populateFiltersAndDisplay(properties, allReservations);
+                    return;
+                }
+
+                // Fetch from database
                 allReservations = await db.getReservations();
                 const properties = await db.getProperties();
+
+                // Cache the results
+                dataCache.set('reservations', allReservations);
+                dataCache.set('properties', properties);
                 
                 const propertySelect = document.getElementById('propertySelect');
                 propertySelect.innerHTML = '<option value="">Select Property</option>' + 
@@ -13333,7 +13634,43 @@
                     months.map(m => `<option value="${m}">${m}</option>`).join('');
                 
                 displayReservations(allReservations);
-                
+
+                // Attach debounced event listeners (prevents lag with large datasets)
+                const debouncedFilter = debounce(filterReservations, 300);
+
+                const searchInput = document.getElementById('searchReservations');
+                const statusFilter = document.getElementById('statusFilter');
+                const propertyFilterEl = document.getElementById('propertyFilter');
+                const bookingSourceFilter = document.getElementById('bookingSourceFilter');
+                const monthFilterEl = document.getElementById('monthFilter');
+
+                // Remove any existing listeners by cloning elements
+                if (searchInput) {
+                    searchInput.removeEventListener('input', debouncedFilter);
+                    searchInput.addEventListener('input', debouncedFilter);
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') filterReservations(); // Immediate on Enter
+                    });
+                }
+
+                // Select filters update immediately (no debounce needed)
+                if (statusFilter) {
+                    statusFilter.removeEventListener('change', filterReservations);
+                    statusFilter.addEventListener('change', filterReservations);
+                }
+                if (propertyFilterEl) {
+                    propertyFilterEl.removeEventListener('change', filterReservations);
+                    propertyFilterEl.addEventListener('change', filterReservations);
+                }
+                if (bookingSourceFilter) {
+                    bookingSourceFilter.removeEventListener('change', filterReservations);
+                    bookingSourceFilter.addEventListener('change', filterReservations);
+                }
+                if (monthFilterEl) {
+                    monthFilterEl.removeEventListener('change', filterReservations);
+                    monthFilterEl.addEventListener('change', filterReservations);
+                }
+
                 // Restore saved filters
                 setTimeout(() => {
                     const savedFilters = loadFilterState('reservations');
