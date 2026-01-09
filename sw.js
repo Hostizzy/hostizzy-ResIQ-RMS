@@ -1,13 +1,26 @@
 /**
  * ResIQ Service Worker
- * Version: 4.2.0
+ * Version: 4.2.1
  * Features: Caching, Push Notifications, Background Sync, Offline Support
- * Update: Fixed owner-portal caching issue
+ *
+ * IMPORTANT FOR DEVELOPERS:
+ * =======================
+ * 1. ALWAYS bump CACHE_VERSION when modifying HTML/JS files
+ * 2. Set FORCE_UPDATE = true for critical bug fixes
+ * 3. Test with both cache enabled AND disabled before deploying
+ * 4. Use 'var' (not const) for global variables in inline <script> tags
+ *
+ * Update Log:
+ * - v4.2.1: Added prevention strategies and force update mechanism
+ * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v4.2.0';
+const CACHE_VERSION = 'v4.2.1';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
+
+// Set to true for critical updates that require clearing all caches
+const FORCE_UPDATE = false;
 
 // Files to cache for offline support
 const STATIC_CACHE = [
@@ -60,6 +73,18 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
+        // If FORCE_UPDATE is true, delete ALL caches
+        if (FORCE_UPDATE) {
+          console.warn('[SW] FORCE_UPDATE enabled - clearing ALL caches');
+          return Promise.all(
+            cacheNames.map((name) => {
+              console.log('[SW] Force deleting cache:', name);
+              return caches.delete(name);
+            })
+          );
+        }
+
+        // Otherwise, only delete old ResIQ caches
         return Promise.all(
           cacheNames
             .filter((name) => name.startsWith('resiq-') && name !== CACHE_NAME && name !== API_CACHE_NAME)
@@ -79,7 +104,8 @@ self.addEventListener('activate', (event) => {
           clients.forEach(client => {
             client.postMessage({
               type: 'SW_UPDATED',
-              version: CACHE_VERSION
+              version: CACHE_VERSION,
+              forceUpdate: FORCE_UPDATE
             });
           });
         });
