@@ -1,10 +1,11 @@
 /**
  * ResIQ Service Worker
- * Version: 4.1.0
+ * Version: 4.2.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
+ * Update: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v4.1.0';
+const CACHE_VERSION = 'v4.2.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -12,6 +13,7 @@ const OFFLINE_URL = '/offline.html';
 const STATIC_CACHE = [
   '/',
   '/index.html',
+  '/owner-portal.html',
   '/offline.html',
   '/manifest.json',
   '/assets/logo.png',
@@ -106,32 +108,33 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Handle navigation requests (HTML pages)
-  // IMPORTANT: Cache a single app shell (index.html) instead of caching per-URL navigations.
-  // Caching per-URL can serve stale/broken boot code after login and lead to “infinite loading”.
+  // IMPORTANT: Always fetch fresh HTML to avoid serving stale/broken JavaScript
+  // This prevents issues like duplicate variable declarations and missing functions
   if (request.mode === 'navigate') {
-    const appShellRequest = new Request('/index.html', {
-      headers: request.headers,
-      redirect: 'follow'
-    });
-
     event.respondWith(
       fetch(request, { cache: 'no-store', redirect: 'follow' })
         .then((response) => {
-          // Only cache clean, non-redirected HTML responses.
+          // Only cache clean, non-redirected HTML responses for offline use
           if (response && response.status === 200 && !response.redirected) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(appShellRequest, responseClone);
+              // Cache the actual request URL, not just index.html
+              cache.put(request, responseClone);
             });
           }
           return response;
         })
         .catch(() => {
-          // Offline fallback: serve cached app shell, then offline page.
-          return caches.match(appShellRequest)
+          // Offline fallback: serve cached version of the requested page
+          return caches.match(request)
             .then((cachedResponse) => {
               if (cachedResponse) return cachedResponse;
-              return caches.match(OFFLINE_URL);
+              // If no cached version, try index.html, then offline page
+              return caches.match('/index.html')
+                .then((indexResponse) => {
+                  if (indexResponse) return indexResponse;
+                  return caches.match(OFFLINE_URL);
+                });
             });
         })
     );
