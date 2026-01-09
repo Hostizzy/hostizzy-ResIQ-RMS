@@ -1,17 +1,32 @@
 /**
  * ResIQ Service Worker
- * Version: 4.1.0
+ * Version: 4.2.1
  * Features: Caching, Push Notifications, Background Sync, Offline Support
+ *
+ * IMPORTANT FOR DEVELOPERS:
+ * =======================
+ * 1. ALWAYS bump CACHE_VERSION when modifying HTML/JS files
+ * 2. Set FORCE_UPDATE = true for critical bug fixes
+ * 3. Test with both cache enabled AND disabled before deploying
+ * 4. Use 'var' (not const) for global variables in inline <script> tags
+ *
+ * Update Log:
+ * - v4.2.1: Added prevention strategies and force update mechanism
+ * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v4.1.0';
+const CACHE_VERSION = 'v4.2.1';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
+
+// Set to true for critical updates that require clearing all caches
+const FORCE_UPDATE = false;
 
 // Files to cache for offline support
 const STATIC_CACHE = [
   '/',
   '/index.html',
+  '/owner-portal.html',
   '/offline.html',
   '/manifest.json',
   '/assets/logo.png',
@@ -58,6 +73,18 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
+        // If FORCE_UPDATE is true, delete ALL caches
+        if (FORCE_UPDATE) {
+          console.warn('[SW] FORCE_UPDATE enabled - clearing ALL caches');
+          return Promise.all(
+            cacheNames.map((name) => {
+              console.log('[SW] Force deleting cache:', name);
+              return caches.delete(name);
+            })
+          );
+        }
+
+        // Otherwise, only delete old ResIQ caches
         return Promise.all(
           cacheNames
             .filter((name) => name.startsWith('resiq-') && name !== CACHE_NAME && name !== API_CACHE_NAME)
@@ -77,7 +104,8 @@ self.addEventListener('activate', (event) => {
           clients.forEach(client => {
             client.postMessage({
               type: 'SW_UPDATED',
-              version: CACHE_VERSION
+              version: CACHE_VERSION,
+              forceUpdate: FORCE_UPDATE
             });
           });
         });
@@ -106,32 +134,33 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Handle navigation requests (HTML pages)
-  // IMPORTANT: Cache a single app shell (index.html) instead of caching per-URL navigations.
-  // Caching per-URL can serve stale/broken boot code after login and lead to “infinite loading”.
+  // IMPORTANT: Always fetch fresh HTML to avoid serving stale/broken JavaScript
+  // This prevents issues like duplicate variable declarations and missing functions
   if (request.mode === 'navigate') {
-    const appShellRequest = new Request('/index.html', {
-      headers: request.headers,
-      redirect: 'follow'
-    });
-
     event.respondWith(
       fetch(request, { cache: 'no-store', redirect: 'follow' })
         .then((response) => {
-          // Only cache clean, non-redirected HTML responses.
+          // Only cache clean, non-redirected HTML responses for offline use
           if (response && response.status === 200 && !response.redirected) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(appShellRequest, responseClone);
+              // Cache the actual request URL, not just index.html
+              cache.put(request, responseClone);
             });
           }
           return response;
         })
         .catch(() => {
-          // Offline fallback: serve cached app shell, then offline page.
-          return caches.match(appShellRequest)
+          // Offline fallback: serve cached version of the requested page
+          return caches.match(request)
             .then((cachedResponse) => {
               if (cachedResponse) return cachedResponse;
-              return caches.match(OFFLINE_URL);
+              // If no cached version, try index.html, then offline page
+              return caches.match('/index.html')
+                .then((indexResponse) => {
+                  if (indexResponse) return indexResponse;
+                  return caches.match(OFFLINE_URL);
+                });
             });
         })
     );
