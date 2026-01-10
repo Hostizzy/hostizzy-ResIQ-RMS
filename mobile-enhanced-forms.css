@@ -814,3 +814,78 @@ input[type="datetime-local"]:focus {
         gap: 16px;
     }
 }
+
+/* ============================================
+   FORM CONSISTENCY FIXES
+   ============================================ */
+
+/* Ensure all form inputs have consistent width */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group input[type="datetime-local"],
+.form-group input[type="url"],
+.form-group input[type="password"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fix inputs inside flex containers */
+.form-group > div[style*="display: flex"] input,
+.form-group > div[style*="display:flex"] input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Voice button in payment form should be square and compact */
+.form-group button[onclick*="Voice"],
+.form-group button[title="Voice Input"] {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    padding: 0;
+}
+
+/* Additional mobile fixes */
+@media (max-width: 768px) {
+    /* Ensure form inputs take full width */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100% !important;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    /* Fix flex container inputs */
+    .form-group > div[style*="flex"] {
+        display: flex !important;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .form-group > div[style*="flex"] input {
+        flex: 1;
+        min-width: 0;
+        width: auto !important;
+    }
+
+    /* Voice buttons compact on mobile */
+    .form-group button[onclick*="Voice"],
+    .form-group button[title="Voice Input"] {
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        flex: 0 0 48px !important;
+    }
+}
