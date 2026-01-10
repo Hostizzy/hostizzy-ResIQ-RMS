@@ -1,0 +1,816 @@
+/**
+ * Mobile-Enhanced Forms & UI Components
+ * Optimized for touch interfaces, tablets, and mobile devices
+ * Version: 1.0.0
+ */
+
+/* ============================================
+   FLOATING LABEL INPUTS
+   ============================================ */
+
+.form-floating {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.form-floating input,
+.form-floating textarea,
+.form-floating select {
+    width: 100%;
+    padding: 20px 16px 8px;
+    font-size: 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    transition: all 0.3s ease;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.form-floating label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: all 0.3s ease;
+    background: var(--surface);
+    padding: 0 4px;
+}
+
+.form-floating input:focus,
+.form-floating textarea:focus,
+.form-floating select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.form-floating input:focus + label,
+.form-floating input:not(:placeholder-shown) + label,
+.form-floating textarea:focus + label,
+.form-floating textarea:not(:placeholder-shown) + label,
+.form-floating select:focus + label,
+.form-floating select:not([value=""]) + label {
+    top: 0;
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.form-floating input.error,
+.form-floating textarea.error,
+.form-floating select.error {
+    border-color: var(--danger);
+}
+
+.form-floating .error-message {
+    position: absolute;
+    bottom: -20px;
+    left: 16px;
+    font-size: 12px;
+    color: var(--danger);
+    font-weight: 500;
+}
+
+.form-floating .success-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--success);
+    font-size: 20px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.form-floating input.success + label + .success-icon,
+.form-floating textarea.success + label + .success-icon {
+    opacity: 1;
+}
+
+/* Textarea specific */
+.form-floating textarea {
+    min-height: 120px;
+    resize: vertical;
+    padding-top: 24px;
+}
+
+.form-floating textarea + label {
+    top: 24px;
+}
+
+.form-floating textarea:focus + label,
+.form-floating textarea:not(:placeholder-shown) + label {
+    top: 8px;
+}
+
+/* ============================================
+   ENHANCED INPUT FIELDS
+   ============================================ */
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-size: 20px;
+    pointer-events: none;
+}
+
+.input-group input {
+    padding-left: 48px;
+}
+
+.input-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--text-secondary);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 14px;
+}
+
+.input-group input:not(:placeholder-shown) ~ .input-clear {
+    opacity: 1;
+}
+
+/* ============================================
+   NATIVE-STYLE BUTTONS
+   ============================================ */
+
+.btn-native {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 56px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-native:active {
+    transform: scale(0.97);
+}
+
+.btn-native-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-native-secondary {
+    background: var(--surface);
+    color: var(--primary);
+    border: 2px solid var(--primary);
+}
+
+.btn-native-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-native-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-native-ghost {
+    background: transparent;
+    color: var(--primary);
+}
+
+.btn-native:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-native.loading {
+    pointer-events: none;
+}
+
+.btn-native .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   SEGMENTED CONTROL (iOS-style tabs)
+   ============================================ */
+
+.segmented-control {
+    display: flex;
+    background: var(--background-alt);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 24px;
+}
+
+.segment {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.segment.active {
+    background: var(--surface);
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.segment:active {
+    transform: scale(0.96);
+}
+
+/* ============================================
+   ENHANCED CARDS
+   ============================================ */
+
+.card-modern {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--purple));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+
+.card-modern:active::before {
+    transform: scaleX(1);
+}
+
+.card-modern:active {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.card-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.card-body {
+    color: var(--text);
+}
+
+.card-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ============================================
+   LIST ITEMS (Native-style)
+   ============================================ */
+
+.list-native {
+    background: var(--surface);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.list-item-native {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+    min-height: 68px;
+}
+
+.list-item-native:last-child {
+    border-bottom: none;
+}
+
+.list-item-native:active {
+    background: var(--background-alt);
+}
+
+.list-item-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+    color: white;
+    border-radius: 14px;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.list-item-content {
+    flex: 1;
+}
+
+.list-item-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+
+.list-item-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.list-item-arrow {
+    color: var(--text-secondary);
+    font-size: 20px;
+}
+
+/* ============================================
+   TOGGLE SWITCH (iOS-style)
+   ============================================ */
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 32px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border);
+    transition: 0.3s;
+    border-radius: 32px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 28px;
+    width: 28px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: var(--success);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* ============================================
+   RADIO BUTTONS (Custom styled)
+   ============================================ */
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.radio-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.radio-item:active {
+    transform: scale(0.98);
+}
+
+.radio-item input[type="radio"] {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    accent-color: var(--primary);
+}
+
+.radio-item.selected {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+/* ============================================
+   CHECKBOX (Custom styled)
+   ============================================ */
+
+.checkbox-custom {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-custom input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-box {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.checkbox-custom input[type="checkbox"]:checked + .checkbox-box {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.checkbox-custom input[type="checkbox"]:checked + .checkbox-box::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+}
+
+/* ============================================
+   DATE & TIME PICKERS (Native-style)
+   ============================================ */
+
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+    padding: 16px;
+    font-size: 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime-local"]:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* ============================================
+   SELECT DROPDOWN (Enhanced)
+   ============================================ */
+
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper select {
+    width: 100%;
+    padding: 16px 48px 16px 16px;
+    font-size: 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.select-wrapper::after {
+    content: '▼';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.select-wrapper select:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* ============================================
+   SEARCH BAR (Native-style)
+   ============================================ */
+
+.search-bar {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 14px 48px 14px 48px;
+    font-size: 16px;
+    border: none;
+    border-radius: 12px;
+    background: var(--background-alt);
+    color: var(--text);
+}
+
+.search-bar::before {
+    content: '🔍';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+}
+
+.search-bar .clear-search {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--text-secondary);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.search-bar input:not(:placeholder-shown) ~ .clear-search {
+    opacity: 1;
+}
+
+/* ============================================
+   BADGES & PILLS
+   ============================================ */
+
+.badge-new {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+    color: white;
+}
+
+.badge-success {
+    background: var(--success);
+    color: white;
+}
+
+.badge-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.badge-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.badge-outline {
+    background: transparent;
+    border: 2px solid currentColor;
+}
+
+/* ============================================
+   PROGRESS BARS
+   ============================================ */
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--background-alt);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--purple) 100%);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+}
+
+/* ============================================
+   DIVIDERS
+   ============================================ */
+
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+}
+
+.divider-text {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+.empty-state-subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE ENHANCEMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Larger touch targets */
+    button, .btn, [role="button"],
+    input, select, textarea {
+        min-height: 48px;
+    }
+
+    /* Better spacing */
+    .form-floating {
+        margin-bottom: 20px;
+    }
+
+    /* Full width buttons on mobile */
+    .btn-native {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    /* Adjust card padding */
+    .card-modern {
+        padding: 16px;
+    }
+
+    /* Stack segmented control on very small screens */
+    @media (max-width: 380px) {
+        .segmented-control {
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+}
+
+/* ============================================
+   TABLET OPTIMIZATIONS
+   ============================================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Two-column form layouts on tablets */
+    .form-row-tablet {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    /* Compact card grid for tablets */
+    .card-grid-tablet {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
