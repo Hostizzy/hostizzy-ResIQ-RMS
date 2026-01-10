@@ -1,0 +1,542 @@
+/**
+ * Native App Styles
+ * Provides native-like styling for PWA
+ * Version: 1.0.0
+ */
+
+/* ============================================
+   SAFE AREA SUPPORT
+   ============================================ */
+
+/* Apply safe area padding to body */
+body {
+    padding-top: var(--sat);
+    padding-right: var(--sar);
+    padding-bottom: var(--sab);
+    padding-left: var(--sal);
+}
+
+/* Safe area classes for specific elements */
+.safe-area-top {
+    padding-top: calc(var(--sat) + 16px);
+}
+
+.safe-area-bottom {
+    padding-bottom: calc(--sab) + 16px);
+}
+
+.safe-area-left {
+    padding-left: calc(var(--sal) + 16px);
+}
+
+.safe-area-right {
+    padding-right: calc(var(--sar) + 16px);
+}
+
+/* ============================================
+   PULL TO REFRESH
+   ============================================ */
+
+.pull-to-refresh-indicator {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.pull-to-refresh-spinner {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: var(--primary);
+}
+
+.pull-to-refresh-indicator.ready .pull-to-refresh-spinner {
+    color: var(--success);
+}
+
+.pull-to-refresh-indicator.refreshing .pull-to-refresh-spinner svg {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   PAGE TRANSITIONS
+   ============================================ */
+
+.page-transition-enter {
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-transition-exit {
+    animation: slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-30%);
+    }
+}
+
+.slide-left.page-transition-enter {
+    animation: slideInLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-left.page-transition-exit {
+    animation: slideOutLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutLeft {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-30%);
+    }
+}
+
+.slide-right.page-transition-enter {
+    animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-right.page-transition-exit {
+    animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(30%);
+    }
+}
+
+/* ============================================
+   NATIVE BUTTON ANIMATIONS
+   ============================================ */
+
+button, .btn, [role="button"] {
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+button:active, .btn:active, [role="button"]:active {
+    transform: scale(0.96);
+}
+
+/* ============================================
+   LOADING SKELETONS
+   ============================================ */
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--border-light) 0%,
+        var(--border) 50%,
+        var(--border-light) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton-text {
+    height: 16px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 60%;
+    margin-bottom: 12px;
+    border-radius: 6px;
+}
+
+.skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.skeleton-card {
+    height: 120px;
+    border-radius: var(--radius-md);
+}
+
+.skeleton-button {
+    height: 44px;
+    width: 120px;
+    border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   BOTTOM SHEET MODALS
+   ============================================ */
+
+.bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding-bottom: calc(var(--sab) + 16px);
+}
+
+.bottom-sheet.open {
+    transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 16px;
+}
+
+.bottom-sheet-content {
+    padding: 0 20px 20px;
+}
+
+/* ============================================
+   NATIVE TOAST NOTIFICATIONS
+   ============================================ */
+
+.native-toast {
+    position: fixed;
+    bottom: calc(var(--sab) + 80px);
+    left: 16px;
+    right: 16px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transform: translateY(calc(100% + 32px));
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10000;
+}
+
+.native-toast.show {
+    transform: translateY(0);
+}
+
+.native-toast-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.native-toast-content {
+    flex: 1;
+}
+
+.native-toast-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+
+.native-toast-message {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.native-toast.success .native-toast-icon {
+    color: var(--success);
+}
+
+.native-toast.error .native-toast-icon {
+    color: var(--danger);
+}
+
+.native-toast.warning .native-toast-icon {
+    color: var(--warning);
+}
+
+/* ============================================
+   INSTALL BANNER
+   ============================================ */
+
+.install-banner {
+    position: fixed;
+    bottom: calc(var(--sab) + 16px);
+    left: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+    color: white;
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    transform: translateY(calc(100% + 32px));
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+}
+
+.install-banner.visible {
+    transform: translateY(0);
+}
+
+.install-banner-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.install-banner-content {
+    flex: 1;
+}
+
+.install-banner-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.install-banner-subtitle {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.install-banner-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.install-banner-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.install-banner-btn:active {
+    transform: scale(0.96);
+}
+
+.install-banner-btn-primary {
+    background: white;
+    color: var(--primary);
+}
+
+.install-banner-btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* ============================================
+   KEYBOARD ADJUSTMENTS
+   ============================================ */
+
+body.keyboard-open {
+    /* Adjust layout when keyboard is open */
+}
+
+body.keyboard-open .bottom-nav {
+    transform: translateY(var(--keyboard-height, 0));
+}
+
+/* ============================================
+   NATIVE ACTION SHEET
+   ============================================ */
+
+.action-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001;
+    padding-bottom: calc(var(--sab) + 16px);
+}
+
+.action-sheet.open {
+    transform: translateY(0);
+}
+
+.action-sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 16px;
+}
+
+.action-sheet-title {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 20px 16px;
+    color: var(--text-secondary);
+}
+
+.action-sheet-actions {
+    padding: 0 16px;
+}
+
+.action-sheet-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-size: 16px;
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.action-sheet-item:active {
+    background: var(--background-alt);
+}
+
+.action-sheet-item.destructive {
+    color: var(--danger);
+}
+
+.action-sheet-item-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.action-sheet-cancel {
+    margin-top: 12px;
+    padding: 16px 36px;
+    background: var(--background-alt);
+    border-radius: var(--radius-md);
+    margin: 12px 16px 0;
+    font-weight: 600;
+}
+
+/* ============================================
+   DARK MODE OVERLAY
+   ============================================ */
+
+.modal-overlay, .action-sheet-overlay, .bottom-sheet-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.modal-overlay.show,
+.action-sheet-overlay.show,
+.bottom-sheet-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ============================================
+   RESPONSIVE TWEAKS
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Make touch targets larger on mobile */
+    button, .btn, [role="button"], a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Increase tap padding */
+    .sidebar-item, .nav-item, .list-item {
+        padding: 14px 16px;
+    }
+}
