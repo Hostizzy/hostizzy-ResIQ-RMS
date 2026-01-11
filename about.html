@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ResIQ">
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+
+    <title>About & Help - ResIQ by Hostizzy</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="native-app-styles.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --primary: #6366f1;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+
+        [data-theme="dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            padding-top: var(--sat);
+            padding-bottom: calc(var(--sab) + 20px);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--surface);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: sticky;
+            top: var(--sat);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: var(--background);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        .app-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+            display: block;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 24px rgba(99, 102, 241, 0.3));
+        }
+
+        .app-name {
+            font-size: 32px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .app-tagline {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0 auto;
+            display: block;
+            width: fit-content;
+            margin-bottom: 32px;
+        }
+
+        .section {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .help-item {
+            padding: 16px;
+            background: var(--background);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--border);
+        }
+
+        .help-item:active {
+            transform: scale(0.98);
+        }
+
+        .help-item-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .help-item-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-size: 20px;
+        }
+
+        .help-item-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-left: 52px;
+        }
+
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 8px;
+        }
+
+        .contact-btn:active {
+            transform: scale(0.98);
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .feature-item {
+            padding: 12px;
+            background: var(--background);
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .feature-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .link-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text);
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .link-item:active {
+            transform: scale(0.98);
+        }
+
+        .link-item-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .link-item-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-size: 20px;
+        }
+
+        .link-item-arrow {
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px 16px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <h1 class="header-title">About & Help</h1>
+    </div>
+
+    <div class="content">
+        <img src="assets/logo-192.png" alt="ResIQ Logo" class="app-logo">
+        <h1 class="app-name">ResIQ</h1>
+        <p class="app-tagline">by Hostizzy</p>
+        <div class="version-badge">Version 1.0.0 (Build 2026.01)</div>
+
+        <div class="section">
+            <h2 class="section-title">App Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Version</span>
+                    <span class="info-value">1.0.0</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Build Number</span>
+                    <span class="info-value">2026.01.10</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Last Updated</span>
+                    <span class="info-value">January 10, 2026</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Platform</span>
+                    <span class="info-value" id="platform">Web</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Service Worker</span>
+                    <span class="info-value" id="sw-status">Checking...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">What is ResIQ?</h2>
+            <p>ResIQ is a comprehensive property management system designed for vacation rentals and hospitality businesses. Manage reservations, guests, payments, and analytics all in one powerful platform.</p>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">📅</div>
+                    <div class="feature-name">Reservations</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💳</div>
+                    <div class="feature-name">Payments</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-name">Guests</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📄</div>
+                    <div class="feature-name">KYC Documents</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🍽️</div>
+                    <div class="feature-name">Meals</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-name">Analytics</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Help & Support</h2>
+
+            <div class="help-item" onclick="window.open('mailto:support@hostizzy.com')">
+                <div class="help-item-title">
+                    <div class="help-item-icon">📧</div>
+                    <span>Email Support</span>
+                </div>
+                <div class="help-item-desc">Get help via email - We typically respond within 24 hours</div>
+            </div>
+
+            <div class="help-item" onclick="window.open('https://hostizzy.com/help')">
+                <div class="help-item-title">
+                    <div class="help-item-icon">📖</div>
+                    <span>Documentation</span>
+                </div>
+                <div class="help-item-desc">Browse our comprehensive guides and tutorials</div>
+            </div>
+
+            <div class="help-item" onclick="window.open('https://hostizzy.com/faq')">
+                <div class="help-item-title">
+                    <div class="help-item-icon">❓</div>
+                    <span>FAQs</span>
+                </div>
+                <div class="help-item-desc">Find answers to commonly asked questions</div>
+            </div>
+
+            <div class="help-item" onclick="window.open('https://www.youtube.com/@hostizzy')">
+                <div class="help-item-title">
+                    <div class="help-item-icon">▶️</div>
+                    <span>Video Tutorials</span>
+                </div>
+                <div class="help-item-desc">Watch step-by-step video guides</div>
+            </div>
+
+            <button class="contact-btn" onclick="window.open('https://wa.me/919876543210')">
+                <span>💬</span>
+                <span>Chat on WhatsApp</span>
+            </button>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Legal</h2>
+            <div class="link-list">
+                <a href="privacy.html" class="link-item">
+                    <div class="link-item-content">
+                        <div class="link-item-icon">🔒</div>
+                        <span>Privacy Policy</span>
+                    </div>
+                    <span class="link-item-arrow">→</span>
+                </a>
+                <a href="terms.html" class="link-item">
+                    <div class="link-item-content">
+                        <div class="link-item-icon">📋</div>
+                        <span>Terms of Service</span>
+                    </div>
+                    <span class="link-item-arrow">→</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Connect With Us</h2>
+            <div class="link-list">
+                <a href="https://hostizzy.com" class="link-item">
+                    <div class="link-item-content">
+                        <div class="link-item-icon">🌐</div>
+                        <span>Visit Website</span>
+                    </div>
+                    <span class="link-item-arrow">→</span>
+                </a>
+                <a href="https://instagram.com/hostizzy" class="link-item">
+                    <div class="link-item-content">
+                        <div class="link-item-icon">📸</div>
+                        <span>Instagram</span>
+                    </div>
+                    <span class="link-item-arrow">→</span>
+                </a>
+                <a href="https://facebook.com/hostizzy" class="link-item">
+                    <div class="link-item-content">
+                        <div class="link-item-icon">👍</div>
+                        <span>Facebook</span>
+                    </div>
+                    <span class="link-item-arrow">→</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="section" style="text-align: center;">
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">Made with ❤️ in India</p>
+            <p style="color: var(--text-secondary); font-size: 13px;">© 2026 Hostizzy. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script src="native-app-utils.js"></script>
+    <script>
+        function goBack() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Detect platform
+        function detectPlatform() {
+            const ua = navigator.userAgent;
+            const standalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+            if (standalone) {
+                if (/iPhone|iPad|iPod/.test(ua)) {
+                    return 'iOS App';
+                } else if (/Android/.test(ua)) {
+                    return 'Android App';
+                }
+                return 'Installed PWA';
+            }
+
+            if (/iPhone|iPad|iPod/.test(ua)) {
+                return 'iOS Safari';
+            } else if (/Android/.test(ua)) {
+                return 'Android Browser';
+            }
+            return 'Web Browser';
+        }
+
+        // Check service worker status
+        async function checkServiceWorker() {
+            const statusEl = document.getElementById('sw-status');
+
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        if (registration.active) {
+                            statusEl.textContent = 'Active';
+                            statusEl.style.color = 'var(--success)';
+                        } else if (registration.installing) {
+                            statusEl.textContent = 'Installing...';
+                        } else {
+                            statusEl.textContent = 'Registered';
+                        }
+                    } else {
+                        statusEl.textContent = 'Not Registered';
+                    }
+                } catch (error) {
+                    statusEl.textContent = 'Error';
+                }
+            } else {
+                statusEl.textContent = 'Not Supported';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('platform').textContent = detectPlatform();
+            checkServiceWorker();
+        });
+    </script>
+</body>
+</html>

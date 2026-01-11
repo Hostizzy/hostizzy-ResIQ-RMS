@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <!-- PWA / Mobile Web App -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ResIQ">
+
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+
+    <title>Privacy Policy - ResIQ by Hostizzy</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="native-app-styles.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+
+            --primary: #6366f1;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            padding-top: var(--sat);
+            padding-bottom: calc(var(--sab) + 20px);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--surface);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: sticky;
+            top: var(--sat);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: var(--background);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .last-updated {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin: 32px 0 16px;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 18px;
+            margin: 24px 0 12px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background: var(--surface);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .highlight-box strong {
+            color: var(--primary);
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .section {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px 16px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <h1 class="header-title">Privacy Policy</h1>
+    </div>
+
+    <div class="content">
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">Last Updated: January 10, 2026</p>
+
+        <div class="highlight-box">
+            <p><strong>Your Privacy Matters:</strong> ResIQ by Hostizzy is committed to protecting your privacy and handling your data responsibly. This policy explains how we collect, use, and safeguard your information.</p>
+        </div>
+
+        <div class="section">
+            <h2>1. Information We Collect</h2>
+
+            <h3>1.1 Account Information</h3>
+            <p>When you create an account with ResIQ, we collect:</p>
+            <ul>
+                <li>Name and contact details (email, phone number)</li>
+                <li>Business information (company name, address)</li>
+                <li>Login credentials (securely encrypted)</li>
+                <li>Profile picture (optional)</li>
+            </ul>
+
+            <h3>1.2 Reservation & Guest Data</h3>
+            <p>To manage bookings, we collect:</p>
+            <ul>
+                <li>Guest names, contact information, and ID details</li>
+                <li>Check-in/check-out dates and booking preferences</li>
+                <li>Payment information (processed securely)</li>
+                <li>Special requests and dietary preferences</li>
+            </ul>
+
+            <h3>1.3 Document Uploads</h3>
+            <p>For KYC compliance, we may collect:</p>
+            <ul>
+                <li>Government-issued ID documents</li>
+                <li>Address proof documents</li>
+                <li>Photos uploaded by guests</li>
+            </ul>
+
+            <h3>1.4 Usage Data</h3>
+            <p>We automatically collect:</p>
+            <ul>
+                <li>Device information (type, OS, browser)</li>
+                <li>IP address and location data</li>
+                <li>App usage patterns and preferences</li>
+                <li>Crash reports and error logs</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>2. How We Use Your Information</h2>
+
+            <p>We use your information to:</p>
+            <ul>
+                <li><strong>Provide Services:</strong> Process bookings, manage reservations, and facilitate payments</li>
+                <li><strong>Communication:</strong> Send booking confirmations, updates, and important notifications</li>
+                <li><strong>Improve Experience:</strong> Enhance app features and personalize your experience</li>
+                <li><strong>Security:</strong> Protect against fraud and unauthorized access</li>
+                <li><strong>Compliance:</strong> Meet legal requirements and regulations</li>
+                <li><strong>Analytics:</strong> Understand usage patterns to improve our services</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>3. Data Sharing & Disclosure</h2>
+
+            <p>We may share your information with:</p>
+
+            <h3>3.1 Property Owners</h3>
+            <p>Guest information is shared with property owners for booking management purposes.</p>
+
+            <h3>3.2 Service Providers</h3>
+            <p>Third-party services that help us operate:</p>
+            <ul>
+                <li>Cloud hosting providers (Supabase)</li>
+                <li>Payment processors</li>
+                <li>Analytics services</li>
+                <li>Communication services (email, SMS)</li>
+            </ul>
+
+            <h3>3.3 Legal Requirements</h3>
+            <p>We may disclose information when required by law or to:</p>
+            <ul>
+                <li>Comply with legal obligations</li>
+                <li>Protect our rights and property</li>
+                <li>Prevent fraud or security issues</li>
+                <li>Protect the safety of users</li>
+            </ul>
+
+            <p><strong>We never sell your personal information to third parties.</strong></p>
+        </div>
+
+        <div class="section">
+            <h2>4. Data Security</h2>
+
+            <p>We implement industry-standard security measures:</p>
+            <ul>
+                <li><strong>Encryption:</strong> Data is encrypted in transit (SSL/TLS) and at rest</li>
+                <li><strong>Access Control:</strong> Strict access controls and authentication</li>
+                <li><strong>Regular Audits:</strong> Security assessments and vulnerability testing</li>
+                <li><strong>Secure Infrastructure:</strong> Hosted on secure cloud platforms</li>
+                <li><strong>Data Backup:</strong> Regular backups to prevent data loss</li>
+            </ul>
+
+            <p>However, no method of transmission over the internet is 100% secure. While we strive to protect your data, we cannot guarantee absolute security.</p>
+        </div>
+
+        <div class="section">
+            <h2>5. Data Retention</h2>
+
+            <p>We retain your information for as long as:</p>
+            <ul>
+                <li>Your account is active</li>
+                <li>Needed to provide services</li>
+                <li>Required by law or regulations</li>
+                <li>Necessary for legitimate business purposes</li>
+            </ul>
+
+            <p>Booking and financial records are retained for 7 years as per Indian tax regulations.</p>
+        </div>
+
+        <div class="section">
+            <h2>6. Your Rights</h2>
+
+            <p>You have the right to:</p>
+            <ul>
+                <li><strong>Access:</strong> Request a copy of your personal data</li>
+                <li><strong>Correction:</strong> Update or correct inaccurate information</li>
+                <li><strong>Deletion:</strong> Request deletion of your data (subject to legal requirements)</li>
+                <li><strong>Export:</strong> Download your data in a portable format</li>
+                <li><strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
+                <li><strong>Restrict:</strong> Limit how we use your data</li>
+            </ul>
+
+            <p>To exercise these rights, contact us at <a href="mailto:privacy@hostizzy.com">privacy@hostizzy.com</a></p>
+        </div>
+
+        <div class="section">
+            <h2>7. Cookies & Tracking</h2>
+
+            <p>We use cookies and similar technologies to:</p>
+            <ul>
+                <li>Remember your preferences</li>
+                <li>Keep you logged in</li>
+                <li>Analyze app usage</li>
+                <li>Improve performance</li>
+            </ul>
+
+            <p>You can control cookies through your browser settings. However, disabling cookies may affect app functionality.</p>
+        </div>
+
+        <div class="section">
+            <h2>8. Children's Privacy</h2>
+
+            <p>ResIQ is not intended for children under 18. We do not knowingly collect information from children. If you believe we have inadvertently collected such information, please contact us immediately.</p>
+        </div>
+
+        <div class="section">
+            <h2>9. International Users</h2>
+
+            <p>ResIQ primarily operates in India. If you access our services from outside India, your information may be transferred to and processed in India. By using our services, you consent to this transfer.</p>
+        </div>
+
+        <div class="section">
+            <h2>10. Changes to This Policy</h2>
+
+            <p>We may update this Privacy Policy from time to time. We will notify you of significant changes through:</p>
+            <ul>
+                <li>In-app notifications</li>
+                <li>Email notifications</li>
+                <li>Prominent notice on our website</li>
+            </ul>
+
+            <p>Continued use of ResIQ after changes constitutes acceptance of the updated policy.</p>
+        </div>
+
+        <div class="section">
+            <h2>11. Contact Us</h2>
+
+            <p>If you have questions or concerns about this Privacy Policy or our data practices:</p>
+
+            <p><strong>Hostizzy</strong><br>
+            Email: <a href="mailto:privacy@hostizzy.com">privacy@hostizzy.com</a><br>
+            Support: <a href="mailto:support@hostizzy.com">support@hostizzy.com</a><br>
+            Website: <a href="https://hostizzy.com">hostizzy.com</a></p>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 40px;">
+            <p><strong>Your Trust is Important:</strong> We are committed to transparency and protecting your privacy. If you have any concerns, please don't hesitate to reach out to us.</p>
+        </div>
+    </div>
+
+    <script src="native-app-utils.js"></script>
+    <script>
+        function goBack() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>

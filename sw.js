@@ -1,6 +1,6 @@
 /**
  * ResIQ Service Worker
- * Version: 4.2.1
+ * Version: 4.3.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  *
  * IMPORTANT FOR DEVELOPERS:
@@ -11,11 +11,12 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v4.3.0: Added onboarding flow and mobile enhancements
  * - v4.2.1: Added prevention strategies and force update mechanism
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v4.2.1';
+const CACHE_VERSION = 'v4.3.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -27,8 +28,18 @@ const STATIC_CACHE = [
   '/',
   '/index.html',
   '/owner-portal.html',
+  '/guest-portal.html',
+  '/privacy.html',
+  '/terms.html',
+  '/about.html',
   '/offline.html',
   '/manifest.json',
+  '/native-app-utils.js',
+  '/native-app-styles.css',
+  '/mobile-enhanced-forms.css',
+  '/onboarding.js',
+  '/onboarding.css',
+  '/owner-portal-functions.js',
   '/assets/logo.png',
   '/assets/logo-132.png',
   '/assets/logo-192.png',
