@@ -98,13 +98,9 @@
             width: 120px;
             height: 120px;
             margin: 0 auto 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border-radius: 28px;
-            font-size: 60px;
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+            display: block;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 24px rgba(99, 102, 241, 0.3));
         }
 
         .app-name {
@@ -324,7 +320,7 @@
     </div>
 
     <div class="content">
-        <div class="app-logo">🏨</div>
+        <img src="assets/logo-192.png" alt="ResIQ Logo" class="app-logo">
         <h1 class="app-name">ResIQ</h1>
         <p class="app-tagline">by Hostizzy</p>
         <div class="version-badge">Version 1.0.0 (Build 2026.01)</div>
