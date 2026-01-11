@@ -1,0 +1,47 @@
+{
+  "appId": "com.hostizzy.resiq",
+  "appName": "ResIQ",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "resiq.app"
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": "",
+      "keystorePassword": "",
+      "keystoreAlias": "",
+      "keystoreAliasPassword": "",
+      "releaseType": "APK"
+    },
+    "backgroundColor": "#ffffff",
+    "allowMixedContent": false,
+    "captureInput": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#6366f1",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "androidSpinnerStyle": "large",
+      "spinnerColor": "#ffffff",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#6366f1"
+    },
+    "Keyboard": {
+      "resize": "body",
+      "style": "dark",
+      "resizeOnFullScreen": true
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
+}

@@ -7411,7 +7411,7 @@
                             </div>
                             <span class="badge badge-warning">Not Connected</span>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="alert('Email integration coming soon!')">Configure</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('email')">Configure</button>
                     </div>
 
                     <div class="integration-card">
@@ -7422,7 +7422,7 @@
                             </div>
                             <span class="badge badge-warning">Not Connected</span>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="alert('WhatsApp integration coming soon!')">Configure</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('whatsapp')">Configure</button>
                     </div>
 
                     <div class="integration-card">
@@ -7433,7 +7433,7 @@
                             </div>
                             <span class="badge badge-warning">Not Connected</span>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="alert('Payment gateway integration coming soon!')">Configure</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('payment')">Configure</button>
                     </div>
 
                     <div class="integration-card">
@@ -7444,7 +7444,7 @@
                             </div>
                             <span class="badge badge-warning">Not Connected</span>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="alert('Calendar sync coming soon!')">Configure</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('calendar')">Configure</button>
                     </div>
                 </div>
             </div>
@@ -8038,6 +8038,27 @@
         </div>
     </div>
 
+    <!-- Integration Info Modal -->
+    <div id="integrationInfoModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="integrationModalTitle">Integration</h3>
+                <button class="close-btn" onclick="closeIntegrationModal()">&times;</button>
+            </div>
+
+            <div id="integrationModalBody" style="padding: 20px 0;">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+
+            <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--border);">
+                <button class="btn btn-secondary" onclick="closeIntegrationModal()">Close</button>
+                <a href="mailto:support@hostizzy.com?subject=Integration%20Request" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <span>📧</span>
+                    <span>Contact Support</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
     <!-- Property Modal -->
     <div id="propertyModal" class="modal">
@@ -15701,6 +15722,129 @@
             document.getElementById('propertyModal').classList.remove('active');
             document.getElementById('propertyName').value = '';
             document.getElementById('propertyLocation').value = '';
+        }
+
+        // Integration Info Modal Functions
+        function showIntegrationInfo(integrationType) {
+            const integrationData = {
+                email: {
+                    title: '📧 Email Integration',
+                    icon: '📧',
+                    description: 'Connect your email service to send automated booking confirmations, payment reminders, and guest communications.',
+                    features: [
+                        'Automated booking confirmations',
+                        'Payment reminder emails',
+                        'Check-in/check-out notifications',
+                        'Custom email templates',
+                        'Bulk email campaigns'
+                    ],
+                    providers: ['Gmail', 'Outlook', 'SendGrid', 'Mailgun'],
+                    status: 'Available in Version 2.0'
+                },
+                whatsapp: {
+                    title: '💬 WhatsApp Business API',
+                    icon: '💬',
+                    description: 'Send automated WhatsApp messages to guests for instant communication and better engagement.',
+                    features: [
+                        'Instant booking confirmations',
+                        'Payment reminders via WhatsApp',
+                        'Real-time guest support',
+                        'Automated check-in instructions',
+                        'Review request messages'
+                    ],
+                    providers: ['WhatsApp Business API', 'Twilio', 'MessageBird'],
+                    status: 'Available in Version 2.0'
+                },
+                payment: {
+                    title: '💳 Payment Gateway',
+                    icon: '💳',
+                    description: 'Accept online payments directly from guests using secure payment gateways.',
+                    features: [
+                        'Online payment collection',
+                        'Multiple payment methods (UPI, Cards, Wallets)',
+                        'Automatic payment reconciliation',
+                        'Refund management',
+                        'Payment analytics'
+                    ],
+                    providers: ['Razorpay', 'Stripe', 'PayU', 'Paytm'],
+                    status: 'Available in Version 2.0'
+                },
+                calendar: {
+                    title: '📆 Calendar Sync',
+                    icon: '📆',
+                    description: 'Sync your bookings with Google Calendar, Airbnb, Booking.com and other platforms to prevent double bookings.',
+                    features: [
+                        'Two-way calendar synchronization',
+                        'Prevent double bookings',
+                        'Import bookings from OTAs',
+                        'Real-time availability updates',
+                        'Multi-platform integration'
+                    ],
+                    providers: ['Google Calendar', 'Airbnb', 'Booking.com', 'iCal'],
+                    status: 'Available in Version 2.0'
+                }
+            };
+
+            const data = integrationData[integrationType];
+
+            if (!data) return;
+
+            document.getElementById('integrationModalTitle').textContent = data.title;
+
+            const featuresHTML = data.features.map(feature =>
+                `<div style="display: flex; align-items: start; gap: 12px; padding: 8px 0;">
+                    <span style="color: var(--success); font-size: 20px; flex-shrink: 0;">✓</span>
+                    <span style="color: var(--text-primary);">${feature}</span>
+                </div>`
+            ).join('');
+
+            const providersHTML = data.providers.map(provider =>
+                `<span style="background: var(--background); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: var(--text-primary);">${provider}</span>`
+            ).join('');
+
+            document.getElementById('integrationModalBody').innerHTML = `
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">${data.icon}</div>
+                    <p style="color: var(--text-secondary); font-size: 15px; line-height: 1.6;">${data.description}</p>
+                </div>
+
+                <div style="background: var(--background); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 16px;">Key Features:</h4>
+                    ${featuresHTML}
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">Supported Providers:</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${providersHTML}
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 24px;">⏰</span>
+                        <div>
+                            <strong style="color: var(--text-primary);">${data.status}</strong>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
+                                Contact support@hostizzy.com to request early access or get notified when this integration is available.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('integrationInfoModal').style.display = 'flex';
+            document.getElementById('integrationInfoModal').classList.add('active');
+
+            // Update email subject
+            const emailSubject = `Integration Request - ${data.title}`;
+            document.querySelector('#integrationInfoModal .btn-primary').href =
+                `mailto:support@hostizzy.com?subject=${encodeURIComponent(emailSubject)}`;
+        }
+
+        function closeIntegrationModal() {
+            document.getElementById('integrationInfoModal').style.display = 'none';
+            document.getElementById('integrationInfoModal').classList.remove('active');
         }
 
         async function saveProperty() {
