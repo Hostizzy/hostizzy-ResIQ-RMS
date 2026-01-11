@@ -1241,7 +1241,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <!-- Owner Login Screen -->
-    <div id="ownerLoginScreen" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--background); padding: 20px;">
+    <div id="ownerLoginScreen" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--background); padding: 20px; padding-bottom: 140px;">
         <div style="width: 100%; max-width: 400px; background: var(--surface); border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
             <div style="text-align: center; margin-bottom: 32px;">
                 <h1 style="font-size: 28px; margin: 0 0 8px 0; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🏠 Owner Portal</h1>
@@ -1250,12 +1250,28 @@
 
             <div class="form-group" style="margin-bottom: 16px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Email</label>
-                <input type="email" id="ownerLoginEmail" placeholder="your@email.com" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+                <input type="email" id="ownerLoginEmail" placeholder="your@email.com" autocomplete="email" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
             </div>
 
-            <div class="form-group" style="margin-bottom: 24px;">
+            <div class="form-group" style="margin-bottom: 16px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Password</label>
-                <input type="password" id="ownerLoginPassword" placeholder="Enter your password" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+                <div style="position: relative;">
+                    <input type="password" id="ownerLoginPassword" placeholder="Enter your password" autocomplete="current-password" style="width: 100%; padding: 12px; padding-right: 48px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+                    <button type="button" onclick="toggleOwnerPassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; font-size: 18px; opacity: 0.6; transition: opacity 0.2s;" title="Show/Hide Password">
+                        <span id="ownerPasswordToggleIcon">👁️</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember Me + Forgot Password -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="ownerRememberMe" style="width: auto; cursor: pointer;">
+                    <span style="font-size: 14px; font-weight: 500; color: var(--text-secondary);">Remember me</span>
+                </label>
+                <a href="#" onclick="alert('Please contact support@hostizzy.com to reset your password'); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 500;">
+                    Forgot password?
+                </a>
             </div>
 
             <button onclick="ownerLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);"
@@ -1267,6 +1283,28 @@
             <div style="margin-top: 24px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Admin or Staff?</p>
                 <a href="index.html" style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 14px;">← Back to Admin Login</a>
+            </div>
+        </div>
+
+        <!-- Login Page Footer with Legal Links -->
+        <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: var(--surface); backdrop-filter: blur(10px); border-top: 1px solid var(--border); z-index: 1000;">
+            <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+                <!-- Links -->
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-bottom: 12px;">
+                    <a href="about.html" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">About & Help</a>
+                    <span style="color: var(--text-tertiary);">•</span>
+                    <a href="privacy.html" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">Privacy Policy</a>
+                    <span style="color: var(--text-tertiary);">•</span>
+                    <a href="terms.html" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">Terms of Service</a>
+                    <span style="color: var(--text-tertiary);">•</span>
+                    <a href="mailto:support@hostizzy.com" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">Contact Support</a>
+                </div>
+
+                <!-- Version & Copyright -->
+                <div style="font-size: 12px; color: var(--text-tertiary);">
+                    <p style="margin-bottom: 4px;">ResIQ by Hostizzy • Version 1.0.0 (Build 2026.01)</p>
+                    <p>© 2026 Hostizzy. All rights reserved.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -2117,14 +2155,36 @@
             }
         }
 
+        // Toggle password visibility on owner login screen
+        function toggleOwnerPassword() {
+            const passwordInput = document.getElementById('ownerLoginPassword');
+            const toggleIcon = document.getElementById('ownerPasswordToggleIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.textContent = '👁️‍🗨️';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.textContent = '👁️';
+            }
+        }
+
         // Owner Login Function
         async function ownerLogin() {
             const email = document.getElementById('ownerLoginEmail').value.trim();
             const password = document.getElementById('ownerLoginPassword').value;
+            const rememberMe = document.getElementById('ownerRememberMe').checked;
 
             if (!email || !password) {
                 showToast('Login Error', 'Please enter email and password', '❌');
                 return;
+            }
+
+            // Handle "Remember me" - save email only (not password for security)
+            if (rememberMe) {
+                localStorage.setItem('ownerRememberedEmail', email);
+            } else {
+                localStorage.removeItem('ownerRememberedEmail');
             }
 
             try {
@@ -2185,6 +2245,40 @@
             // Load saved theme preference
             const savedTheme = localStorage.getItem('ownerPortalTheme') || 'light';
             applyOwnerTheme(savedTheme);
+
+            // Initialize owner login page - populate remembered email
+            const ownerRememberedEmail = localStorage.getItem('ownerRememberedEmail');
+            if (ownerRememberedEmail) {
+                const emailInput = document.getElementById('ownerLoginEmail');
+                const rememberCheckbox = document.getElementById('ownerRememberMe');
+
+                if (emailInput) {
+                    emailInput.value = ownerRememberedEmail;
+                }
+                if (rememberCheckbox) {
+                    rememberCheckbox.checked = true;
+                }
+            }
+
+            // Add Enter key support for owner login
+            const ownerPasswordInput = document.getElementById('ownerLoginPassword');
+            const ownerEmailInput = document.getElementById('ownerLoginEmail');
+
+            if (ownerPasswordInput) {
+                ownerPasswordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        ownerLogin();
+                    }
+                });
+            }
+
+            if (ownerEmailInput) {
+                ownerEmailInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        ownerLogin();
+                    }
+                });
+            }
 
             const storedUser = localStorage.getItem('currentUser');
 
