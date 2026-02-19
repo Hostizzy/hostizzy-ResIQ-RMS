@@ -16632,9 +16632,10 @@
             try {
                 // ✅ Normalize Airbnb's "webcal://" URLs
                 icalUrl = icalUrl.replace(/^webcal:/i, 'https:');
-                // Use CORS proxy to fetch iCal file
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`;
-                
+
+                // Use our own Vercel serverless function as proxy (more reliable than external CORS proxies)
+                const proxyUrl = `/api/ical-proxy?url=${encodeURIComponent(icalUrl)}`;
+
                 const response = await fetch(proxyUrl, {
                     method: 'GET',
                     headers: {
@@ -16647,7 +16648,7 @@
                 }
 
                 const icalData = await response.text();
-                
+
                 // Validate it's an iCal file
                 if (!icalData.includes('BEGIN:VCALENDAR')) {
                     throw new Error('Invalid iCal format: Missing VCALENDAR');
@@ -16655,7 +16656,7 @@
 
                 // Parse iCal data
                 const blockedDates = parseIcalData(icalData);
-                
+
                 return {
                     success: true,
                     dates: blockedDates,
