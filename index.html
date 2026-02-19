@@ -1752,6 +1752,159 @@
             background: white;
         }
 
+        /* ============================================
+           DESKTOP RESPONSIVE DESIGN (Professional)
+           ============================================ */
+
+        /* Tablet and larger (768px+) */
+        @media (min-width: 768px) {
+            .property-stats {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 14px;
+                padding: 18px 24px;
+            }
+
+            .property-stat {
+                padding: 16px 12px;
+            }
+
+            .property-stat-icon {
+                font-size: 20px;
+                margin-bottom: 8px;
+            }
+
+            .property-stat-value {
+                font-size: 24px;
+                margin-bottom: 6px;
+            }
+
+            .property-stat-label {
+                font-size: 11px;
+            }
+
+            .property-image {
+                height: 220px;
+            }
+
+            .property-badge {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+        }
+
+        /* Desktop (1024px+) - Professional Layout */
+        @media (min-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 24px;
+            }
+
+            .property-card {
+                border-radius: 18px;
+            }
+
+            .property-image {
+                height: 240px;
+            }
+
+            .property-stats {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+                padding: 20px 28px;
+            }
+
+            .property-stat {
+                padding: 18px 14px;
+                border-radius: 14px;
+            }
+
+            .property-stat-icon {
+                font-size: 22px;
+                margin-bottom: 10px;
+            }
+
+            .property-stat-value {
+                font-size: 26px;
+                margin-bottom: 8px;
+            }
+
+            .property-stat-label {
+                font-size: 12px;
+            }
+
+            .property-next-checkin {
+                padding: 18px 28px;
+            }
+
+            .property-revenue-trend {
+                padding: 18px 28px;
+            }
+
+            .property-sync {
+                padding: 18px 28px;
+            }
+
+            .property-actions {
+                padding: 24px 28px;
+                gap: 12px;
+            }
+
+            .property-badge {
+                padding: 8px 16px;
+                font-size: 12px;
+                top: 16px;
+                right: 16px;
+            }
+
+            .property-image-text {
+                bottom: 20px;
+                left: 28px;
+                right: 28px;
+            }
+
+            .property-card-title {
+                font-size: 22px !important;
+            }
+
+            .property-card-location {
+                font-size: 14px !important;
+            }
+        }
+
+        /* Large Desktop (1440px+) - Extra Spacious */
+        @media (min-width: 1440px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 28px;
+            }
+
+            .property-image {
+                height: 260px;
+            }
+
+            .property-stats {
+                padding: 24px 32px;
+                gap: 18px;
+            }
+
+            .property-stat {
+                padding: 20px 16px;
+            }
+
+            .property-stat-icon {
+                font-size: 24px;
+            }
+
+            .property-stat-value {
+                font-size: 28px;
+            }
+
+            .property-stat-label {
+                font-size: 12px;
+                letter-spacing: 0.8px;
+            }
+        }
+
         /* Enhanced Dashboard Cards */
         .metric-card {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -16915,9 +17068,9 @@
                         property_id: propertyId,
                         property_name: truncatedPropertyName,
                         guest_name: truncatedGuestName,
-                        guest_phone: null, // Not available in iCal
-                        guest_email: null, // Not available in iCal
-                        guest_city: null,
+                        guest_phone: '', // Not available in iCal - use empty string for NOT NULL constraint
+                        guest_email: '', // Not available in iCal - use empty string for NOT NULL constraint
+                        guest_city: '', // Not available in iCal - use empty string
                         check_in: event.check_in,
                         check_out: event.check_out,
                         booking_date: new Date().toISOString().split('T')[0],
