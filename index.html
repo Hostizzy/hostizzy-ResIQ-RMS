@@ -16883,8 +16883,8 @@
                         }
                     }
 
-                    // Use UID as booking_id
-                    const bookingId = event.uid;
+                    // Use UID as booking_id (truncate to 50 chars to fit DB constraint)
+                    const bookingId = event.uid.substring(0, 50);
 
                     // Calculate nights
                     const nights = Math.ceil((new Date(event.check_out) - new Date(event.check_in)) / (1000 * 60 * 60 * 24));
@@ -16905,12 +16905,16 @@
                     const monthDate = new Date(event.check_in);
                     const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 
+                    // Truncate long fields to fit database VARCHAR(50) constraints
+                    const truncatedGuestName = guestName.substring(0, 50);
+                    const truncatedPropertyName = property.name.substring(0, 50);
+
                     // Prepare reservation data (partial - financial fields are null as per user request)
                     const reservationData = {
                         booking_id: bookingId,
                         property_id: propertyId,
-                        property_name: property.name,
-                        guest_name: guestName,
+                        property_name: truncatedPropertyName,
+                        guest_name: truncatedGuestName,
                         guest_phone: null, // Not available in iCal
                         guest_email: null, // Not available in iCal
                         guest_city: null,
@@ -16954,7 +16958,7 @@
                                 check_out: event.check_out,
                                 nights: nights,
                                 month: month,
-                                guest_name: guestName, // Update name if changed
+                                guest_name: truncatedGuestName, // Update name if changed (truncated)
                                 booking_source: bookingSource,
                                 updated_at: new Date().toISOString()
                             })
