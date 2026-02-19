@@ -1613,20 +1613,20 @@
             transform: scale(1.05);
         }
 
-        /* 2x2 Stat Grid */
+        /* 2x2 Stat Grid - Compact */
         .property-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding: 16px 20px;
+            gap: 10px;
+            padding: 14px 16px;
             background: #f8fafc;
         }
 
          .property-stat {
             background: white;
-            padding: 14px 12px;
+            padding: 12px 8px;
             text-align: center;
-            border-radius: 12px;
+            border-radius: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             transition: all 0.2s;
         }
@@ -1637,32 +1637,26 @@
         }
 
          .property-stat-value {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             word-break: break-word;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .property-stat-value .trend-icon {
-            font-size: 16px;
+            line-height: 1.2;
         }
 
         .property-stat-label {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .property-stat-icon {
-            font-size: 18px;
-            margin-bottom: 8px;
+            font-size: 16px;
+            margin-bottom: 6px;
         }
 
         /* Next Check-in Section */
@@ -16122,31 +16116,31 @@
                                 </div>
                             </div>
 
-                            <!-- 4-Stat Grid -->
+                            <!-- 2x2 Stat Grid -->
                             <div class="property-stats">
                                 <div class="property-stat">
                                     <div class="property-stat-icon">📊</div>
                                     <div class="property-stat-value">${totalBookings}</div>
-                                    <div class="property-stat-label">Bookings</div>
+                                    <div class="property-stat-label">Total</div>
                                 </div>
                                 <div class="property-stat">
                                     <div class="property-stat-icon">💰</div>
                                     <div class="property-stat-value">₹${(totalRevenue / 100000).toFixed(1)}L</div>
-                                    <div class="property-stat-label">Revenue</div>
+                                    <div class="property-stat-label">Rev</div>
                                 </div>
                                 <div class="property-stat">
                                     <div class="property-stat-icon">📈</div>
-                                    <div class="property-stat-value" style="color: ${occupancyPercent >= 70 ? '#10b981' : occupancyPercent >= 40 ? '#f59e0b' : '#ef4444'}">
+                                    <div class="property-stat-value" style="color: ${occupancyPercent >= 60 ? '#10b981' : occupancyPercent >= 25 ? '#f59e0b' : '#ef4444'}">
                                         ${occupancyPercent}%
                                     </div>
-                                    <div class="property-stat-label">Occupancy</div>
+                                    <div class="property-stat-label">Occ</div>
                                 </div>
                                 <div class="property-stat">
                                     <div class="property-stat-icon">🏠</div>
                                     <div class="property-stat-value" style="color: ${activeBookings > 0 ? '#3b82f6' : '#94a3b8'}">
                                         ${activeBookings}
                                     </div>
-                                    <div class="property-stat-label">Active Now</div>
+                                    <div class="property-stat-label">Live</div>
                                 </div>
                             </div>
 
