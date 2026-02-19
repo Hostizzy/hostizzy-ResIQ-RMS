@@ -56,41 +56,41 @@
             --sab: env(safe-area-inset-bottom, 0px);
             --sal: env(safe-area-inset-left, 0px);
 
-            /* Color System */
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #818cf8;
-            --secondary: #64748b;
-            --success: #10b981;
-            --success-light: #34d399;
-            --danger: #ef4444;
-            --danger-light: #f87171;
-            --warning: #f59e0b;
-            --warning-light: #fbbf24;
-            --background: #f8fafc;
-            --background-alt: #f1f5f9;
+            /* Color System - Professional Palette (Guesty-inspired) */
+            --primary: #0891b2;           /* Teal - professional, clean */
+            --primary-dark: #0e7490;      /* Darker teal */
+            --primary-light: #06b6d4;     /* Lighter teal */
+            --secondary: #475569;         /* Slate gray - neutral */
+            --success: #059669;           /* Muted emerald green */
+            --success-light: #10b981;
+            --danger: #dc2626;            /* Slightly muted red */
+            --danger-light: #ef4444;
+            --warning: #d97706;           /* Amber */
+            --warning-light: #f59e0b;
+            --background: #f8fafc;        /* Very light slate */
+            --background-alt: #f1f5f9;    /* Slightly darker slate */
             --surface: #ffffff;
             --surface-elevated: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-tertiary: #94a3b8;
-            --border: #e2e8f0;
+            --text-primary: #0f172a;      /* Almost black slate */
+            --text-secondary: #475569;    /* Medium slate */
+            --text-tertiary: #94a3b8;     /* Light slate */
+            --border: #e2e8f0;            /* Very light border */
             --border-light: #f1f5f9;
 
-            /* Shadow System */
-            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            /* Shadow System - Softer, more subtle */
+            --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 
-            /* Gradient System */
-            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            --gradient-ocean: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            /* Gradient System - Subtle, professional */
+            --gradient-primary: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+            --gradient-success: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            --gradient-warning: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            --gradient-danger: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            --gradient-ocean: linear-gradient(135deg, #0891b2 0%, #3b82f6 100%);
             --gradient-sunset: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
 
             /* Border Radius System */
             --radius-sm: 8px;
@@ -98,13 +98,68 @@
             --radius-lg: 16px;
             --radius-xl: 20px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Spacing Scale (4px base unit) */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-7: 28px;
+            --space-8: 32px;
+            --space-10: 40px;
+            --space-12: 48px;
+
+            /* Typography Scale */
+            --font-size-xs: 10px;
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-md: 15px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 20px;
+            --font-size-3xl: 24px;
+            --font-size-4xl: 28px;
+
+            /* Font Weights */
+            --font-normal: 400;
+            --font-medium: 500;
+            --font-semibold: 600;
+            --font-bold: 700;
+
+            /* Line Heights */
+            --leading-tight: 1.2;
+            --leading-snug: 1.4;
+            --leading-normal: 1.5;
+
+            /* Status Palette - Professional, muted tones */
+            --success-pale: #d1fae5;
+            --success-text: #065f46;
+            --warning-pale: #fef3c7;
+            --warning-alt-pale: #fed7aa;
+            --warning-text: #92400e;
+            --danger-pale: #fee2e2;
+            --danger-text: #991b1b;
+            --primary-pale: #cffafe;      /* Teal pale */
+            --primary-text: #0e7490;      /* Teal dark */
+            --info-pale: #dbeafe;
+            --info-text: #1e40af;
+            --neutral-pale: #f1f5f9;
+            --neutral-text: #475569;
+
+            /* Component-specific shadows - Softer */
+            --shadow-input-focus: 0 0 0 3px rgba(8, 145, 178, 0.1);
+            --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+            --shadow-fab: 0 6px 16px rgba(8, 145, 178, 0.25);
+            --shadow-card-hover: 0 8px 20px rgba(0, 0, 0, 0.08);
         }
 
         /* Dark Mode Theme */
         [data-theme="dark"] {
-            --primary: #818cf8;
-            --primary-dark: #6366f1;
-            --primary-light: #a5b4fc;
+            --primary: #22d3ee;           /* Bright teal for dark mode */
+            --primary-dark: #0891b2;
+            --primary-light: #67e8f9;
             --secondary: #94a3b8;
             --success: #34d399;
             --success-light: #6ee7b7;
@@ -125,6 +180,24 @@
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+            /* Dark mode status palette */
+            --success-pale: #064e3b;
+            --success-text: #6ee7b7;
+            --warning-pale: #451a03;
+            --warning-alt-pale: #431407;
+            --warning-text: #fcd34d;
+            --danger-pale: #450a0a;
+            --danger-text: #fca5a5;
+            --primary-pale: #164e63;      /* Dark teal */
+            --primary-text: #67e8f9;      /* Light teal */
+            --info-pale: #1e3a5f;
+            --info-text: #93c5fd;
+            --neutral-pale: #1e293b;
+            --neutral-text: #cbd5e1;
+            --shadow-input-focus: 0 0 0 3px rgba(34, 211, 238, 0.15);
+            --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.6);
+            --shadow-fab: 0 6px 16px rgba(34, 211, 238, 0.3);
+            --shadow-card-hover: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
 
         /* Smooth theme transition */
@@ -416,26 +489,27 @@
 
         /* Form Elements */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: var(--space-5);
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
+            margin-bottom: var(--space-2);
+            font-weight: var(--font-semibold);
+            font-size: var(--font-size-base);
             color: var(--text-primary);
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 14px 16px;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            border-radius: 10px;
-            font-size: 14px;
+            padding: 14px var(--space-4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
             font-family: inherit;
+            color: var(--text-primary);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #ffffff;
+            background: var(--surface);
             min-height: 44px; /* Mobile-friendly touch target */
             -webkit-appearance: none; /* Remove iOS styling */
             -moz-appearance: none;
@@ -445,35 +519,35 @@
         @media (max-width: 640px) {
             input, select, textarea {
                 font-size: 16px; /* Prevents zoom on iOS */
-                padding: 16px;
+                padding: var(--space-4);
             }
         }
 
         input:hover, select:hover, textarea:hover {
-            border-color: rgba(0, 0, 0, 0.2);
+            border-color: var(--text-tertiary);
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: #ffffff;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-input-focus);
+            background: var(--surface);
         }
 
         /* Buttons */
         .btn {
-            padding: 12px 24px;
+            padding: var(--space-3) var(--space-6);
             border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-weight: var(--font-semibold);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: var(--space-2);
             position: relative;
             overflow: hidden;
             min-height: 44px; /* Mobile-friendly touch target */
@@ -481,8 +555,8 @@
 
         @media (max-width: 640px) {
             .btn {
-                padding: 12px 20px;
-                font-size: 13px;
+                padding: var(--space-3) var(--space-5);
+                font-size: var(--font-size-sm);
                 width: 100%; /* Full width on mobile for easier tapping */
             }
         }
@@ -510,61 +584,61 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            box-shadow: var(--shadow-md);
         }
 
         .btn-primary:hover {
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+            box-shadow: var(--shadow-lg);
             transform: translateY(-1px);
         }
 
         .btn-secondary {
-            background: #64748b;
+            background: var(--secondary);
             color: white;
-            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.25);
+            box-shadow: var(--shadow);
         }
 
         .btn-secondary:hover {
-            background: #475569;
-            box-shadow: 0 6px 16px rgba(100, 116, 139, 0.35);
+            filter: brightness(0.85);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
         .btn-danger {
-            background: #ef4444;
+            background: var(--danger);
             color: white;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+            box-shadow: var(--shadow);
         }
 
         .btn-danger:hover {
-            background: #dc2626;
-            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+            filter: brightness(0.88);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
         .btn-success {
-            background: #10b981;
+            background: var(--success);
             color: white;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            box-shadow: var(--shadow);
         }
 
         .btn-success:hover {
-            background: #059669;
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+            filter: brightness(0.88);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
         .btn-warning {
-            background: #f59e0b;
+            background: var(--warning);
             color: white;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+            box-shadow: var(--shadow);
         }
 
         .btn-warning:hover {
-            background: #d97706;
-            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+            filter: brightness(0.88);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
@@ -598,10 +672,10 @@
 
         /* Filter Chips */
         .filter-chip {
-            padding: 8px 16px;
+            padding: var(--space-2) var(--space-4);
             border: 2px solid var(--border);
             border-radius: 20px;
-            background: white;
+            background: var(--surface);
             color: var(--text-primary);
             font-size: 14px;
             font-weight: 500;
@@ -623,7 +697,7 @@
 
          /* Navigation - New Top Bar Only */
         .navbar {
-            background: white;
+            background: var(--surface);
             border-bottom: 1px solid var(--border);
             padding: 0;
             position: fixed;
@@ -1348,19 +1422,19 @@
 
         /* Cards - World-Class Design */
         .card {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            margin-bottom: 24px;
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: var(--space-6);
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
         }
 
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
-            border-color: rgba(102, 126, 234, 0.2);
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--primary-pale);
         }
 
         .communication-message:hover {
@@ -1378,9 +1452,9 @@
         }
 
         .card-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a202c;
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
             letter-spacing: -0.01em;
         }
 
@@ -1400,12 +1474,12 @@
         }
 
         .stat-card {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--surface);
+            padding: var(--space-5);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
             position: relative;
             overflow: hidden;
         }
@@ -1417,7 +1491,7 @@
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             transform: scaleY(0);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -1428,105 +1502,404 @@
 
         .stat-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
-            border-color: rgba(102, 126, 234, 0.2);
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--primary-pale);
         }
 
         .stat-label {
-            font-size: 13px;
-            color: #718096;
-            margin-bottom: 8px;
-            font-weight: 500;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+            font-weight: var(--font-medium);
         }
 
         .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a202c;
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
             letter-spacing: -0.02em;
         }
         
-        /* Property Cards */
+        /* ============================================
+           PROPERTY ROW CARDS (Horizontal List Layout)
+           Like Guesty / Airbnb Hosting Dashboard
+           ============================================ */
+
+        /* Override grid to become a vertical list */
+        #propertiesGrid {
+            display: flex !important;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Row card container */
         .property-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
+            background: var(--surface);
+            border-radius: var(--radius-md);
             border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: stretch;
+            min-height: 76px;
             overflow: hidden;
-            transition: all 0.2s;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
         .property-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
             border-color: var(--primary);
         }
 
-        .property-card-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        /* Left: Property Icon / Thumbnail */
+        .prop-icon {
+            width: 76px;
+            min-width: 76px;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-2xl);
+            background: var(--gradient-primary);
+            flex-shrink: 0;
         }
 
+        .prop-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Center: Property Info */
+        .prop-info {
+            flex: 1;
+            min-width: 0;
+            padding: var(--space-2) var(--space-4);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .prop-name {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: var(--leading-tight);
+        }
+
+        .prop-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            overflow: hidden;
+        }
+
+        .prop-location {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        /* Inline performance badge */
+        .prop-badge {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-bold);
+            padding: 2px 7px;
+            border-radius: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            letter-spacing: 0.3px;
+        }
+
+        .prop-badge.top-performer {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .prop-badge.needs-attention {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .prop-badge.average {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .prop-type-row {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        /* Stats: 4 fixed-width columns that NEVER wrap */
+        .prop-stats {
+            display: flex;
+            flex-shrink: 0;
+        }
+
+        .prop-stat {
+            width: 88px;
+            min-width: 88px;
+            text-align: center;
+            padding: var(--space-2) var(--space-1);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .prop-stat-value {
+            font-size: var(--font-size-md);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            white-space: nowrap;
+            line-height: var(--leading-tight);
+            letter-spacing: -0.3px;
+        }
+
+        .prop-stat-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-weight: var(--font-semibold);
+            white-space: nowrap;
+        }
+
+        /* Next Check-in column */
+        .prop-next {
+            width: 140px;
+            min-width: 140px;
+            padding: var(--space-2) var(--space-3);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .prop-next-label {
+            font-size: var(--font-size-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+            font-weight: var(--font-semibold);
+        }
+
+        .prop-next-date {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .prop-next-guest {
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .prop-next-empty {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        /* iCal Sync column */
+        .prop-sync {
+            width: 84px;
+            min-width: 84px;
+            text-align: center;
+            padding: var(--space-2);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .prop-sync-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .prop-sync-dot.synced { background: var(--success); }
+        .prop-sync-dot.not-synced { background: var(--border); }
+
+        .prop-sync-status {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-semibold);
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .prop-sync-time {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+            white-space: nowrap;
+        }
+
+        /* Action buttons column */
+        .prop-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-2) var(--space-2);
+            flex-shrink: 0;
+        }
+
+        .prop-action-btn {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: var(--space-1) var(--space-2);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            color: var(--text-secondary);
+            font-weight: var(--font-semibold);
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .prop-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .prop-action-btn.primary {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+        }
+
+        .prop-action-btn.primary:hover {
+            filter: brightness(1.1);
+        }
+
+        /* btn-icon kept for other parts of the app */
         .btn-icon {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(102, 126, 234, 0.1);
             border: none;
             border-radius: 8px;
             padding: 8px 12px;
             font-size: 18px;
             cursor: pointer;
             transition: all 0.2s;
+            color: var(--primary);
         }
 
         .btn-icon:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
         }
 
-        .property-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1px;
-            background: var(--border);
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
+        /* Mobile: compact stacked layout */
+        @media (max-width: 640px) {
+            .property-card {
+                flex-wrap: wrap;
+                min-height: auto;
+            }
+
+            .prop-icon {
+                width: 60px;
+                min-width: 60px;
+                font-size: var(--font-size-xl);
+                min-height: 60px;
+            }
+
+            .prop-info {
+                flex: 1;
+                border-right: none;
+            }
+
+            .prop-stats {
+                width: 100%;
+                border-top: 1px solid var(--border-light);
+            }
+
+            .prop-stat {
+                flex: 1;
+                width: auto;
+                min-width: 0;
+                padding: var(--space-2) var(--space-1);
+            }
+
+            .prop-stat-value {
+                font-size: var(--font-size-base);
+            }
+
+            .prop-next,
+            .prop-sync {
+                display: none;
+            }
+
+            .prop-actions {
+                width: 100%;
+                border-top: 1px solid var(--border-light);
+                padding: var(--space-2) var(--space-3);
+                justify-content: stretch;
+            }
+
+            .prop-action-btn {
+                flex: 1;
+                text-align: center;
+            }
         }
 
-         .property-stat {
-            background: white;
-            padding: 12px 8px;
-            text-align: center;
-            min-width: 0;
+        /* Desktop: wider stats columns */
+        @media (min-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: var(--space-6);
+            }
+
+            .prop-stat {
+                width: 100px;
+                min-width: 100px;
+            }
+
+            .prop-stat-value {
+                font-size: var(--font-size-lg);
+            }
+
+            .prop-next {
+                width: 160px;
+                min-width: 160px;
+            }
+
+            .prop-name {
+                font-size: var(--font-size-md);
+            }
         }
 
-         .property-stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            word-break: break-word;
-        }
+        @media (min-width: 1440px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: var(--space-7);
+            }
 
-        .property-stat-label {
-            font-size: 10px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            font-weight: 600;
-        }
+            .prop-stat {
+                width: 110px;
+                min-width: 110px;
+            }
 
-        .property-sync {
-            padding: 16px 20px;
-            background: var(--background);
-        }
-
-        .property-actions {
-            padding: 16px 20px;
-            display: flex;
-            gap: 8px;
+            .prop-stat-value {
+                font-size: var(--font-size-xl);
+            }
         }
 
         /* Enhanced Dashboard Cards */
@@ -1564,33 +1937,33 @@
         /* Table */
         .table-container {
             overflow-x: auto;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
         }
 
         table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            font-size: 14px;
+            font-size: var(--font-size-base);
         }
 
         table thead {
-            background: #f8fafc;
+            background: var(--background);
         }
 
         table th {
-            padding: 16px;
+            padding: var(--space-4);
             text-align: left;
-            font-weight: 600;
+            font-weight: var(--font-semibold);
             color: var(--text-primary);
             border-bottom: 2px solid var(--border);
-            font-size: 13px;
+            font-size: var(--font-size-sm);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         table td {
-            padding: 16px;
+            padding: var(--space-4);
             border-bottom: 1px solid var(--border);
             color: var(--text-primary);
         }
@@ -1600,7 +1973,7 @@
         }
 
         table tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: var(--background);
         }
 
         table tbody tr:last-child td {
@@ -1610,62 +1983,83 @@
         /* Status Badges */
         .badge {
             display: inline-block;
-            padding: 6px 14px;
+            padding: var(--space-1) 14px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-semibold);
             text-transform: capitalize;
             letter-spacing: 0.3px;
         }
 
         .badge-confirmed {
-            background: #d1fae5;
-            color: #065f46;
+            background: var(--success-pale);
+            color: var(--success-text);
         }
 
         .badge-pending {
-            background: #fed7aa;
-            color: #92400e;
+            background: var(--warning-alt-pale);
+            color: var(--warning-text);
         }
 
         .badge-checked-in {
-            background: #bfdbfe;
-            color: #1e40af;
+            background: var(--info-pale);
+            color: var(--info-text);
         }
 
         .badge-checked-out {
-            background: #e5e7eb;
-            color: #374151;
+            background: var(--neutral-pale);
+            color: var(--neutral-text);
         }
 
         .badge-cancelled {
-            background: #fecaca;
-            color: #991b1b;
+            background: var(--danger-pale);
+            color: var(--danger-text);
+        }
+
+        /* Cancelled Reservation Row Styling */
+        .cancelled-reservation {
+            opacity: 0.5;
+            background: var(--background) !important;
+            color: var(--text-tertiary);
+            transition: opacity 0.3s ease;
+        }
+
+        .cancelled-reservation:hover {
+            opacity: 0.7;
+        }
+
+        .cancelled-reservation td {
+            color: var(--text-tertiary) !important;
+        }
+
+        .cancelled-reservation strong {
+            text-decoration: line-through;
+            font-weight: var(--font-medium);
         }
 
         .payment-status {
             display: inline-block;
-            padding: 6px 14px;
+            padding: var(--space-1) 14px;
             border-radius: 20px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: var(--font-semibold);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .payment-status.paid {
-            background: #d1fae5;
-            color: #065f46;
+            background: var(--success-pale);
+            color: var(--success-text);
         }
 
         .payment-status.pending {
-            background: #fed7aa;
-            color: #92400e;
+            background: var(--warning-alt-pale);
+            color: var(--warning-text);
         }
 
         .payment-status.partial {
-            background: #fef3c7;
-            color: #92400e;
+            background: var(--warning-pale);
+            color: var(--warning-text);
         }
 
         /* Modal */
@@ -1695,14 +2089,14 @@
         }   
 
         .modal-content {
-            background: white;
-            border-radius: 20px;
+            background: var(--surface);
+            border-radius: var(--radius-xl);
             padding: 0;
             max-width: 600px;
             width: 95%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-modal);
             animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -1718,13 +2112,13 @@
         }
 
         .modal-header {
-            padding: 24px;
+            padding: var(--space-6);
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f8fafc;
-            border-radius: 20px 20px 0 0;
+            background: var(--background);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
         }
 
         .modal-content > div:not(.modal-header) {
@@ -1732,8 +2126,9 @@
         }
 
         .modal-title {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
         }
 
         .close-btn {
@@ -3009,32 +3404,32 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: var(--space-4);
+            margin-bottom: var(--space-3);
             background: var(--background);
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             border-left: 4px solid var(--primary);
             transition: all 0.2s;
         }
 
         .action-item:hover {
-            background: #f1f5f9;
+            background: var(--background-alt);
             transform: translateX(4px);
         }
 
         .action-item.urgent {
             border-left-color: var(--danger);
-            background: #fef2f2;
+            background: var(--danger-pale);
         }
 
         .action-item.today {
             border-left-color: var(--warning);
-            background: #fffbeb;
+            background: var(--warning-pale);
         }
 
         .action-item.upcoming {
             border-left-color: var(--success);
-            background: #f0fdf4;
+            background: var(--success-pale);
         }
 
         .action-info {
@@ -3042,13 +3437,14 @@
         }
 
         .action-title {
-            font-weight: 600;
-            font-size: 15px;
-            margin-bottom: 4px;
+            font-weight: var(--font-semibold);
+            font-size: var(--font-size-md);
+            margin-bottom: var(--space-1);
+            color: var(--text-primary);
         }
 
         .action-details {
-            font-size: 13px;
+            font-size: var(--font-size-sm);
             color: var(--text-secondary);
         }
 
@@ -3059,26 +3455,26 @@
         }
 
         .action-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-md);
             font-size: 11px;
-            font-weight: 600;
+            font-weight: var(--font-semibold);
             text-transform: uppercase;
         }
 
         .action-badge.overdue {
-            background: #fee2e2;
-            color: #991b1b;
+            background: var(--danger-pale);
+            color: var(--danger-text);
         }
 
         .action-badge.due-today {
-            background: #fef3c7;
-            color: #92400e;
+            background: var(--warning-pale);
+            color: var(--warning-text);
         }
 
         .action-badge.due-soon {
-            background: #dbeafe;
-            color: #1e40af;
+            background: var(--info-pale);
+            color: var(--info-text);
         }
 
         @media (max-width: 768px) {
@@ -4761,6 +5157,11 @@
                 <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode" style="margin-right: 16px;">
                     <span class="theme-icon-light">☀️</span>
                     <span class="theme-icon-dark" style="display: none;">🌙</span>
+                </button>
+
+                <!-- App Settings -->
+                <button class="theme-toggle-btn" onclick="openAppSettings()" title="App Settings" style="margin-right: 16px;">
+                    <span style="font-size: 20px;">⚙️</span>
                 </button>
 
                 <!-- Profile Dropdown (Desktop & Tablet) -->
@@ -7411,7 +7812,7 @@
                             </div>
                             <span class="badge badge-warning">Not Connected</span>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="alert('Email integration coming soon!')">Configure</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('email')">Configure</button>
                     </div>
 
                     <div class="integration-card">
@@ -7422,7 +7823,7 @@
                             </div>
                             <span class="badge badge-warning">Not Connected</span>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="alert('WhatsApp integration coming soon!')">Configure</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('whatsapp')">Configure</button>
                     </div>
 
                     <div class="integration-card">
@@ -7433,7 +7834,7 @@
                             </div>
                             <span class="badge badge-warning">Not Connected</span>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="alert('Payment gateway integration coming soon!')">Configure</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('payment')">Configure</button>
                     </div>
 
                     <div class="integration-card">
@@ -7444,7 +7845,7 @@
                             </div>
                             <span class="badge badge-warning">Not Connected</span>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="alert('Calendar sync coming soon!')">Configure</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('calendar')">Configure</button>
                     </div>
                 </div>
             </div>
@@ -8038,6 +8439,27 @@
         </div>
     </div>
 
+    <!-- Integration Info Modal -->
+    <div id="integrationInfoModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="integrationModalTitle">Integration</h3>
+                <button class="close-btn" onclick="closeIntegrationModal()">&times;</button>
+            </div>
+
+            <div id="integrationModalBody" style="padding: 20px 0;">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+
+            <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--border);">
+                <button class="btn btn-secondary" onclick="closeIntegrationModal()">Close</button>
+                <a href="mailto:support@hostizzy.com?subject=Integration%20Request" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <span>📧</span>
+                    <span>Contact Support</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
     <!-- Property Modal -->
     <div id="propertyModal" class="modal">
@@ -8536,6 +8958,112 @@
         </div>
     </div> 
  
+
+<!-- App Settings Modal -->
+<div id="appSettingsModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <span class="modal-title">⚙️ App Settings</span>
+            <button class="close-btn" onclick="closeAppSettings()">×</button>
+        </div>
+        <div style="padding: 24px;">
+
+            <!-- Gmail Integration Section -->
+            <div style="margin-bottom: 24px; padding: 24px; background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border-radius: 12px; border: 2px solid var(--primary);">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <span style="font-size: 28px;">📧</span>
+                    <div>
+                        <div style="font-weight: 700; font-size: 16px; color: #134e4a;">Gmail Auto-Import (Global)</div>
+                        <div style="font-size: 13px; color: #115e59;">Scan stay@hostizzy.com for all property bookings</div>
+                    </div>
+                </div>
+
+                <!-- Gmail Connection Status -->
+                <div id="gmailConnectionStatus" style="margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #99f6e4;">
+                    <div id="gmailNotConnected" style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #94a3b8;">⭕</span>
+                            <span style="font-size: 14px; color: #475569;">Not Connected</span>
+                        </div>
+                        <button onclick="connectGmail()"
+                            style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s;">
+                            Connect Gmail
+                        </button>
+                    </div>
+
+                    <div id="gmailConnected" style="display: none;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #22c55e;">✅</span>
+                                <span style="font-size: 14px; color: #1e293b; font-weight: 600;" id="connectedGmailEmail">email@gmail.com</span>
+                            </div>
+                            <button onclick="disconnectGmail()"
+                                style="padding: 6px 12px; background: var(--danger); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
+                                Disconnect
+                            </button>
+                        </div>
+                        <div style="font-size: 12px; color: #64748b;">
+                            Last scan: <span id="gmailLastScan">Never</span>
+                        </div>
+                        <div style="margin-top: 12px;">
+                            <button id="gmailScanBtn" onclick="scanGmailNow()"
+                                style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; width: 100%;">
+                                🔍 Scan for Bookings Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto-Scan Settings -->
+                <div style="padding: 12px; background: white; border-radius: 8px; border: 1px solid #99f6e4;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">🔄 Auto-Scan Emails</div>
+                            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Check for new bookings every 2 hours</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="gmailAutoScanEnabled" disabled onchange="toggleGmailAutoScan()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Setup Instructions -->
+                <details style="margin-top: 12px; border: 1px solid #99f6e4; border-radius: 8px; padding: 12px; background: white;">
+                    <summary style="cursor: pointer; font-weight: 600; color: var(--primary); font-size: 13px;">
+                        ⚙️ First-time Setup Required
+                    </summary>
+                    <div style="margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6;">
+                        <strong style="color: #134e4a;">Before connecting Gmail:</strong><br><br>
+                        1. Go to <a href="https://console.cloud.google.com" target="_blank" style="color: var(--primary); text-decoration: underline;">Google Cloud Console</a><br>
+                        2. Create a new project (or select existing)<br>
+                        3. Enable "Gmail API"<br>
+                        4. Create OAuth 2.0 credentials (Web application)<br>
+                        5. Add authorized redirect URI: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">https://your-domain.com</code><br>
+                        6. Copy Client ID and paste below<br><br>
+
+                        <label style="display: block; font-weight: 600; color: #134e4a; margin-top: 12px; margin-bottom: 4px;">
+                            Google OAuth Client ID:
+                        </label>
+                        <input type="text" id="gmailClientId" placeholder="123456789-abcdefg.apps.googleusercontent.com"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-family: monospace;">
+                        <button onclick="saveGmailClientId()"
+                            style="margin-top: 8px; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
+                            Save Client ID
+                        </button>
+                    </div>
+                </details>
+
+                <div style="margin-top: 12px; padding: 12px; background: white; border-radius: 8px; border-left: 3px solid var(--info-text);">
+                    <div style="font-size: 12px; color: #475569; line-height: 1.6;">
+                        <strong style="color: var(--info-text);">ℹ️ How it works:</strong><br>
+                        Gmail scans <strong>stay@hostizzy.com</strong> for booking confirmation emails from Airbnb, Booking.com, Agoda, MakeMyTrip, etc. Properties are auto-detected from email content.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Property Settings Modal -->
 <div id="propertySettingsModal" class="modal" style="display: none;">
@@ -13835,33 +14363,35 @@
                 tbody.innerHTML = '<tr><td colspan="9" class="text-center">No reservations found</td></tr>';
                 return;
             }
-            
+
             tbody.innerHTML = reservations.map(r => `
-                <tr>
+                <tr ${r.status === 'cancelled' ? 'class="cancelled-reservation" style="opacity: 0.5; background: #f8f9fa; color: #6c757d;"' : ''}>
                     <td>
-                        <input type="checkbox" class="row-select-checkbox" data-booking-id="${r.booking_id}" 
-                               onchange="toggleRowSelection(this, '${r.booking_id}')">
+                        <input type="checkbox" class="row-select-checkbox" data-booking-id="${r.booking_id}"
+                               onchange="toggleRowSelection(this, '${r.booking_id}')" ${r.status === 'cancelled' ? 'disabled' : ''}>
                     </td>
-                    <td><strong>${r.booking_id || 'N/A'}</strong></td>
-                    <td>${r.property_name}</td>
+                    <td><strong style="${r.status === 'cancelled' ? 'text-decoration: line-through;' : ''}">${r.booking_id || 'N/A'}</strong></td>
+                    <td>${r.property_name || '-'}</td>
                     <td>
-                        ${getBookingSourceBadge(r.booking_source)}
+                        ${r.booking_source ? getBookingSourceBadge(r.booking_source) : '-'}
                     </td>
-                    <td>${r.guest_name}</td>
-                    <td>${formatDate(r.check_in)}</td>
-                    <td>${r.nights}</td>
+                    <td>${r.guest_name || '-'}</td>
+                    <td>${r.check_in ? formatDate(r.check_in) : '-'}</td>
+                    <td>${r.nights || '-'}</td>
                     <td>
-                        <div style="font-weight: 700; font-size: 15px;">
-                            ${formatCurrency(r.total_amount)}
-                        </div>
-                        ${r.ota_service_fee > 0 ? `
-                            <div style="font-size: 11px; color: var(--danger); margin-top: 2px;">
-                                🏢 Fee: ${formatCurrency(r.ota_service_fee)}
+                        ${r.total_amount ? `
+                            <div style="font-weight: 700; font-size: 15px; ${r.status === 'cancelled' ? 'text-decoration: line-through;' : ''}">
+                                ${formatCurrency(r.total_amount)}
                             </div>
-                            <div style="font-size: 11px; color: var(--success); margin-top: 2px; font-weight: 600;">
-                                Net: ${formatCurrency(r.total_amount - r.ota_service_fee)}
-                            </div>
-                        ` : ''}
+                            ${r.ota_service_fee > 0 ? `
+                                <div style="font-size: 11px; color: var(--danger); margin-top: 2px;">
+                                    🏢 Fee: ${formatCurrency(r.ota_service_fee)}
+                                </div>
+                                <div style="font-size: 11px; color: var(--success); margin-top: 2px; font-weight: 600;">
+                                    Net: ${formatCurrency(r.total_amount - r.ota_service_fee)}
+                                </div>
+                            ` : ''}
+                        ` : '<span style="color: #adb5bd;">No amount</span>'}
                     </td>
                     <td><span class="badge badge-${r.status}">${r.status}</span></td>
                     <td>
@@ -14407,6 +14937,8 @@
                 
                 const editId = document.getElementById('editReservationId').value;
                 
+                const bookingStatus = document.getElementById('bookingStatus').value;
+
                 const reservation = {
                     property_id: propertyId,
                     property_name: property.name,
@@ -14417,13 +14949,13 @@
                     month: month,
                     nights: nights,
                     gst_status: document.getElementById('gstStatus').value,
-                    taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 : 
+                    taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 :
                            parseFloat(document.getElementById('taxes').value) || 0,
                     guest_name: document.getElementById('guestName').value,
                     guest_phone: document.getElementById('guestPhone').value,
                     guest_email: document.getElementById('guestEmail').value || null,
                     guest_city: document.getElementById('guestCity').value || null,
-                    status: document.getElementById('bookingStatus').value,
+                    status: bookingStatus,
                     booking_source: bookingSource,
                     number_of_rooms: parseInt(document.getElementById('numberOfRooms').value) || 1,
                     adults: adults,
@@ -14445,6 +14977,39 @@
                     paid_amount: 0,
                     payment_status: 'pending'
                 };
+
+                // CANCELLED RESERVATION CLEANUP: Purge all data except essential fields
+                if (bookingStatus === 'cancelled') {
+                    // Keep only: booking_id, guest_name, guest_email, guest_phone,
+                    //            check_in, check_out, status, property_id, property_name
+                    reservation.booking_type = null;
+                    reservation.booking_date = null;
+                    reservation.month = null;
+                    reservation.nights = null;
+                    reservation.gst_status = null;
+                    reservation.guest_city = null;
+                    reservation.booking_source = null;
+                    reservation.number_of_rooms = null;
+                    reservation.adults = null;
+                    reservation.kids = null;
+                    reservation.number_of_guests = null;
+                    reservation.stay_amount = null;
+                    reservation.extra_guest_charges = null;
+                    reservation.meals_chef = null;
+                    reservation.bonfire_other = null;
+                    reservation.ota_service_fee = null;
+                    reservation.taxes = null;
+                    reservation.total_amount_pre_tax = null;
+                    reservation.total_amount_inc_tax = null;
+                    reservation.total_amount = null;
+                    reservation.damages = null;
+                    reservation.hostizzy_revenue = null;
+                    reservation.avg_room_rate = null;
+                    reservation.avg_nightly_rate = null;
+                    reservation.paid_amount = null;
+                    reservation.payment_status = null;
+                    reservation.last_reminder_date = null;
+                }
                 
                 // Handle booking_id for both new and edited reservations
                 if (!editId) {
@@ -14476,10 +15041,15 @@
                     if (editId) {
                         reservation.id = parseInt(editId);
                     }
-                    
+
                     const result = await db.saveReservation(reservation);
                     console.log('Saved reservation:', result);
-                    
+
+                    // If status changed to cancelled, cleanup related records
+                    if (bookingStatus === 'cancelled' && reservation.booking_id) {
+                        await cleanupCancelledReservationData(reservation.booking_id);
+                    }
+
                     closeReservationModal();
                     await loadReservations();
                     await loadDashboard();
@@ -14502,7 +15072,7 @@
 
         async function deleteReservation(booking_id) {
             if (!confirm('Delete this reservation?')) return;
-            
+
             try {
                 await db.deleteReservation(booking_id);
                 await loadReservations();
@@ -14511,6 +15081,47 @@
             } catch (error) {
                 console.error('Delete error:', error);
                 showToast('Error', 'Failed to delete reservation', '❌');
+            }
+        }
+
+        async function cleanupCancelledReservationData(booking_id) {
+            try {
+                console.log('Cleaning up cancelled reservation data for:', booking_id);
+
+                // Delete payment records for this booking
+                const { error: paymentError } = await supabase
+                    .from('payments')
+                    .delete()
+                    .eq('booking_id', booking_id);
+
+                if (paymentError && paymentError.code !== 'PGRST116') { // PGRST116 = no rows found (not an error)
+                    console.warn('Payment cleanup warning:', paymentError);
+                }
+
+                // Delete guest documents (explicit, though CASCADE should handle this)
+                const { error: docsError } = await supabase
+                    .from('guest_documents')
+                    .delete()
+                    .eq('booking_id', booking_id);
+
+                if (docsError && docsError.code !== 'PGRST116') {
+                    console.warn('Document cleanup warning:', docsError);
+                }
+
+                // Delete guest meal preferences if that table exists
+                const { error: mealsError } = await supabase
+                    .from('guest_meal_preferences')
+                    .delete()
+                    .eq('booking_id', booking_id);
+
+                if (mealsError && mealsError.code !== 'PGRST116') {
+                    console.warn('Meal preferences cleanup warning:', mealsError);
+                }
+
+                console.log('Cancelled reservation cleanup completed for:', booking_id);
+            } catch (error) {
+                console.error('Error during cancelled reservation cleanup:', error);
+                // Don't throw - cleanup is best-effort
             }
         }
 
@@ -15573,74 +16184,165 @@
                 
                 grid.innerHTML = properties.map(p => {
                     const propBookings = reservations.filter(r => r.property_id === p.id);
+                    const confirmedBookings = propBookings.filter(r => r.status !== 'cancelled');
                     const activeBookings = propBookings.filter(r => r.status === 'checked-in').length;
-                    const totalBookings = propBookings.length;
-                    
-                    // Calculate revenue
-                    const totalRevenue = propBookings.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-                    
+                    const totalBookings = confirmedBookings.length;
+
+                    // Calculate revenue (excluding cancelled)
+                    const totalRevenue = confirmedBookings.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+
                     // Calculate occupancy
-                    const totalNights = propBookings.reduce((sum, r) => sum + (parseInt(r.nights) || 0), 0);
+                    const totalNights = confirmedBookings.reduce((sum, r) => sum + (parseInt(r.nights) || 0), 0);
                     const occupancyPercent = totalNights > 0 ? Math.round((totalNights / 365) * 100) : 0;
-                    
+
+                    // Get next check-in
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const upcomingBookings = confirmedBookings
+                        .filter(r => new Date(r.check_in) >= today)
+                        .sort((a, b) => new Date(a.check_in) - new Date(b.check_in));
+                    const nextCheckIn = upcomingBookings[0];
+
+                    // Performance badge - based on occupancy only, skip if no data
+                    let performanceBadge = '';
+                    let badgeClass = '';
+                    if (totalBookings === 0) {
+                        performanceBadge = '🆕 New';
+                        badgeClass = 'average';
+                    } else if (occupancyPercent >= 60) {
+                        performanceBadge = '⭐ Top Performer';
+                        badgeClass = 'top-performer';
+                    } else if (occupancyPercent > 0 && occupancyPercent < 25) {
+                        performanceBadge = '⚠️ Low Occupancy';
+                        badgeClass = 'needs-attention';
+                    } else {
+                        performanceBadge = '📊 Active';
+                        badgeClass = 'average';
+                    }
+
+                    // Sparkline: last 6 months revenue by check-in month
+                    const sparklineData = [];
+                    for (let i = 5; i >= 0; i--) {
+                        const d = new Date();
+                        d.setDate(1);
+                        d.setMonth(d.getMonth() - i);
+                        const monthStr = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+                        const monthRevenue = confirmedBookings
+                            .filter(r => r.month === monthStr)
+                            .reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+                        sparklineData.push({ month: monthStr, revenue: monthRevenue });
+                    }
+                    const maxRevenue = Math.max(...sparklineData.map(d => d.revenue), 1);
+                    const hasAnyRevenue = sparklineData.some(d => d.revenue > 0);
+                    const sparklineBars = hasAnyRevenue
+                        ? sparklineData.map(d => {
+                            const height = Math.max((d.revenue / maxRevenue) * 100, d.revenue > 0 ? 10 : 3);
+                            const opacity = d.revenue > 0 ? 1 : 0.2;
+                            return `<div class="sparkline-bar" style="height: ${height}%; opacity: ${opacity}" title="${d.month}: ₹${Math.round(d.revenue).toLocaleString('en-IN')}"></div>`;
+                          }).join('')
+                        : '';
+
+                    // Revenue trend: compare current month vs previous month (from sparklineData)
+                    const currentMonthRevenue = sparklineData[5]?.revenue || 0;
+                    const prevMonthRevenue = sparklineData[4]?.revenue || 0;
+                    const trendPercent = prevMonthRevenue > 0
+                        ? Math.round(((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
+                        : 0;
+                    const trendClass = trendPercent >= 0 ? 'positive' : 'negative';
+                    const trendIcon = trendPercent >= 0 ? '📈' : '📉';
+
+                    // Property icon based on type
+                    const iconMap = {
+                        'Villa': '🏡',
+                        'Apartment': '🏢',
+                        'Hotel': '🏨',
+                        'Hostel': '🏠',
+                        'Resort': '🌴'
+                    };
+                    const propertyIcon = iconMap[p.type] || '🏠';
+
                     // Sync status
                     const syncStatus = getSyncStatusBadge(p);
-                    const lastSynced = p.ical_last_synced ? 
+                    const lastSynced = p.ical_last_synced ?
                         formatTimeAgo(new Date(p.ical_last_synced)) : 'Never';
-                    
+
+                    // Format revenue compactly
+                    const revenueDisplay = totalRevenue >= 100000
+                        ? '₹' + (totalRevenue / 100000).toFixed(1) + 'L'
+                        : totalRevenue >= 1000
+                            ? '₹' + (totalRevenue / 1000).toFixed(0) + 'K'
+                            : '₹' + Math.round(totalRevenue);
+
+                    const occColor = occupancyPercent >= 60 ? '#10b981'
+                        : occupancyPercent >= 25 ? '#f59e0b'
+                        : occupancyPercent > 0 ? '#ef4444'
+                        : '#94a3b8';
+
                     return `
                         <div class="property-card">
-                            <div class="property-card-header">
-                                <div>
-                                    <h3 style="margin-bottom: 4px; font-size: 18px;">${p.name}</h3>
-                                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin: 0;">📍 ${p.location || 'No location'}</p>
-                                </div>
-                                <button onclick="openPropertySettings(${p.id})" class="btn-icon" title="Settings">
-                                    ⚙️
-                                </button>
+
+                            <!-- Left: Icon / Thumbnail -->
+                            <div class="prop-icon">
+                                ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}">` : propertyIcon}
                             </div>
-                            
-                            <div class="property-stats">
-                                <div class="property-stat">
-                                    <div class="property-stat-value">${totalBookings}</div>
-                                    <div class="property-stat-label">Bookings</div>
+
+                            <!-- Property Name, Location, Badge -->
+                            <div class="prop-info">
+                                <div class="prop-name">${p.name}</div>
+                                <div class="prop-meta">
+                                    <span class="prop-location">📍 ${p.location || 'No location'}</span>
+                                    <span class="prop-badge ${badgeClass}">${performanceBadge}</span>
                                 </div>
-                                <div class="property-stat">
-                                    <div class="property-stat-value">₹${(totalRevenue / 100000).toFixed(1)}L</div>
-                                    <div class="property-stat-label">Revenue</div>
+                                <div class="prop-type-row">${p.type || 'Property'}</div>
+                            </div>
+
+                            <!-- Stats: 4 fixed-width columns -->
+                            <div class="prop-stats">
+                                <div class="prop-stat">
+                                    <div class="prop-stat-value">${totalBookings}</div>
+                                    <div class="prop-stat-label">Bookings</div>
                                 </div>
-                                <div class="property-stat">
-                                    <div class="property-stat-value">${occupancyPercent}%</div>
-                                    <div class="property-stat-label">Occupancy</div>
+                                <div class="prop-stat">
+                                    <div class="prop-stat-value">${revenueDisplay}</div>
+                                    <div class="prop-stat-label">Revenue</div>
+                                </div>
+                                <div class="prop-stat">
+                                    <div class="prop-stat-value" style="color:${occColor}">${occupancyPercent}%</div>
+                                    <div class="prop-stat-label">Occupancy</div>
+                                </div>
+                                <div class="prop-stat">
+                                    <div class="prop-stat-value" style="color:${activeBookings > 0 ? '#3b82f6' : '#94a3b8'}">${activeBookings}</div>
+                                    <div class="prop-stat-label">Live Now</div>
                                 </div>
                             </div>
-                            
-                            <div class="property-sync">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; font-weight: 600;">🔗 iCal Sync</span>
-                                    ${syncStatus}
-                                </div>
-                                ${p.ical_url ? `
-                                    <div style="font-size: 12px; color: var(--text-secondary);">
-                                        Last synced: ${lastSynced}
-                                    </div>
+
+                            <!-- Next Check-in -->
+                            <div class="prop-next">
+                                <div class="prop-next-label">Next Check-in</div>
+                                ${nextCheckIn ? `
+                                    <div class="prop-next-date">${formatDate(nextCheckIn.check_in)}</div>
+                                    <div class="prop-next-guest">${nextCheckIn.guest_name}</div>
                                 ` : `
-                                    <div style="font-size: 12px; color: var(--text-secondary);">
-                                        No iCal URL configured
-                                    </div>
+                                    <div class="prop-next-empty">None upcoming</div>
                                 `}
                             </div>
-                            
-                            <div class="property-actions">
-                                <button class="btn btn-sm btn-secondary" onclick="showPropertyCalendar(${p.id})" style="flex: 1;">
-                                    📅 Calendar
-                                </button>
-                                ${p.ical_url ? `
-                                    <button class="btn btn-sm btn-primary" onclick="syncPropertyNow(${p.id}, event)" style="flex: 1;">
-                                        🔄 Sync Now
-                                    </button>
-                                ` : ''}
+
+                            <!-- iCal Sync Status -->
+                            <div class="prop-sync">
+                                <div class="prop-sync-dot ${p.ical_url ? 'synced' : 'not-synced'}"></div>
+                                <div class="prop-sync-status">${p.ical_url ? 'iCal On' : 'No iCal'}</div>
+                                ${p.ical_url ? `<div class="prop-sync-time">${lastSynced}</div>` : ''}
                             </div>
+
+                            <!-- Actions -->
+                            <div class="prop-actions">
+                                <button class="prop-action-btn" onclick="showPropertyCalendar(${p.id})" title="Calendar">📅 Cal</button>
+                                ${p.ical_url ? `
+                                    <button class="prop-action-btn primary" onclick="syncPropertyNow(${p.id}, event)" title="Sync Now">🔄</button>
+                                ` : ''}
+                                <button class="prop-action-btn" onclick="openPropertySettings(${p.id})" title="Settings">⚙️</button>
+                            </div>
+
                         </div>
                     `;
                 }).join('');
@@ -15701,6 +16403,129 @@
             document.getElementById('propertyModal').classList.remove('active');
             document.getElementById('propertyName').value = '';
             document.getElementById('propertyLocation').value = '';
+        }
+
+        // Integration Info Modal Functions
+        function showIntegrationInfo(integrationType) {
+            const integrationData = {
+                email: {
+                    title: '📧 Email Integration',
+                    icon: '📧',
+                    description: 'Connect your email service to send automated booking confirmations, payment reminders, and guest communications.',
+                    features: [
+                        'Automated booking confirmations',
+                        'Payment reminder emails',
+                        'Check-in/check-out notifications',
+                        'Custom email templates',
+                        'Bulk email campaigns'
+                    ],
+                    providers: ['Gmail', 'Outlook', 'SendGrid', 'Mailgun'],
+                    status: 'Available in Version 2.0'
+                },
+                whatsapp: {
+                    title: '💬 WhatsApp Business API',
+                    icon: '💬',
+                    description: 'Send automated WhatsApp messages to guests for instant communication and better engagement.',
+                    features: [
+                        'Instant booking confirmations',
+                        'Payment reminders via WhatsApp',
+                        'Real-time guest support',
+                        'Automated check-in instructions',
+                        'Review request messages'
+                    ],
+                    providers: ['WhatsApp Business API', 'Twilio', 'MessageBird'],
+                    status: 'Available in Version 2.0'
+                },
+                payment: {
+                    title: '💳 Payment Gateway',
+                    icon: '💳',
+                    description: 'Accept online payments directly from guests using secure payment gateways.',
+                    features: [
+                        'Online payment collection',
+                        'Multiple payment methods (UPI, Cards, Wallets)',
+                        'Automatic payment reconciliation',
+                        'Refund management',
+                        'Payment analytics'
+                    ],
+                    providers: ['Razorpay', 'Stripe', 'PayU', 'Paytm'],
+                    status: 'Available in Version 2.0'
+                },
+                calendar: {
+                    title: '📆 Calendar Sync',
+                    icon: '📆',
+                    description: 'Sync your bookings with Google Calendar, Airbnb, Booking.com and other platforms to prevent double bookings.',
+                    features: [
+                        'Two-way calendar synchronization',
+                        'Prevent double bookings',
+                        'Import bookings from OTAs',
+                        'Real-time availability updates',
+                        'Multi-platform integration'
+                    ],
+                    providers: ['Google Calendar', 'Airbnb', 'Booking.com', 'iCal'],
+                    status: 'Available in Version 2.0'
+                }
+            };
+
+            const data = integrationData[integrationType];
+
+            if (!data) return;
+
+            document.getElementById('integrationModalTitle').textContent = data.title;
+
+            const featuresHTML = data.features.map(feature =>
+                `<div style="display: flex; align-items: start; gap: 12px; padding: 8px 0;">
+                    <span style="color: var(--success); font-size: 20px; flex-shrink: 0;">✓</span>
+                    <span style="color: var(--text-primary);">${feature}</span>
+                </div>`
+            ).join('');
+
+            const providersHTML = data.providers.map(provider =>
+                `<span style="background: var(--background); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: var(--text-primary);">${provider}</span>`
+            ).join('');
+
+            document.getElementById('integrationModalBody').innerHTML = `
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">${data.icon}</div>
+                    <p style="color: var(--text-secondary); font-size: 15px; line-height: 1.6;">${data.description}</p>
+                </div>
+
+                <div style="background: var(--background); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 16px;">Key Features:</h4>
+                    ${featuresHTML}
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">Supported Providers:</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${providersHTML}
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 24px;">⏰</span>
+                        <div>
+                            <strong style="color: var(--text-primary);">${data.status}</strong>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
+                                Contact support@hostizzy.com to request early access or get notified when this integration is available.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('integrationInfoModal').style.display = 'flex';
+            document.getElementById('integrationInfoModal').classList.add('active');
+
+            // Update email subject
+            const emailSubject = `Integration Request - ${data.title}`;
+            document.querySelector('#integrationInfoModal .btn-primary').href =
+                `mailto:support@hostizzy.com?subject=${encodeURIComponent(emailSubject)}`;
+        }
+
+        function closeIntegrationModal() {
+            document.getElementById('integrationInfoModal').style.display = 'none';
+            document.getElementById('integrationInfoModal').classList.remove('active');
         }
 
         async function saveProperty() {
@@ -15834,6 +16659,9 @@
                 // Show modal
                 document.getElementById('propertySettingsModal').style.display = 'flex';
 
+                // Initialize Gmail connection status
+                initializeGmailConnection();
+
             } catch (error) {
                 console.error('Error opening property settings:', error);
                 showToast('Failed to load property settings', 'error');
@@ -15843,6 +16671,20 @@
         /**
          * Close property settings modal
          */
+        /**
+         * Open App Settings modal
+         */
+        function openAppSettings() {
+            document.getElementById('appSettingsModal').style.display = 'flex';
+        }
+
+        /**
+         * Close App Settings modal
+         */
+        function closeAppSettings() {
+            document.getElementById('appSettingsModal').style.display = 'none';
+        }
+
         function closePropertySettings() {
             document.getElementById('propertySettingsModal').style.display = 'none';
             document.getElementById('icalUrlInput').value = '';
@@ -15936,9 +16778,10 @@
             try {
                 // ✅ Normalize Airbnb's "webcal://" URLs
                 icalUrl = icalUrl.replace(/^webcal:/i, 'https:');
-                // Use CORS proxy to fetch iCal file
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(icalUrl)}`;
-                
+
+                // Use our own Vercel serverless function as proxy (more reliable than external CORS proxies)
+                const proxyUrl = `/api/ical-proxy?url=${encodeURIComponent(icalUrl)}`;
+
                 const response = await fetch(proxyUrl, {
                     method: 'GET',
                     headers: {
@@ -15951,7 +16794,7 @@
                 }
 
                 const icalData = await response.text();
-                
+
                 // Validate it's an iCal file
                 if (!icalData.includes('BEGIN:VCALENDAR')) {
                     throw new Error('Invalid iCal format: Missing VCALENDAR');
@@ -15959,7 +16802,7 @@
 
                 // Parse iCal data
                 const blockedDates = parseIcalData(icalData);
-                
+
                 return {
                     success: true,
                     dates: blockedDates,
@@ -15977,52 +16820,65 @@
         }
 
         /**
-         * Parse iCal data and extract blocked dates
+         * Parse iCal data and extract blocked dates + reservation events
          */
         function parseIcalData(icalText) {
             const blockedDates = [];
-            const unfolded = icalText.replace(/\r?\n[ \t]/g, '');
-            const events = unfolded.split('BEGIN:VEVENT');
-            
+            const reservationEvents = []; // NEW: Store full event data for reservation creation
+
             try {
                 // Split by VEVENT blocks
                 const events = icalText.split('BEGIN:VEVENT');
-                
+
                 for (let i = 1; i < events.length; i++) {
                     const eventBlock = events[i].split('END:VEVENT')[0];
-                    
+
                     // Extract DTSTART and DTEND
                     const dtstart = extractIcalField(eventBlock, 'DTSTART');
                     const dtend = extractIcalField(eventBlock, 'DTEND');
                     const summary = extractIcalField(eventBlock, 'SUMMARY') || 'Blocked by OTA';
                     const uid = extractIcalField(eventBlock, 'UID') || `event_${i}`;
-                    
+                    const description = extractIcalField(eventBlock, 'DESCRIPTION') || '';
+
                     if (dtstart && dtend) {
                         // Parse dates
                         const startDate = parseIcalDate(dtstart);
                         const endDate = parseIcalDate(dtend);
-                        
+
                         if (startDate && endDate) {
+                            // Store full event data for reservation creation
+                            reservationEvents.push({
+                                uid: uid,
+                                summary: summary,
+                                description: description,
+                                check_in: startDate,
+                                check_out: endDate
+                            });
+
                             // Get all dates in the range (inclusive start, exclusive end as per iCal spec)
                             const dateRange = getDateRange(startDate, endDate);
-                            
+
                             dateRange.forEach(date => {
                                 blockedDates.push({
                                     date: date,
                                     summary: summary,
-                                    uid: uid
+                                    uid: uid,
+                                    eventData: { check_in: startDate, check_out: endDate, description }
                                 });
                             });
                         }
                     }
                 }
-                
+
                 // Remove duplicates and sort
                 const uniqueDates = Array.from(new Map(blockedDates.map(d => [d.date, d])).values());
                 uniqueDates.sort((a, b) => new Date(a.date) - new Date(b.date));
-                
+
+                // Attach reservation events to return object
+                uniqueDates.reservationEvents = reservationEvents;
+
                 return uniqueDates;
-                
+
             } catch (error) {
                 console.error('Error parsing iCal data:', error);
                 return [];
@@ -16117,7 +16973,7 @@
                 const batchSize = 100;
                 for (let i = 0; i < insertData.length; i += batchSize) {
                     const batch = insertData.slice(i, i + batchSize);
-                    
+
                     const { error: insertError } = await supabase
                         .from('synced_availability')
                         .insert(batch);
@@ -16136,6 +16992,156 @@
                     success: false,
                     error: error.message
                 };
+            }
+        }
+
+        /**
+         * Create or update reservations from iCal events (AUTO-IMPORT)
+         */
+        async function createReservationsFromIcal(propertyId, reservationEvents, property) {
+            if (!reservationEvents || reservationEvents.length === 0) {
+                return { created: 0, updated: 0, skipped: 0 };
+            }
+
+            let created = 0;
+            let updated = 0;
+            let skipped = 0;
+
+            try {
+                for (const event of reservationEvents) {
+                    // Parse guest name and booking source from SUMMARY
+                    // Format examples: "Rahul Sharma (AIRBNB)", "John Doe (Booking.com)", "Reserved"
+                    let guestName = 'Guest';
+                    let bookingSource = 'OTHER';
+
+                    if (event.summary) {
+                        const summaryUpper = event.summary.toUpperCase();
+
+                        // Extract guest name (text before parentheses or entire summary)
+                        const nameMatch = event.summary.match(/^([^(]+)/);
+                        if (nameMatch) {
+                            guestName = nameMatch[1].trim();
+                        }
+
+                        // Detect booking source
+                        if (summaryUpper.includes('AIRBNB')) {
+                            bookingSource = 'AIRBNB';
+                        } else if (summaryUpper.includes('BOOKING') || summaryUpper.includes('AGODA')) {
+                            bookingSource = 'AGODA/BOOKING.COM';
+                        } else if (summaryUpper.includes('MMT') || summaryUpper.includes('GOIBIBO') || summaryUpper.includes('MAKEMYTRIP')) {
+                            bookingSource = 'MMT/GOIBIBO';
+                        } else if (summaryUpper.includes('DIRECT')) {
+                            bookingSource = 'DIRECT';
+                        }
+                    }
+
+                    // Use UID as booking_id (truncate to 50 chars to fit DB constraint)
+                    const bookingId = event.uid.substring(0, 50);
+
+                    // Calculate nights
+                    const nights = Math.ceil((new Date(event.check_out) - new Date(event.check_in)) / (1000 * 60 * 60 * 24));
+
+                    // Check if reservation already exists
+                    const { data: existing, error: checkError } = await supabase
+                        .from('reservations')
+                        .select('*')
+                        .eq('booking_id', bookingId)
+                        .maybeSingle();
+
+                    if (checkError && checkError.code !== 'PGRST116') {
+                        console.error('Error checking existing reservation:', checkError);
+                        skipped++;
+                        continue;
+                    }
+
+                    const monthDate = new Date(event.check_in);
+                    const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+                    // Truncate long fields to fit database VARCHAR(50) constraints
+                    const truncatedGuestName = guestName.substring(0, 50);
+                    const truncatedPropertyName = property.name.substring(0, 50);
+
+                    // Prepare reservation data (partial - financial fields are null as per user request)
+                    const reservationData = {
+                        booking_id: bookingId,
+                        property_id: propertyId,
+                        property_name: truncatedPropertyName,
+                        guest_name: truncatedGuestName,
+                        guest_phone: '', // Not available in iCal - use empty string for NOT NULL constraint
+                        guest_email: '', // Not available in iCal - use empty string for NOT NULL constraint
+                        guest_city: '', // Not available in iCal - use empty string
+                        check_in: event.check_in,
+                        check_out: event.check_out,
+                        booking_date: new Date().toISOString().split('T')[0],
+                        month: month,
+                        nights: nights,
+                        booking_type: 'STAYCATION', // Default
+                        booking_source: bookingSource,
+                        status: 'confirmed',
+                        // Financial fields - all null as requested
+                        number_of_rooms: null,
+                        adults: null,
+                        kids: null,
+                        number_of_guests: null,
+                        stay_amount: null,
+                        extra_guest_charges: null,
+                        meals_chef: null,
+                        bonfire_other: null,
+                        ota_service_fee: null,
+                        taxes: null,
+                        total_amount_pre_tax: null,
+                        total_amount_inc_tax: null,
+                        total_amount: null,
+                        damages: null,
+                        hostizzy_revenue: null,
+                        avg_room_rate: null,
+                        avg_nightly_rate: null,
+                        paid_amount: null,
+                        payment_status: null,
+                        gst_status: null
+                    };
+
+                    if (existing) {
+                        // UPDATE existing reservation (only dates and guest name, preserve financial data if entered)
+                        const { error: updateError } = await supabase
+                            .from('reservations')
+                            .update({
+                                check_in: event.check_in,
+                                check_out: event.check_out,
+                                nights: nights,
+                                month: month,
+                                guest_name: truncatedGuestName, // Update name if changed (truncated)
+                                booking_source: bookingSource,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', existing.id);
+
+                        if (updateError) {
+                            console.error('Error updating reservation:', updateError);
+                            skipped++;
+                        } else {
+                            updated++;
+                        }
+                    } else {
+                        // CREATE new reservation
+                        const { error: insertError } = await supabase
+                            .from('reservations')
+                            .insert([reservationData]);
+
+                        if (insertError) {
+                            console.error('Error creating reservation:', insertError);
+                            skipped++;
+                        } else {
+                            created++;
+                        }
+                    }
+                }
+
+                return { created, updated, skipped };
+
+            } catch (error) {
+                console.error('Error creating reservations from iCal:', error);
+                return { created, updated, skipped, error: error.message };
             }
         }
 
@@ -16225,11 +17231,35 @@
 
                 // Save synced dates to database
                 showToast(`💾 Saving ${result.dates.length} blocked dates...`, 'info');
-                
+
                 const saveResult = await saveSyncedDates(propertyId, result.dates, 'ical');
 
                 if (!saveResult.success) {
                     throw new Error(saveResult.error || 'Failed to save synced dates');
+                }
+
+                // AUTO-IMPORT: Create/update reservations from iCal events
+                const reservationEvents = result.dates.reservationEvents || [];
+                if (reservationEvents.length > 0) {
+                    showToast(`📝 Creating/updating ${reservationEvents.length} reservations...`, 'info');
+
+                    const importResult = await createReservationsFromIcal(propertyId, reservationEvents, property);
+
+                    console.log('iCal import result:', importResult);
+
+                    // Reload reservations to show new/updated ones
+                    await loadReservations();
+                    await loadDashboard();
+
+                    // Show detailed success message
+                    const importMsg = [];
+                    if (importResult.created > 0) importMsg.push(`${importResult.created} created`);
+                    if (importResult.updated > 0) importMsg.push(`${importResult.updated} updated`);
+                    if (importResult.skipped > 0) importMsg.push(`${importResult.skipped} skipped`);
+
+                    if (importMsg.length > 0) {
+                        showToast(`✅ Reservations: ${importMsg.join(', ')}`, 'success');
+                    }
                 }
 
                 // Update status to active
@@ -16350,6 +17380,645 @@
                 }
             } catch (error) {
                 console.error('Error initializing auto-sync:', error);
+            }
+        }
+
+        // ==========================================
+        // GMAIL INTEGRATION FUNCTIONS
+        // ==========================================
+
+        let gmailAccessToken = null;
+        let gmailTokenClient = null;
+        let gmailAutoScanInterval = null;
+
+        const GMAIL_AUTO_SCAN_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+        /**
+         * Save Gmail OAuth Client ID
+         */
+        function saveGmailClientId() {
+            const clientId = document.getElementById('gmailClientId').value.trim();
+
+            if (!clientId) {
+                showToast('Please enter a valid Client ID', 'error');
+                return;
+            }
+
+            // Validate Client ID format
+            if (!clientId.endsWith('.apps.googleusercontent.com')) {
+                showToast('Invalid Client ID format', 'error');
+                return;
+            }
+
+            localStorage.setItem('gmail_client_id', clientId);
+            showToast('✅ Gmail Client ID saved!', 'success');
+        }
+
+        /**
+         * Load Google Identity Services library
+         */
+        function loadGoogleIdentityServices() {
+            return new Promise((resolve, reject) => {
+                if (window.google && window.google.accounts) {
+                    resolve();
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        /**
+         * Connect Gmail via OAuth 2.0
+         */
+        async function connectGmail() {
+            const clientId = localStorage.getItem('gmail_client_id');
+
+            if (!clientId) {
+                showToast('Please set up Google OAuth Client ID first (see instructions below)', 'error');
+                return;
+            }
+
+            try {
+                // Load Google Identity Services
+                await loadGoogleIdentityServices();
+
+                // Initialize token client
+                gmailTokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: clientId,
+                    scope: 'https://www.googleapis.com/auth/gmail.readonly',
+                    callback: async (response) => {
+                        if (response.error) {
+                            console.error('OAuth error:', response);
+                            showToast('Failed to connect Gmail: ' + response.error, 'error');
+                            return;
+                        }
+
+                        // Store access token
+                        gmailAccessToken = response.access_token;
+
+                        // Get user email
+                        const userInfo = await getGmailUserInfo();
+
+                        if (userInfo) {
+                            // Save to localStorage (in production, store securely in backend)
+                            localStorage.setItem('gmail_access_token', gmailAccessToken);
+                            localStorage.setItem('gmail_user_email', userInfo.emailAddress);
+
+                            // Update UI
+                            updateGmailConnectionUI(true, userInfo.emailAddress);
+
+                            showToast('✅ Gmail connected successfully!', 'success');
+                        }
+                    }
+                });
+
+                // Request access token
+                gmailTokenClient.requestAccessToken();
+
+            } catch (error) {
+                console.error('Error connecting Gmail:', error);
+                showToast('Failed to connect Gmail: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Get Gmail user info
+         */
+        async function getGmailUserInfo() {
+            try {
+                const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${gmailAccessToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch user info');
+
+                return await response.json();
+            } catch (error) {
+                console.error('Error getting Gmail user info:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Update Gmail connection UI
+         */
+        function updateGmailConnectionUI(connected, email = '') {
+            const notConnected = document.getElementById('gmailNotConnected');
+            const connectedDiv = document.getElementById('gmailConnected');
+            const emailSpan = document.getElementById('connectedGmailEmail');
+            const autoScanCheckbox = document.getElementById('gmailAutoScanEnabled');
+
+            if (connected) {
+                notConnected.style.display = 'none';
+                connectedDiv.style.display = 'block';
+                emailSpan.textContent = email;
+                autoScanCheckbox.disabled = false;
+            } else {
+                notConnected.style.display = 'flex';
+                connectedDiv.style.display = 'none';
+                autoScanCheckbox.disabled = true;
+                autoScanCheckbox.checked = false;
+            }
+        }
+
+        /**
+         * Disconnect Gmail
+         */
+        function disconnectGmail() {
+            if (!confirm('Disconnect Gmail? You will need to re-authorize to scan emails.')) return;
+
+            localStorage.removeItem('gmail_access_token');
+            localStorage.removeItem('gmail_user_email');
+            localStorage.removeItem('gmail_last_scan');
+            gmailAccessToken = null;
+
+            updateGmailConnectionUI(false);
+            showToast('Gmail disconnected', 'info');
+        }
+
+        /**
+         * Scan Gmail for booking confirmation emails
+         */
+        async function scanGmailNow() {
+            if (!gmailAccessToken) {
+                gmailAccessToken = localStorage.getItem('gmail_access_token');
+            }
+
+            if (!gmailAccessToken) {
+                showToast('Please connect Gmail first', 'error');
+                return;
+            }
+
+            // Show loading state
+            const scanBtn = document.getElementById('gmailScanBtn');
+            if (scanBtn) {
+                scanBtn.disabled = true;
+                scanBtn.textContent = '⏳ Scanning...';
+            }
+
+            try {
+                showToast('🔍 Scanning Gmail for booking confirmations...', 'info');
+
+                // Search queries for different OTA confirmation emails
+                const searchQueries = [
+                    'from:automated@airbnb.com subject:"reservation confirmed"',
+                    'from:noreply@booking.com subject:"confirmed"',
+                    'from:noreply@agoda.com subject:"booking confirmation"',
+                    'from:care@makemytrip.com subject:"booking confirmation"',
+                    'subject:"booking confirmed" OR subject:"reservation confirmed"'
+                ];
+
+                let totalFound = 0;
+                let totalCreated = 0;
+                let totalUpdated = 0;
+
+                for (const query of searchQueries) {
+                    const messages = await searchGmailMessages(query);
+
+                    if (messages && messages.length > 0) {
+                        console.log(`Found ${messages.length} messages for query: ${query}`);
+                        totalFound += messages.length;
+
+                        // Process each message
+                        for (const message of messages.slice(0, 20)) { // Limit to 20 recent per query
+                            const result = await processGmailBookingEmail(message.id);
+                            if (result.created) totalCreated++;
+                            if (result.updated) totalUpdated++;
+                        }
+                    }
+                }
+
+                // Update last scan time
+                const now = new Date().toLocaleString();
+                localStorage.setItem('gmail_last_scan', now);
+                document.getElementById('gmailLastScan').textContent = now;
+
+                // Show results
+                if (totalFound === 0) {
+                    showToast('No booking emails found', 'info');
+                } else {
+                    showToast(`✅ Scanned ${totalFound} emails. Created: ${totalCreated}, Updated: ${totalUpdated}`, 'success');
+                    await loadReservations();
+                    await loadDashboard();
+                }
+
+            } catch (error) {
+                console.error('Error scanning Gmail:', error);
+                showToast('Failed to scan Gmail: ' + error.message, 'error');
+            } finally {
+                // Restore button
+                if (scanBtn) {
+                    scanBtn.disabled = false;
+                    scanBtn.textContent = '🔍 Scan for Bookings Now';
+                }
+            }
+        }
+
+        /**
+         * Search Gmail messages
+         */
+        async function searchGmailMessages(query) {
+            try {
+                const response = await fetch(
+                    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=20`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${gmailAccessToken}`
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error('Gmail API request failed');
+
+                const data = await response.json();
+                return data.messages || [];
+            } catch (error) {
+                console.error('Error searching Gmail:', error);
+                return [];
+            }
+        }
+
+        /**
+         * Process a booking confirmation email
+         */
+        async function processGmailBookingEmail(messageId) {
+            try {
+                // Fetch full message
+                const response = await fetch(
+                    `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}?format=full`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${gmailAccessToken}`
+                        }
+                    }
+                );
+
+                if (!response.ok) return { created: false, updated: false };
+
+                const message = await response.json();
+
+                // Extract email body
+                const emailBody = extractEmailBody(message);
+                const headers = message.payload.headers;
+
+                // Get sender
+                const fromHeader = headers.find(h => h.name.toLowerCase() === 'from');
+                const sender = fromHeader ? fromHeader.value : '';
+
+                // Get subject for better property matching
+                const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject');
+                const subject = subjectHeader ? subjectHeader.value : '';
+
+                // Fetch all properties for auto-detection
+                const { data: properties } = await supabase
+                    .from('properties')
+                    .select('id, name, location')
+                    .eq('is_active', true);
+
+                // Parse booking data from email (with property auto-detection)
+                const bookingData = parseBookingEmail(emailBody, sender, subject, properties || []);
+
+                if (!bookingData) {
+                    console.log('[Gmail] Could not parse booking data from email');
+                    return { created: false, updated: false };
+                }
+
+                // Check if reservation already exists
+                const { data: existing } = await supabase
+                    .from('reservations')
+                    .select('*')
+                    .eq('booking_id', bookingData.booking_id)
+                    .maybeSingle();
+
+                if (existing) {
+                    // Update existing
+                    await supabase
+                        .from('reservations')
+                        .update(bookingData)
+                        .eq('id', existing.id);
+                    return { created: false, updated: true };
+                } else {
+                    // Create new
+                    await supabase
+                        .from('reservations')
+                        .insert([bookingData]);
+                    return { created: true, updated: false };
+                }
+
+            } catch (error) {
+                console.error('Error processing email:', error);
+                return { created: false, updated: false };
+            }
+        }
+
+        /**
+         * Decode a base64url-encoded Gmail body part
+         */
+        function decodeGmailBody(data) {
+            try {
+                return atob(data.replace(/-/g, '+').replace(/_/g, '/'));
+            } catch (e) {
+                return '';
+            }
+        }
+
+        /**
+         * Recursively extract text from Gmail MIME parts
+         * Prefers text/plain; falls back to text/html (stripped of tags)
+         */
+        function extractEmailBody(message) {
+            let plainText = '';
+            let htmlText = '';
+
+            function walkParts(parts) {
+                if (!parts) return;
+                for (const part of parts) {
+                    if (part.mimeType === 'text/plain' && part.body && part.body.data) {
+                        plainText += decodeGmailBody(part.body.data);
+                    } else if (part.mimeType === 'text/html' && part.body && part.body.data) {
+                        htmlText += decodeGmailBody(part.body.data);
+                    } else if (part.parts) {
+                        walkParts(part.parts); // recurse into multipart
+                    }
+                }
+            }
+
+            if (message.payload.parts) {
+                walkParts(message.payload.parts);
+            } else if (message.payload.body && message.payload.body.data) {
+                const rawBody = decodeGmailBody(message.payload.body.data);
+                if (message.payload.mimeType === 'text/html') {
+                    htmlText = rawBody;
+                } else {
+                    plainText = rawBody;
+                }
+            }
+
+            if (plainText.trim()) return plainText;
+
+            // Strip HTML tags as fallback
+            if (htmlText) {
+                return htmlText
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<\/p>/gi, '\n')
+                    .replace(/<\/div>/gi, '\n')
+                    .replace(/<[^>]+>/g, ' ')
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+            }
+
+            return '';
+        }
+
+        /**
+         * Parse booking details from email body
+         */
+        function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
+            let bookingSource = 'OTHER';
+            const senderLower = sender.toLowerCase();
+
+            // Detect source from sender email address
+            if (senderLower.includes('airbnb')) bookingSource = 'AIRBNB';
+            else if (senderLower.includes('booking.com') || senderLower.includes('agoda')) bookingSource = 'AGODA/BOOKING.COM';
+            else if (senderLower.includes('makemytrip') || senderLower.includes('goibibo')) bookingSource = 'MMT/GOIBIBO';
+            else if (senderLower.includes('vrbo') || senderLower.includes('homeaway')) bookingSource = 'VRBO';
+
+            // Multiple pattern variants per field for better OTA coverage
+            const patternGroups = {
+                bookingId: [
+                    /(?:confirmation|booking|reservation)\s*(?:code|number|id|#)[:\s#]+([A-Z0-9]{4,20})/i,
+                    /(?:conf\.?\s*(?:code|no|#)|booking\s*ref)[:\s]+([A-Z0-9]{4,20})/i,
+                    /HM[A-Z0-9]{6,}/i, // Airbnb HMXXXXXX format
+                    /\b([A-Z0-9]{10,20})\b/ // Generic long alphanumeric code
+                ],
+                guestName: [
+                    /(?:guest(?:'s)?\s+name|booked by|name)[:\s]+([A-Za-z][\w\s]{2,40}?)(?:\n|,|$)/i,
+                    /(?:hi|hello|dear)\s+([A-Za-z][\w\s]{2,30}?)(?:,|!|\n)/i,
+                    /^([A-Za-z][\w\s]{2,30}?) has reserved/im
+                ],
+                checkIn: [
+                    /check[- ]?in[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+                    /check[- ]?in[:\s]+(\w+ \d{1,2},? \d{4})/i,
+                    /arrives?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+                    /from[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
+                ],
+                checkOut: [
+                    /check[- ]?out[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+                    /check[- ]?out[:\s]+(\w+ \d{1,2},? \d{4})/i,
+                    /departs?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+                    /to[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
+                ],
+                guests: [/(\d+)\s+(?:guests?|people|persons?)/i],
+                nights: [/(\d+)\s+nights?/i],
+                total: [
+                    /total\s*(?:amount|price|cost)?[:\s]+[₹$€£]?\s*([0-9,]+(?:\.\d{1,2})?)/i,
+                    /[₹$€£]\s*([0-9,]+(?:\.\d{1,2})?)\s*(?:total|charge)/i
+                ],
+                guestPhone: [/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i],
+                guestEmail: [/(?:guest\s*)?email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i]
+            };
+
+            const extracted = {};
+            for (const [key, patterns] of Object.entries(patternGroups)) {
+                for (const pattern of patterns) {
+                    const match = emailBody.match(pattern);
+                    if (match) {
+                        extracted[key] = (match[1] || match[0]).trim();
+                        break;
+                    }
+                }
+            }
+
+            // Must have at least booking ID and check-in date
+            if (!extracted.bookingId || !extracted.checkIn) {
+                return null;
+            }
+
+            // Truncate booking_id to fit VARCHAR(50)
+            const bookingId = extracted.bookingId.substring(0, 50);
+            const guestName = (extracted.guestName || 'Guest').substring(0, 50);
+
+            // Parse dates
+            const checkIn = parseFlexibleDate(extracted.checkIn);
+            const checkOut = extracted.checkOut ? parseFlexibleDate(extracted.checkOut) : null;
+
+            if (!checkIn) return null;
+
+            // Calculate nights
+            let nights = parseInt(extracted.nights) || 1;
+            if (checkOut && checkIn) {
+                const computed = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+                if (computed > 0) nights = computed;
+            }
+
+            // Auto-calculate check-out if not provided
+            const finalCheckOut = checkOut || new Date(new Date(checkIn).getTime() + nights * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+            const monthDate = new Date(checkIn);
+            const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+            // Property Auto-Detection: match property from email content
+            let matchedProperty = null;
+            const searchText = (subject + ' ' + emailBody).toLowerCase();
+
+            for (const property of properties) {
+                const propNameLower = property.name.toLowerCase();
+                const locationLower = (property.location || '').toLowerCase();
+
+                // Check if property name appears in subject or email body
+                if (searchText.includes(propNameLower)) {
+                    matchedProperty = property;
+                    break;
+                }
+
+                // Also check location (e.g., "Goa Villa" → matches properties in Goa)
+                if (locationLower && searchText.includes(locationLower)) {
+                    matchedProperty = property;
+                    break;
+                }
+            }
+
+            // Fall back to first property if no match found
+            if (!matchedProperty && properties.length > 0) {
+                matchedProperty = properties[0];
+                console.log('[Gmail] No property match found, using first property:', matchedProperty.name);
+            }
+
+            const propertyId = matchedProperty ? matchedProperty.id : null;
+            const propertyName = matchedProperty ? matchedProperty.name.substring(0, 50) : null;
+
+            return {
+                booking_id: bookingId,
+                guest_name: guestName,
+                check_in: checkIn,
+                check_out: finalCheckOut,
+                nights: nights,
+                booking_source: bookingSource,
+                status: 'confirmed',
+                booking_type: 'STAYCATION',
+                booking_date: new Date().toISOString().split('T')[0],
+                month: month,
+                number_of_guests: parseInt(extracted.guests) || null,
+                total_amount: extracted.total ? parseFloat(extracted.total.replace(/,/g, '')) : null,
+                property_id: propertyId,
+                property_name: propertyName,
+                // Empty strings for NOT NULL varchar fields
+                guest_phone: extracted.guestPhone ? extracted.guestPhone.replace(/\s/g, '') : '',
+                guest_email: extracted.guestEmail || '',
+                guest_city: '',
+                // Nullable fields
+                adults: parseInt(extracted.guests) || null,
+                kids: null,
+                number_of_rooms: null,
+                stay_amount: null,
+                extra_guest_charges: null,
+                meals_chef: null,
+                bonfire_other: null,
+                ota_service_fee: null,
+                taxes: null,
+                total_amount_pre_tax: null,
+                total_amount_inc_tax: null,
+                damages: null,
+                hostizzy_revenue: null,
+                avg_room_rate: null,
+                avg_nightly_rate: null,
+                paid_amount: null,
+                payment_status: null,
+                gst_status: null
+            };
+        }
+
+        /**
+         * Parse flexible date formats
+         */
+        function parseFlexibleDate(dateStr) {
+            try {
+                // Try different formats
+                const formats = [
+                    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/, // MM/DD/YYYY or DD-MM-YYYY
+                    /(\w+)\s+(\d{1,2}),?\s+(\d{4})/ // Month DD, YYYY
+                ];
+
+                for (const format of formats) {
+                    const match = dateStr.match(format);
+                    if (match) {
+                        const date = new Date(dateStr);
+                        if (!isNaN(date.getTime())) {
+                            return date.toISOString().split('T')[0];
+                        }
+                    }
+                }
+
+                return null;
+            } catch {
+                return null;
+            }
+        }
+
+        /**
+         * Toggle Gmail auto-scan on/off
+         */
+        function toggleGmailAutoScan() {
+            const checkbox = document.getElementById('gmailAutoScanEnabled');
+            if (!checkbox) return;
+
+            if (checkbox.checked) {
+                localStorage.setItem('gmail_auto_scan', 'true');
+                // Run immediately, then every 2 hours
+                scanGmailNow();
+                gmailAutoScanInterval = setInterval(() => {
+                    console.log('[Gmail] Auto-scanning for new booking emails...');
+                    scanGmailNow();
+                }, GMAIL_AUTO_SCAN_INTERVAL_MS);
+                showToast('Auto-scan enabled: checking every 2 hours', 'success');
+            } else {
+                localStorage.setItem('gmail_auto_scan', 'false');
+                if (gmailAutoScanInterval) {
+                    clearInterval(gmailAutoScanInterval);
+                    gmailAutoScanInterval = null;
+                }
+                showToast('Auto-scan disabled', 'info');
+            }
+        }
+
+        /**
+         * Initialize Gmail connection on page load
+         */
+        function initializeGmailConnection() {
+            const accessToken = localStorage.getItem('gmail_access_token');
+            const email = localStorage.getItem('gmail_user_email');
+            const lastScan = localStorage.getItem('gmail_last_scan');
+            const autoScanEnabled = localStorage.getItem('gmail_auto_scan') === 'true';
+
+            if (accessToken && email) {
+                gmailAccessToken = accessToken;
+                updateGmailConnectionUI(true, email);
+
+                if (lastScan) {
+                    const lastScanEl = document.getElementById('gmailLastScan');
+                    if (lastScanEl) lastScanEl.textContent = lastScan;
+                }
+
+                // Restore auto-scan state
+                const checkbox = document.getElementById('gmailAutoScanEnabled');
+                if (checkbox && autoScanEnabled) {
+                    checkbox.checked = true;
+                    gmailAutoScanInterval = setInterval(() => {
+                        console.log('[Gmail] Auto-scanning for new booking emails...');
+                        scanGmailNow();
+                    }, GMAIL_AUTO_SCAN_INTERVAL_MS);
+                }
             }
         }
 
