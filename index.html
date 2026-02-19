@@ -132,6 +132,27 @@
             --leading-tight: 1.2;
             --leading-snug: 1.4;
             --leading-normal: 1.5;
+
+            /* Status Palette - Light backgrounds for badges/chips */
+            --success-pale: #d1fae5;
+            --success-text: #065f46;
+            --warning-pale: #fef3c7;
+            --warning-alt-pale: #fed7aa;
+            --warning-text: #92400e;
+            --danger-pale: #fee2e2;
+            --danger-text: #991b1b;
+            --primary-pale: #e0e7ff;
+            --primary-text: #3730a3;
+            --info-pale: #dbeafe;
+            --info-text: #1e40af;
+            --neutral-pale: #f1f5f9;
+            --neutral-text: #374151;
+
+            /* Component-specific shadows */
+            --shadow-input-focus: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.25);
+            --shadow-fab: 0 8px 16px rgba(99, 102, 241, 0.4);
+            --shadow-card-hover: 0 10px 24px rgba(0, 0, 0, 0.1);
         }
 
         /* Dark Mode Theme */
@@ -159,6 +180,24 @@
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+            /* Dark mode status palette */
+            --success-pale: #064e3b;
+            --success-text: #6ee7b7;
+            --warning-pale: #451a03;
+            --warning-alt-pale: #431407;
+            --warning-text: #fcd34d;
+            --danger-pale: #450a0a;
+            --danger-text: #fca5a5;
+            --primary-pale: #1e1b4b;
+            --primary-text: #a5b4fc;
+            --info-pale: #1e3a5f;
+            --info-text: #93c5fd;
+            --neutral-pale: #1e293b;
+            --neutral-text: #cbd5e1;
+            --shadow-input-focus: 0 0 0 3px rgba(129, 140, 248, 0.2);
+            --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.6);
+            --shadow-fab: 0 8px 16px rgba(129, 140, 248, 0.4);
+            --shadow-card-hover: 0 10px 24px rgba(0, 0, 0, 0.4);
         }
 
         /* Smooth theme transition */
@@ -450,26 +489,27 @@
 
         /* Form Elements */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: var(--space-5);
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
+            margin-bottom: var(--space-2);
+            font-weight: var(--font-semibold);
+            font-size: var(--font-size-base);
             color: var(--text-primary);
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 14px 16px;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            border-radius: 10px;
-            font-size: 14px;
+            padding: 14px var(--space-4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
             font-family: inherit;
+            color: var(--text-primary);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #ffffff;
+            background: var(--surface);
             min-height: 44px; /* Mobile-friendly touch target */
             -webkit-appearance: none; /* Remove iOS styling */
             -moz-appearance: none;
@@ -479,35 +519,35 @@
         @media (max-width: 640px) {
             input, select, textarea {
                 font-size: 16px; /* Prevents zoom on iOS */
-                padding: 16px;
+                padding: var(--space-4);
             }
         }
 
         input:hover, select:hover, textarea:hover {
-            border-color: rgba(0, 0, 0, 0.2);
+            border-color: var(--text-tertiary);
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: #ffffff;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-input-focus);
+            background: var(--surface);
         }
 
         /* Buttons */
         .btn {
-            padding: 12px 24px;
+            padding: var(--space-3) var(--space-6);
             border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-weight: var(--font-semibold);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: var(--space-2);
             position: relative;
             overflow: hidden;
             min-height: 44px; /* Mobile-friendly touch target */
@@ -515,8 +555,8 @@
 
         @media (max-width: 640px) {
             .btn {
-                padding: 12px 20px;
-                font-size: 13px;
+                padding: var(--space-3) var(--space-5);
+                font-size: var(--font-size-sm);
                 width: 100%; /* Full width on mobile for easier tapping */
             }
         }
@@ -544,61 +584,61 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            box-shadow: var(--shadow-md);
         }
 
         .btn-primary:hover {
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+            box-shadow: var(--shadow-lg);
             transform: translateY(-1px);
         }
 
         .btn-secondary {
-            background: #64748b;
+            background: var(--secondary);
             color: white;
-            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.25);
+            box-shadow: var(--shadow);
         }
 
         .btn-secondary:hover {
-            background: #475569;
-            box-shadow: 0 6px 16px rgba(100, 116, 139, 0.35);
+            filter: brightness(0.85);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
         .btn-danger {
-            background: #ef4444;
+            background: var(--danger);
             color: white;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+            box-shadow: var(--shadow);
         }
 
         .btn-danger:hover {
-            background: #dc2626;
-            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+            filter: brightness(0.88);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
         .btn-success {
-            background: #10b981;
+            background: var(--success);
             color: white;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            box-shadow: var(--shadow);
         }
 
         .btn-success:hover {
-            background: #059669;
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+            filter: brightness(0.88);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
         .btn-warning {
-            background: #f59e0b;
+            background: var(--warning);
             color: white;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+            box-shadow: var(--shadow);
         }
 
         .btn-warning:hover {
-            background: #d97706;
-            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+            filter: brightness(0.88);
+            box-shadow: var(--shadow-md);
             transform: translateY(-1px);
         }
 
@@ -632,10 +672,10 @@
 
         /* Filter Chips */
         .filter-chip {
-            padding: 8px 16px;
+            padding: var(--space-2) var(--space-4);
             border: 2px solid var(--border);
             border-radius: 20px;
-            background: white;
+            background: var(--surface);
             color: var(--text-primary);
             font-size: 14px;
             font-weight: 500;
@@ -657,7 +697,7 @@
 
          /* Navigation - New Top Bar Only */
         .navbar {
-            background: white;
+            background: var(--surface);
             border-bottom: 1px solid var(--border);
             padding: 0;
             position: fixed;
@@ -1382,19 +1422,19 @@
 
         /* Cards - World-Class Design */
         .card {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            margin-bottom: 24px;
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: var(--space-6);
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
         }
 
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
-            border-color: rgba(102, 126, 234, 0.2);
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--primary-pale);
         }
 
         .communication-message:hover {
@@ -1412,9 +1452,9 @@
         }
 
         .card-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a202c;
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
             letter-spacing: -0.01em;
         }
 
@@ -1434,12 +1474,12 @@
         }
 
         .stat-card {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--surface);
+            padding: var(--space-5);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
             position: relative;
             overflow: hidden;
         }
@@ -1451,7 +1491,7 @@
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             transform: scaleY(0);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -1462,21 +1502,21 @@
 
         .stat-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
-            border-color: rgba(102, 126, 234, 0.2);
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--primary-pale);
         }
 
         .stat-label {
-            font-size: 13px;
-            color: #718096;
-            margin-bottom: 8px;
-            font-weight: 500;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+            font-weight: var(--font-medium);
         }
 
         .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a202c;
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
             letter-spacing: -0.02em;
         }
         
@@ -1897,33 +1937,33 @@
         /* Table */
         .table-container {
             overflow-x: auto;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
         }
 
         table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            font-size: 14px;
+            font-size: var(--font-size-base);
         }
 
         table thead {
-            background: #f8fafc;
+            background: var(--background);
         }
 
         table th {
-            padding: 16px;
+            padding: var(--space-4);
             text-align: left;
-            font-weight: 600;
+            font-weight: var(--font-semibold);
             color: var(--text-primary);
             border-bottom: 2px solid var(--border);
-            font-size: 13px;
+            font-size: var(--font-size-sm);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         table td {
-            padding: 16px;
+            padding: var(--space-4);
             border-bottom: 1px solid var(--border);
             color: var(--text-primary);
         }
@@ -1933,7 +1973,7 @@
         }
 
         table tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: var(--background);
         }
 
         table tbody tr:last-child td {
@@ -1943,44 +1983,44 @@
         /* Status Badges */
         .badge {
             display: inline-block;
-            padding: 6px 14px;
+            padding: var(--space-1) 14px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-semibold);
             text-transform: capitalize;
             letter-spacing: 0.3px;
         }
 
         .badge-confirmed {
-            background: #d1fae5;
-            color: #065f46;
+            background: var(--success-pale);
+            color: var(--success-text);
         }
 
         .badge-pending {
-            background: #fed7aa;
-            color: #92400e;
+            background: var(--warning-alt-pale);
+            color: var(--warning-text);
         }
 
         .badge-checked-in {
-            background: #bfdbfe;
-            color: #1e40af;
+            background: var(--info-pale);
+            color: var(--info-text);
         }
 
         .badge-checked-out {
-            background: #e5e7eb;
-            color: #374151;
+            background: var(--neutral-pale);
+            color: var(--neutral-text);
         }
 
         .badge-cancelled {
-            background: #fecaca;
-            color: #991b1b;
+            background: var(--danger-pale);
+            color: var(--danger-text);
         }
 
         /* Cancelled Reservation Row Styling */
         .cancelled-reservation {
             opacity: 0.5;
-            background: #f8f9fa !important;
-            color: #6c757d;
+            background: var(--background) !important;
+            color: var(--text-tertiary);
             transition: opacity 0.3s ease;
         }
 
@@ -1989,37 +2029,37 @@
         }
 
         .cancelled-reservation td {
-            color: #6c757d !important;
+            color: var(--text-tertiary) !important;
         }
 
         .cancelled-reservation strong {
             text-decoration: line-through;
-            font-weight: 500;
+            font-weight: var(--font-medium);
         }
 
         .payment-status {
             display: inline-block;
-            padding: 6px 14px;
+            padding: var(--space-1) 14px;
             border-radius: 20px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: var(--font-semibold);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .payment-status.paid {
-            background: #d1fae5;
-            color: #065f46;
+            background: var(--success-pale);
+            color: var(--success-text);
         }
 
         .payment-status.pending {
-            background: #fed7aa;
-            color: #92400e;
+            background: var(--warning-alt-pale);
+            color: var(--warning-text);
         }
 
         .payment-status.partial {
-            background: #fef3c7;
-            color: #92400e;
+            background: var(--warning-pale);
+            color: var(--warning-text);
         }
 
         /* Modal */
@@ -2049,14 +2089,14 @@
         }   
 
         .modal-content {
-            background: white;
-            border-radius: 20px;
+            background: var(--surface);
+            border-radius: var(--radius-xl);
             padding: 0;
             max-width: 600px;
             width: 95%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-modal);
             animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -2072,13 +2112,13 @@
         }
 
         .modal-header {
-            padding: 24px;
+            padding: var(--space-6);
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f8fafc;
-            border-radius: 20px 20px 0 0;
+            background: var(--background);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
         }
 
         .modal-content > div:not(.modal-header) {
@@ -2086,8 +2126,9 @@
         }
 
         .modal-title {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
         }
 
         .close-btn {
@@ -3363,32 +3404,32 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: var(--space-4);
+            margin-bottom: var(--space-3);
             background: var(--background);
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             border-left: 4px solid var(--primary);
             transition: all 0.2s;
         }
 
         .action-item:hover {
-            background: #f1f5f9;
+            background: var(--background-alt);
             transform: translateX(4px);
         }
 
         .action-item.urgent {
             border-left-color: var(--danger);
-            background: #fef2f2;
+            background: var(--danger-pale);
         }
 
         .action-item.today {
             border-left-color: var(--warning);
-            background: #fffbeb;
+            background: var(--warning-pale);
         }
 
         .action-item.upcoming {
             border-left-color: var(--success);
-            background: #f0fdf4;
+            background: var(--success-pale);
         }
 
         .action-info {
@@ -3396,13 +3437,14 @@
         }
 
         .action-title {
-            font-weight: 600;
-            font-size: 15px;
-            margin-bottom: 4px;
+            font-weight: var(--font-semibold);
+            font-size: var(--font-size-md);
+            margin-bottom: var(--space-1);
+            color: var(--text-primary);
         }
 
         .action-details {
-            font-size: 13px;
+            font-size: var(--font-size-sm);
             color: var(--text-secondary);
         }
 
@@ -3413,26 +3455,26 @@
         }
 
         .action-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-md);
             font-size: 11px;
-            font-weight: 600;
+            font-weight: var(--font-semibold);
             text-transform: uppercase;
         }
 
         .action-badge.overdue {
-            background: #fee2e2;
-            color: #991b1b;
+            background: var(--danger-pale);
+            color: var(--danger-text);
         }
 
         .action-badge.due-today {
-            background: #fef3c7;
-            color: #92400e;
+            background: var(--warning-pale);
+            color: var(--warning-text);
         }
 
         .action-badge.due-soon {
-            background: #dbeafe;
-            color: #1e40af;
+            background: var(--info-pale);
+            color: var(--info-text);
         }
 
         @media (max-width: 768px) {
@@ -9040,7 +9082,7 @@
                             Last scan: <span id="gmailLastScan">Never</span>
                         </div>
                         <div style="margin-top: 12px;">
-                            <button onclick="scanGmailNow()"
+                            <button id="gmailScanBtn" onclick="scanGmailNow()"
                                 style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; width: 100%;">
                                 🔍 Scan for Bookings Now
                             </button>
@@ -9056,7 +9098,7 @@
                             <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Check for new bookings every 2 hours</div>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="gmailAutoScanEnabled" disabled>
+                            <input type="checkbox" id="gmailAutoScanEnabled" disabled onchange="toggleGmailAutoScan()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -17309,6 +17351,9 @@
 
         let gmailAccessToken = null;
         let gmailTokenClient = null;
+        let gmailAutoScanInterval = null;
+
+        const GMAIL_AUTO_SCAN_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
         /**
          * Save Gmail OAuth Client ID
@@ -17473,6 +17518,13 @@
                 return;
             }
 
+            // Show loading state
+            const scanBtn = document.getElementById('gmailScanBtn');
+            if (scanBtn) {
+                scanBtn.disabled = true;
+                scanBtn.textContent = '⏳ Scanning...';
+            }
+
             try {
                 showToast('🔍 Scanning Gmail for booking confirmations...', 'info');
 
@@ -17522,6 +17574,12 @@
             } catch (error) {
                 console.error('Error scanning Gmail:', error);
                 showToast('Failed to scan Gmail: ' + error.message, 'error');
+            } finally {
+                // Restore button
+                if (scanBtn) {
+                    scanBtn.disabled = false;
+                    scanBtn.textContent = '🔍 Scan for Bookings Now';
+                }
             }
         }
 
@@ -17612,22 +17670,66 @@
         }
 
         /**
-         * Extract email body from Gmail message
+         * Decode a base64url-encoded Gmail body part
+         */
+        function decodeGmailBody(data) {
+            try {
+                return atob(data.replace(/-/g, '+').replace(/_/g, '/'));
+            } catch (e) {
+                return '';
+            }
+        }
+
+        /**
+         * Recursively extract text from Gmail MIME parts
+         * Prefers text/plain; falls back to text/html (stripped of tags)
          */
         function extractEmailBody(message) {
-            let body = '';
+            let plainText = '';
+            let htmlText = '';
 
-            if (message.payload.parts) {
-                for (const part of message.payload.parts) {
-                    if (part.mimeType === 'text/plain' && part.body.data) {
-                        body += atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+            function walkParts(parts) {
+                if (!parts) return;
+                for (const part of parts) {
+                    if (part.mimeType === 'text/plain' && part.body && part.body.data) {
+                        plainText += decodeGmailBody(part.body.data);
+                    } else if (part.mimeType === 'text/html' && part.body && part.body.data) {
+                        htmlText += decodeGmailBody(part.body.data);
+                    } else if (part.parts) {
+                        walkParts(part.parts); // recurse into multipart
                     }
                 }
-            } else if (message.payload.body.data) {
-                body = atob(message.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
             }
 
-            return body;
+            if (message.payload.parts) {
+                walkParts(message.payload.parts);
+            } else if (message.payload.body && message.payload.body.data) {
+                const rawBody = decodeGmailBody(message.payload.body.data);
+                if (message.payload.mimeType === 'text/html') {
+                    htmlText = rawBody;
+                } else {
+                    plainText = rawBody;
+                }
+            }
+
+            if (plainText.trim()) return plainText;
+
+            // Strip HTML tags as fallback
+            if (htmlText) {
+                return htmlText
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<\/p>/gi, '\n')
+                    .replace(/<\/div>/gi, '\n')
+                    .replace(/<[^>]+>/g, ' ')
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+            }
+
+            return '';
         }
 
         /**
@@ -17637,28 +17739,55 @@
             let bookingSource = 'OTHER';
             const senderLower = sender.toLowerCase();
 
-            // Detect source from sender
+            // Detect source from sender email address
             if (senderLower.includes('airbnb')) bookingSource = 'AIRBNB';
             else if (senderLower.includes('booking.com') || senderLower.includes('agoda')) bookingSource = 'AGODA/BOOKING.COM';
             else if (senderLower.includes('makemytrip') || senderLower.includes('goibibo')) bookingSource = 'MMT/GOIBIBO';
+            else if (senderLower.includes('vrbo') || senderLower.includes('homeaway')) bookingSource = 'VRBO';
 
-            // Extract booking details using regex patterns
-            const patterns = {
-                bookingId: /(?:confirmation|booking|reservation)\s*(?:code|number|id)[:\s]+([A-Z0-9-]+)/i,
-                guestName: /(?:guest|name|booked by)[:\s]+([A-Za-z\s]+)/i,
-                checkIn: /check[- ]?in[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\w+\s+\d{1,2},?\s+\d{4})/i,
-                checkOut: /check[- ]?out[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\w+\s+\d{1,2},?\s+\d{4})/i,
-                guests: /(\d+)\s+guest/i,
-                nights: /(\d+)\s+night/i,
-                total: /total[:\s]+[\$₹€£]?\s*([0-9,]+\.?\d*)/i
+            // Multiple pattern variants per field for better OTA coverage
+            const patternGroups = {
+                bookingId: [
+                    /(?:confirmation|booking|reservation)\s*(?:code|number|id|#)[:\s#]+([A-Z0-9]{4,20})/i,
+                    /(?:conf\.?\s*(?:code|no|#)|booking\s*ref)[:\s]+([A-Z0-9]{4,20})/i,
+                    /HM[A-Z0-9]{6,}/i, // Airbnb HMXXXXXX format
+                    /\b([A-Z0-9]{10,20})\b/ // Generic long alphanumeric code
+                ],
+                guestName: [
+                    /(?:guest(?:'s)?\s+name|booked by|name)[:\s]+([A-Za-z][\w\s]{2,40}?)(?:\n|,|$)/i,
+                    /(?:hi|hello|dear)\s+([A-Za-z][\w\s]{2,30}?)(?:,|!|\n)/i,
+                    /^([A-Za-z][\w\s]{2,30}?) has reserved/im
+                ],
+                checkIn: [
+                    /check[- ]?in[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+                    /check[- ]?in[:\s]+(\w+ \d{1,2},? \d{4})/i,
+                    /arrives?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+                    /from[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
+                ],
+                checkOut: [
+                    /check[- ]?out[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+                    /check[- ]?out[:\s]+(\w+ \d{1,2},? \d{4})/i,
+                    /departs?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+                    /to[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
+                ],
+                guests: [/(\d+)\s+(?:guests?|people|persons?)/i],
+                nights: [/(\d+)\s+nights?/i],
+                total: [
+                    /total\s*(?:amount|price|cost)?[:\s]+[₹$€£]?\s*([0-9,]+(?:\.\d{1,2})?)/i,
+                    /[₹$€£]\s*([0-9,]+(?:\.\d{1,2})?)\s*(?:total|charge)/i
+                ],
+                guestPhone: [/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i],
+                guestEmail: [/(?:guest\s*)?email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i]
             };
 
             const extracted = {};
-
-            for (const [key, pattern] of Object.entries(patterns)) {
-                const match = emailBody.match(pattern);
-                if (match) {
-                    extracted[key] = match[1].trim();
+            for (const [key, patterns] of Object.entries(patternGroups)) {
+                for (const pattern of patterns) {
+                    const match = emailBody.match(pattern);
+                    if (match) {
+                        extracted[key] = (match[1] || match[0]).trim();
+                        break;
+                    }
                 }
             }
 
@@ -17667,16 +17796,21 @@
                 return null;
             }
 
+            // Truncate booking_id to fit VARCHAR(50)
+            const bookingId = extracted.bookingId.substring(0, 50);
+            const guestName = (extracted.guestName || 'Guest').substring(0, 50);
+
             // Parse dates
             const checkIn = parseFlexibleDate(extracted.checkIn);
             const checkOut = extracted.checkOut ? parseFlexibleDate(extracted.checkOut) : null;
 
             if (!checkIn) return null;
 
-            // Calculate nights if not provided
+            // Calculate nights
             let nights = parseInt(extracted.nights) || 1;
             if (checkOut && checkIn) {
-                nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+                const computed = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+                if (computed > 0) nights = computed;
             }
 
             // Auto-calculate check-out if not provided
@@ -17685,10 +17819,15 @@
             const monthDate = new Date(checkIn);
             const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 
-            // Return reservation data
+            // Get property from current settings context
+            const propertyIdEl = document.getElementById('settingsPropertyId');
+            const propertyNameEl = document.getElementById('settingsPropertyName');
+            const propertyId = propertyIdEl ? (parseInt(propertyIdEl.value) || null) : null;
+            const propertyName = propertyNameEl ? (propertyNameEl.textContent || '').substring(0, 50) : null;
+
             return {
-                booking_id: extracted.bookingId,
-                guest_name: extracted.guestName || 'Guest',
+                booking_id: bookingId,
+                guest_name: guestName,
                 check_in: checkIn,
                 check_out: finalCheckOut,
                 nights: nights,
@@ -17699,14 +17838,14 @@
                 month: month,
                 number_of_guests: parseInt(extracted.guests) || null,
                 total_amount: extracted.total ? parseFloat(extracted.total.replace(/,/g, '')) : null,
-                // Get property_id from current settings (would need to be passed in)
-                property_id: parseInt(document.getElementById('settingsPropertyId').value) || null,
-                property_name: document.getElementById('settingsPropertyName').textContent || null,
-                // Other fields null
-                guest_phone: null,
-                guest_email: null,
-                guest_city: null,
-                adults: null,
+                property_id: propertyId,
+                property_name: propertyName,
+                // Empty strings for NOT NULL varchar fields
+                guest_phone: extracted.guestPhone ? extracted.guestPhone.replace(/\s/g, '') : '',
+                guest_email: extracted.guestEmail || '',
+                guest_city: '',
+                // Nullable fields
+                adults: parseInt(extracted.guests) || null,
                 kids: null,
                 number_of_rooms: null,
                 stay_amount: null,
@@ -17755,19 +17894,57 @@
         }
 
         /**
+         * Toggle Gmail auto-scan on/off
+         */
+        function toggleGmailAutoScan() {
+            const checkbox = document.getElementById('gmailAutoScanEnabled');
+            if (!checkbox) return;
+
+            if (checkbox.checked) {
+                localStorage.setItem('gmail_auto_scan', 'true');
+                // Run immediately, then every 2 hours
+                scanGmailNow();
+                gmailAutoScanInterval = setInterval(() => {
+                    console.log('[Gmail] Auto-scanning for new booking emails...');
+                    scanGmailNow();
+                }, GMAIL_AUTO_SCAN_INTERVAL_MS);
+                showToast('Auto-scan enabled: checking every 2 hours', 'success');
+            } else {
+                localStorage.setItem('gmail_auto_scan', 'false');
+                if (gmailAutoScanInterval) {
+                    clearInterval(gmailAutoScanInterval);
+                    gmailAutoScanInterval = null;
+                }
+                showToast('Auto-scan disabled', 'info');
+            }
+        }
+
+        /**
          * Initialize Gmail connection on page load
          */
         function initializeGmailConnection() {
             const accessToken = localStorage.getItem('gmail_access_token');
             const email = localStorage.getItem('gmail_user_email');
             const lastScan = localStorage.getItem('gmail_last_scan');
+            const autoScanEnabled = localStorage.getItem('gmail_auto_scan') === 'true';
 
             if (accessToken && email) {
                 gmailAccessToken = accessToken;
                 updateGmailConnectionUI(true, email);
 
                 if (lastScan) {
-                    document.getElementById('gmailLastScan').textContent = lastScan;
+                    const lastScanEl = document.getElementById('gmailLastScan');
+                    if (lastScanEl) lastScanEl.textContent = lastScan;
+                }
+
+                // Restore auto-scan state
+                const checkbox = document.getElementById('gmailAutoScanEnabled');
+                if (checkbox && autoScanEnabled) {
+                    checkbox.checked = true;
+                    gmailAutoScanInterval = setInterval(() => {
+                        console.log('[Gmail] Auto-scanning for new booking emails...');
+                        scanGmailNow();
+                    }, GMAIL_AUTO_SCAN_INTERVAL_MS);
                 }
             }
         }
