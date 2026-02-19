@@ -1643,6 +1643,27 @@
             color: #991b1b;
         }
 
+        /* Cancelled Reservation Row Styling */
+        .cancelled-reservation {
+            opacity: 0.5;
+            background: #f8f9fa !important;
+            color: #6c757d;
+            transition: opacity 0.3s ease;
+        }
+
+        .cancelled-reservation:hover {
+            opacity: 0.7;
+        }
+
+        .cancelled-reservation td {
+            color: #6c757d !important;
+        }
+
+        .cancelled-reservation strong {
+            text-decoration: line-through;
+            font-weight: 500;
+        }
+
         .payment-status {
             display: inline-block;
             padding: 6px 14px;
@@ -8648,6 +8669,93 @@
                 </div>
             </details>
 
+            <!-- Gmail Integration Section -->
+            <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; border: 2px solid #0284c7;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <span style="font-size: 28px;">📧</span>
+                    <div>
+                        <div style="font-weight: 700; font-size: 16px; color: #0c4a6e;">Gmail Auto-Import</div>
+                        <div style="font-size: 13px; color: #0369a1;">Automatically import reservations from booking confirmation emails</div>
+                    </div>
+                </div>
+
+                <!-- Gmail Connection Status -->
+                <div id="gmailConnectionStatus" style="margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #bae6fd;">
+                    <div id="gmailNotConnected" style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #94a3b8;">⭕</span>
+                            <span style="font-size: 14px; color: #475569;">Not Connected</span>
+                        </div>
+                        <button onclick="connectGmail()"
+                            style="padding: 8px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s;">
+                            Connect Gmail
+                        </button>
+                    </div>
+
+                    <div id="gmailConnected" style="display: none;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #22c55e;">✅</span>
+                                <span style="font-size: 14px; color: #1e293b; font-weight: 600;" id="connectedGmailEmail">email@gmail.com</span>
+                            </div>
+                            <button onclick="disconnectGmail()"
+                                style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
+                                Disconnect
+                            </button>
+                        </div>
+                        <div style="font-size: 12px; color: #64748b;">
+                            Last scan: <span id="gmailLastScan">Never</span>
+                        </div>
+                        <div style="margin-top: 12px;">
+                            <button onclick="scanGmailNow()"
+                                style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; width: 100%;">
+                                🔍 Scan for Bookings Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto-Scan Settings -->
+                <div style="padding: 12px; background: white; border-radius: 8px; border: 1px solid #bae6fd;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">🔄 Auto-Scan Emails</div>
+                            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Check for new bookings every 2 hours</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="gmailAutoScanEnabled" disabled>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Setup Instructions -->
+                <details style="margin-top: 12px; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; background: white;">
+                    <summary style="cursor: pointer; font-weight: 600; color: #0369a1; font-size: 13px;">
+                        ⚙️ First-time Setup Required
+                    </summary>
+                    <div style="margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6;">
+                        <strong style="color: #0c4a6e;">Before connecting Gmail:</strong><br><br>
+                        1. Go to <a href="https://console.cloud.google.com" target="_blank" style="color: #0284c7; text-decoration: underline;">Google Cloud Console</a><br>
+                        2. Create a new project (or select existing)<br>
+                        3. Enable "Gmail API"<br>
+                        4. Create OAuth 2.0 credentials (Web application)<br>
+                        5. Add authorized redirect URI: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">https://your-domain.com/oauth/callback</code><br>
+                        6. Copy Client ID and paste below<br><br>
+
+                        <label style="display: block; font-weight: 600; color: #0c4a6e; margin-top: 12px; margin-bottom: 4px;">
+                            Google OAuth Client ID:
+                        </label>
+                        <input type="text" id="gmailClientId" placeholder="123456789-abcdefg.apps.googleusercontent.com"
+                            style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-family: monospace;">
+                        <button onclick="saveGmailClientId()"
+                            style="margin-top: 8px; padding: 8px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
+                            Save Client ID
+                        </button>
+                    </div>
+                </details>
+            </div>
+
             <!-- Action Buttons -->
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <button onclick="closePropertySettings()" 
@@ -13856,33 +13964,35 @@
                 tbody.innerHTML = '<tr><td colspan="9" class="text-center">No reservations found</td></tr>';
                 return;
             }
-            
+
             tbody.innerHTML = reservations.map(r => `
-                <tr>
+                <tr ${r.status === 'cancelled' ? 'class="cancelled-reservation" style="opacity: 0.5; background: #f8f9fa; color: #6c757d;"' : ''}>
                     <td>
-                        <input type="checkbox" class="row-select-checkbox" data-booking-id="${r.booking_id}" 
-                               onchange="toggleRowSelection(this, '${r.booking_id}')">
+                        <input type="checkbox" class="row-select-checkbox" data-booking-id="${r.booking_id}"
+                               onchange="toggleRowSelection(this, '${r.booking_id}')" ${r.status === 'cancelled' ? 'disabled' : ''}>
                     </td>
-                    <td><strong>${r.booking_id || 'N/A'}</strong></td>
-                    <td>${r.property_name}</td>
+                    <td><strong style="${r.status === 'cancelled' ? 'text-decoration: line-through;' : ''}">${r.booking_id || 'N/A'}</strong></td>
+                    <td>${r.property_name || '-'}</td>
                     <td>
-                        ${getBookingSourceBadge(r.booking_source)}
+                        ${r.booking_source ? getBookingSourceBadge(r.booking_source) : '-'}
                     </td>
-                    <td>${r.guest_name}</td>
-                    <td>${formatDate(r.check_in)}</td>
-                    <td>${r.nights}</td>
+                    <td>${r.guest_name || '-'}</td>
+                    <td>${r.check_in ? formatDate(r.check_in) : '-'}</td>
+                    <td>${r.nights || '-'}</td>
                     <td>
-                        <div style="font-weight: 700; font-size: 15px;">
-                            ${formatCurrency(r.total_amount)}
-                        </div>
-                        ${r.ota_service_fee > 0 ? `
-                            <div style="font-size: 11px; color: var(--danger); margin-top: 2px;">
-                                🏢 Fee: ${formatCurrency(r.ota_service_fee)}
+                        ${r.total_amount ? `
+                            <div style="font-weight: 700; font-size: 15px; ${r.status === 'cancelled' ? 'text-decoration: line-through;' : ''}">
+                                ${formatCurrency(r.total_amount)}
                             </div>
-                            <div style="font-size: 11px; color: var(--success); margin-top: 2px; font-weight: 600;">
-                                Net: ${formatCurrency(r.total_amount - r.ota_service_fee)}
-                            </div>
-                        ` : ''}
+                            ${r.ota_service_fee > 0 ? `
+                                <div style="font-size: 11px; color: var(--danger); margin-top: 2px;">
+                                    🏢 Fee: ${formatCurrency(r.ota_service_fee)}
+                                </div>
+                                <div style="font-size: 11px; color: var(--success); margin-top: 2px; font-weight: 600;">
+                                    Net: ${formatCurrency(r.total_amount - r.ota_service_fee)}
+                                </div>
+                            ` : ''}
+                        ` : '<span style="color: #adb5bd;">No amount</span>'}
                     </td>
                     <td><span class="badge badge-${r.status}">${r.status}</span></td>
                     <td>
@@ -14428,6 +14538,8 @@
                 
                 const editId = document.getElementById('editReservationId').value;
                 
+                const bookingStatus = document.getElementById('bookingStatus').value;
+
                 const reservation = {
                     property_id: propertyId,
                     property_name: property.name,
@@ -14438,13 +14550,13 @@
                     month: month,
                     nights: nights,
                     gst_status: document.getElementById('gstStatus').value,
-                    taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 : 
+                    taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 :
                            parseFloat(document.getElementById('taxes').value) || 0,
                     guest_name: document.getElementById('guestName').value,
                     guest_phone: document.getElementById('guestPhone').value,
                     guest_email: document.getElementById('guestEmail').value || null,
                     guest_city: document.getElementById('guestCity').value || null,
-                    status: document.getElementById('bookingStatus').value,
+                    status: bookingStatus,
                     booking_source: bookingSource,
                     number_of_rooms: parseInt(document.getElementById('numberOfRooms').value) || 1,
                     adults: adults,
@@ -14466,6 +14578,39 @@
                     paid_amount: 0,
                     payment_status: 'pending'
                 };
+
+                // CANCELLED RESERVATION CLEANUP: Purge all data except essential fields
+                if (bookingStatus === 'cancelled') {
+                    // Keep only: booking_id, guest_name, guest_email, guest_phone,
+                    //            check_in, check_out, status, property_id, property_name
+                    reservation.booking_type = null;
+                    reservation.booking_date = null;
+                    reservation.month = null;
+                    reservation.nights = null;
+                    reservation.gst_status = null;
+                    reservation.guest_city = null;
+                    reservation.booking_source = null;
+                    reservation.number_of_rooms = null;
+                    reservation.adults = null;
+                    reservation.kids = null;
+                    reservation.number_of_guests = null;
+                    reservation.stay_amount = null;
+                    reservation.extra_guest_charges = null;
+                    reservation.meals_chef = null;
+                    reservation.bonfire_other = null;
+                    reservation.ota_service_fee = null;
+                    reservation.taxes = null;
+                    reservation.total_amount_pre_tax = null;
+                    reservation.total_amount_inc_tax = null;
+                    reservation.total_amount = null;
+                    reservation.damages = null;
+                    reservation.hostizzy_revenue = null;
+                    reservation.avg_room_rate = null;
+                    reservation.avg_nightly_rate = null;
+                    reservation.paid_amount = null;
+                    reservation.payment_status = null;
+                    reservation.last_reminder_date = null;
+                }
                 
                 // Handle booking_id for both new and edited reservations
                 if (!editId) {
@@ -14497,10 +14642,15 @@
                     if (editId) {
                         reservation.id = parseInt(editId);
                     }
-                    
+
                     const result = await db.saveReservation(reservation);
                     console.log('Saved reservation:', result);
-                    
+
+                    // If status changed to cancelled, cleanup related records
+                    if (bookingStatus === 'cancelled' && reservation.booking_id) {
+                        await cleanupCancelledReservationData(reservation.booking_id);
+                    }
+
                     closeReservationModal();
                     await loadReservations();
                     await loadDashboard();
@@ -14523,7 +14673,7 @@
 
         async function deleteReservation(booking_id) {
             if (!confirm('Delete this reservation?')) return;
-            
+
             try {
                 await db.deleteReservation(booking_id);
                 await loadReservations();
@@ -14532,6 +14682,47 @@
             } catch (error) {
                 console.error('Delete error:', error);
                 showToast('Error', 'Failed to delete reservation', '❌');
+            }
+        }
+
+        async function cleanupCancelledReservationData(booking_id) {
+            try {
+                console.log('Cleaning up cancelled reservation data for:', booking_id);
+
+                // Delete payment records for this booking
+                const { error: paymentError } = await supabase
+                    .from('payments')
+                    .delete()
+                    .eq('booking_id', booking_id);
+
+                if (paymentError && paymentError.code !== 'PGRST116') { // PGRST116 = no rows found (not an error)
+                    console.warn('Payment cleanup warning:', paymentError);
+                }
+
+                // Delete guest documents (explicit, though CASCADE should handle this)
+                const { error: docsError } = await supabase
+                    .from('guest_documents')
+                    .delete()
+                    .eq('booking_id', booking_id);
+
+                if (docsError && docsError.code !== 'PGRST116') {
+                    console.warn('Document cleanup warning:', docsError);
+                }
+
+                // Delete guest meal preferences if that table exists
+                const { error: mealsError } = await supabase
+                    .from('guest_meal_preferences')
+                    .delete()
+                    .eq('booking_id', booking_id);
+
+                if (mealsError && mealsError.code !== 'PGRST116') {
+                    console.warn('Meal preferences cleanup warning:', mealsError);
+                }
+
+                console.log('Cancelled reservation cleanup completed for:', booking_id);
+            } catch (error) {
+                console.error('Error during cancelled reservation cleanup:', error);
+                // Don't throw - cleanup is best-effort
             }
         }
 
@@ -15978,6 +16169,9 @@
                 // Show modal
                 document.getElementById('propertySettingsModal').style.display = 'flex';
 
+                // Initialize Gmail connection status
+                initializeGmailConnection();
+
             } catch (error) {
                 console.error('Error opening property settings:', error);
                 showToast('Failed to load property settings', 'error');
@@ -16121,52 +16315,65 @@
         }
 
         /**
-         * Parse iCal data and extract blocked dates
+         * Parse iCal data and extract blocked dates + reservation events
          */
         function parseIcalData(icalText) {
             const blockedDates = [];
-            const unfolded = icalText.replace(/\r?\n[ \t]/g, '');
-            const events = unfolded.split('BEGIN:VEVENT');
-            
+            const reservationEvents = []; // NEW: Store full event data for reservation creation
+
             try {
                 // Split by VEVENT blocks
                 const events = icalText.split('BEGIN:VEVENT');
-                
+
                 for (let i = 1; i < events.length; i++) {
                     const eventBlock = events[i].split('END:VEVENT')[0];
-                    
+
                     // Extract DTSTART and DTEND
                     const dtstart = extractIcalField(eventBlock, 'DTSTART');
                     const dtend = extractIcalField(eventBlock, 'DTEND');
                     const summary = extractIcalField(eventBlock, 'SUMMARY') || 'Blocked by OTA';
                     const uid = extractIcalField(eventBlock, 'UID') || `event_${i}`;
-                    
+                    const description = extractIcalField(eventBlock, 'DESCRIPTION') || '';
+
                     if (dtstart && dtend) {
                         // Parse dates
                         const startDate = parseIcalDate(dtstart);
                         const endDate = parseIcalDate(dtend);
-                        
+
                         if (startDate && endDate) {
+                            // Store full event data for reservation creation
+                            reservationEvents.push({
+                                uid: uid,
+                                summary: summary,
+                                description: description,
+                                check_in: startDate,
+                                check_out: endDate
+                            });
+
                             // Get all dates in the range (inclusive start, exclusive end as per iCal spec)
                             const dateRange = getDateRange(startDate, endDate);
-                            
+
                             dateRange.forEach(date => {
                                 blockedDates.push({
                                     date: date,
                                     summary: summary,
-                                    uid: uid
+                                    uid: uid,
+                                    eventData: { check_in: startDate, check_out: endDate, description }
                                 });
                             });
                         }
                     }
                 }
-                
+
                 // Remove duplicates and sort
                 const uniqueDates = Array.from(new Map(blockedDates.map(d => [d.date, d])).values());
                 uniqueDates.sort((a, b) => new Date(a.date) - new Date(b.date));
-                
+
+                // Attach reservation events to return object
+                uniqueDates.reservationEvents = reservationEvents;
+
                 return uniqueDates;
-                
+
             } catch (error) {
                 console.error('Error parsing iCal data:', error);
                 return [];
@@ -16261,7 +16468,7 @@
                 const batchSize = 100;
                 for (let i = 0; i < insertData.length; i += batchSize) {
                     const batch = insertData.slice(i, i + batchSize);
-                    
+
                     const { error: insertError } = await supabase
                         .from('synced_availability')
                         .insert(batch);
@@ -16280,6 +16487,152 @@
                     success: false,
                     error: error.message
                 };
+            }
+        }
+
+        /**
+         * Create or update reservations from iCal events (AUTO-IMPORT)
+         */
+        async function createReservationsFromIcal(propertyId, reservationEvents, property) {
+            if (!reservationEvents || reservationEvents.length === 0) {
+                return { created: 0, updated: 0, skipped: 0 };
+            }
+
+            let created = 0;
+            let updated = 0;
+            let skipped = 0;
+
+            try {
+                for (const event of reservationEvents) {
+                    // Parse guest name and booking source from SUMMARY
+                    // Format examples: "Rahul Sharma (AIRBNB)", "John Doe (Booking.com)", "Reserved"
+                    let guestName = 'Guest';
+                    let bookingSource = 'OTHER';
+
+                    if (event.summary) {
+                        const summaryUpper = event.summary.toUpperCase();
+
+                        // Extract guest name (text before parentheses or entire summary)
+                        const nameMatch = event.summary.match(/^([^(]+)/);
+                        if (nameMatch) {
+                            guestName = nameMatch[1].trim();
+                        }
+
+                        // Detect booking source
+                        if (summaryUpper.includes('AIRBNB')) {
+                            bookingSource = 'AIRBNB';
+                        } else if (summaryUpper.includes('BOOKING') || summaryUpper.includes('AGODA')) {
+                            bookingSource = 'AGODA/BOOKING.COM';
+                        } else if (summaryUpper.includes('MMT') || summaryUpper.includes('GOIBIBO') || summaryUpper.includes('MAKEMYTRIP')) {
+                            bookingSource = 'MMT/GOIBIBO';
+                        } else if (summaryUpper.includes('DIRECT')) {
+                            bookingSource = 'DIRECT';
+                        }
+                    }
+
+                    // Use UID as booking_id
+                    const bookingId = event.uid;
+
+                    // Calculate nights
+                    const nights = Math.ceil((new Date(event.check_out) - new Date(event.check_in)) / (1000 * 60 * 60 * 24));
+
+                    // Check if reservation already exists
+                    const { data: existing, error: checkError } = await supabase
+                        .from('reservations')
+                        .select('*')
+                        .eq('booking_id', bookingId)
+                        .maybeSingle();
+
+                    if (checkError && checkError.code !== 'PGRST116') {
+                        console.error('Error checking existing reservation:', checkError);
+                        skipped++;
+                        continue;
+                    }
+
+                    const monthDate = new Date(event.check_in);
+                    const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+                    // Prepare reservation data (partial - financial fields are null as per user request)
+                    const reservationData = {
+                        booking_id: bookingId,
+                        property_id: propertyId,
+                        property_name: property.name,
+                        guest_name: guestName,
+                        guest_phone: null, // Not available in iCal
+                        guest_email: null, // Not available in iCal
+                        guest_city: null,
+                        check_in: event.check_in,
+                        check_out: event.check_out,
+                        booking_date: new Date().toISOString().split('T')[0],
+                        month: month,
+                        nights: nights,
+                        booking_type: 'STAYCATION', // Default
+                        booking_source: bookingSource,
+                        status: 'confirmed',
+                        // Financial fields - all null as requested
+                        number_of_rooms: null,
+                        adults: null,
+                        kids: null,
+                        number_of_guests: null,
+                        stay_amount: null,
+                        extra_guest_charges: null,
+                        meals_chef: null,
+                        bonfire_other: null,
+                        ota_service_fee: null,
+                        taxes: null,
+                        total_amount_pre_tax: null,
+                        total_amount_inc_tax: null,
+                        total_amount: null,
+                        damages: null,
+                        hostizzy_revenue: null,
+                        avg_room_rate: null,
+                        avg_nightly_rate: null,
+                        paid_amount: null,
+                        payment_status: null,
+                        gst_status: null
+                    };
+
+                    if (existing) {
+                        // UPDATE existing reservation (only dates and guest name, preserve financial data if entered)
+                        const { error: updateError } = await supabase
+                            .from('reservations')
+                            .update({
+                                check_in: event.check_in,
+                                check_out: event.check_out,
+                                nights: nights,
+                                month: month,
+                                guest_name: guestName, // Update name if changed
+                                booking_source: bookingSource,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', existing.id);
+
+                        if (updateError) {
+                            console.error('Error updating reservation:', updateError);
+                            skipped++;
+                        } else {
+                            updated++;
+                        }
+                    } else {
+                        // CREATE new reservation
+                        const { error: insertError } = await supabase
+                            .from('reservations')
+                            .insert([reservationData]);
+
+                        if (insertError) {
+                            console.error('Error creating reservation:', insertError);
+                            skipped++;
+                        } else {
+                            created++;
+                        }
+                    }
+                }
+
+                return { created, updated, skipped };
+
+            } catch (error) {
+                console.error('Error creating reservations from iCal:', error);
+                return { created, updated, skipped, error: error.message };
             }
         }
 
@@ -16369,11 +16722,35 @@
 
                 // Save synced dates to database
                 showToast(`💾 Saving ${result.dates.length} blocked dates...`, 'info');
-                
+
                 const saveResult = await saveSyncedDates(propertyId, result.dates, 'ical');
 
                 if (!saveResult.success) {
                     throw new Error(saveResult.error || 'Failed to save synced dates');
+                }
+
+                // AUTO-IMPORT: Create/update reservations from iCal events
+                const reservationEvents = result.dates.reservationEvents || [];
+                if (reservationEvents.length > 0) {
+                    showToast(`📝 Creating/updating ${reservationEvents.length} reservations...`, 'info');
+
+                    const importResult = await createReservationsFromIcal(propertyId, reservationEvents, property);
+
+                    console.log('iCal import result:', importResult);
+
+                    // Reload reservations to show new/updated ones
+                    await loadReservations();
+                    await loadDashboard();
+
+                    // Show detailed success message
+                    const importMsg = [];
+                    if (importResult.created > 0) importMsg.push(`${importResult.created} created`);
+                    if (importResult.updated > 0) importMsg.push(`${importResult.updated} updated`);
+                    if (importResult.skipped > 0) importMsg.push(`${importResult.skipped} skipped`);
+
+                    if (importMsg.length > 0) {
+                        showToast(`✅ Reservations: ${importMsg.join(', ')}`, 'success');
+                    }
                 }
 
                 // Update status to active
@@ -16494,6 +16871,475 @@
                 }
             } catch (error) {
                 console.error('Error initializing auto-sync:', error);
+            }
+        }
+
+        // ==========================================
+        // GMAIL INTEGRATION FUNCTIONS
+        // ==========================================
+
+        let gmailAccessToken = null;
+        let gmailTokenClient = null;
+
+        /**
+         * Save Gmail OAuth Client ID
+         */
+        function saveGmailClientId() {
+            const clientId = document.getElementById('gmailClientId').value.trim();
+
+            if (!clientId) {
+                showToast('Please enter a valid Client ID', 'error');
+                return;
+            }
+
+            // Validate Client ID format
+            if (!clientId.endsWith('.apps.googleusercontent.com')) {
+                showToast('Invalid Client ID format', 'error');
+                return;
+            }
+
+            localStorage.setItem('gmail_client_id', clientId);
+            showToast('✅ Gmail Client ID saved!', 'success');
+        }
+
+        /**
+         * Load Google Identity Services library
+         */
+        function loadGoogleIdentityServices() {
+            return new Promise((resolve, reject) => {
+                if (window.google && window.google.accounts) {
+                    resolve();
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        /**
+         * Connect Gmail via OAuth 2.0
+         */
+        async function connectGmail() {
+            const clientId = localStorage.getItem('gmail_client_id');
+
+            if (!clientId) {
+                showToast('Please set up Google OAuth Client ID first (see instructions below)', 'error');
+                return;
+            }
+
+            try {
+                // Load Google Identity Services
+                await loadGoogleIdentityServices();
+
+                // Initialize token client
+                gmailTokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: clientId,
+                    scope: 'https://www.googleapis.com/auth/gmail.readonly',
+                    callback: async (response) => {
+                        if (response.error) {
+                            console.error('OAuth error:', response);
+                            showToast('Failed to connect Gmail: ' + response.error, 'error');
+                            return;
+                        }
+
+                        // Store access token
+                        gmailAccessToken = response.access_token;
+
+                        // Get user email
+                        const userInfo = await getGmailUserInfo();
+
+                        if (userInfo) {
+                            // Save to localStorage (in production, store securely in backend)
+                            localStorage.setItem('gmail_access_token', gmailAccessToken);
+                            localStorage.setItem('gmail_user_email', userInfo.emailAddress);
+
+                            // Update UI
+                            updateGmailConnectionUI(true, userInfo.emailAddress);
+
+                            showToast('✅ Gmail connected successfully!', 'success');
+                        }
+                    }
+                });
+
+                // Request access token
+                gmailTokenClient.requestAccessToken();
+
+            } catch (error) {
+                console.error('Error connecting Gmail:', error);
+                showToast('Failed to connect Gmail: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Get Gmail user info
+         */
+        async function getGmailUserInfo() {
+            try {
+                const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${gmailAccessToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch user info');
+
+                return await response.json();
+            } catch (error) {
+                console.error('Error getting Gmail user info:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Update Gmail connection UI
+         */
+        function updateGmailConnectionUI(connected, email = '') {
+            const notConnected = document.getElementById('gmailNotConnected');
+            const connectedDiv = document.getElementById('gmailConnected');
+            const emailSpan = document.getElementById('connectedGmailEmail');
+            const autoScanCheckbox = document.getElementById('gmailAutoScanEnabled');
+
+            if (connected) {
+                notConnected.style.display = 'none';
+                connectedDiv.style.display = 'block';
+                emailSpan.textContent = email;
+                autoScanCheckbox.disabled = false;
+            } else {
+                notConnected.style.display = 'flex';
+                connectedDiv.style.display = 'none';
+                autoScanCheckbox.disabled = true;
+                autoScanCheckbox.checked = false;
+            }
+        }
+
+        /**
+         * Disconnect Gmail
+         */
+        function disconnectGmail() {
+            if (!confirm('Disconnect Gmail? You will need to re-authorize to scan emails.')) return;
+
+            localStorage.removeItem('gmail_access_token');
+            localStorage.removeItem('gmail_user_email');
+            localStorage.removeItem('gmail_last_scan');
+            gmailAccessToken = null;
+
+            updateGmailConnectionUI(false);
+            showToast('Gmail disconnected', 'info');
+        }
+
+        /**
+         * Scan Gmail for booking confirmation emails
+         */
+        async function scanGmailNow() {
+            if (!gmailAccessToken) {
+                gmailAccessToken = localStorage.getItem('gmail_access_token');
+            }
+
+            if (!gmailAccessToken) {
+                showToast('Please connect Gmail first', 'error');
+                return;
+            }
+
+            try {
+                showToast('🔍 Scanning Gmail for booking confirmations...', 'info');
+
+                // Search queries for different OTA confirmation emails
+                const searchQueries = [
+                    'from:automated@airbnb.com subject:"reservation confirmed"',
+                    'from:noreply@booking.com subject:"confirmed"',
+                    'from:noreply@agoda.com subject:"booking confirmation"',
+                    'from:care@makemytrip.com subject:"booking confirmation"',
+                    'subject:"booking confirmed" OR subject:"reservation confirmed"'
+                ];
+
+                let totalFound = 0;
+                let totalCreated = 0;
+                let totalUpdated = 0;
+
+                for (const query of searchQueries) {
+                    const messages = await searchGmailMessages(query);
+
+                    if (messages && messages.length > 0) {
+                        console.log(`Found ${messages.length} messages for query: ${query}`);
+                        totalFound += messages.length;
+
+                        // Process each message
+                        for (const message of messages.slice(0, 20)) { // Limit to 20 recent per query
+                            const result = await processGmailBookingEmail(message.id);
+                            if (result.created) totalCreated++;
+                            if (result.updated) totalUpdated++;
+                        }
+                    }
+                }
+
+                // Update last scan time
+                const now = new Date().toLocaleString();
+                localStorage.setItem('gmail_last_scan', now);
+                document.getElementById('gmailLastScan').textContent = now;
+
+                // Show results
+                if (totalFound === 0) {
+                    showToast('No booking emails found', 'info');
+                } else {
+                    showToast(`✅ Scanned ${totalFound} emails. Created: ${totalCreated}, Updated: ${totalUpdated}`, 'success');
+                    await loadReservations();
+                    await loadDashboard();
+                }
+
+            } catch (error) {
+                console.error('Error scanning Gmail:', error);
+                showToast('Failed to scan Gmail: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Search Gmail messages
+         */
+        async function searchGmailMessages(query) {
+            try {
+                const response = await fetch(
+                    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=20`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${gmailAccessToken}`
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error('Gmail API request failed');
+
+                const data = await response.json();
+                return data.messages || [];
+            } catch (error) {
+                console.error('Error searching Gmail:', error);
+                return [];
+            }
+        }
+
+        /**
+         * Process a booking confirmation email
+         */
+        async function processGmailBookingEmail(messageId) {
+            try {
+                // Fetch full message
+                const response = await fetch(
+                    `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}?format=full`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${gmailAccessToken}`
+                        }
+                    }
+                );
+
+                if (!response.ok) return { created: false, updated: false };
+
+                const message = await response.json();
+
+                // Extract email body
+                const emailBody = extractEmailBody(message);
+                const headers = message.payload.headers;
+
+                // Get sender
+                const fromHeader = headers.find(h => h.name.toLowerCase() === 'from');
+                const sender = fromHeader ? fromHeader.value : '';
+
+                // Parse booking data from email
+                const bookingData = parseBookingEmail(emailBody, sender);
+
+                if (!bookingData) {
+                    return { created: false, updated: false };
+                }
+
+                // Check if reservation already exists
+                const { data: existing } = await supabase
+                    .from('reservations')
+                    .select('*')
+                    .eq('booking_id', bookingData.booking_id)
+                    .maybeSingle();
+
+                if (existing) {
+                    // Update existing
+                    await supabase
+                        .from('reservations')
+                        .update(bookingData)
+                        .eq('id', existing.id);
+                    return { created: false, updated: true };
+                } else {
+                    // Create new
+                    await supabase
+                        .from('reservations')
+                        .insert([bookingData]);
+                    return { created: true, updated: false };
+                }
+
+            } catch (error) {
+                console.error('Error processing email:', error);
+                return { created: false, updated: false };
+            }
+        }
+
+        /**
+         * Extract email body from Gmail message
+         */
+        function extractEmailBody(message) {
+            let body = '';
+
+            if (message.payload.parts) {
+                for (const part of message.payload.parts) {
+                    if (part.mimeType === 'text/plain' && part.body.data) {
+                        body += atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+                    }
+                }
+            } else if (message.payload.body.data) {
+                body = atob(message.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+            }
+
+            return body;
+        }
+
+        /**
+         * Parse booking details from email body
+         */
+        function parseBookingEmail(emailBody, sender) {
+            let bookingSource = 'OTHER';
+            const senderLower = sender.toLowerCase();
+
+            // Detect source from sender
+            if (senderLower.includes('airbnb')) bookingSource = 'AIRBNB';
+            else if (senderLower.includes('booking.com') || senderLower.includes('agoda')) bookingSource = 'AGODA/BOOKING.COM';
+            else if (senderLower.includes('makemytrip') || senderLower.includes('goibibo')) bookingSource = 'MMT/GOIBIBO';
+
+            // Extract booking details using regex patterns
+            const patterns = {
+                bookingId: /(?:confirmation|booking|reservation)\s*(?:code|number|id)[:\s]+([A-Z0-9-]+)/i,
+                guestName: /(?:guest|name|booked by)[:\s]+([A-Za-z\s]+)/i,
+                checkIn: /check[- ]?in[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\w+\s+\d{1,2},?\s+\d{4})/i,
+                checkOut: /check[- ]?out[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\w+\s+\d{1,2},?\s+\d{4})/i,
+                guests: /(\d+)\s+guest/i,
+                nights: /(\d+)\s+night/i,
+                total: /total[:\s]+[\$₹€£]?\s*([0-9,]+\.?\d*)/i
+            };
+
+            const extracted = {};
+
+            for (const [key, pattern] of Object.entries(patterns)) {
+                const match = emailBody.match(pattern);
+                if (match) {
+                    extracted[key] = match[1].trim();
+                }
+            }
+
+            // Must have at least booking ID and check-in date
+            if (!extracted.bookingId || !extracted.checkIn) {
+                return null;
+            }
+
+            // Parse dates
+            const checkIn = parseFlexibleDate(extracted.checkIn);
+            const checkOut = extracted.checkOut ? parseFlexibleDate(extracted.checkOut) : null;
+
+            if (!checkIn) return null;
+
+            // Calculate nights if not provided
+            let nights = parseInt(extracted.nights) || 1;
+            if (checkOut && checkIn) {
+                nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+            }
+
+            // Auto-calculate check-out if not provided
+            const finalCheckOut = checkOut || new Date(new Date(checkIn).getTime() + nights * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+            const monthDate = new Date(checkIn);
+            const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+            // Return reservation data
+            return {
+                booking_id: extracted.bookingId,
+                guest_name: extracted.guestName || 'Guest',
+                check_in: checkIn,
+                check_out: finalCheckOut,
+                nights: nights,
+                booking_source: bookingSource,
+                status: 'confirmed',
+                booking_type: 'STAYCATION',
+                booking_date: new Date().toISOString().split('T')[0],
+                month: month,
+                number_of_guests: parseInt(extracted.guests) || null,
+                total_amount: extracted.total ? parseFloat(extracted.total.replace(/,/g, '')) : null,
+                // Get property_id from current settings (would need to be passed in)
+                property_id: parseInt(document.getElementById('settingsPropertyId').value) || null,
+                property_name: document.getElementById('settingsPropertyName').textContent || null,
+                // Other fields null
+                guest_phone: null,
+                guest_email: null,
+                guest_city: null,
+                adults: null,
+                kids: null,
+                number_of_rooms: null,
+                stay_amount: null,
+                extra_guest_charges: null,
+                meals_chef: null,
+                bonfire_other: null,
+                ota_service_fee: null,
+                taxes: null,
+                total_amount_pre_tax: null,
+                total_amount_inc_tax: null,
+                damages: null,
+                hostizzy_revenue: null,
+                avg_room_rate: null,
+                avg_nightly_rate: null,
+                paid_amount: null,
+                payment_status: null,
+                gst_status: null
+            };
+        }
+
+        /**
+         * Parse flexible date formats
+         */
+        function parseFlexibleDate(dateStr) {
+            try {
+                // Try different formats
+                const formats = [
+                    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/, // MM/DD/YYYY or DD-MM-YYYY
+                    /(\w+)\s+(\d{1,2}),?\s+(\d{4})/ // Month DD, YYYY
+                ];
+
+                for (const format of formats) {
+                    const match = dateStr.match(format);
+                    if (match) {
+                        const date = new Date(dateStr);
+                        if (!isNaN(date.getTime())) {
+                            return date.toISOString().split('T')[0];
+                        }
+                    }
+                }
+
+                return null;
+            } catch {
+                return null;
+            }
+        }
+
+        /**
+         * Initialize Gmail connection on page load
+         */
+        function initializeGmailConnection() {
+            const accessToken = localStorage.getItem('gmail_access_token');
+            const email = localStorage.getItem('gmail_user_email');
+            const lastScan = localStorage.getItem('gmail_last_scan');
+
+            if (accessToken && email) {
+                gmailAccessToken = accessToken;
+                updateGmailConnectionUI(true, email);
+
+                if (lastScan) {
+                    document.getElementById('gmailLastScan').textContent = lastScan;
+                }
             }
         }
 
