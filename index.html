@@ -1613,18 +1613,18 @@
             transform: scale(1.05);
         }
 
-        /* 4-Stat Grid */
+        /* 2x2 Stat Grid */
         .property-stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            padding: 20px 24px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 16px 20px;
             background: #f8fafc;
         }
 
          .property-stat {
             background: white;
-            padding: 16px;
+            padding: 14px 12px;
             text-align: center;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -1637,7 +1637,7 @@
         }
 
          .property-stat-value {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 6px;
@@ -1735,14 +1735,14 @@
         .sparkline-bar {
             flex: 1;
             background: linear-gradient(to top, #667eea, #764ba2);
-            border-radius: 2px 2px 0 0;
-            transition: all 0.2s;
-            min-height: 4px;
+            border-radius: 3px 3px 0 0;
+            transition: all 0.3s ease;
         }
 
         .sparkline-bar:hover {
-            opacity: 0.7;
-            transform: scaleY(1.1);
+            filter: brightness(1.2);
+            transform: scaleY(1.05);
+            transform-origin: bottom;
         }
 
         .property-sync {
@@ -16033,58 +16033,50 @@
                         .sort((a, b) => new Date(a.check_in) - new Date(b.check_in));
                     const nextCheckIn = upcomingBookings[0];
 
-                    // Performance badge (based on occupancy and revenue)
+                    // Performance badge - based on occupancy only, skip if no data
                     let performanceBadge = '';
                     let badgeClass = '';
-                    if (occupancyPercent >= 70 && totalRevenue > 500000) {
+                    if (totalBookings === 0) {
+                        performanceBadge = '🆕 New';
+                        badgeClass = 'average';
+                    } else if (occupancyPercent >= 60) {
                         performanceBadge = '⭐ Top Performer';
                         badgeClass = 'top-performer';
-                    } else if (occupancyPercent < 30 || totalRevenue < 100000) {
-                        performanceBadge = '⚠️ Needs Attention';
+                    } else if (occupancyPercent > 0 && occupancyPercent < 25) {
+                        performanceBadge = '⚠️ Low Occupancy';
                         badgeClass = 'needs-attention';
                     } else {
-                        performanceBadge = '📊 Average';
+                        performanceBadge = '📊 Active';
                         badgeClass = 'average';
                     }
 
-                    // Calculate 7-day revenue trend
-                    const last7Days = new Date();
-                    last7Days.setDate(last7Days.getDate() - 7);
-                    const recentBookings = confirmedBookings.filter(r => {
-                        const bookingDate = new Date(r.booking_date || r.check_in);
-                        return bookingDate >= last7Days;
-                    });
-
-                    // Generate sparkline data (last 7 days)
+                    // Sparkline: last 6 months revenue by check-in month
                     const sparklineData = [];
-                    for (let i = 6; i >= 0; i--) {
-                        const date = new Date();
-                        date.setDate(date.getDate() - i);
-                        const dateStr = date.toISOString().split('T')[0];
-                        const dayRevenue = confirmedBookings
-                            .filter(r => (r.booking_date || r.check_in) === dateStr)
+                    for (let i = 5; i >= 0; i--) {
+                        const d = new Date();
+                        d.setDate(1);
+                        d.setMonth(d.getMonth() - i);
+                        const monthStr = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+                        const monthRevenue = confirmedBookings
+                            .filter(r => r.month === monthStr)
                             .reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-                        sparklineData.push(dayRevenue);
+                        sparklineData.push({ month: monthStr, revenue: monthRevenue });
                     }
-                    const maxRevenue = Math.max(...sparklineData, 1);
-                    const sparklineBars = sparklineData.map(rev => {
-                        const height = (rev / maxRevenue) * 100;
-                        return `<div class="sparkline-bar" style="height: ${height}%" title="₹${Math.round(rev).toLocaleString('en-IN')}"></div>`;
-                    }).join('');
+                    const maxRevenue = Math.max(...sparklineData.map(d => d.revenue), 1);
+                    const hasAnyRevenue = sparklineData.some(d => d.revenue > 0);
+                    const sparklineBars = hasAnyRevenue
+                        ? sparklineData.map(d => {
+                            const height = Math.max((d.revenue / maxRevenue) * 100, d.revenue > 0 ? 10 : 3);
+                            const opacity = d.revenue > 0 ? 1 : 0.2;
+                            return `<div class="sparkline-bar" style="height: ${height}%; opacity: ${opacity}" title="${d.month}: ₹${Math.round(d.revenue).toLocaleString('en-IN')}"></div>`;
+                          }).join('')
+                        : '';
 
-                    // Calculate revenue trend
-                    const last14To7DaysRevenue = confirmedBookings
-                        .filter(r => {
-                            const bookingDate = new Date(r.booking_date || r.check_in);
-                            const last14 = new Date();
-                            last14.setDate(last14.getDate() - 14);
-                            return bookingDate >= last14 && bookingDate < last7Days;
-                        })
-                        .reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-
-                    const last7DaysRevenue = recentBookings.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-                    const trendPercent = last14To7DaysRevenue > 0
-                        ? Math.round(((last7DaysRevenue - last14To7DaysRevenue) / last14To7DaysRevenue) * 100)
+                    // Revenue trend: compare current month vs previous month (from sparklineData)
+                    const currentMonthRevenue = sparklineData[5]?.revenue || 0;
+                    const prevMonthRevenue = sparklineData[4]?.revenue || 0;
+                    const trendPercent = prevMonthRevenue > 0
+                        ? Math.round(((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
                         : 0;
                     const trendClass = trendPercent >= 0 ? 'positive' : 'negative';
                     const trendIcon = trendPercent >= 0 ? '📈' : '📉';
@@ -16171,16 +16163,20 @@
                             <!-- Revenue Trend Sparkline -->
                             <div class="property-revenue-trend">
                                 <div class="property-trend-header">
-                                    <span class="property-trend-title">💹 7-Day Revenue Trend</span>
+                                    <span class="property-trend-title">💹 6-Month Revenue</span>
                                     ${trendPercent !== 0 ? `
                                         <span class="property-trend-change ${trendClass}">
-                                            ${trendIcon} ${trendPercent > 0 ? '+' : ''}${trendPercent}%
+                                            ${trendIcon} ${trendPercent > 0 ? '+' : ''}${trendPercent}% vs last month
                                         </span>
                                     ` : ''}
                                 </div>
-                                <div class="sparkline-container">
-                                    ${sparklineBars || '<div style="text-align: center; color: #94a3b8; font-size: 12px;">No data</div>'}
-                                </div>
+                                ${hasAnyRevenue ? `
+                                    <div class="sparkline-container">${sparklineBars}</div>
+                                ` : `
+                                    <div style="height: 40px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 12px;">
+                                        No revenue data yet
+                                    </div>
+                                `}
                             </div>
 
                             <!-- iCal Sync Status -->

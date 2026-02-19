@@ -139,6 +139,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip all external/cross-origin requests (CORS proxies, APIs, CDNs)
+  // These must go directly to the network - service worker caching breaks them
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   // Skip chrome-extension and other non-http(s) requests
   if (!url.protocol.startsWith('http')) {
     return;
