@@ -56,41 +56,41 @@
             --sab: env(safe-area-inset-bottom, 0px);
             --sal: env(safe-area-inset-left, 0px);
 
-            /* Color System */
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #818cf8;
-            --secondary: #64748b;
-            --success: #10b981;
-            --success-light: #34d399;
-            --danger: #ef4444;
-            --danger-light: #f87171;
-            --warning: #f59e0b;
-            --warning-light: #fbbf24;
-            --background: #f8fafc;
-            --background-alt: #f1f5f9;
+            /* Color System - Professional Palette (Guesty-inspired) */
+            --primary: #0891b2;           /* Teal - professional, clean */
+            --primary-dark: #0e7490;      /* Darker teal */
+            --primary-light: #06b6d4;     /* Lighter teal */
+            --secondary: #475569;         /* Slate gray - neutral */
+            --success: #059669;           /* Muted emerald green */
+            --success-light: #10b981;
+            --danger: #dc2626;            /* Slightly muted red */
+            --danger-light: #ef4444;
+            --warning: #d97706;           /* Amber */
+            --warning-light: #f59e0b;
+            --background: #f8fafc;        /* Very light slate */
+            --background-alt: #f1f5f9;    /* Slightly darker slate */
             --surface: #ffffff;
             --surface-elevated: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-tertiary: #94a3b8;
-            --border: #e2e8f0;
+            --text-primary: #0f172a;      /* Almost black slate */
+            --text-secondary: #475569;    /* Medium slate */
+            --text-tertiary: #94a3b8;     /* Light slate */
+            --border: #e2e8f0;            /* Very light border */
             --border-light: #f1f5f9;
 
-            /* Shadow System */
-            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            /* Shadow System - Softer, more subtle */
+            --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
             --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 
-            /* Gradient System */
-            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            --gradient-ocean: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            /* Gradient System - Subtle, professional */
+            --gradient-primary: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+            --gradient-success: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            --gradient-warning: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            --gradient-danger: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            --gradient-ocean: linear-gradient(135deg, #0891b2 0%, #3b82f6 100%);
             --gradient-sunset: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
 
             /* Border Radius System */
             --radius-sm: 8px;
@@ -133,7 +133,7 @@
             --leading-snug: 1.4;
             --leading-normal: 1.5;
 
-            /* Status Palette - Light backgrounds for badges/chips */
+            /* Status Palette - Professional, muted tones */
             --success-pale: #d1fae5;
             --success-text: #065f46;
             --warning-pale: #fef3c7;
@@ -141,25 +141,25 @@
             --warning-text: #92400e;
             --danger-pale: #fee2e2;
             --danger-text: #991b1b;
-            --primary-pale: #e0e7ff;
-            --primary-text: #3730a3;
+            --primary-pale: #cffafe;      /* Teal pale */
+            --primary-text: #0e7490;      /* Teal dark */
             --info-pale: #dbeafe;
             --info-text: #1e40af;
             --neutral-pale: #f1f5f9;
-            --neutral-text: #374151;
+            --neutral-text: #475569;
 
-            /* Component-specific shadows */
-            --shadow-input-focus: 0 0 0 3px rgba(99, 102, 241, 0.12);
-            --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.25);
-            --shadow-fab: 0 8px 16px rgba(99, 102, 241, 0.4);
-            --shadow-card-hover: 0 10px 24px rgba(0, 0, 0, 0.1);
+            /* Component-specific shadows - Softer */
+            --shadow-input-focus: 0 0 0 3px rgba(8, 145, 178, 0.1);
+            --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.15);
+            --shadow-fab: 0 6px 16px rgba(8, 145, 178, 0.25);
+            --shadow-card-hover: 0 8px 20px rgba(0, 0, 0, 0.08);
         }
 
         /* Dark Mode Theme */
         [data-theme="dark"] {
-            --primary: #818cf8;
-            --primary-dark: #6366f1;
-            --primary-light: #a5b4fc;
+            --primary: #22d3ee;           /* Bright teal for dark mode */
+            --primary-dark: #0891b2;
+            --primary-light: #67e8f9;
             --secondary: #94a3b8;
             --success: #34d399;
             --success-light: #6ee7b7;
@@ -188,16 +188,16 @@
             --warning-text: #fcd34d;
             --danger-pale: #450a0a;
             --danger-text: #fca5a5;
-            --primary-pale: #1e1b4b;
-            --primary-text: #a5b4fc;
+            --primary-pale: #164e63;      /* Dark teal */
+            --primary-text: #67e8f9;      /* Light teal */
             --info-pale: #1e3a5f;
             --info-text: #93c5fd;
             --neutral-pale: #1e293b;
             --neutral-text: #cbd5e1;
-            --shadow-input-focus: 0 0 0 3px rgba(129, 140, 248, 0.2);
+            --shadow-input-focus: 0 0 0 3px rgba(34, 211, 238, 0.15);
             --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.6);
-            --shadow-fab: 0 8px 16px rgba(129, 140, 248, 0.4);
-            --shadow-card-hover: 0 10px 24px rgba(0, 0, 0, 0.4);
+            --shadow-fab: 0 6px 16px rgba(34, 211, 238, 0.3);
+            --shadow-card-hover: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
 
         /* Smooth theme transition */
@@ -5159,6 +5159,11 @@
                     <span class="theme-icon-dark" style="display: none;">🌙</span>
                 </button>
 
+                <!-- App Settings -->
+                <button class="theme-toggle-btn" onclick="openAppSettings()" title="App Settings" style="margin-right: 16px;">
+                    <span style="font-size: 20px;">⚙️</span>
+                </button>
+
                 <!-- Profile Dropdown (Desktop & Tablet) -->
                 <div class="navbar-menu">
                     <div class="user-menu-container">
@@ -8954,6 +8959,112 @@
     </div> 
  
 
+<!-- App Settings Modal -->
+<div id="appSettingsModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <span class="modal-title">⚙️ App Settings</span>
+            <button class="close-btn" onclick="closeAppSettings()">×</button>
+        </div>
+        <div style="padding: 24px;">
+
+            <!-- Gmail Integration Section -->
+            <div style="margin-bottom: 24px; padding: 24px; background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border-radius: 12px; border: 2px solid var(--primary);">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <span style="font-size: 28px;">📧</span>
+                    <div>
+                        <div style="font-weight: 700; font-size: 16px; color: #134e4a;">Gmail Auto-Import (Global)</div>
+                        <div style="font-size: 13px; color: #115e59;">Scan stay@hostizzy.com for all property bookings</div>
+                    </div>
+                </div>
+
+                <!-- Gmail Connection Status -->
+                <div id="gmailConnectionStatus" style="margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #99f6e4;">
+                    <div id="gmailNotConnected" style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #94a3b8;">⭕</span>
+                            <span style="font-size: 14px; color: #475569;">Not Connected</span>
+                        </div>
+                        <button onclick="connectGmail()"
+                            style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s;">
+                            Connect Gmail
+                        </button>
+                    </div>
+
+                    <div id="gmailConnected" style="display: none;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #22c55e;">✅</span>
+                                <span style="font-size: 14px; color: #1e293b; font-weight: 600;" id="connectedGmailEmail">email@gmail.com</span>
+                            </div>
+                            <button onclick="disconnectGmail()"
+                                style="padding: 6px 12px; background: var(--danger); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
+                                Disconnect
+                            </button>
+                        </div>
+                        <div style="font-size: 12px; color: #64748b;">
+                            Last scan: <span id="gmailLastScan">Never</span>
+                        </div>
+                        <div style="margin-top: 12px;">
+                            <button id="gmailScanBtn" onclick="scanGmailNow()"
+                                style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; width: 100%;">
+                                🔍 Scan for Bookings Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto-Scan Settings -->
+                <div style="padding: 12px; background: white; border-radius: 8px; border: 1px solid #99f6e4;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">🔄 Auto-Scan Emails</div>
+                            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Check for new bookings every 2 hours</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="gmailAutoScanEnabled" disabled onchange="toggleGmailAutoScan()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Setup Instructions -->
+                <details style="margin-top: 12px; border: 1px solid #99f6e4; border-radius: 8px; padding: 12px; background: white;">
+                    <summary style="cursor: pointer; font-weight: 600; color: var(--primary); font-size: 13px;">
+                        ⚙️ First-time Setup Required
+                    </summary>
+                    <div style="margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6;">
+                        <strong style="color: #134e4a;">Before connecting Gmail:</strong><br><br>
+                        1. Go to <a href="https://console.cloud.google.com" target="_blank" style="color: var(--primary); text-decoration: underline;">Google Cloud Console</a><br>
+                        2. Create a new project (or select existing)<br>
+                        3. Enable "Gmail API"<br>
+                        4. Create OAuth 2.0 credentials (Web application)<br>
+                        5. Add authorized redirect URI: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">https://your-domain.com</code><br>
+                        6. Copy Client ID and paste below<br><br>
+
+                        <label style="display: block; font-weight: 600; color: #134e4a; margin-top: 12px; margin-bottom: 4px;">
+                            Google OAuth Client ID:
+                        </label>
+                        <input type="text" id="gmailClientId" placeholder="123456789-abcdefg.apps.googleusercontent.com"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-family: monospace;">
+                        <button onclick="saveGmailClientId()"
+                            style="margin-top: 8px; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
+                            Save Client ID
+                        </button>
+                    </div>
+                </details>
+
+                <div style="margin-top: 12px; padding: 12px; background: white; border-radius: 8px; border-left: 3px solid var(--info-text);">
+                    <div style="font-size: 12px; color: #475569; line-height: 1.6;">
+                        <strong style="color: var(--info-text);">ℹ️ How it works:</strong><br>
+                        Gmail scans <strong>stay@hostizzy.com</strong> for booking confirmation emails from Airbnb, Booking.com, Agoda, MakeMyTrip, etc. Properties are auto-detected from email content.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Property Settings Modal -->
 <div id="propertySettingsModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 600px;">
@@ -9043,93 +9154,6 @@
                     Look for "Calendar Export", "iCal Sync", or "Calendar URL" in settings
                 </div>
             </details>
-
-            <!-- Gmail Integration Section -->
-            <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; border: 2px solid #0284c7;">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                    <span style="font-size: 28px;">📧</span>
-                    <div>
-                        <div style="font-weight: 700; font-size: 16px; color: #0c4a6e;">Gmail Auto-Import</div>
-                        <div style="font-size: 13px; color: #0369a1;">Automatically import reservations from booking confirmation emails</div>
-                    </div>
-                </div>
-
-                <!-- Gmail Connection Status -->
-                <div id="gmailConnectionStatus" style="margin-bottom: 16px; padding: 12px; background: white; border-radius: 8px; border: 1px solid #bae6fd;">
-                    <div id="gmailNotConnected" style="display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #94a3b8;">⭕</span>
-                            <span style="font-size: 14px; color: #475569;">Not Connected</span>
-                        </div>
-                        <button onclick="connectGmail()"
-                            style="padding: 8px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s;">
-                            Connect Gmail
-                        </button>
-                    </div>
-
-                    <div id="gmailConnected" style="display: none;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="color: #22c55e;">✅</span>
-                                <span style="font-size: 14px; color: #1e293b; font-weight: 600;" id="connectedGmailEmail">email@gmail.com</span>
-                            </div>
-                            <button onclick="disconnectGmail()"
-                                style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
-                                Disconnect
-                            </button>
-                        </div>
-                        <div style="font-size: 12px; color: #64748b;">
-                            Last scan: <span id="gmailLastScan">Never</span>
-                        </div>
-                        <div style="margin-top: 12px;">
-                            <button id="gmailScanBtn" onclick="scanGmailNow()"
-                                style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; width: 100%;">
-                                🔍 Scan for Bookings Now
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Auto-Scan Settings -->
-                <div style="padding: 12px; background: white; border-radius: 8px; border: 1px solid #bae6fd;">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div>
-                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">🔄 Auto-Scan Emails</div>
-                            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Check for new bookings every 2 hours</div>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="gmailAutoScanEnabled" disabled onchange="toggleGmailAutoScan()">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Setup Instructions -->
-                <details style="margin-top: 12px; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; background: white;">
-                    <summary style="cursor: pointer; font-weight: 600; color: #0369a1; font-size: 13px;">
-                        ⚙️ First-time Setup Required
-                    </summary>
-                    <div style="margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6;">
-                        <strong style="color: #0c4a6e;">Before connecting Gmail:</strong><br><br>
-                        1. Go to <a href="https://console.cloud.google.com" target="_blank" style="color: #0284c7; text-decoration: underline;">Google Cloud Console</a><br>
-                        2. Create a new project (or select existing)<br>
-                        3. Enable "Gmail API"<br>
-                        4. Create OAuth 2.0 credentials (Web application)<br>
-                        5. Add authorized redirect URI: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">https://your-domain.com/oauth/callback</code><br>
-                        6. Copy Client ID and paste below<br><br>
-
-                        <label style="display: block; font-weight: 600; color: #0c4a6e; margin-top: 12px; margin-bottom: 4px;">
-                            Google OAuth Client ID:
-                        </label>
-                        <input type="text" id="gmailClientId" placeholder="123456789-abcdefg.apps.googleusercontent.com"
-                            style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-family: monospace;">
-                        <button onclick="saveGmailClientId()"
-                            style="margin-top: 8px; padding: 8px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
-                            Save Client ID
-                        </button>
-                    </div>
-                </details>
-            </div>
 
             <!-- Action Buttons -->
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
@@ -16647,6 +16671,20 @@
         /**
          * Close property settings modal
          */
+        /**
+         * Open App Settings modal
+         */
+        function openAppSettings() {
+            document.getElementById('appSettingsModal').style.display = 'flex';
+        }
+
+        /**
+         * Close App Settings modal
+         */
+        function closeAppSettings() {
+            document.getElementById('appSettingsModal').style.display = 'none';
+        }
+
         function closePropertySettings() {
             document.getElementById('propertySettingsModal').style.display = 'none';
             document.getElementById('icalUrlInput').value = '';
@@ -17634,10 +17672,21 @@
                 const fromHeader = headers.find(h => h.name.toLowerCase() === 'from');
                 const sender = fromHeader ? fromHeader.value : '';
 
-                // Parse booking data from email
-                const bookingData = parseBookingEmail(emailBody, sender);
+                // Get subject for better property matching
+                const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject');
+                const subject = subjectHeader ? subjectHeader.value : '';
+
+                // Fetch all properties for auto-detection
+                const { data: properties } = await supabase
+                    .from('properties')
+                    .select('id, name, location')
+                    .eq('is_active', true);
+
+                // Parse booking data from email (with property auto-detection)
+                const bookingData = parseBookingEmail(emailBody, sender, subject, properties || []);
 
                 if (!bookingData) {
+                    console.log('[Gmail] Could not parse booking data from email');
                     return { created: false, updated: false };
                 }
 
@@ -17735,7 +17784,7 @@
         /**
          * Parse booking details from email body
          */
-        function parseBookingEmail(emailBody, sender) {
+        function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
             let bookingSource = 'OTHER';
             const senderLower = sender.toLowerCase();
 
@@ -17819,11 +17868,35 @@
             const monthDate = new Date(checkIn);
             const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 
-            // Get property from current settings context
-            const propertyIdEl = document.getElementById('settingsPropertyId');
-            const propertyNameEl = document.getElementById('settingsPropertyName');
-            const propertyId = propertyIdEl ? (parseInt(propertyIdEl.value) || null) : null;
-            const propertyName = propertyNameEl ? (propertyNameEl.textContent || '').substring(0, 50) : null;
+            // Property Auto-Detection: match property from email content
+            let matchedProperty = null;
+            const searchText = (subject + ' ' + emailBody).toLowerCase();
+
+            for (const property of properties) {
+                const propNameLower = property.name.toLowerCase();
+                const locationLower = (property.location || '').toLowerCase();
+
+                // Check if property name appears in subject or email body
+                if (searchText.includes(propNameLower)) {
+                    matchedProperty = property;
+                    break;
+                }
+
+                // Also check location (e.g., "Goa Villa" → matches properties in Goa)
+                if (locationLower && searchText.includes(locationLower)) {
+                    matchedProperty = property;
+                    break;
+                }
+            }
+
+            // Fall back to first property if no match found
+            if (!matchedProperty && properties.length > 0) {
+                matchedProperty = properties[0];
+                console.log('[Gmail] No property match found, using first property:', matchedProperty.name);
+            }
+
+            const propertyId = matchedProperty ? matchedProperty.id : null;
+            const propertyName = matchedProperty ? matchedProperty.name.substring(0, 50) : null;
 
             return {
                 booking_id: bookingId,
