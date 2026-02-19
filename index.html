@@ -98,6 +98,40 @@
             --radius-lg: 16px;
             --radius-xl: 20px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Spacing Scale (4px base unit) */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-7: 28px;
+            --space-8: 32px;
+            --space-10: 40px;
+            --space-12: 48px;
+
+            /* Typography Scale */
+            --font-size-xs: 10px;
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-md: 15px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 20px;
+            --font-size-3xl: 24px;
+            --font-size-4xl: 28px;
+
+            /* Font Weights */
+            --font-normal: 400;
+            --font-medium: 500;
+            --font-semibold: 600;
+            --font-bold: 700;
+
+            /* Line Heights */
+            --leading-tight: 1.2;
+            --leading-snug: 1.4;
+            --leading-normal: 1.5;
         }
 
         /* Dark Mode Theme */
@@ -1446,156 +1480,276 @@
             letter-spacing: -0.02em;
         }
         
-        /* Property Cards */
+        /* ============================================
+           PROPERTY ROW CARDS (Horizontal List Layout)
+           Like Guesty / Airbnb Hosting Dashboard
+           ============================================ */
+
+        /* Override grid to become a vertical list */
+        #propertiesGrid {
+            display: flex !important;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Row card container */
         .property-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            background: var(--surface);
+            border-radius: var(--radius-md);
             border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: stretch;
+            min-height: 76px;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
         .property-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+            box-shadow: var(--shadow-md);
             border-color: var(--primary);
         }
 
-        .property-card:hover .property-quick-actions {
-            opacity: 1;
-            pointer-events: all;
+        /* Left: Property Icon / Thumbnail */
+        .prop-icon {
+            width: 76px;
+            min-width: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-2xl);
+            background: var(--gradient-primary);
+            flex-shrink: 0;
         }
 
-        /* Property Image Section */
-        .property-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .property-image img {
+        .prop-icon img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .property-image-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4));
+        /* Center: Property Info */
+        .prop-info {
+            flex: 1;
+            min-width: 0;
+            padding: var(--space-2) var(--space-4);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 3px;
         }
 
-        .property-image-text {
-            position: absolute;
-            bottom: 16px;
-            left: 20px;
-            right: 20px;
-            color: white;
-            z-index: 1;
+        .prop-name {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: var(--leading-tight);
         }
 
-        .property-image-icon {
-            font-size: 64px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.3;
+        .prop-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            overflow: hidden;
         }
 
-        /* Performance Badge */
-        .property-badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 6px 12px;
-            border-radius: 20px;
+        .prop-location {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        /* Inline performance badge */
+        .prop-badge {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-bold);
+            padding: 2px 7px;
+            border-radius: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            letter-spacing: 0.3px;
+        }
+
+        .prop-badge.top-performer {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .prop-badge.needs-attention {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .prop-badge.average {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .prop-type-row {
             font-size: 11px;
-            font-weight: 700;
+            color: var(--text-tertiary);
+        }
+
+        /* Stats: 4 fixed-width columns that NEVER wrap */
+        .prop-stats {
+            display: flex;
+            flex-shrink: 0;
+        }
+
+        .prop-stat {
+            width: 88px;
+            min-width: 88px;
+            text-align: center;
+            padding: var(--space-2) var(--space-1);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .prop-stat-value {
+            font-size: var(--font-size-md);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            white-space: nowrap;
+            line-height: var(--leading-tight);
+            letter-spacing: -0.3px;
+        }
+
+        .prop-stat-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-weight: var(--font-semibold);
+            white-space: nowrap;
+        }
+
+        /* Next Check-in column */
+        .prop-next {
+            width: 140px;
+            min-width: 140px;
+            padding: var(--space-2) var(--space-3);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .prop-next-label {
+            font-size: var(--font-size-xs);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            backdrop-filter: blur(8px);
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            color: var(--text-tertiary);
+            font-weight: var(--font-semibold);
         }
 
-        .property-badge.top-performer {
-            background: rgba(16, 185, 129, 0.95);
-            color: white;
-        }
-
-        .property-badge.needs-attention {
-            background: rgba(239, 68, 68, 0.95);
-            color: white;
-        }
-
-        .property-badge.average {
-            background: rgba(251, 191, 36, 0.95);
-            color: white;
-        }
-
-        /* Quick Actions (Show on Hover) */
-        .property-quick-actions {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            display: flex;
-            gap: 8px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            z-index: 2;
-        }
-
-        .property-quick-actions button {
-            background: rgba(255, 255, 255, 0.95);
-            border: none;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-
-        .property-quick-actions button:hover {
-            transform: scale(1.1);
-            background: white;
-        }
-
-        .property-card-header {
-            padding: 24px;
-            background: white;
-        }
-
-        .property-card-title {
-            font-size: 22px;
-            font-weight: 700;
+        .prop-next-date {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-bold);
             color: var(--text-primary);
-            margin: 0 0 6px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            white-space: nowrap;
         }
 
-        .property-card-location {
-            font-size: 14px;
+        .prop-next-guest {
+            font-size: 11px;
             color: var(--text-secondary);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
+        .prop-next-empty {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        /* iCal Sync column */
+        .prop-sync {
+            width: 84px;
+            min-width: 84px;
+            text-align: center;
+            padding: var(--space-2);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .prop-sync-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .prop-sync-dot.synced { background: var(--success); }
+        .prop-sync-dot.not-synced { background: var(--border); }
+
+        .prop-sync-status {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-semibold);
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .prop-sync-time {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+            white-space: nowrap;
+        }
+
+        /* Action buttons column */
+        .prop-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-2) var(--space-2);
+            flex-shrink: 0;
+        }
+
+        .prop-action-btn {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: var(--space-1) var(--space-2);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            color: var(--text-secondary);
+            font-weight: var(--font-semibold);
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .prop-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .prop-action-btn.primary {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+        }
+
+        .prop-action-btn.primary:hover {
+            filter: brightness(1.1);
+        }
+
+        /* btn-icon kept for other parts of the app */
         .btn-icon {
             background: rgba(102, 126, 234, 0.1);
             border: none;
@@ -1613,295 +1767,98 @@
             transform: scale(1.05);
         }
 
-        /* 2x2 Stat Grid - Compact */
-        .property-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            padding: 14px 16px;
-            background: #f8fafc;
-        }
-
-         .property-stat {
-            background: white;
-            padding: 12px 8px;
-            text-align: center;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.2s;
-        }
-
-        .property-stat:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-         .property-stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            word-break: break-word;
-            line-height: 1.2;
-        }
-
-        .property-stat-label {
-            font-size: 10px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .property-stat-icon {
-            font-size: 16px;
-            margin-bottom: 6px;
-        }
-
-        /* Next Check-in Section */
-        .property-next-checkin {
-            padding: 16px 24px;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-left: 4px solid #f59e0b;
-        }
-
-        .property-next-checkin-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #92400e;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
-        }
-
-        .property-next-checkin-details {
-            font-size: 14px;
-            color: #78350f;
-            font-weight: 600;
-        }
-
-        /* Revenue Trend */
-        .property-revenue-trend {
-            padding: 16px 24px;
-            background: white;
-        }
-
-        .property-trend-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .property-trend-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .property-trend-change {
-            font-size: 13px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .property-trend-change.positive {
-            color: #10b981;
-        }
-
-        .property-trend-change.negative {
-            color: #ef4444;
-        }
-
-        .sparkline-container {
-            height: 40px;
-            display: flex;
-            align-items: flex-end;
-            gap: 3px;
-            padding: 4px 0;
-        }
-
-        .sparkline-bar {
-            flex: 1;
-            background: linear-gradient(to top, #667eea, #764ba2);
-            border-radius: 3px 3px 0 0;
-            transition: all 0.3s ease;
-        }
-
-        .sparkline-bar:hover {
-            filter: brightness(1.2);
-            transform: scaleY(1.05);
-            transform-origin: bottom;
-        }
-
-        .property-sync {
-            padding: 16px 24px;
-            background: var(--background);
-            border-top: 1px solid var(--border);
-        }
-
-        .property-actions {
-            padding: 20px 24px;
-            display: flex;
-            gap: 10px;
-            background: white;
-        }
-
-        /* ============================================
-           DESKTOP RESPONSIVE DESIGN (Professional)
-           ============================================ */
-
-        /* Tablet and larger (768px+) */
-        @media (min-width: 768px) {
-            .property-stats {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 14px;
-                padding: 18px 24px;
+        /* Mobile: compact stacked layout */
+        @media (max-width: 640px) {
+            .property-card {
+                flex-wrap: wrap;
+                min-height: auto;
             }
 
-            .property-stat {
-                padding: 16px 12px;
+            .prop-icon {
+                width: 60px;
+                min-width: 60px;
+                font-size: var(--font-size-xl);
+                min-height: 60px;
             }
 
-            .property-stat-icon {
-                font-size: 20px;
-                margin-bottom: 8px;
+            .prop-info {
+                flex: 1;
+                border-right: none;
             }
 
-            .property-stat-value {
-                font-size: 24px;
-                margin-bottom: 6px;
+            .prop-stats {
+                width: 100%;
+                border-top: 1px solid var(--border-light);
             }
 
-            .property-stat-label {
-                font-size: 11px;
+            .prop-stat {
+                flex: 1;
+                width: auto;
+                min-width: 0;
+                padding: var(--space-2) var(--space-1);
             }
 
-            .property-image {
-                height: 220px;
+            .prop-stat-value {
+                font-size: var(--font-size-base);
             }
 
-            .property-badge {
-                padding: 8px 14px;
-                font-size: 12px;
+            .prop-next,
+            .prop-sync {
+                display: none;
+            }
+
+            .prop-actions {
+                width: 100%;
+                border-top: 1px solid var(--border-light);
+                padding: var(--space-2) var(--space-3);
+                justify-content: stretch;
+            }
+
+            .prop-action-btn {
+                flex: 1;
+                text-align: center;
             }
         }
 
-        /* Desktop (1024px+) - Professional Layout */
+        /* Desktop: wider stats columns */
         @media (min-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(3, 1fr) !important;
-                gap: 24px;
+                gap: var(--space-6);
             }
 
-            .property-card {
-                border-radius: 18px;
+            .prop-stat {
+                width: 100px;
+                min-width: 100px;
             }
 
-            .property-image {
-                height: 240px;
+            .prop-stat-value {
+                font-size: var(--font-size-lg);
             }
 
-            .property-stats {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 16px;
-                padding: 20px 28px;
+            .prop-next {
+                width: 160px;
+                min-width: 160px;
             }
 
-            .property-stat {
-                padding: 18px 14px;
-                border-radius: 14px;
-            }
-
-            .property-stat-icon {
-                font-size: 22px;
-                margin-bottom: 10px;
-            }
-
-            .property-stat-value {
-                font-size: 26px;
-                margin-bottom: 8px;
-            }
-
-            .property-stat-label {
-                font-size: 12px;
-            }
-
-            .property-next-checkin {
-                padding: 18px 28px;
-            }
-
-            .property-revenue-trend {
-                padding: 18px 28px;
-            }
-
-            .property-sync {
-                padding: 18px 28px;
-            }
-
-            .property-actions {
-                padding: 24px 28px;
-                gap: 12px;
-            }
-
-            .property-badge {
-                padding: 8px 16px;
-                font-size: 12px;
-                top: 16px;
-                right: 16px;
-            }
-
-            .property-image-text {
-                bottom: 20px;
-                left: 28px;
-                right: 28px;
-            }
-
-            .property-card-title {
-                font-size: 22px !important;
-            }
-
-            .property-card-location {
-                font-size: 14px !important;
+            .prop-name {
+                font-size: var(--font-size-md);
             }
         }
 
-        /* Large Desktop (1440px+) - Extra Spacious */
         @media (min-width: 1440px) {
             .stats-grid {
                 grid-template-columns: repeat(4, 1fr) !important;
-                gap: 28px;
+                gap: var(--space-7);
             }
 
-            .property-image {
-                height: 260px;
+            .prop-stat {
+                width: 110px;
+                min-width: 110px;
             }
 
-            .property-stats {
-                padding: 24px 32px;
-                gap: 18px;
-            }
-
-            .property-stat {
-                padding: 20px 16px;
-            }
-
-            .property-stat-icon {
-                font-size: 24px;
-            }
-
-            .property-stat-value {
-                font-size: 28px;
-            }
-
-            .property-stat-label {
-                font-size: 12px;
-                letter-spacing: 0.8px;
+            .prop-stat-value {
+                font-size: var(--font-size-xl);
             }
         }
 
@@ -16243,121 +16200,83 @@
                     const lastSynced = p.ical_last_synced ?
                         formatTimeAgo(new Date(p.ical_last_synced)) : 'Never';
 
+                    // Format revenue compactly
+                    const revenueDisplay = totalRevenue >= 100000
+                        ? '₹' + (totalRevenue / 100000).toFixed(1) + 'L'
+                        : totalRevenue >= 1000
+                            ? '₹' + (totalRevenue / 1000).toFixed(0) + 'K'
+                            : '₹' + Math.round(totalRevenue);
+
+                    const occColor = occupancyPercent >= 60 ? '#10b981'
+                        : occupancyPercent >= 25 ? '#f59e0b'
+                        : occupancyPercent > 0 ? '#ef4444'
+                        : '#94a3b8';
+
                     return `
                         <div class="property-card">
-                            <!-- Property Image with Gradient Fallback -->
-                            <div class="property-image">
-                                ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}">` : ''}
-                                <div class="property-image-overlay"></div>
-                                ${!p.image_url ? `<div class="property-image-icon">${propertyIcon}</div>` : ''}
-                                <div class="property-image-text">
-                                    <h3 class="property-card-title" style="color: white; margin: 0; font-size: 20px;">${p.name}</h3>
-                                    <p class="property-card-location" style="color: rgba(255,255,255,0.95); margin: 4px 0 0 0; font-size: 13px;">
-                                        📍 ${p.location || 'No location'}
-                                    </p>
-                                </div>
 
-                                <!-- Performance Badge -->
-                                <div class="property-badge ${badgeClass}">
-                                    ${performanceBadge}
-                                </div>
+                            <!-- Left: Icon / Thumbnail -->
+                            <div class="prop-icon">
+                                ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}">` : propertyIcon}
+                            </div>
 
-                                <!-- Quick Actions (Show on Hover) -->
-                                <div class="property-quick-actions">
-                                    <button onclick="showPropertyCalendar(${p.id})" title="View Calendar">📅</button>
-                                    <button onclick="openPropertySettings(${p.id})" title="Settings">⚙️</button>
+                            <!-- Property Name, Location, Badge -->
+                            <div class="prop-info">
+                                <div class="prop-name">${p.name}</div>
+                                <div class="prop-meta">
+                                    <span class="prop-location">📍 ${p.location || 'No location'}</span>
+                                    <span class="prop-badge ${badgeClass}">${performanceBadge}</span>
+                                </div>
+                                <div class="prop-type-row">${p.type || 'Property'}</div>
+                            </div>
+
+                            <!-- Stats: 4 fixed-width columns -->
+                            <div class="prop-stats">
+                                <div class="prop-stat">
+                                    <div class="prop-stat-value">${totalBookings}</div>
+                                    <div class="prop-stat-label">Bookings</div>
+                                </div>
+                                <div class="prop-stat">
+                                    <div class="prop-stat-value">${revenueDisplay}</div>
+                                    <div class="prop-stat-label">Revenue</div>
+                                </div>
+                                <div class="prop-stat">
+                                    <div class="prop-stat-value" style="color:${occColor}">${occupancyPercent}%</div>
+                                    <div class="prop-stat-label">Occupancy</div>
+                                </div>
+                                <div class="prop-stat">
+                                    <div class="prop-stat-value" style="color:${activeBookings > 0 ? '#3b82f6' : '#94a3b8'}">${activeBookings}</div>
+                                    <div class="prop-stat-label">Live Now</div>
                                 </div>
                             </div>
 
-                            <!-- 2x2 Stat Grid -->
-                            <div class="property-stats">
-                                <div class="property-stat">
-                                    <div class="property-stat-icon">📊</div>
-                                    <div class="property-stat-value">${totalBookings}</div>
-                                    <div class="property-stat-label">Total</div>
-                                </div>
-                                <div class="property-stat">
-                                    <div class="property-stat-icon">💰</div>
-                                    <div class="property-stat-value">₹${(totalRevenue / 100000).toFixed(1)}L</div>
-                                    <div class="property-stat-label">Rev</div>
-                                </div>
-                                <div class="property-stat">
-                                    <div class="property-stat-icon">📈</div>
-                                    <div class="property-stat-value" style="color: ${occupancyPercent >= 60 ? '#10b981' : occupancyPercent >= 25 ? '#f59e0b' : '#ef4444'}">
-                                        ${occupancyPercent}%
-                                    </div>
-                                    <div class="property-stat-label">Occ</div>
-                                </div>
-                                <div class="property-stat">
-                                    <div class="property-stat-icon">🏠</div>
-                                    <div class="property-stat-value" style="color: ${activeBookings > 0 ? '#3b82f6' : '#94a3b8'}">
-                                        ${activeBookings}
-                                    </div>
-                                    <div class="property-stat-label">Live</div>
-                                </div>
-                            </div>
-
-                            <!-- Next Check-in Preview -->
-                            ${nextCheckIn ? `
-                                <div class="property-next-checkin">
-                                    <div class="property-next-checkin-title">📅 Next Check-in</div>
-                                    <div class="property-next-checkin-details">
-                                        ${formatDate(nextCheckIn.check_in)} • ${nextCheckIn.guest_name}
-                                    </div>
-                                </div>
-                            ` : ''}
-
-                            <!-- Revenue Trend Sparkline -->
-                            <div class="property-revenue-trend">
-                                <div class="property-trend-header">
-                                    <span class="property-trend-title">💹 6-Month Revenue</span>
-                                    ${trendPercent !== 0 ? `
-                                        <span class="property-trend-change ${trendClass}">
-                                            ${trendIcon} ${trendPercent > 0 ? '+' : ''}${trendPercent}% vs last month
-                                        </span>
-                                    ` : ''}
-                                </div>
-                                ${hasAnyRevenue ? `
-                                    <div class="sparkline-container">${sparklineBars}</div>
+                            <!-- Next Check-in -->
+                            <div class="prop-next">
+                                <div class="prop-next-label">Next Check-in</div>
+                                ${nextCheckIn ? `
+                                    <div class="prop-next-date">${formatDate(nextCheckIn.check_in)}</div>
+                                    <div class="prop-next-guest">${nextCheckIn.guest_name}</div>
                                 ` : `
-                                    <div style="height: 40px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 12px;">
-                                        No revenue data yet
-                                    </div>
+                                    <div class="prop-next-empty">None upcoming</div>
                                 `}
                             </div>
 
                             <!-- iCal Sync Status -->
-                            <div class="property-sync">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; font-weight: 600;">🔗 iCal Sync</span>
-                                    ${syncStatus}
-                                </div>
-                                ${p.ical_url ? `
-                                    <div style="font-size: 12px; color: var(--text-secondary);">
-                                        Last synced: ${lastSynced}
-                                    </div>
-                                ` : `
-                                    <div style="font-size: 12px; color: var(--text-secondary);">
-                                        No iCal URL configured
-                                    </div>
-                                `}
+                            <div class="prop-sync">
+                                <div class="prop-sync-dot ${p.ical_url ? 'synced' : 'not-synced'}"></div>
+                                <div class="prop-sync-status">${p.ical_url ? 'iCal On' : 'No iCal'}</div>
+                                ${p.ical_url ? `<div class="prop-sync-time">${lastSynced}</div>` : ''}
                             </div>
 
-                            <!-- Action Buttons -->
-                            <div class="property-actions">
-                                <button class="btn btn-sm btn-secondary" onclick="showPropertyCalendar(${p.id})" style="flex: 1;">
-                                    📅 Calendar
-                                </button>
+                            <!-- Actions -->
+                            <div class="prop-actions">
+                                <button class="prop-action-btn" onclick="showPropertyCalendar(${p.id})" title="Calendar">📅 Cal</button>
                                 ${p.ical_url ? `
-                                    <button class="btn btn-sm btn-primary" onclick="syncPropertyNow(${p.id}, event)" style="flex: 1;">
-                                        🔄 Sync Now
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-sm btn-primary" onclick="openPropertySettings(${p.id})" style="flex: 1;">
-                                        ⚙️ Setup Sync
-                                    </button>
-                                `}
+                                    <button class="prop-action-btn primary" onclick="syncPropertyNow(${p.id}, event)" title="Sync Now">🔄</button>
+                                ` : ''}
+                                <button class="prop-action-btn" onclick="openPropertySettings(${p.id})" title="Settings">⚙️</button>
                             </div>
+
                         </div>
                     `;
                 }).join('');

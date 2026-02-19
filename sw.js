@@ -1,6 +1,6 @@
 /**
  * ResIQ Service Worker
- * Version: 4.4.0
+ * Version: 5.0.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  *
  * IMPORTANT FOR DEVELOPERS:
@@ -11,13 +11,14 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.0.0: Horizontal row property cards + full design system CSS tokens
  * - v4.4.0: Fixed iCal proxy (now uses /api/ical-proxy), property card layout fixes
  * - v4.3.0: Added onboarding flow and mobile enhancements
  * - v4.2.1: Added prevention strategies and force update mechanism
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v4.4.0';
+const CACHE_VERSION = 'v5.0.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
