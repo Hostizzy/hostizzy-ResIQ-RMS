@@ -4970,6 +4970,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
     <!-- EmailJS: send emails directly from browser (no backend required) -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Lucide Icons: Professional icon library (replaces emojis) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     
@@ -27665,6 +27667,29 @@ function printPropertyView() {
 
     <!-- Onboarding Flow -->
     <script src="onboarding.js"></script>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        // Initialize Lucide icons after DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+                console.log('[Icons] Lucide initialized');
+            }
+        });
+
+        // Helper function to create icon HTML (usage: icon('calendar', 20))
+        function icon(name, size = 16, className = '') {
+            return `<i data-lucide="${name}" class="${className}" style="width: ${size}px; height: ${size}px; display: inline-block; vertical-align: middle;"></i>`;
+        }
+
+        // Re-initialize icons after dynamic content updates
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+    </script>
 
 </body>
 </html>
