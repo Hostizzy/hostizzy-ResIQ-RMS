@@ -15476,18 +15476,25 @@
                                  onclick="openReservationModal('${r.booking_id}')" title="Click to edit">
                                 ${r.booking_id || 'N/A'}
                             </div>
-                            ${r.booking_source && r.booking_source !== 'DIRECT' ? `<div style="font-size: 10px; color: var(--text-tertiary); margin-top: 2px;">${getBookingSourceBadge(r.booking_source)}</div>` : ''}
+                            ${r.check_out ? `<div style="font-size: 10px; color: var(--text-tertiary); margin-top: 2px;">→ ${formatDate(r.check_out)}</div>` : ''}
                         </td>
                         <td>
                             <div style="font-weight: 600;">${r.property_name || '-'}</div>
                         </td>
                         <td>
+                            ${r.booking_source ? getBookingSourceBadge(r.booking_source) : '<span style="font-size: 11px; color: var(--text-tertiary);">Direct</span>'}
+                        </td>
+                        <td>
                             <div style="font-weight: 600;">${r.guest_name || '-'}</div>
-                            ${r.guest_phone ? `<div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${r.guest_phone}</div>` : ''}
+                            ${r.guest_phone ? `<div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;"><i data-lucide="phone" style="width: 10px; height: 10px; margin-right: 2px;"></i>${r.guest_phone}</div>` : ''}
                         </td>
                         <td>
                             <div style="font-weight: 600; font-size: 13px;">${r.check_in ? formatDate(r.check_in) : '-'}</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${r.nights || 0}N</div>
+                            ${r.check_in && r.check_out ? `<div style="font-size: 10px; color: var(--text-tertiary); margin-top: 2px;">to ${formatDate(r.check_out)}</div>` : ''}
+                        </td>
+                        <td style="text-align: center;">
+                            <div style="font-weight: 700; font-size: 15px; color: var(--primary);">${r.nights || 0}</div>
+                            <div style="font-size: 10px; color: var(--text-tertiary);">nights</div>
                         </td>
                         <td>
                             ${r.total_amount ? `
@@ -15496,10 +15503,10 @@
                                 </div>
                                 ${r.ota_service_fee > 0 ? `
                                     <div style="font-size: 10px; color: var(--danger); margin-top: 2px;">
-                                        Fee: ${formatCurrency(r.ota_service_fee)}
+                                        <i data-lucide="building" style="width: 9px; height: 9px; margin-right: 2px;"></i>Fee: ${formatCurrency(r.ota_service_fee)}
                                     </div>
                                     <div style="font-size: 10px; color: var(--success); margin-top: 2px; font-weight: 600;">
-                                        Net: ${formatCurrency(r.total_amount - r.ota_service_fee)}
+                                        <i data-lucide="coins" style="width: 9px; height: 9px; margin-right: 2px;"></i>Net: ${formatCurrency(r.total_amount - r.ota_service_fee)}
                                     </div>
                                 ` : ''}
                             ` : '<span style="color: var(--text-tertiary); font-size: 12px;">—</span>'}
@@ -15524,10 +15531,13 @@
                                     <i data-lucide="credit-card" style="width: 11px; height: 11px;"></i>Pay
                                 </button>
                                 <button class="quick-action-btn" onclick="viewPaymentHistory('${r.booking_id}')" title="Payment History">
-                                    <i data-lucide="history" style="width: 11px; height: 11px;"></i>History
+                                    <i data-lucide="history" style="width: 11px; height: 11px;"></i>
                                 </button>
                                 <button class="quick-action-btn" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send WhatsApp">
-                                    <i data-lucide="message-circle" style="width: 11px; height: 11px;"></i>Message
+                                    <i data-lucide="message-circle" style="width: 11px; height: 11px;"></i>
+                                </button>
+                                <button class="quick-action-btn" onclick="openReservationModal('${r.booking_id}')" title="Edit">
+                                    <i data-lucide="edit" style="width: 11px; height: 11px;"></i>
                                 </button>
                                 ${!isCancelled ? `<button class="quick-action-btn" onclick="deleteReservation('${r.booking_id}')" title="Delete" style="color: var(--danger);">
                                     <i data-lucide="trash-2" style="width: 11px; height: 11px;"></i>
@@ -15541,8 +15551,6 @@
             // Refresh Lucide icons
             setTimeout(() => { if (typeof refreshIcons === 'function') refreshIcons(); }, 100);
         }
-
-
         // Toggle status dropdown
         function toggleStatusDropdown(event, bookingId) {
             event.stopPropagation();
