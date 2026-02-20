@@ -5278,8 +5278,8 @@
         <div class="sync-dot online"></div>
         <span id="syncStatus">Online</span>
         <span id="pendingCount" class="pending-badge" style="display: none;">0</span>
-        <button id="manualSyncBtn" class="sync-button" onclick="manualSync()" style="display: none; background: none; border: none; color: inherit; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-            🔄 Sync
+        <button id="manualSyncBtn" class="sync-button" onclick="manualSync()" style="display: none; background: none; border: none; color: inherit; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+            <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Sync
         </button>
     </div>
 
@@ -5324,7 +5324,7 @@
                 <div style="position: relative;">
                     <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" style="padding-right: 48px;">
                     <button type="button" onclick="toggleLoginPassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; font-size: 18px; opacity: 0.6; transition: opacity 0.2s;" title="Show/Hide Password">
-                        <span id="loginPasswordToggleIcon">👁️</span>
+                        <span id="loginPasswordToggleIcon"><i data-lucide="eye" style="width: 16px; height: 16px;"></i></span>
                     </button>
                 </div>
             </div>
@@ -5384,7 +5384,7 @@
         <!-- Mobile Header -->
         <div id="mobileHeader" class="mobile-header hidden">
             <div class="mobile-header-content">
-                <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+                <button class="mobile-menu-btn" onclick="toggleMobileSidebar()"><i data-lucide="menu" style="width: 22px; height: 22px;"></i></button>
                 <img src="assets/logo.png" alt="ResIQ" class="mobile-logo">
                 <span id="mobileUserEmail" style="font-size: 12px; color: var(--text-secondary);"></span>
             </div>
@@ -6707,7 +6707,7 @@
             <div class="card" style="background: var(--gradient-primary); border: none; color: white; margin-bottom: 24px;">
                 <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.2); cursor: pointer;" onclick="toggleCollapse('aiInsightsContent','aiInsightsIcon')">
                     <h3 class="card-title" style="color: white; display: flex; align-items: center; gap: 8px;">
-                        🤖 AI-Powered Insights <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 10px;">SMART</span>
+                        <i data-lucide="cpu" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>AI-Powered Insights <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 10px;">SMART</span>
                         <span id="aiInsightsIcon"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span>
                     </h3>
                     <div style="font-size: 13px; opacity: 0.9;">Intelligent recommendations for your business</div>
@@ -6722,7 +6722,7 @@
             <!-- Top 15 Properties Performance -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">🏆 Top 15 Properties Performance</h3>
+                    <h3 class="card-title"><i data-lucide="trophy" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Top 15 Properties Performance</h3>
                     <button class="btn btn-primary btn-sm" onclick="showView('properties')">View All Properties</button>
                 </div>
                 <div style="padding: 20px;">
@@ -6754,11 +6754,17 @@
 
         <!-- Guests View -->
         <div id="guestsView" class="container hidden">
-            <div class="card-header">
-                <h2><i data-lucide="users" style="width: 22px; height: 22px; margin-right: 8px; vertical-align: middle;"></i>Guest Directory</h2>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <button class="btn btn-secondary btn-sm" onclick="exportGuestsCSV()">📥 Export CSV</button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="users" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Guest Directory
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">View and manage all guests across your properties</p>
                 </div>
+                <button class="btn btn-secondary btn-sm" onclick="exportGuestsCSV()" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export CSV
+                </button>
             </div>
 
             <div class="card">
@@ -6774,17 +6780,17 @@
                             Table
                         </button>
                         <button class="btn btn-sm" id="cardViewBtn" onclick="switchGuestView('cards')" style="background: var(--secondary); color: white;">
-                            🎴 Cards
+                            <i data-lucide="layout-grid" style="width: 14px; height: 14px; margin-right: 4px;"></i>Cards
                         </button>
                     </div>
                     
                     <div class="filter-item" style="max-width: 180px;">
                         <select id="guestTypeFilter" onchange="filterGuests()">
                             <option value="">All Guests</option>
-                            <option value="repeat">🌟 Repeat Guests</option>
-                            <option value="new">✨ New Guests</option>
+                            <option value="repeat">Repeat Guests</option>
+                            <option value="new">New Guests</option>
                             <option value="vip">VIP (5+ Stays)</option>
-                            <option value="highvalue">💎 High Value (₹50K+)</option>
+                            <option value="highvalue">High Value (₹50K+)</option>
                         </select>
                     </div>
                     
@@ -6831,19 +6837,19 @@
                             <thead>
                                 <tr>
                                     <th onclick="sortGuestsTable('name')" style="cursor: pointer;">
-                                        Guest Name <span id="sortIconName">↕️</span>
+                                        Guest Name <span id="sortIconName"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th onclick="sortGuestsTable('phone')" style="cursor: pointer;">
-                                        Contact <span id="sortIconPhone">↕️</span>
+                                        Contact <span id="sortIconPhone"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th onclick="sortGuestsTable('lastVisit')" style="cursor: pointer;">
-                                        Last Visit <span id="sortIconLastVisit">↕️</span>
+                                        Last Visit <span id="sortIconLastVisit"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th onclick="sortGuestsTable('stays')" style="cursor: pointer;">
-                                        Stays <span id="sortIconStays">↕️</span>
+                                        Stays <span id="sortIconStays"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th onclick="sortGuestsTable('spent')" style="cursor: pointer;">
-                                        Total Spent <span id="sortIconSpent">↕️</span>
+                                        Total Spent <span id="sortIconSpent"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th>Actions</th>
                                 </tr>
@@ -6878,12 +6884,24 @@
 
         <!-- Reservations View -->
         <div id="reservationsView" class="container hidden">
-            <div class="card-header">
-                <h2>Reservations</h2>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <button class="btn btn-success btn-sm" onclick="openImportModal()">📤 Import CSV</button>
-                    <button class="btn btn-secondary btn-sm" onclick="exportCSV()">📥 Export CSV</button>
-                    <button class="btn btn-primary" onclick="openReservationModal()">+ New Reservation</button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="calendar" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Reservations
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Manage all bookings, check-ins, check-outs and reservation details</p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary btn-sm" onclick="openImportModal()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Import CSV
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="exportCSV()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export CSV
+                    </button>
+                    <button class="btn btn-primary" onclick="openReservationModal()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i> New Reservation
+                    </button>
                 </div>
             </div>
 
@@ -6988,7 +7006,7 @@
                         <!-- Checked Out Column -->
                         <div class="kanban-column">
                             <div class="kanban-column-header" style="background: #e0f2f7; color: var(--primary-dark);">
-                                <span>🎉 Checked Out</span>
+                                <span><i data-lucide="log-out" style="width: 14px; height: 14px; margin-right: 4px;"></i>Checked Out</span>
                                 <span class="kanban-column-count" id="kanbanCheckedOutCount" style="background: var(--primary);">0</span>
                             </div>
                             <div class="kanban-cards" id="kanban-checked-out" data-status="checked-out"></div>
@@ -7009,16 +7027,38 @@
 
         <!-- Payments View -->
         <div id="paymentsView" class="container hidden">
-            <h2 style="margin-bottom: 24px;"><i data-lucide="credit-card" style="width: 22px; height: 22px; margin-right: 8px; vertical-align: middle;"></i>Payments Management</h2>
-            
+            <!-- Page Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="credit-card" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Payments Management
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Track payment status, balances and collection across all bookings</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="exportPaymentsCSV()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export CSV
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="openMultiPaymentModal()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Payment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
             <div class="stats-grid" id="paymentStatsGrid">
                 <!-- Stats will be populated by JavaScript -->
             </div>
 
             <!-- Payment Reminders -->
-            <div class="card" id="paymentRemindersCard" style="display: none;">
+            <div class="card" id="paymentRemindersCard" style="display: none; margin-top: 24px;">
                 <div class="card-header" onclick="togglePaymentReminders()" style="cursor: pointer; user-select: none;">
-                    <h3 class="card-title"><i data-lucide="alert-circle" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Reminders <span id="paymentRemindersIcon"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span></h3>
+                    <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="alert-circle" style="width: 16px; height: 16px; color: var(--warning);"></i>
+                        Payment Reminders
+                        <span id="paymentRemindersIcon"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span>
+                    </h3>
                     <span id="paymentRemindersCount" style="font-size: 14px; color: var(--text-secondary);"></span>
                 </div>
                 <div id="paymentRemindersList" style="display: block;">
@@ -7027,39 +7067,36 @@
             </div>
 
             <!-- Payment Records -->
-            <div class="card">
+            <div class="card" style="margin-top: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">Payment Records</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-primary btn-sm" onclick="openMultiPaymentModal()"><i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i>Add Multiple</button>
-                        <button class="btn btn-secondary btn-sm" onclick="exportPaymentsCSV()">📥 Export</button>
-                    </div>
+                    <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="list" style="width: 16px; height: 16px;"></i>
+                        Payment Records
+                    </h3>
                 </div>
 
-                <div class="filters">
-                    <div class="filter-item" style="flex: 1; max-width: 350px;">
-                        <input type="text" id="searchPayments" placeholder="Search by guest, booking ID..." onkeypress="if(event.key==='Enter') filterPayments()" style="width: 100%;">
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="filterPayments()" style="white-space: nowrap;">
-                        Search
-                    </button>
-                    <div class="filter-item" style="max-width: 200px;">
-                        <select id="paymentPropertyFilter" onchange="filterPayments()">
+                <!-- Filters -->
+                <div style="padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--background-alt); border-radius: 0;">
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                        <div style="flex: 1; min-width: 250px; position: relative;">
+                            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-tertiary);"></i>
+                            <input type="text" id="searchPayments" placeholder="Search by guest, booking ID..." onkeypress="if(event.key==='Enter') filterPayments()" style="width: 100%; padding-left: 34px;">
+                        </div>
+                        <select id="paymentPropertyFilter" onchange="filterPayments()" style="min-width: 160px;">
                             <option value="">All Properties</option>
                             <!-- Will be populated dynamically -->
                         </select>
-                    </div>
-                    <div class="filter-item" style="max-width: 200px;">
-                        <select id="paymentStatusFilter" onchange="filterPayments()">
+                        <select id="paymentStatusFilter" onchange="filterPayments()" style="min-width: 140px;">
                             <option value="">All Status</option>
                             <option value="paid">Paid</option>
                             <option value="pending">Pending</option>
                             <option value="partial">Partial</option>
                         </select>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary btn-sm" onclick="filterPayments()">Search</button>
+                            <button class="btn btn-secondary btn-sm" onclick="clearPaymentFilters()">Clear</button>
+                        </div>
                     </div>
-                    <button class="btn btn-secondary btn-sm" onclick="clearPaymentFilters()" style="white-space: nowrap;">
-                        Clear
-                    </button>
                 </div>
 
                 <div class="table-container">
@@ -7087,7 +7124,13 @@
 
         <!-- Availability Calendar View -->
         <div id="availabilityView" class="container hidden">
-            <h2 style="margin-bottom: 24px;">Property Availability Calendar</h2>
+            <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="calendar-days" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                    Property Availability Calendar
+                </h2>
+                <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">View booking occupancy and blocked dates across all properties</p>
+            </div>
             
             <div class="card">
                 <div class="filters" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -7099,8 +7142,8 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary btn-sm" onclick="changeMonth(-1)">← Prev</button>
-                        <button class="btn btn-secondary btn-sm" onclick="changeMonth(1)">Next →</button>
+                        <button class="btn btn-secondary btn-sm" onclick="changeMonth(-1)"><i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i> Prev</button>
+                        <button class="btn btn-secondary btn-sm" onclick="changeMonth(1)">Next <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></button>
                     </div>
                 </div>
 
@@ -7142,9 +7185,18 @@
         </div>
         <!-- Properties View -->
         <div id="propertiesView" class="container hidden">
-            <div class="card-header">
-                <h2>Properties</h2>
-                <button class="btn btn-primary" onclick="openPropertyModal()">+ Add Property</button>
+            <!-- Page Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="building-2" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Properties
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Manage your rental properties and their settings</p>
+                </div>
+                <button class="btn btn-primary" onclick="openPropertyModal()" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Property
+                </button>
             </div>
             <div id="propertiesGrid" class="stats-grid"></div>
         </div>
@@ -7200,7 +7252,7 @@
                             <i data-lucide="search" style="width: 14px; height: 14px; margin-right: 4px;"></i>Analyze
                         </button>
                         <button class="btn btn-secondary" onclick="exportPropertyReport()" style="padding: 10px 24px;">
-                            📥 Export
+                            <i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i>Export
                         </button>
                     </div>
                 </div>
@@ -7218,7 +7270,7 @@
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <input type="text" id="propertyReservationsSearch" placeholder="Search..." onkeyup="filterPropertyReservations()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 200px;">
                         <button class="btn btn-secondary btn-sm" onclick="exportPropertyReservations()">
-                            📥 Export Excel
+                            <i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i>Export Excel
                         </button>
                     </div>
                 </div>
@@ -7325,7 +7377,7 @@
                 <!-- Booking Types Chart -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">🎪 Booking Types</h3>
+                        <h3 class="card-title"><i data-lucide="tag" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Booking Types</h3>
                     </div>
                     <div style="padding: 20px;">
                         <canvas id="propertyBookingTypesChart" style="max-height: 300px;"></canvas>
@@ -7398,8 +7450,8 @@
 
                     <!-- Refresh Button -->
                     <div style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-primary" onclick="loadBusinessView()">
-                            🔄 Refresh
+                        <button class="btn btn-primary" onclick="loadBusinessView()" style="display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
                         </button>
                     </div>
                 </div>
@@ -7412,7 +7464,7 @@
             <div class="card" style="margin-bottom: 24px;">
                 <div style="padding: 20px; border-bottom: 1px solid var(--border);">
                     <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <span>🏆</span> Top Properties Leaderboard
+                        <span><i data-lucide="trophy" style="width: 16px; height: 16px;"></i></span> Top Properties Leaderboard
                     </h3>
                 </div>
                 <div style="padding: 20px;">
@@ -7424,7 +7476,7 @@
             <div class="card" style="margin-bottom: 24px;">
                 <div style="padding: 20px; border-bottom: 1px solid var(--border);">
                     <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <span>📡</span> Channel Performance Analysis
+                        <span><i data-lucide="radio" style="width: 16px; height: 16px;"></i></span> Channel Performance Analysis
                     </h3>
                 </div>
                 <div style="padding: 20px;">
@@ -7512,7 +7564,7 @@
                         <span><i data-lucide="git-compare" style="width: 16px; height: 16px;"></i></span> Property Comparison
                     </h3>
                     <button class="btn btn-secondary btn-sm" onclick="exportBusinessViewToExcel()">
-                        📥 Export to Excel
+                        <i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i>Export to Excel
                     </button>
                 </div>
                 <div style="padding: 20px; overflow-x: auto;">
@@ -7597,8 +7649,8 @@
                             <option value="bank_transfer">Bank Transfer</option>
                         </select>
                     </div>
-                    <button class="btn btn-secondary" onclick="refreshBusinessIntelligence()" style="padding: 10px 20px;">
-                        🔄 Refresh
+                    <button class="btn btn-secondary" onclick="refreshBusinessIntelligence()" style="padding: 10px 20px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
                     </button>
                 </div>
             </div>
@@ -7612,7 +7664,7 @@
             <div class="card" style="margin-bottom: 24px; background: var(--gradient-danger); color: white; border: none;">
                 <div style="padding: 24px;">
                     <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: white;">
-                        <span>❤️</span> Payment Health Score
+                        <span><i data-lucide="heart-pulse" style="width: 16px; height: 16px;"></i></span> Payment Health Score
                     </h3>
                     <div id="biPaymentHealth">
                         <!-- Will be populated by JavaScript -->
@@ -7648,7 +7700,7 @@
             <div class="card" style="margin-bottom: 24px; background: var(--gradient-primary); color: white; border: none;">
                 <div style="padding: 24px;">
                     <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: white;">
-                        <span>💡</span> Smart Insights & Alerts
+                        <span><i data-lucide="lightbulb" style="width: 16px; height: 16px;"></i></span> Smart Insights & Alerts
                     </h3>
                     <div id="biSmartInsights" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- Will be populated by JavaScript -->
@@ -7752,9 +7804,17 @@
 
         <!-- Team View -->
         <div id="teamView" class="container hidden">
-            <div class="card-header">
-                <h2>Team</h2>
-                <button class="btn btn-primary" onclick="openTeamModal()">+ Add Member</button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="user-check" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Team
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Manage staff members, roles and access permissions</p>
+                </div>
+                <button class="btn btn-primary" onclick="openTeamModal()" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i> Add Member
+                </button>
             </div>
             <div class="card">
                 <table>
@@ -7776,9 +7836,17 @@
 
         <!-- Property Owners View -->
         <div id="ownersView" class="container hidden">
-            <div class="card-header">
-                <h2><i data-lucide="home" style="width: 14px; height: 14px; margin-right: 4px;"></i>Property Owners</h2>
-                <button class="btn btn-primary" onclick="openOwnerModal()">+ Add Owner</button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="shield" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Property Owners
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Manage property owner credentials and portal access</p>
+                </div>
+                <button class="btn btn-primary" onclick="openOwnerModal()" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Owner
+                </button>
             </div>
             <div class="card">
                 <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
@@ -7804,13 +7872,17 @@
 
         <!-- Meals Management View -->
         <div id="mealsView" class="container hidden">
-            <div class="card-header">
-                <h2><i data-lucide="utensils" style="width: 22px; height: 22px; margin-right: 8px; vertical-align: middle;"></i>Meal Management</h2>
-                <div style="display: flex; gap: 12px;">
-                    <button class="btn btn-secondary" onclick="refreshMeals()">
-                        🔄 Refresh
-                    </button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="utensils" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Meal Management
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">View and manage guest meal preferences and requests</p>
                 </div>
+                <button class="btn btn-secondary btn-sm" onclick="refreshMeals()" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
+                </button>
             </div>
 
             <!-- Search and Filter Section -->
@@ -7858,14 +7930,20 @@
 
         <!-- Guest Documents View -->
         <div id="guestDocumentsView" class="container hidden">
-            <div class="card-header">
-                <h2><i data-lucide="file-text" style="width: 22px; height: 22px; margin-right: 8px; vertical-align: middle;"></i>Guest ID Documents</h2>
-                <div style="display: flex; gap: 12px;">
-                    <button class="btn btn-secondary" onclick="copyGuestPortalLink()" title="Copy guest portal link">
-                        🔗 Copy Guest Portal Link
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="file-text" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Guest ID Documents
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review and manage guest identity documents for all bookings</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="copyGuestPortalLink()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="link" style="width: 14px; height: 14px;"></i> Guest Portal
                     </button>
-                    <button class="btn btn-secondary" onclick="refreshGuestDocuments()">
-                        🔄 Refresh
+                    <button class="btn btn-secondary btn-sm" onclick="refreshGuestDocuments()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
                     </button>
                 </div>
             </div>
@@ -7997,14 +8075,14 @@
                         </label>
                     </div>
 
-                    <button class="btn btn-primary" onclick="saveGeneralSettings()">💾 Save General Settings</button>
+                    <button class="btn btn-primary" onclick="saveGeneralSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save General Settings</button>
                 </div>
             </div>
 
             <!-- Business Info Settings -->
             <div id="settings-business" class="settings-panel">
                 <div class="card">
-                    <h3 style="margin-bottom: 20px;">📇 Business Information</h3>
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="building-2" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Business Information</h3>
 
                     <div class="form-group">
                         <label>Contact Email</label>
@@ -8031,7 +8109,7 @@
                         <input type="url" id="businessWebsite" placeholder="https://www.yourbusiness.com">
                     </div>
 
-                    <button class="btn btn-primary" onclick="saveBusinessSettings()">💾 Save Business Info</button>
+                    <button class="btn btn-primary" onclick="saveBusinessSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Business Info</button>
                 </div>
             </div>
 
@@ -8095,7 +8173,7 @@
                         </label>
                     </div>
 
-                    <button class="btn btn-primary" onclick="saveNotificationSettings()">💾 Save Notification Settings</button>
+                    <button class="btn btn-primary" onclick="saveNotificationSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Notification Settings</button>
                 </div>
             </div>
 
@@ -8106,7 +8184,7 @@
                 <div class="card" style="margin-bottom: 16px;">
                     <div class="integration-header" style="margin-bottom: 16px;">
                         <div>
-                            <h4 style="margin: 0 0 4px 0;">📧 Email Sending (EmailJS)</h4>
+                            <h4 style="margin: 0 0 4px 0;"><i data-lucide="mail" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Email Sending (EmailJS)</h4>
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Send emails directly to guests from ResIQ — no backend needed</p>
                         </div>
                         <span class="badge" id="emailjsBadge" style="background: var(--warning); color: white;">Not Configured</span>
@@ -8133,7 +8211,7 @@
                     <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
                         Your template should include variables: <code>{{to_email}}</code>, <code>{{to_name}}</code>, <code>{{subject}}</code>, <code>{{message}}</code>, <code>{{from_name}}</code>
                     </div>
-                    <button class="btn btn-primary" onclick="saveEmailJSConfig()">💾 Save EmailJS Config</button>
+                    <button class="btn btn-primary" onclick="saveEmailJSConfig()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save EmailJS Config</button>
                 </div>
 
                 <!-- iCal / Calendar Sync (Active) -->
@@ -8155,13 +8233,13 @@
                 <div class="card" style="margin-bottom: 16px;">
                     <div class="integration-header">
                         <div>
-                            <h4 style="margin: 0 0 4px 0;">📬 Gmail Booking Import</h4>
+                            <h4 style="margin: 0 0 4px 0;"><i data-lucide="mail-open" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Gmail Booking Import</h4>
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Auto-create reservations from booking confirmation emails (stay@hostizzy.com)</p>
                         </div>
                         <span class="badge" id="gmailIntegrationBadge" style="background: var(--warning); color: white;">Not Connected</span>
                     </div>
                     <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 12px 0;">
-                        Configure in App Settings (⚙️ top right) to connect your Gmail account.
+                        Configure in App Settings (top right) to connect your Gmail account.
                     </p>
                     <button class="btn btn-secondary btn-sm" onclick="openAppSettings()">Open App Settings →</button>
                 </div>
@@ -8235,7 +8313,7 @@
 
                     <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
 
-                    <h4 style="margin-bottom: 16px; color: var(--text-primary);">🤖 Smart Automation</h4>
+                    <h4 style="margin-bottom: 16px; color: var(--text-primary);"><i data-lucide="cpu" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Smart Automation</h4>
 
                     <div class="settings-toggle">
                         <div>
@@ -8259,15 +8337,15 @@
                         <small style="color: var(--text-secondary); display: block; margin-top: 4px;">How often to run automated tasks</small>
                     </div>
 
-                    <button class="btn btn-primary" onclick="saveAutomationSettings()">💾 Save Automation Settings</button>
+                    <button class="btn btn-primary" onclick="saveAutomationSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Automation Settings</button>
 
                     <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
 
                     <h4 style="margin-bottom: 16px; color: var(--text-primary);">Data Management</h4>
 
                     <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <button class="btn btn-secondary" onclick="exportAllData()">📥 Export All Data</button>
-                        <button class="btn btn-secondary" onclick="importData()">📤 Import Data</button>
+                        <button class="btn btn-secondary" onclick="exportAllData()"><i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i>Export All Data</button>
+                        <button class="btn btn-secondary" onclick="importData()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="upload" style="width: 14px; height: 14px;"></i> Import Data</button>
                     </div>
 
                     <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
@@ -8276,7 +8354,7 @@
 
                     <div style="background: rgba(239, 68, 68, 0.1); padding: 16px; border-radius: 8px; border-left: 3px solid var(--danger);">
                         <p style="font-size: 14px; margin-bottom: 12px;"><i data-lucide="alert-triangle" style="width: 14px; height: 14px; margin-right: 4px; color: var(--danger); vertical-align: middle;"></i>Clearing data will permanently delete all your reservations, guests, payments, and settings. This action cannot be undone.</p>
-                        <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+                        <button class="btn btn-danger" onclick="clearAllData()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Clear All Data</button>
                     </div>
                 </div>
             </div>
@@ -8284,13 +8362,16 @@
 
         <!-- Communication View -->
         <div id="communicationView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
-                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary);">Communication Center</h2>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="message-circle" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Communication Center
+                    </h2>
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Email guests directly or log WhatsApp / SMS messages</p>
                 </div>
                 <button class="btn btn-primary" onclick="openComposeModal()" style="display: flex; align-items: center; gap: 8px;">
-                    <span>✉️</span> Compose
+                    <i data-lucide="send" style="width: 16px; height: 16px;"></i> Compose
                 </button>
             </div>
 
@@ -8344,7 +8425,7 @@
                 </div>
                 <div id="messageHistory">
                     <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;">✉️</div>
+                        <div style="margin-bottom: 16px; opacity: 0.4;"><i data-lucide="mail" style="width: 56px; height: 56px;"></i></div>
                         <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-weight: 600;">No messages yet</h3>
                         <p style="font-size: 14px;">Use the quick templates above or compose a message to get started</p>
                     </div>
@@ -8430,12 +8511,12 @@
                 <div class="form-group">
                     <label>Booking Type *</label>
                     <select id="bookingType" required>
-                        <option value="STAYCATION">🏖️ Staycation</option>
-                        <option value="WEDDING">💒 Wedding</option>
-                        <option value="BIRTHDAY">🎂 Birthday Party</option>
+                        <option value="STAYCATION">Staycation</option>
+                        <option value="WEDDING">Wedding</option>
+                        <option value="BIRTHDAY">Birthday Party</option>
                         <option value="CORPORATE_EVENT">Corporate Event</option>
                         <option value="CORPORATE_STAY">Corporate Stay</option>
-                        <option value="SHOOT">📸 Shoot</option>
+                        <option value="SHOOT">Shoot</option>
                     </select>
                 </div>
             
@@ -8546,7 +8627,7 @@
                 </label>
                 <input type="number" id="otaServiceFee" min="0" step="0.01" value="0" placeholder="Enter OTA commission amount">
                 <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; padding: 8px; background: #fef3c7; border-radius: 6px;">
-                    💡 <strong>Tip:</strong> Calculate based on OTA's commission rate. Amount deducted from gross revenue.
+                    <i data-lucide="lightbulb" style="width: 13px; height: 13px; margin-right: 3px; vertical-align: middle;"></i><strong>Tip:</strong> Calculate based on OTA's commission rate. Amount deducted from gross revenue.
                 </div>
             </div>
 
@@ -8613,7 +8694,7 @@
                 <div style="display: flex; gap: 8px;">
                     <input type="number" id="paymentAmount" min="0" step="0.01" required style="flex: 1;">
                     <button type="button" class="btn btn-secondary" onclick="startVoicePayment()" title="Voice Input">
-                        🎤
+                        <i data-lucide="mic" style="width: 16px; height: 16px;"></i>
                     </button>
                 </div>
             </div>
@@ -8630,7 +8711,7 @@
                     <option value="cash">Cash</option>
                     <option value="upi">UPI</option>
                     <option value="gateway">Gateway</option>
-                    <option value="bank_transfer">🏦 Bank Transfer</option>
+                    <option value="bank_transfer">Bank Transfer</option>
                 </select>
             </div>
 
@@ -8728,7 +8809,7 @@
                                 <option value="cash">Cash</option>
                                 <option value="upi">UPI</option>
                                 <option value="gateway">Gateway</option>
-                                <option value="bank_transfer">🏦 Bank Transfer</option>
+                                <option value="bank_transfer">Bank Transfer</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -8747,7 +8828,7 @@
                         Cancel
                     </button>
                     <button class="btn btn-primary" onclick="saveMultiplePayments()">
-                        💾 Save All Payments
+                        <i data-lucide="save" style="width: 14px; height: 14px; margin-right: 4px;"></i>Save All Payments
                     </button>
                 </div>
             </div>
@@ -8782,7 +8863,7 @@
                         <option value="cash">Cash</option>
                         <option value="upi">UPI</option>
                         <option value="gateway">Gateway</option>
-                        <option value="bank_transfer">🏦 Bank Transfer</option>
+                        <option value="bank_transfer">Bank Transfer</option>
                     </select>
                 </div>
                 <div class="form-group" id="bulkPaymentRecipientGroup" style="display: none;">
@@ -9089,14 +9170,14 @@
                         <i data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Approve Document
                     </button>
                     <button class="btn btn-danger" style="flex: 1;" onclick="showRejectForm()">
-                        ❌ Reject Document
+                        <i data-lucide="x-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Reject Document
                     </button>
                 </div>
 
                 <!-- Delete Button (Admin only) -->
                 <div id="deleteButtonContainer" style="display: none; margin-top: 12px;">
                     <button class="btn btn-danger" style="width: 100%; background: #991b1b;" onclick="deleteDocument()">
-                        🗑️ Delete Document (Admin Only)
+                        <i data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 4px;"></i>Delete Document (Admin Only)
                     </button>
                 </div>
 
@@ -9130,7 +9211,7 @@
                     <!-- Flip Switch to Reject -->
                     <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #86efac;">
                         <button class="btn btn-danger" style="width: 100%; background: #dc2626;" onclick="reverseApprovalToReject()">
-                            🔄 Revert to Reject (Undo Approval)
+                            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px; margin-right: 4px;"></i>Revert to Reject (Undo Approval)
                         </button>
                     </div>
                 </div>
@@ -9150,7 +9231,7 @@
     <div id="importModal" class="modal">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
-                <h3 class="modal-title">📤 Import Reservations</h3>
+                <h3 class="modal-title"><i data-lucide="upload" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Import Reservations</h3>
                 <button class="close-btn" onclick="closeImportModal()">&times;</button>
             </div>
             
@@ -9160,7 +9241,7 @@
                     <!-- Upload Area with Drag & Drop -->
                     <div id="csvDropZone" class="drop-zone"
                          onclick="document.getElementById('csvFileInput').click()">
-                        <div class="drop-zone-icon">📁</div>
+                        <div class="drop-zone-icon"><i data-lucide="folder-open" style="width: 48px; height: 48px;"></i></div>
                         <div class="drop-zone-title">
                             Drop CSV file here or click to browse
                         </div>
@@ -9196,7 +9277,7 @@
                                 <code style="background: white; padding: 2px 6px; border-radius: 4px;">total_amount</code>
                             </div>
                             <div style="font-size: 12px; color: #92400e;">
-                                💡 Dates must be YYYY-MM-DD format • Amounts must be numbers only
+                                <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Dates must be YYYY-MM-DD format • Amounts must be numbers only
                             </div>
                         </div>
                     </div>
@@ -9318,7 +9399,7 @@
                         <option value="booking_confirmation">Booking Confirmation - Full booking details</option>
                         <option value="payment_reminder">Payment Reminder - Pending balance alert</option>
                         <option value="check_in_instructions">Check-in Instructions - Arrival details</option>
-                        <option value="thank_you">🙏 Thank You Message - Post-checkout feedback</option>
+                        <option value="thank_you">Thank You Message - Post-checkout feedback</option>
                         <option value="custom">Custom Message - Write your own</option>
                     </select>
                 </div>
@@ -9370,7 +9451,7 @@
 <div id="appSettingsModal" class="modal">
     <div class="modal-content" style="max-width: 700px;">
         <div class="modal-header">
-            <span class="modal-title">⚙️ App Settings</span>
+            <span class="modal-title"><i data-lucide="settings-2" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: middle;"></i>App Settings</span>
             <button class="close-btn" onclick="closeAppSettings()">×</button>
         </div>
         <div style="padding: 24px;">
@@ -9378,7 +9459,7 @@
             <!-- Gmail Integration Section -->
             <div style="margin-bottom: 24px; padding: 24px; background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border-radius: 12px; border: 2px solid var(--primary);">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                    <span style="font-size: 28px;">📧</span>
+                    <i data-lucide="mail" style="width: 32px; height: 32px;"></i>
                     <div>
                         <div style="font-weight: 700; font-size: 16px; color: #134e4a;">Gmail Auto-Import (Global)</div>
                         <div style="font-size: 13px; color: #115e59;">Scan stay@hostizzy.com for all property bookings</div>
@@ -9415,7 +9496,7 @@
                         <div style="margin-top: 12px;">
                             <button id="gmailScanBtn" onclick="scanGmailNow()"
                                 style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; width: 100%;">
-                                🔍 Scan for Bookings Now
+                                <i data-lucide="search" style="width: 14px; height: 14px; margin-right: 4px;"></i>Scan for Bookings Now
                             </button>
                         </div>
                     </div>
@@ -9425,7 +9506,7 @@
                 <div style="padding: 12px; background: white; border-radius: 8px; border: 1px solid #99f6e4;">
                     <div style="display: flex; align-items: center; justify-content: space-between;">
                         <div>
-                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">🔄 Auto-Scan Emails</div>
+                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;"><i data-lucide="refresh-cw" style="width: 13px; height: 13px; margin-right: 4px; vertical-align: middle;"></i>Auto-Scan Emails</div>
                             <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Check for new bookings every 2 hours</div>
                         </div>
                         <label class="switch">
@@ -9438,7 +9519,7 @@
                 <!-- Setup Instructions -->
                 <details style="margin-top: 12px; border: 1px solid #99f6e4; border-radius: 8px; padding: 12px; background: white;">
                     <summary style="cursor: pointer; font-weight: 600; color: var(--primary); font-size: 13px;">
-                        ⚙️ First-time Setup Required
+                        <i data-lucide="settings" style="width: 14px; height: 14px; margin-right: 4px;"></i>First-time Setup Required
                     </summary>
                     <div style="margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6;">
                         <strong style="color: #134e4a;">Before connecting Gmail:</strong><br><br>
@@ -9463,7 +9544,7 @@
 
                 <div style="margin-top: 12px; padding: 12px; background: white; border-radius: 8px; border-left: 3px solid var(--info-text);">
                     <div style="font-size: 12px; color: #475569; line-height: 1.6;">
-                        <strong style="color: var(--info-text);">ℹ️ How it works:</strong><br>
+                        <strong style="color: var(--info-text);"><i data-lucide="info" style="width: 13px; height: 13px; margin-right: 4px; vertical-align: middle;"></i>How it works:</strong><br>
                         Gmail scans <strong>stay@hostizzy.com</strong> for booking confirmation emails from Airbnb, Booking.com, Agoda, MakeMyTrip, etc. Properties are auto-detected from email content.
                     </div>
                 </div>
@@ -9477,7 +9558,7 @@
     <div class="modal-content" style="max-width: 600px;">
         <div class="modal-header" style="background: var(--gradient-primary); color: white; padding: 24px; border-radius: 12px 12px 0 0;">
             <h2 style="margin: 0; font-size: 24px; display: flex; align-items: center; gap: 12px;">
-                <span>⚙️</span>
+                <span><i data-lucide="settings" style="width: 16px; height: 16px;"></i></span>
                 <span id="settingsModalTitle">Property Settings</span>
             </h2>
             <button class="modal-close" onclick="closePropertySettings()" style="color: white; font-size: 28px;">&times;</button>
@@ -9504,7 +9585,7 @@
                 <input type="number" id="settingsCommissionRate" min="0" max="100" step="0.1" placeholder="15"
                     style="width: 100%; padding: 12px; border: 2px solid #fbbf24; border-radius: 8px; font-size: 14px; background: white;">
                 <div style="margin-top: 8px; font-size: 13px; color: #92400e;">
-                    💡 Percentage of revenue retained by Hostizzy (0-100%). Default: 15%
+                    <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Percentage of revenue retained by Hostizzy (0-100%). Default: 15%
                 </div>
             </div>
 
@@ -9516,7 +9597,7 @@
                 <input type="url" id="icalUrlInput" placeholder="https://www.airbnb.com/calendar/ical/..." 
                     style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; transition: all 0.3s;">
                 <div style="margin-top: 8px; font-size: 13px; color: #64748b;">
-                    💡 Paste your Airbnb or OTA calendar export link here to sync availability
+                    <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Paste your Airbnb or OTA calendar export link here to sync availability
                 </div>
             </div>
 
@@ -9534,7 +9615,7 @@
             <div style="margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                     <div>
-                        <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">🔄 Auto-Sync</div>
+                        <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;"><i data-lucide="refresh-cw" style="width: 13px; height: 13px; margin-right: 4px; vertical-align: middle;"></i>Auto-Sync</div>
                         <div style="font-size: 13px; color: #64748b;">Automatically sync availability every 6 hours</div>
                     </div>
                     <label class="switch">
@@ -9550,7 +9631,7 @@
             <!-- How to Get iCal URL -->
             <details style="margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
                 <summary style="cursor: pointer; font-weight: 600; color: #475569; font-size: 14px;">
-                    ℹ️ How to get iCal URL from Airbnb/OTAs
+                    <i data-lucide="info" style="width: 13px; height: 13px; margin-right: 4px; vertical-align: middle;"></i>How to get iCal URL from Airbnb/OTAs
                 </summary>
                 <div style="margin-top: 12px; font-size: 13px; color: #64748b; line-height: 1.6;">
                     <strong style="color: #1e293b;">Airbnb:</strong><br>
@@ -9570,7 +9651,7 @@
                 </button>
                 <button onclick="savePropertySettings()" 
                     style="padding: 12px 24px; background: var(--gradient-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(8, 145, 178, 0.3);">
-                    💾 Save Settings
+                    <i data-lucide="save" style="width: 14px; height: 14px; margin-right: 4px;"></i>Save Settings
                 </button>
             </div>
         </div>
@@ -9582,8 +9663,8 @@
     <!-- Bulk Actions Bar -->
     <div id="bulkActionsBar" class="bulk-actions-bar">
         <span class="bulk-count"><span id="bulkSelectedCount">0</span> selected</span>
-        <button class="btn btn-primary btn-sm" onclick="openBulkEditModal()">✏️ Edit Status</button>
-        <button class="btn btn-secondary btn-sm" onclick="clearBulkSelection()">✖️ Clear</button>
+        <button class="btn btn-primary btn-sm" onclick="openBulkEditModal()" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="edit-2" style="width: 13px; height: 13px;"></i> Edit Status</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearBulkSelection()" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="x" style="width: 13px; height: 13px;"></i> Clear</button>
     </div>
 
     <script>
@@ -9980,7 +10061,7 @@
             if (notifications.length === 0) {
                 listEl.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 8px;">🔕</div>
+                        <div style="margin-bottom: 8px;"><i data-lucide="bell-off" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>
                         <div>No notifications</div>
                     </div>
                 `;
@@ -12004,7 +12085,7 @@
             if (filteredMessages.length === 0) {
                 messageHistory.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;">✉️</div>
+                        <div style="margin-bottom: 16px; opacity: 0.4;"><i data-lucide="mail" style="width: 56px; height: 56px;"></i></div>
                         <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-weight: 600;">No messages yet</h3>
                         <p style="font-size: 14px;">Use the quick templates above or compose a message to get started</p>
                     </div>
@@ -12073,14 +12154,14 @@
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 600px;">
                     <div class="modal-header">
-                        <h3 class="modal-title">✉️ Compose Message</h3>
+                        <h3 class="modal-title"><i data-lucide="mail" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Compose Message</h3>
                         <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
                     </div>
                     <div style="padding: 20px;">
                         <div class="form-group">
                             <label>Channel *</label>
                             <select id="composeChannel" onchange="updateComposeChannelHint(this.value)">
-                                <option value="email">📧 Email</option>
+                                <option value="email">Email</option>
                                 <option value="whatsapp"><i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp (logged only)</option>
                                 <option value="sms"><i data-lucide="smartphone" style="width: 12px; height: 12px; margin-right: 3px;"></i>SMS (logged only)</option>
                             </select>
@@ -12107,7 +12188,7 @@
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                        <button class="btn btn-primary" onclick="sendComposedMessage()">📤 Send</button>
+                        <button class="btn btn-primary" onclick="sendComposedMessage()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="send" style="width: 14px; height: 14px;"></i> Send</button>
                     </div>
                 </div>
             `;
@@ -16274,14 +16355,14 @@
                             <option value="cash">Cash</option>
                             <option value="upi">UPI</option>
                             <option value="gateway">Gateway</option>
-                            <option value="bank_transfer">🏦 Bank</option>
+                            <option value="bank_transfer">Bank</option>
                         </select>
                     </td>
                     <td style="padding: 8px;">
                         <select id="recipient_${row.id}" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px; display: none;">
                             <option value="">Select</option>
-                            <option value="Hostizzy">🏢 Hostizzy</option>
-                            <option value="Property Owner">🏠 Owner</option>
+                            <option value="Hostizzy">Hostizzy</option>
+                            <option value="Property Owner">Owner</option>
                         </select>
                         <span id="recipient_na_${row.id}" style="color: #94a3b8; font-size: 13px;">N/A</span>
                     </td>
@@ -16350,7 +16431,7 @@
                                 <option value="cash">Cash</option>
                                 <option value="upi">UPI</option>
                                 <option value="gateway">Gateway</option>
-                                <option value="bank_transfer">🏦 Bank Transfer</option>
+                                <option value="bank_transfer">Bank Transfer</option>
                             </select>
                         </div>
                         
@@ -16358,7 +16439,7 @@
                             <label>Received By *</label>
                             <select id="recipient_mobile_${row.id}">
                                 <option value="">Select Recipient</option>
-                                <option value="Hostizzy">🏢 Hostizzy</option>
+                                <option value="Hostizzy">Hostizzy</option>
                                 <option value="Property Owner"><i data-lucide="home" style="width: 14px; height: 14px; margin-right: 4px;"></i>Property Owner</option>
                             </select>
                         </div>
@@ -16958,11 +17039,11 @@
 
                             <!-- Actions -->
                             <div class="prop-actions">
-                                <button class="prop-action-btn" onclick="showPropertyCalendar(${p.id})" title="Calendar">📅 Cal</button>
+                                <button class="prop-action-btn" onclick="showPropertyCalendar(${p.id})" title="Calendar">Cal</button>
                                 ${p.ical_url ? `
-                                    <button class="prop-action-btn primary" onclick="syncPropertyNow(${p.id}, event)" title="Sync Now">🔄</button>
+                                    <button class="prop-action-btn primary" onclick="syncPropertyNow(${p.id}, event)" title="Sync Now">Sync</button>
                                 ` : ''}
-                                <button class="prop-action-btn" onclick="openPropertySettings(${p.id})" title="Settings">⚙️</button>
+                                <button class="prop-action-btn" onclick="openPropertySettings(${p.id})" title="Settings">Settings</button>
                             </div>
 
                         </div>
@@ -18238,7 +18319,7 @@
                 // Restore button
                 if (scanBtn) {
                     scanBtn.disabled = false;
-                    scanBtn.textContent = '🔍 Scan for Bookings Now';
+                    scanBtn.textContent = '<i data-lucide="search" style="width: 14px; height: 14px; margin-right: 4px;"></i>Scan for Bookings Now';
                 }
             }
         }
@@ -19024,13 +19105,13 @@ function renderPropertyReservationsPagination(totalItems) {
         </div>
         <div style="display: flex; gap: 8px;">
             <button class="btn btn-sm" onclick="changePropertyPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
-                ← Previous
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i> Previous
             </button>
             <span style="padding: 8px 12px; color: var(--text-secondary);">
                 Page ${currentPage} of ${totalPages}
             </span>
             <button class="btn btn-sm" onclick="changePropertyPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
-                Next →
+                Next <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
             </button>
         </div>
     `;
@@ -21753,7 +21834,7 @@ function printPropertyView() {
                 <!-- Key Recommendations -->
                 <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #0891b215, #06b6d415); border-radius: 8px; border-left: 4px solid #0891b2;">
                     <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                        <span>💡</span> Recommendations
+                        <span><i data-lucide="lightbulb" style="width: 16px; height: 16px;"></i></span> Recommendations
                     </div>
                     <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
                         ${methodPerformance[0].method === 'cash' ?
@@ -22919,11 +23000,11 @@ function printPropertyView() {
                                 </button>
                             ` : status === 'rejected' ? `
                                 <button class="btn btn-warning btn-sm" onclick="unrejectMeal('${mealPref.id}')" style="width: 100%;">
-                                    🔄 Unreject
+                                    Unreject
                                 </button>
                             ` : `
                                 <div style="text-align: center; color: var(--text-secondary); font-size: 13px; padding: 12px; background: var(--background); border-radius: 8px;">
-                                    ✅ Approved by staff
+                                    Approved by staff
                                 </div>
                             `}
                         </div>
@@ -23217,7 +23298,7 @@ function printPropertyView() {
                             💚 Open WhatsApp
                         </button>
                         <button onclick="copyMessageToClipboard(\`${message.replace(/`/g, '\\`').replace(/'/g, "\\'")}\`); document.getElementById('whatsappOptionsModal').remove()" class="btn btn-secondary" style="width: 100%; padding: 12px; font-weight: 600;">
-                            📋 Copy to Clipboard
+                            <i data-lucide="clipboard" style="width: 14px; height: 14px; margin-right: 4px;"></i>Copy to Clipboard
                         </button>
                         <button onclick="document.getElementById('whatsappOptionsModal').remove()" class="btn btn-secondary" style="width: 100%; padding: 12px; font-weight: 600;">
                             ✕ Cancel
@@ -24194,7 +24275,7 @@ function printPropertyView() {
                 if (container) {
                     container.innerHTML = `
                         <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                            <div style="font-size: 64px; margin-bottom: 16px; opacity: 0.3;">⚠️</div>
+                            <div style="margin-bottom: 16px; opacity: 0.3;"><i data-lucide="alert-triangle" style="width: 64px; height: 64px;"></i></div>
                             <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Unable to load documents</div>
                             <div style="font-size: 14px;">Please ensure the database schema has been set up.</div>
                             <div style="font-size: 14px; margin-top: 8px;">
@@ -24234,7 +24315,7 @@ function printPropertyView() {
             if (filtered.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 64px; margin-bottom: 16px; opacity: 0.3;">📋</div>
+                        <div style="margin-bottom: 16px; opacity: 0.3;"><i data-lucide="clipboard-list" style="width: 64px; height: 64px;"></i></div>
                         <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No documents found</div>
                         <div style="font-size: 14px;">Guest ID submissions will appear here</div>
                     </div>
@@ -26030,7 +26111,7 @@ function printPropertyView() {
                     tableBody.innerHTML = `
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--danger);">
-                                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                                <div style="margin-bottom: 16px;"><i data-lucide="alert-triangle" style="width: 52px; height: 52px; color: var(--warning); opacity: 0.7;"></i></div>
                                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Error Loading Guests</div>
                                 <div style="font-size: 14px; color: var(--text-secondary);">${error.message}</div>
                             </td>
@@ -26212,7 +26293,7 @@ function printPropertyView() {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                            <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                            <div style="margin-bottom: 16px;"><i data-lucide="users" style="width: 52px; height: 52px; opacity: 0.3;"></i></div>
                             <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No guests found</div>
                             <div style="font-size: 14px;">Try adjusting your search or filters</div>
                         </td>
@@ -26370,7 +26451,7 @@ function printPropertyView() {
             if (displayedGuests.length === 0) {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                        <div style="margin-bottom: 16px;"><i data-lucide="users" style="width: 52px; height: 52px; opacity: 0.3;"></i></div>
                         <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No guests found</div>
                         <div style="font-size: 14px;">Try adjusting your search or filters</div>
                     </div>
@@ -27048,7 +27129,7 @@ function printPropertyView() {
     <div id="editGuestModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2>✏️ Edit Guest Information</h2>
+                <h2><i data-lucide="edit-2" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Edit Guest Information</h2>
                 <button class="close-modal" onclick="closeEditGuestModal()">×</button>
             </div>
             <div class="modal-body">
@@ -27076,7 +27157,7 @@ function printPropertyView() {
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeEditGuestModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveGuestInfo()">💾 Save Changes</button>
+                <button class="btn btn-primary" onclick="saveGuestInfo()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Changes</button>
             </div>
         </div>
     </div>
