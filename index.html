@@ -15336,6 +15336,10 @@
                     allReservations = cachedReservations;
                     const properties = cachedProperties;
 
+                    // Populate state for Kanban
+                    state.reservations = allReservations;
+                    state.properties = properties;
+
                     // Quick render from cache
                     populateFiltersAndDisplay(properties, allReservations);
                     return;
@@ -15348,6 +15352,10 @@
                 // Cache the results
                 dataCache.set('reservations', allReservations);
                 dataCache.set('properties', properties);
+
+                // Also populate state object for Kanban board
+                state.reservations = allReservations;
+                state.properties = properties;
                 
                 const propertySelect = document.getElementById('propertySelect');
                 propertySelect.innerHTML = '<option value="">Select Property</option>' + 
@@ -28132,7 +28140,15 @@ function printPropertyView() {
         }
 
         function renderKanbanBoard() {
-            if (!state.reservations) return;
+            // Use global allReservations instead of state
+            if (!allReservations || allReservations.length === 0) {
+                const statuses = ['confirmed', 'checked-in', 'checked-out', 'cancelled'];
+                statuses.forEach(status => {
+                    const column = document.getElementById(`kanban-${status}`);
+                    if (column) column.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-tertiary); font-size: 12px;">No reservations</div>';
+                });
+                return;
+            }
 
             const statuses = ['confirmed', 'checked-in', 'checked-out', 'cancelled'];
 
@@ -28146,10 +28162,12 @@ function printPropertyView() {
             const grouped = {};
             statuses.forEach(status => grouped[status] = []);
 
-            state.reservations.forEach(reservation => {
+            allReservations.forEach(reservation => {
                 const status = reservation.status || 'pending';
-                if (grouped[status]) {
-                    grouped[status].push(reservation);
+                // Map "pending" to "confirmed" column for now (or create a pending column)
+                const targetStatus = status === 'pending' ? 'confirmed' : status;
+                if (grouped[targetStatus]) {
+                    grouped[targetStatus].push(reservation);
                 }
             });
 
@@ -28168,8 +28186,10 @@ function printPropertyView() {
 
             // Initialize SortableJS on all columns
             initKanbanSortable();
+            
+            // Refresh icons
+            setTimeout(() => { if (typeof refreshIcons === 'function') refreshIcons(); }, 100);
         }
-
         function createKanbanCard(reservation) {
             const card = document.createElement('div');
             card.className = 'kanban-card';
@@ -28184,24 +28204,34 @@ function printPropertyView() {
             };
             card.style.borderLeftColor = borderColors[reservation.status] || 'var(--primary)';
 
-            const propertyName = state.properties.find(p => p.id === reservation.property_id)?.name || 'N/A';
-            const checkIn = new Date(reservation.check_in).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            // Use reservation.property_name directly (already fetched from DB with JOIN)
+            const propertyName = reservation.property_name || 'N/A';
+            const checkIn = reservation.check_in ? new Date(reservation.check_in).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'N/A';
             const nights = reservation.nights || 1;
             const amount = `₹${parseInt(reservation.total_amount || 0).toLocaleString('en-IN')}`;
 
             card.innerHTML = `
-                <div class="kanban-card-booking-id">${reservation.booking_id}</div>
-                <div class="kanban-card-guest">${reservation.guest_name}</div>
-                <div class="kanban-card-property">${propertyName}</div>
+                <div class="kanban-card-booking-id" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="hash" style="width: 12px; height: 12px; opacity: 0.6;"></i>
+                    ${reservation.booking_id}
+                </div>
+                <div class="kanban-card-guest" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="user" style="width: 12px; height: 12px; opacity: 0.6;"></i>
+                    ${reservation.guest_name}
+                </div>
+                <div class="kanban-card-property" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="building-2" style="width: 12px; height: 12px; opacity: 0.6;"></i>
+                    ${propertyName}
+                </div>
                 <div class="kanban-card-meta">
-                    <span class="kanban-card-badge" style="background: var(--primary-light); color: var(--primary-dark);">
-                        📅 ${checkIn}
+                    <span class="kanban-card-badge" style="background: var(--primary-light); color: var(--primary-dark); display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="calendar" style="width: 10px; height: 10px;"></i>${checkIn}
                     </span>
-                    <span class="kanban-card-badge" style="background: var(--success-light); color: #155724;">
-                        🌙 ${nights}N
+                    <span class="kanban-card-badge" style="background: var(--success-light); color: #155724; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="moon" style="width: 10px; height: 10px;"></i>${nights}N
                     </span>
-                    <span class="kanban-card-badge" style="background: var(--warning-light); color: #7f5f01;">
-                        💰 ${amount}
+                    <span class="kanban-card-badge" style="background: var(--warning-light); color: #7f5f01; display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="coins" style="width: 10px; height: 10px;"></i>${amount}
                     </span>
                 </div>
             `;
@@ -28209,7 +28239,6 @@ function printPropertyView() {
             card.onclick = () => openReservationModal(reservation.booking_id);
             return card;
         }
-
         function initKanbanSortable() {
             // Destroy existing instances
             kanbanSortables.forEach(sortable => sortable.destroy());
@@ -28239,7 +28268,8 @@ function printPropertyView() {
 
         async function updateReservationStatus(bookingId, newStatus) {
             try {
-                const { error } = await db.from('reservations')
+                const { error } = await supabase
+                    .from('reservations')
                     .update({ status: newStatus })
                     .eq('booking_id', bookingId);
 
@@ -28249,11 +28279,15 @@ function printPropertyView() {
                 const reservation = state.reservations.find(r => r.booking_id === bookingId);
                 if (reservation) reservation.status = newStatus;
 
-                showToast(`✅ Booking ${bookingId} moved to ${newStatus}`, 'success');
+                // Update allReservations too
+                const globalRes = allReservations.find(r => r.booking_id === bookingId);
+                if (globalRes) globalRes.status = newStatus;
+
+                showToast('Status Updated', `${bookingId} → ${newStatus.replace('-', ' ')}`, '✅');
                 await loadReservations();
             } catch (error) {
                 console.error('Error updating status:', error);
-                showToast('❌ Failed to update status', 'error');
+                showToast('Error', 'Failed to update reservation status', '❌');
                 renderKanbanBoard(); // Revert UI
             }
         }
