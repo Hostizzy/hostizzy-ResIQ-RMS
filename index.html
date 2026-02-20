@@ -6672,6 +6672,32 @@
             background: var(--success);
             color: white;
         }
+
+        /* Dashboard Period Filter Buttons */
+        .dash-period-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: var(--background-alt);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .dash-period-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-color: var(--primary);
+        }
+        .dash-period-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(8,145,178,0.3);
+        }
         </style>
 
         <!-- Dashboard View -->
@@ -6686,48 +6712,19 @@
                 </button>
             </div>
 
-            <!-- Simplified Date Filter -->
-            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 24px; padding: 16px; background: var(--background-alt); border-radius: 10px; border: 1px solid var(--border);">
-                <i data-lucide="calendar-range" style="width: 20px; height: 20px; color: var(--primary);"></i>
-                <span style="font-size: 14px; font-weight: 600; color: var(--text-secondary);">Time Period:</span>
-                <select id="dashboardDateRange" onchange="applyDashboardDateFilter(this.value)" style="
-                    padding: 8px 16px;
-                    border: 1px solid var(--border);
-                    border-radius: 8px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    cursor: pointer;
-                    background: white;
-                    color: var(--text-primary);
-                    flex: 0 0 auto;
-                    min-width: 180px;
-                ">
-                    <option value="all-time">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="this-week">This Week</option>
-                    <option value="this-month" selected>This Month</option>
-                    <option value="last-month">Last Month</option>
-                    <option value="this-quarter">This Quarter</option>
-                    <option value="this-year">This Year</option>
-                    <option value="last-30">Last 30 Days</option>
-                    <option value="last-90">Last 90 Days</option>
-                </select>
-                <div id="dashboardFilterIndicator" style="
-                    margin-left: auto;
-                    padding: 6px 14px;
-                    background: linear-gradient(135deg, #e0f2f7, #b3e5f0);
-                    border-radius: 6px;
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: var(--primary-dark);
-                    display: none;
-                ">
-                    <i data-lucide="filter" style="width: 12px; height: 12px; margin-right: 4px;"></i>
-                    <span id="dashboardFilterText">This Month</span>
+            <!-- Dashboard Period Filter -->
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 14px 20px; background: white; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+                <i data-lucide="calendar-range" style="width: 18px; height: 18px; color: var(--primary); flex-shrink: 0;"></i>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="dash-period-btn active" data-range="this-month" onclick="applyDashboardDateFilter('this-month')">This Month</button>
+                    <button class="dash-period-btn" data-range="last-month" onclick="applyDashboardDateFilter('last-month')">Last Month</button>
+                    <button class="dash-period-btn" data-range="this-quarter" onclick="applyDashboardDateFilter('this-quarter')">This Quarter</button>
+                    <button class="dash-period-btn" data-range="this-year" onclick="applyDashboardDateFilter('this-year')">This Year</button>
+                    <button class="dash-period-btn" data-range="last-30" onclick="applyDashboardDateFilter('last-30')">Last 30 Days</button>
+                    <button class="dash-period-btn" data-range="last-90" onclick="applyDashboardDateFilter('last-90')">Last 90 Days</button>
+                    <button class="dash-period-btn" data-range="all-time" onclick="applyDashboardDateFilter('all-time')">All Time</button>
                 </div>
-                <button class="btn btn-secondary btn-sm" onclick="resetDashboardFilter()" style="display: none;" id="dashboardClearFilterBtn">
-                    <i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear
-                </button>
+                <div style="margin-left: auto; font-size: 12px; color: var(--text-tertiary); white-space: nowrap;" id="dashboardPeriodLabel">Showing: This Month</div>
             </div>
 
             <!-- Core Metrics - Essential KPIs -->
@@ -13273,124 +13270,16 @@
                 state.properties = properties;
                 state.payments = allPayments;
                 
+                // Apply default "This Month" filter — this populates Core Metrics,
+                // Activity Widgets, Revenue Split, and Action Center
+                await applyDashboardDateFilter('this-month');
+
+                // Load AI Insights (uses all reservations for better recommendations)
                 const confirmedReservations = allReservations.filter(r => r.status !== 'cancelled');
-                const totalRevenue = confirmedReservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-                const totalOtaFees = confirmedReservations.reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
-                const netRevenue = totalRevenue - totalOtaFees;
-                const activeBookings = allReservations.filter(r => r.status === 'checked-in').length;
-                const upcomingBookings = allReservations.filter(r => r.status === 'confirmed').length;
-                const avgBookingValue = confirmedReservations.length > 0 ? totalRevenue / confirmedReservations.length : 0;
-                const completedBookings = allReservations.filter(r => r.status === 'checked-out').length;
-
-                // Calculate Core Metrics
-                const hostizzyRevenue = confirmedReservations.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
-                const totalNights = confirmedReservations.reduce((sum, r) => sum + (r.nights || 0), 0);
-                const targetNights = properties.length * TARGET_OCCUPANCY_NIGHTS;
-                const occupancyRate = targetNights > 0 ? ((totalNights / targetNights) * 100).toFixed(1) : 0;
-
-                // Calculate collection rate
-                const totalCollected = allPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-                const collectionRate = totalRevenue > 0 ? ((totalCollected / totalRevenue) * 100).toFixed(1) : 0;
-
-                // Update Core Metrics
-                document.getElementById('coreRevenue').textContent = formatCurrency(totalRevenue);
-                document.getElementById('coreOccupancy').textContent = occupancyRate + '%';
-                document.getElementById('coreActive').textContent = activeBookings;
-                document.getElementById('coreUpcoming').textContent = upcomingBookings;
-                document.getElementById('coreCollectionRate').textContent = collectionRate + '%';
-                document.getElementById('coreCollectionAmount').textContent = formatCurrency(totalCollected) + ' collected';
-                document.getElementById('coreHostizzyRevenue').textContent = formatCurrency(hostizzyRevenue);
-                document.getElementById('coreAvgBooking').textContent = formatCurrency(avgBookingValue);
-                document.getElementById('coreBookingCount').textContent = `From ${confirmedReservations.length} bookings`;
-                document.getElementById('coreTotalNights').textContent = totalNights;
-
-                // Calculate previous period for trends (simplified - using 30 days back)
-                const today = new Date();
-                const thirtyDaysAgo = new Date(today);
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                const sixtyDaysAgo = new Date(today);
-                sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-
-                const prevPeriodRes = allReservations.filter(r => {
-                    const checkIn = new Date(r.check_in);
-                    return checkIn >= sixtyDaysAgo && checkIn < thirtyDaysAgo && r.status !== 'cancelled';
-                });
-
-                const prevRevenue = prevPeriodRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-                const prevHostizzy = prevPeriodRes.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
-                const prevNights = prevPeriodRes.reduce((sum, r) => sum + (r.nights || 0), 0);
-                const prevOccupancy = targetNights > 0 ? ((prevNights / targetNights) * 100).toFixed(1) : 0;
-
-                // Calculate MoM changes
-                const revenueMoM = prevRevenue > 0 ? (((totalRevenue - prevRevenue) / prevRevenue) * 100).toFixed(1) : 0;
-                const hostizzyMoM = prevHostizzy > 0 ? (((hostizzyRevenue - prevHostizzy) / prevHostizzy) * 100).toFixed(1) : 0;
-                const nightsMoM = prevNights > 0 ? (((totalNights - prevNights) / prevNights) * 100).toFixed(1) : 0;
-                const occupancyMoM = prevOccupancy > 0 ? (((occupancyRate - prevOccupancy) / prevOccupancy) * 100).toFixed(1) : 0;
-
-                // Update trend displays
-                const formatTrend = (value) => {
-                    const arrow = value > 0 ? '↑' : value < 0 ? '↓' : '→';
-                    const color = value > 0 ? '#10b981' : value < 0 ? '#ef4444' : '#64748b';
-                    return `<span class="trend-arrow" style="color: ${color}">${arrow}</span> <span class="trend-value">${Math.abs(value)}% vs last period</span>`;
-                };
-
-                document.getElementById('coreRevenueTrend').innerHTML = formatTrend(revenueMoM);
-                document.getElementById('coreOccupancyTrend').innerHTML = formatTrend(occupancyMoM);
-                document.getElementById('coreHostizzyTrend').innerHTML = formatTrend(hostizzyMoM);
-                document.getElementById('coreNightsTrend').innerHTML = formatTrend(nightsMoM);
-
-                // Populate Quick Activity Widgets
-                populateDashboardWidgets(allReservations, allPayments);
-
-                // Payment Analytics - Revenue Split
-                renderRevenueSplit(allPayments, confirmedReservations);
-
-                // REMOVED CHARTS - Now in Performance Page
-                // renderPaymentMethodChart(allPayments);
-                // renderTopProperties(confirmedReservations, properties);
-                // renderChannelDistribution(confirmedReservations);
-                // renderBookingTypeBreakdown(confirmedReservations, 'bookingTypeBreakdown');
-                // renderMonthlyTrends(confirmedReservations);
-
-                // Action Center
-                renderActionCenter(confirmedReservations);
-
-                // Calculate monthly metrics
-                calculateMonthlyMetrics();
-                
-                // Load AI Insights
                 loadAIInsights(confirmedReservations, properties);
-                
+
                 // Load Top 15 Properties Stats
                 updateTopPropertiesStats();
-
-                // Add this at the very end:
-                calculateMonthlyMetrics();
-                
-                // Restore saved filter state
-                setTimeout(() => {
-                    const savedFilters = loadFilterState('dashboard');
-                    if (savedFilters) {
-                        console.log('🔄 Restoring dashboard filters:', savedFilters);
-                        
-                        // Restore date range if exists
-                        if (savedFilters.startDate && savedFilters.endDate) {
-                            const startDateInput = document.getElementById('startDate');
-                            const endDateInput = document.getElementById('endDate');
-                            
-                            if (startDateInput) startDateInput.value = savedFilters.startDate;
-                            if (endDateInput) endDateInput.value = savedFilters.endDate;
-                            
-                            // Auto-apply the saved date range
-                            setTimeout(() => applyDateRange(), 200);
-                        }
-                        
-                        // Restore quick filter if exists
-                        if (savedFilters.quickFilter && savedFilters.quickFilter !== 'all') {
-                            setTimeout(() => applyQuickFilter(savedFilters.quickFilter), 300);
-                        }
-                    }
-                }, 500);
                 
             } catch (error) {
                 console.error('Dashboard error:', error);
@@ -13398,53 +13287,176 @@
             }
         }
 
-        // Dashboard Date Filter
-        async function applyDashboardDateFilter(range) {
-            if (!range) return;
+        // Compute start/end dates and the equivalent previous period from a range key
+        function getDashboardDateRange(range) {
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
+            const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
 
-            // Show/hide filter indicator
-            const indicator = document.getElementById('dashboardFilterIndicator');
-            const clearBtn = document.getElementById('dashboardClearFilterBtn');
-            const filterText = document.getElementById('dashboardFilterText');
+            let start, end, prevStart, prevEnd, label;
 
-            if (range === 'all-time') {
-                if (indicator) indicator.style.display = 'none';
-                if (clearBtn) clearBtn.style.display = 'none';
-                await loadDashboard();
-                return;
+            switch (range) {
+                case 'today':
+                    start = new Date(todayStart);
+                    end = new Date(today);
+                    prevStart = new Date(todayStart); prevStart.setDate(prevStart.getDate() - 1);
+                    prevEnd = new Date(todayStart); prevEnd.setMilliseconds(-1);
+                    label = 'Today';
+                    break;
+                case 'this-week': {
+                    const dow = todayStart.getDay();
+                    start = new Date(todayStart); start.setDate(start.getDate() - dow);
+                    end = new Date(today);
+                    const dur = today - start;
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                    prevStart = new Date(prevEnd.getTime() - dur + 1);
+                    label = 'This Week';
+                    break;
+                }
+                case 'this-month':
+                    start = new Date(todayStart.getFullYear(), todayStart.getMonth(), 1);
+                    end = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0, 23, 59, 59);
+                    prevStart = new Date(todayStart.getFullYear(), todayStart.getMonth() - 1, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                    label = start.toLocaleString('default', { month: 'long', year: 'numeric' });
+                    break;
+                case 'last-month':
+                    start = new Date(todayStart.getFullYear(), todayStart.getMonth() - 1, 1);
+                    end = new Date(todayStart.getFullYear(), todayStart.getMonth(), 0, 23, 59, 59);
+                    prevStart = new Date(todayStart.getFullYear(), todayStart.getMonth() - 2, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                    label = start.toLocaleString('default', { month: 'long', year: 'numeric' });
+                    break;
+                case 'this-quarter': {
+                    const q = Math.floor(todayStart.getMonth() / 3);
+                    start = new Date(todayStart.getFullYear(), q * 3, 1);
+                    end = new Date(todayStart.getFullYear(), (q + 1) * 3, 0, 23, 59, 59);
+                    prevStart = new Date(todayStart.getFullYear(), (q - 1) * 3, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                    label = `Q${q + 1} ${todayStart.getFullYear()}`;
+                    break;
+                }
+                case 'this-year':
+                    start = new Date(todayStart.getFullYear(), 0, 1);
+                    end = new Date(todayStart.getFullYear(), 11, 31, 23, 59, 59);
+                    prevStart = new Date(todayStart.getFullYear() - 1, 0, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                    label = `Year ${todayStart.getFullYear()}`;
+                    break;
+                case 'last-30':
+                    start = new Date(todayStart); start.setDate(start.getDate() - 30);
+                    end = new Date(today);
+                    prevStart = new Date(todayStart); prevStart.setDate(prevStart.getDate() - 60);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                    label = 'Last 30 Days';
+                    break;
+                case 'last-90':
+                    start = new Date(todayStart); start.setDate(start.getDate() - 90);
+                    end = new Date(today);
+                    prevStart = new Date(todayStart); prevStart.setDate(prevStart.getDate() - 180);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                    label = 'Last 90 Days';
+                    break;
+                default: // all-time
+                    start = null; end = null; prevStart = null; prevEnd = null;
+                    label = 'All Time';
             }
+            return { start, end, prevStart, prevEnd, label };
+        }
 
-            // Show indicator
-            if (indicator) indicator.style.display = 'flex';
-            if (clearBtn) clearBtn.style.display = 'inline-flex';
+        // Render all 8 Core Metric cards with correct period comparison
+        function renderCoreMetrics(currentRes, prevRes, allPaymentsData, targetNights, periodLabel) {
+            const cur = currentRes.filter(r => r.status !== 'cancelled');
+            const prev = prevRes.filter(r => r.status !== 'cancelled');
 
-            const rangeLabels = {
-                'today': 'Today',
-                'this-week': 'This Week',
-                'this-month': 'This Month',
-                'last-month': 'Last Month',
-                'this-quarter': 'This Quarter',
-                'this-year': 'This Year',
-                'last-30': 'Last 30 Days',
-                'last-90': 'Last 90 Days'
+            // Current period
+            const totalRevenue   = cur.reduce((s, r) => s + (parseFloat(r.total_amount) || 0), 0);
+            const hostizzyRev    = cur.reduce((s, r) => s + (parseFloat(r.hostizzy_revenue) || 0), 0);
+            const totalNights    = cur.reduce((s, r) => s + (r.nights || 0), 0);
+            const occupancy      = targetNights > 0 ? (totalNights / targetNights * 100) : 0;
+            const activeBookings = currentRes.filter(r => r.status === 'checked-in').length;
+            const upcoming       = currentRes.filter(r => r.status === 'confirmed').length;
+            const avgBooking     = cur.length > 0 ? totalRevenue / cur.length : 0;
+
+            // Collection rate from payments matching current reservations
+            const curIds = new Set(cur.map(r => r.booking_id));
+            const collected = allPaymentsData
+                .filter(p => curIds.has(p.booking_id))
+                .reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+            const collectionRate = totalRevenue > 0 ? (collected / totalRevenue * 100) : 0;
+
+            // Previous period
+            const prevRevenue    = prev.reduce((s, r) => s + (parseFloat(r.total_amount) || 0), 0);
+            const prevHostizzy   = prev.reduce((s, r) => s + (parseFloat(r.hostizzy_revenue) || 0), 0);
+            const prevNights     = prev.reduce((s, r) => s + (r.nights || 0), 0);
+            const prevOccupancy  = targetNights > 0 ? (prevNights / targetNights * 100) : 0;
+
+            // MoM helper — returns numeric %
+            const pct = (cur, prev) => prev > 0 ? ((cur - prev) / prev * 100) : null;
+
+            const formatTrend = (val) => {
+                if (val === null) return '<span style="opacity:0.7">No prev. data</span>';
+                const n = parseFloat(val);
+                const arrow = n > 0 ? '↑' : n < 0 ? '↓' : '→';
+                const color = n > 0 ? '#86efac' : n < 0 ? '#fca5a5' : 'rgba(255,255,255,0.6)';
+                return `<span style="color:${color};font-weight:700">${arrow} ${Math.abs(n).toFixed(1)}%</span> <span style="opacity:0.7">vs prev. period</span>`;
             };
 
-            if (filterText) filterText.textContent = rangeLabels[range] || range;
+            // Update DOM
+            document.getElementById('coreRevenue').textContent          = formatCurrency(totalRevenue);
+            document.getElementById('coreOccupancy').textContent        = occupancy.toFixed(1) + '%';
+            document.getElementById('coreActive').textContent           = activeBookings;
+            document.getElementById('coreUpcoming').textContent         = upcoming;
+            document.getElementById('coreCollectionRate').textContent   = collectionRate.toFixed(1) + '%';
+            document.getElementById('coreCollectionAmount').textContent = formatCurrency(collected) + ' collected';
+            document.getElementById('coreHostizzyRevenue').textContent  = formatCurrency(hostizzyRev);
+            document.getElementById('coreAvgBooking').textContent       = formatCurrency(avgBooking);
+            document.getElementById('coreBookingCount').textContent     = `From ${cur.length} bookings`;
+            document.getElementById('coreTotalNights').textContent      = totalNights;
 
-            // For now, just reload dashboard - can be enhanced later for actual filtering
-            await loadDashboard();
+            document.getElementById('coreRevenueTrend').innerHTML    = formatTrend(pct(totalRevenue, prevRevenue));
+            document.getElementById('coreOccupancyTrend').innerHTML  = formatTrend(pct(occupancy, prevOccupancy));
+            document.getElementById('coreHostizzyTrend').innerHTML   = formatTrend(pct(hostizzyRev, prevHostizzy));
+            document.getElementById('coreNightsTrend').innerHTML     = formatTrend(pct(totalNights, prevNights));
+
+            // Update period label
+            const periodEl = document.getElementById('dashboardPeriodLabel');
+            if (periodEl) periodEl.textContent = 'Showing: ' + periodLabel;
+        }
+
+        // Dashboard Date Filter
+        async function applyDashboardDateFilter(range) {
+            // Update active button state
+            document.querySelectorAll('.dash-period-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.range === range);
+            });
+
+            // Compute date ranges
+            const { start, end, prevStart, prevEnd, label } = getDashboardDateRange(range);
+
+            // Filter reservations
+            const currentRes = start
+                ? allReservations.filter(r => { const d = new Date(r.check_in); return d >= start && d <= end; })
+                : [...allReservations];
+
+            const prevRes = prevStart
+                ? allReservations.filter(r => { const d = new Date(r.check_in); return d >= prevStart && d <= prevEnd; })
+                : [];
+
+            // Get properties for occupancy target (cached in state)
+            const properties = state.properties || await db.getProperties();
+            const targetNights = properties.length * (typeof TARGET_OCCUPANCY_NIGHTS !== 'undefined' ? TARGET_OCCUPANCY_NIGHTS : 30);
+
+            renderCoreMetrics(currentRes, prevRes, allPayments, targetNights, label);
+
+            // Also update activity widgets and action center with filtered scope
+            populateDashboardWidgets(allReservations, allPayments); // widgets always show today regardless of period
+            renderRevenueSplit(allPayments, currentRes.filter(r => r.status !== 'cancelled'));
+            renderActionCenter(currentRes.filter(r => r.status !== 'cancelled'));
         }
 
         function resetDashboardFilter() {
-            const dropdown = document.getElementById('dashboardDateRange');
-            const indicator = document.getElementById('dashboardFilterIndicator');
-            const clearBtn = document.getElementById('dashboardClearFilterBtn');
-
-            if (dropdown) dropdown.value = 'all-time';
-            if (indicator) indicator.style.display = 'none';
-            if (clearBtn) clearBtn.style.display = 'none';
-
-            loadDashboard();
+            applyDashboardDateFilter('this-month');
         }
 
         // Quick Filter State
