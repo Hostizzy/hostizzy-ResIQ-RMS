@@ -1,6 +1,6 @@
 /**
  * ResIQ Service Worker
- * Version: 5.3.0
+ * Version: 5.4.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  *
  * IMPORTANT FOR DEVELOPERS:
@@ -11,6 +11,7 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.4.0: Guesty-inspired UI overhaul + EmailJS email sending + settings cleanup + comm view
  * - v5.3.0: Complete global color replacement - all hardcoded purple eliminated, full teal theme
  * - v5.2.0: Professional color scheme (teal) + Gmail global settings + property auto-detection
  * - v5.1.0: Design system tokens applied across all CSS + Gmail auto-scan + better email parsing
@@ -21,7 +22,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.3.0';
+const CACHE_VERSION = 'v5.4.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
