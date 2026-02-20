@@ -5270,7 +5270,7 @@
     
     <!-- Offline Banner -->
     <div id="offlineBanner" class="offline-banner">
-        🔴 You're offline. Changes will be saved locally and synced when online.
+        <i data-lucide="wifi-off" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: middle;"></i>You're offline. Changes will be saved locally and synced when online.
     </div>
 
     <!-- Sync Indicator -->
@@ -5285,7 +5285,7 @@
 
     <!-- Notification Toast -->
     <div id="notificationToast" class="toast">
-        <div class="toast-icon" id="toastIcon">🔔</div>
+        <div class="toast-icon" id="toastIcon"><i data-lucide="bell" style="width: 20px; height: 20px;"></i></div>
         <div class="toast-content">
             <div class="toast-title" id="toastTitle">Notification</div>
             <div class="toast-message" id="toastMessage">Message here</div>
@@ -5296,7 +5296,7 @@
     <!-- PWA Install Banner -->
     <div id="pwaInstallBanner" class="pwa-install-banner">
         <div class="pwa-banner-content">
-            <div class="pwa-banner-icon">📱</div>
+            <div class="pwa-banner-icon"><i data-lucide="smartphone" style="width: 28px; height: 28px;"></i></div>
             <div class="pwa-banner-text">
                 <h3>Install ResIQ App</h3>
                 <p>Add to your home screen for quick access and offline support</p>
@@ -5348,7 +5348,7 @@
                 <a href="owner-portal.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);"
                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(8, 145, 178, 0.4)';"
                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(8, 145, 178, 0.3)';">
-                    <span style="font-size: 18px;">🏠</span>
+                    <i data-lucide="building-2" style="width: 22px; height: 22px;"></i>
                     <span>Access Owner Portal</span>
                     <span style="font-size: 16px;">→</span>
                 </a>
@@ -5407,9 +5407,9 @@
                 <!-- Global Search Bar -->
                 <div class="navbar-search">
                     <div class="search-input-wrapper">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon"><i data-lucide="search" style="width: 18px; height: 18px;"></i></span>
                         <input type="text" id="globalSearch" class="search-input" placeholder="Search bookings, guests, properties..." onkeyup="handleGlobalSearch(event)">
-                        <button class="search-clear" id="searchClear" onclick="clearGlobalSearch()" style="display: none;">✕</button>
+                        <button class="search-clear" id="searchClear" onclick="clearGlobalSearch()" style="display: none;"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
                     </div>
                     <div class="search-results" id="searchResults" style="display: none;"></div>
                 </div>
@@ -5420,7 +5420,7 @@
                 <!-- Notification Bell -->
                 <div class="notification-bell-container" style="margin-right: 16px; position: relative;">
                     <button class="notification-bell-btn" onclick="toggleNotificationCenter()" title="Notifications">
-                        <span class="bell-icon">🔔</span>
+                        <span class="bell-icon"><i data-lucide="bell" style="width: 20px; height: 20px;"></i></span>
                         <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
                     </button>
                     <div class="notification-dropdown" id="notificationDropdown">
@@ -5430,7 +5430,7 @@
                         </div>
                         <div class="notification-list" id="notificationList">
                             <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
-                                <div style="font-size: 48px; margin-bottom: 8px;">🔕</div>
+                                <div style="font-size: 48px; margin-bottom: 8px;"><i data-lucide="bell-off" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>
                                 <div>No notifications</div>
                             </div>
                         </div>
@@ -5439,22 +5439,22 @@
 
                 <!-- Dark Mode Toggle -->
                 <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode" style="margin-right: 16px;">
-                    <span class="theme-icon-light">☀️</span>
-                    <span class="theme-icon-dark" style="display: none;">🌙</span>
+                    <span class="theme-icon-light"><i data-lucide="sun" style="width: 20px; height: 20px;"></i></span>
+                    <span class="theme-icon-dark" style="display: none;"><i data-lucide="moon" style="width: 20px; height: 20px;"></i></span>
                 </button>
 
                 <!-- App Settings -->
                 <button class="theme-toggle-btn" onclick="openAppSettings()" title="App Settings" style="margin-right: 16px;">
-                    <span style="font-size: 20px;">⚙️</span>
+                    <span style="font-size: 20px;"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></span>
                 </button>
 
                 <!-- Profile Dropdown (Desktop & Tablet) -->
                 <div class="navbar-menu">
                     <div class="user-menu-container">
                         <button class="user-menu-btn" onclick="toggleUserMenu()">
-                            <span class="user-icon">👤</span>
+                            <span class="user-icon"><i data-lucide="user" style="width: 20px; height: 20px;"></i></span>
                             <span id="userEmail" class="user-email">Account</span>
-                            <span class="user-menu-arrow">▼</span>
+                            <span class="user-menu-arrow"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></span>
                         </button>
                         <div class="user-menu-dropdown" id="userMenuDropdown">
                             <div class="user-menu-header">
@@ -5465,7 +5465,7 @@
                             </div>
                             <div class="user-menu-divider"></div>
                             <a class="user-menu-item" onclick="logout()">
-                                <span class="user-menu-icon">🚪</span>
+                                <span class="user-menu-icon"><i data-lucide="log-out" style="width: 18px; height: 18px;"></i></span>
                                 <span>Logout</span>
                             </a>
                         </div>
@@ -5480,33 +5480,33 @@
             <div class="sidebar-menu">
                 <!-- Home -->
                 <a class="sidebar-item" onclick="showView('home')">
-                    <span class="sidebar-item-icon">🏠</span>
+                    <span class="sidebar-item-icon"><i data-lucide="home" style="width: 20px; height: 20px;"></i></span>
                     <span class="sidebar-item-label">Home</span>
                 </a>
 
                 <!-- Dashboard -->
                 <a class="sidebar-item active" onclick="showView('dashboard')">
-                    <span class="sidebar-item-icon">📊</span>
+                    <span class="sidebar-item-icon"><i data-lucide="bar-chart-2" style="width: 20px; height: 20px;"></i></span>
                     <span class="sidebar-item-label">Dashboard</span>
                 </a>
 
                 <!-- Analytics Category -->
                 <div class="sidebar-category">
                     <div class="sidebar-category-header" onclick="toggleSidebarCategory('analytics')">
-                        <span class="sidebar-category-title">📈 Analytics</span>
-                        <span class="sidebar-category-arrow">▼</span>
+                        <span class="sidebar-category-title"><i data-lucide="trending-up" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: middle;"></i> Analytics</span>
+                        <span class="sidebar-category-arrow"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span>
                     </div>
                     <div class="sidebar-category-items" id="sidebar-analytics" style="display: block;">
                         <a class="sidebar-item" onclick="showView('property')">
-                            <span class="sidebar-item-icon">🏢</span>
+                            <span class="sidebar-item-icon"><i data-lucide="building" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Property</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('business')">
-                            <span class="sidebar-item-icon">💼</span>
+                            <span class="sidebar-item-icon"><i data-lucide="briefcase" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Business</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('financials')">
-                            <span class="sidebar-item-icon">💰</span>
+                            <span class="sidebar-item-icon"><i data-lucide="dollar-sign" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Financials</span>
                         </a>
                     </div>
@@ -5515,28 +5515,28 @@
                 <!-- Operations Category -->
                 <div class="sidebar-category">
                     <div class="sidebar-category-header" onclick="toggleSidebarCategory('operations')">
-                        <span class="sidebar-category-title">⚡ Operations</span>
-                        <span class="sidebar-category-arrow">▼</span>
+                        <span class="sidebar-category-title"><i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: middle;"></i> Operations</span>
+                        <span class="sidebar-category-arrow"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span>
                     </div>
                     <div class="sidebar-category-items" id="sidebar-operations" style="display: block;">
                         <a class="sidebar-item" onclick="showView('reservations')">
-                            <span class="sidebar-item-icon">📅</span>
+                            <span class="sidebar-item-icon"><i data-lucide="calendar" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Reservations</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('payments')">
-                            <span class="sidebar-item-icon">💳</span>
+                            <span class="sidebar-item-icon"><i data-lucide="credit-card" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Payments</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('guests')">
-                            <span class="sidebar-item-icon">👥</span>
+                            <span class="sidebar-item-icon"><i data-lucide="users" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Guests</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('guestDocuments')">
-                            <span class="sidebar-item-icon">📄</span>
+                            <span class="sidebar-item-icon"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Documents</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('meals')">
-                            <span class="sidebar-item-icon">🍽️</span>
+                            <span class="sidebar-item-icon"><i data-lucide="utensils" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Meals</span>
                         </a>
                     </div>
@@ -5545,28 +5545,28 @@
                 <!-- Management Category -->
                 <div class="sidebar-category">
                     <div class="sidebar-category-header" onclick="toggleSidebarCategory('management')">
-                        <span class="sidebar-category-title">🔧 Management</span>
-                        <span class="sidebar-category-arrow">▼</span>
+                        <span class="sidebar-category-title"><i data-lucide="wrench" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: middle;"></i> Management</span>
+                        <span class="sidebar-category-arrow"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span>
                     </div>
                     <div class="sidebar-category-items" id="sidebar-management" style="display: block;">
                         <a class="sidebar-item" onclick="showView('properties')">
-                            <span class="sidebar-item-icon">🏘️</span>
+                            <span class="sidebar-item-icon"><i data-lucide="building-2" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Properties</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('team')">
-                            <span class="sidebar-item-icon">👨‍💼</span>
+                            <span class="sidebar-item-icon"><i data-lucide="user-check" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Team</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('owners')">
-                            <span class="sidebar-item-icon">👑</span>
+                            <span class="sidebar-item-icon"><i data-lucide="shield" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Owners</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('availability')">
-                            <span class="sidebar-item-icon">📆</span>
+                            <span class="sidebar-item-icon"><i data-lucide="calendar-days" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Availability</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('communication')">
-                            <span class="sidebar-item-icon">💬</span>
+                            <span class="sidebar-item-icon"><i data-lucide="message-circle" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Communication</span>
                         </a>
                     </div>
@@ -5577,13 +5577,13 @@
             <div class="sidebar-footer">
                 <!-- Settings -->
                 <a class="sidebar-item" onclick="showView('settings')">
-                    <span class="sidebar-item-icon">⚙️</span>
+                    <span class="sidebar-item-icon"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></span>
                     <span class="sidebar-item-label">Settings</span>
                 </a>
 
                 <!-- Logout -->
                 <a class="sidebar-item" onclick="logout()">
-                    <span class="sidebar-item-icon">🚪</span>
+                    <span class="sidebar-item-icon"><i data-lucide="log-out" style="width: 20px; height: 20px;"></i></span>
                     <span class="sidebar-item-label">Logout</span>
                 </a>
             </div>
@@ -5594,16 +5594,16 @@
             <div class="mobile-header-content">
                 <!-- Hamburger Menu Button -->
                 <button class="mobile-menu-btn" onclick="toggleSidebar()">
-                    <span id="hamburgerIcon">☰</span>
+                    <span id="hamburgerIcon"><i data-lucide="menu" style="width: 22px; height: 22px;"></i></span>
                 </button>
 
                 <!-- Logo (Center) -->
                 <div class="mobile-header-logo" onclick="showView('home')" style="cursor: pointer;">
-                    🏠 ResIQ
+                    ResIQ
                 </div>
 
                 <!-- Profile Button -->
-                <button class="mobile-menu-btn" onclick="toggleUserMenuMobile()">👤</button>
+                <button class="mobile-menu-btn" onclick="toggleUserMenuMobile()"><i data-lucide="user" style="width: 22px; height: 22px;"></i></button>
             </div>
         </div>
 
@@ -5615,23 +5615,23 @@
         <div class="mobile-nav">
             <div class="mobile-nav-items">
                 <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('home');">
-                    <div class="mobile-nav-icon">🏠</div>
+                    <div class="mobile-nav-icon"><i data-lucide="home" style="width: 22px; height: 22px;"></i></div>
                     <div class="mobile-nav-label">Home</div>
                 </a>
                 <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('reservations');">
-                    <div class="mobile-nav-icon">📅</div>
+                    <div class="mobile-nav-icon"><i data-lucide="calendar" style="width: 22px; height: 22px;"></i></div>
                     <div class="mobile-nav-label">Bookings</div>
                 </a>
                 <!-- Floating Action Button (FAB) -->
                 <button class="mobile-nav-fab" onclick="triggerHaptic('medium'); openReservationModal();" title="New Booking">
-                    <div class="mobile-nav-fab-icon">➕</div>
+                    <div class="mobile-nav-fab-icon"><i data-lucide="plus" style="width: 24px; height: 24px;"></i></div>
                 </button>
                 <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('payments');">
-                    <div class="mobile-nav-icon">💰</div>
+                    <div class="mobile-nav-icon"><i data-lucide="credit-card" style="width: 22px; height: 22px;"></i></div>
                     <div class="mobile-nav-label">Payments</div>
                 </a>
                 <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('guestDocuments');">
-                    <div class="mobile-nav-icon">📄</div>
+                    <div class="mobile-nav-icon"><i data-lucide="file-text" style="width: 22px; height: 22px;"></i></div>
                     <div class="mobile-nav-label">Documents</div>
                 </a>
             </div>
@@ -5646,7 +5646,7 @@
                     <h1 class="home-greeting-user" id="greetingUser">Welcome Back!</h1>
                     <p class="home-greeting-subtitle">Here's what's happening today</p>
                 </div>
-                <div class="home-welcome-icon">👋</div>
+                <div class="home-welcome-icon"><i data-lucide="sparkles" style="width: 48px; height: 48px; opacity: 0.8;"></i></div>
             </div>
 
             <!-- Today's Overview - Priority Stats -->
@@ -5658,22 +5658,22 @@
                     <div class="today-stat-card">
                         <div class="today-stat-value" id="homeStatActive">--</div>
                         <div class="today-stat-label">Active Bookings</div>
-                        <div class="today-stat-icon">📅</div>
+                        <div class="today-stat-icon"><i data-lucide="calendar-check" style="width: 28px; height: 28px;"></i></div>
                     </div>
                     <div class="today-stat-card">
                         <div class="today-stat-value" id="homeStatPending">--</div>
                         <div class="today-stat-label">Pending Payments</div>
-                        <div class="today-stat-icon">💰</div>
+                        <div class="today-stat-icon"><i data-lucide="clock" style="width: 28px; height: 28px;"></i></div>
                     </div>
                     <div class="today-stat-card">
                         <div class="today-stat-value" id="homeStatDocuments">--</div>
                         <div class="today-stat-label">Documents to Review</div>
-                        <div class="today-stat-icon">📋</div>
+                        <div class="today-stat-icon"><i data-lucide="clipboard-list" style="width: 28px; height: 28px;"></i></div>
                     </div>
                     <div class="today-stat-card">
                         <div class="today-stat-value" id="homeStatRevenue">--</div>
                         <div class="today-stat-label">Revenue (Month)</div>
-                        <div class="today-stat-icon">💵</div>
+                        <div class="today-stat-icon"><i data-lucide="trending-up" style="width: 28px; height: 28px;"></i></div>
                     </div>
                 </div>
             </div>
@@ -5685,22 +5685,22 @@
                 </div>
                 <div class="quick-actions-grid">
                     <button class="quick-action-card" onclick="openReservationModal()">
-                        <div class="quick-action-icon">➕</div>
+                        <div class="quick-action-icon"><i data-lucide="plus-circle" style="width: 32px; height: 32px;"></i></div>
                         <div class="quick-action-title">New Booking</div>
                         <div class="quick-action-desc">Create reservation</div>
                     </button>
                     <button class="quick-action-card" onclick="openMultiPaymentModal()">
-                        <div class="quick-action-icon">💰</div>
+                        <div class="quick-action-icon"><i data-lucide="banknote" style="width: 32px; height: 32px;"></i></div>
                         <div class="quick-action-title">Add Payment</div>
                         <div class="quick-action-desc">Record transaction</div>
                     </button>
                     <button class="quick-action-card" onclick="showView('guestDocuments')">
-                        <div class="quick-action-icon">📄</div>
+                        <div class="quick-action-icon"><i data-lucide="file-check" style="width: 32px; height: 32px;"></i></div>
                         <div class="quick-action-title">Review Docs</div>
                         <div class="quick-action-desc">Check documents</div>
                     </button>
                     <button class="quick-action-card" onclick="openPropertyModal()">
-                        <div class="quick-action-icon">🏠</div>
+                        <div class="quick-action-icon"><i data-lucide="building-2" style="width: 32px; height: 32px;"></i></div>
                         <div class="quick-action-title">Add Property</div>
                         <div class="quick-action-desc">New property</div>
                     </button>
@@ -5715,28 +5715,28 @@
                 </div>
                 <div class="category-grid">
                     <div class="category-card" onclick="showView('property')">
-                        <div class="category-card-icon">🏢</div>
+                        <div class="category-card-icon"><i data-lucide="building" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Property</div>
                             <div class="category-card-stat">Property analytics</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('business')">
-                        <div class="category-card-icon">💼</div>
+                        <div class="category-card-icon"><i data-lucide="briefcase" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Business</div>
                             <div class="category-card-stat">Business metrics</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('financials')">
-                        <div class="category-card-icon">💰</div>
+                        <div class="category-card-icon"><i data-lucide="dollar-sign" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Financials</div>
                             <div class="category-card-stat">Financial reports</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                 </div>
             </div>
@@ -5749,44 +5749,44 @@
                 </div>
                 <div class="category-grid">
                     <div class="category-card" onclick="showView('reservations')">
-                        <div class="category-card-icon">📅</div>
+                        <div class="category-card-icon"><i data-lucide="calendar" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Reservations</div>
                             <div class="category-card-stat" id="homeStatReservations">-- bookings</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('payments')">
-                        <div class="category-card-icon">💳</div>
+                        <div class="category-card-icon"><i data-lucide="credit-card" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Payments</div>
                             <div class="category-card-stat">Payment tracking</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('guests')">
-                        <div class="category-card-icon">👥</div>
+                        <div class="category-card-icon"><i data-lucide="users" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Guests</div>
                             <div class="category-card-stat" id="homeStatGuests">-- guests</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('guestDocuments')">
-                        <div class="category-card-icon">📄</div>
+                        <div class="category-card-icon"><i data-lucide="file-text" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Documents</div>
                             <div class="category-card-stat">Document review</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('meals')">
-                        <div class="category-card-icon">🍽️</div>
+                        <div class="category-card-icon"><i data-lucide="utensils" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Meals</div>
                             <div class="category-card-stat">Meal planning</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                 </div>
             </div>
@@ -5799,44 +5799,44 @@
                 </div>
                 <div class="category-grid">
                     <div class="category-card" onclick="showView('properties')">
-                        <div class="category-card-icon">🏘️</div>
+                        <div class="category-card-icon"><i data-lucide="building-2" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Properties</div>
                             <div class="category-card-stat" id="homeStatProperties">-- properties</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('team')">
-                        <div class="category-card-icon">👨‍💼</div>
+                        <div class="category-card-icon"><i data-lucide="user-check" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Team</div>
                             <div class="category-card-stat">Team management</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('owners')">
-                        <div class="category-card-icon">👑</div>
+                        <div class="category-card-icon"><i data-lucide="shield" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Owners</div>
                             <div class="category-card-stat">Owner portal</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('availability')">
-                        <div class="category-card-icon">📆</div>
+                        <div class="category-card-icon"><i data-lucide="calendar-days" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Availability</div>
                             <div class="category-card-stat" id="homeStatUpcoming">-- upcoming</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                     <div class="category-card" onclick="showView('communication')">
-                        <div class="category-card-icon">💬</div>
+                        <div class="category-card-icon"><i data-lucide="message-circle" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Communication</div>
                             <div class="category-card-stat">Messages & updates</div>
                         </div>
-                        <div class="category-card-arrow">›</div>
+                        <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
                 </div>
             </div>
@@ -6360,7 +6360,7 @@
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Real-time overview of bookings, revenue, and performance</p>
                 </div>
                 <button class="btn btn-secondary btn-sm" onclick="exportDashboardPDF()" style="display: flex; align-items: center; gap: 6px;">
-                    📄 Export PDF
+                    <i data-lucide="file-down" style="width: 16px; height: 16px;"></i> Export PDF
                 </button>
             </div>
 
@@ -6370,22 +6370,22 @@
                     <!-- Quick Filter Chips -->
                     <div class="quick-filters">
                         <button class="filter-chip active" data-filter="all" onclick="applyQuickFilter('all')">
-                            📊 All Data
+                            All Data
                         </button>
                         <button class="filter-chip" data-filter="next-7-days" onclick="applyQuickFilter('next-7-days')">
-                            📅 Next 7 Days
+                            Next 7 Days
                         </button>
                         <button class="filter-chip" data-filter="today" onclick="applyQuickFilter('today')">
-                            🏠 Today
+                            Today
                         </button>
                         <button class="filter-chip" data-filter="payment-due" onclick="applyQuickFilter('payment-due')">
-                            💰 Payment Due
+                            Payment Due
                         </button>
                         <button class="filter-chip" data-filter="this-month" onclick="applyQuickFilter('this-month')">
-                            📆 This Month
+                            This Month
                         </button>
                         <button class="filter-chip" data-filter="needs-attention" onclick="applyQuickFilter('needs-attention')">
-                            ⚠️ Needs Attention
+                            Needs Attention
                         </button>
                     </div>
                     
@@ -6415,7 +6415,7 @@
                         
                         <!-- Advanced Filters Toggle -->
                         <button class="btn btn-secondary btn-sm" onclick="toggleAdvancedFilters()" style="white-space: nowrap;">
-                            🔍 More Filters
+                            <i data-lucide="sliders" style="width: 14px; height: 14px;"></i> More Filters
                         </button>
                     </div>
                 </div>
@@ -6432,14 +6432,14 @@
             <!-- Advanced Filters Panel (Collapsible) -->
             <div id="advancedFiltersPanel" class="card" style="display: none; margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">🔍 Advanced Filters</h3>
+                    <h3 class="card-title"><i data-lucide="sliders" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Advanced Filters</h3>
                     <button class="btn btn-sm btn-secondary" onclick="toggleAdvancedFilters()">Close</button>
                 </div>
                 <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                     <!-- Date Range -->
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            📅 Date Range
+                            <i data-lucide="calendar" style="width: 14px; height: 14px; margin-right: 4px;"></i>Date Range
                         </label>
                         <input type="date" id="advFilterStartDate" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px;">
                         <input type="date" id="advFilterEndDate" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
@@ -6448,7 +6448,7 @@
                     <!-- Status -->
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            📋 Status
+                            <i data-lucide="list" style="width: 14px; height: 14px; margin-right: 4px;"></i>Status
                         </label>
                         <select id="advFilterStatus" multiple style="width: 100%; height: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                             <option value="confirmed">Confirmed</option>
@@ -6462,7 +6462,7 @@
                     <!-- Property -->
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            🏠 Property
+                            <i data-lucide="home" style="width: 14px; height: 14px; margin-right: 4px;"></i>Property
                         </label>
                         <select id="advFilterProperty" multiple style="width: 100%; height: 80px; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                             <!-- Populated dynamically -->
@@ -6472,7 +6472,7 @@
                     <!-- Payment Status -->
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            💰 Payment
+                            <i data-lucide="credit-card" style="width: 14px; height: 14px; margin-right: 4px;"></i>Payment
                         </label>
                         <select id="advFilterPayment" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                             <option value="">All</option>
@@ -6485,22 +6485,22 @@
                     <!-- Booking Source -->
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            📱 Source
+                            <i data-lucide="globe" style="width: 14px; height: 14px; margin-right: 4px;"></i>Source
                         </label>
                         <select id="advFilterSource" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                             <option value="">All Sources</option>
-                            <option value="DIRECT">🟢 Direct</option>
-                            <option value="AIRBNB">🔵 Airbnb</option>
-                            <option value="AGODA/BOOKING.COM">🟡 Agoda/Booking</option>
-                            <option value="MMT/GOIBIBO">🟠 MMT/Goibibo</option>
-                            <option value="OTHER">⚪ Other</option>
+                            <option value="DIRECT">Direct</option>
+                            <option value="AIRBNB">Airbnb</option>
+                            <option value="AGODA/BOOKING.COM">Agoda/Booking</option>
+                            <option value="MMT/GOIBIBO">MMT/Goibibo</option>
+                            <option value="OTHER">Other</option>
                         </select>
                     </div>
                     
                     <!-- Amount Range -->
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            💵 Amount Range
+                            <i data-lucide="dollar-sign" style="width: 14px; height: 14px; margin-right: 4px;"></i>Amount Range
                         </label>
                         <input type="number" id="advFilterMinAmount" placeholder="Min ₹" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px;">
                         <input type="number" id="advFilterMaxAmount" placeholder="Max ₹" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
@@ -6542,14 +6542,14 @@
             <div class="card" style="margin-bottom: 24px; background: var(--gradient-primary); color: white; border: none;">
                 <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.2); padding: 20px 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 class="card-title" style="color: white; margin: 0;">📊 This Month Performance</h3>
+                        <h3 class="card-title" style="color: white; margin: 0;"><i data-lucide="bar-chart-2" style="width: 18px; height: 18px; margin-right: 6px; vertical-align: middle;"></i>This Month Performance</h3>
                         <div style="font-size: 14px; opacity: 0.9; font-weight: 500;" id="currentMonthLabel">January 2025</div>
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 24px;">
                     <!-- Nights Card -->
                     <div class="month-stat-card">
-                        <div class="month-stat-icon">🗓️</div>
+                        <div class="month-stat-icon"><i data-lucide="calendar" style="width: 28px; height: 28px;"></i></div>
                         <div class="month-stat-value" id="monthNights">0</div>
                         <div class="month-stat-label">Total Nights</div>
                         <div class="month-stat-change" id="monthNightsChange">
@@ -6559,7 +6559,7 @@
                     
                     <!-- Revenue Card -->
                     <div class="month-stat-card">
-                        <div class="month-stat-icon">💰</div>
+                        <div class="month-stat-icon"><i data-lucide="banknote" style="width: 28px; height: 28px;"></i></div>
                         <div class="month-stat-value" id="monthRevenue">₹0</div>
                         <div class="month-stat-label">Total Revenue</div>
                         <div class="month-stat-change" id="monthRevenueChange">
@@ -6569,7 +6569,7 @@
                     
                     <!-- Hostizzy Revenue Card -->
                     <div class="month-stat-card">
-                        <div class="month-stat-icon">🏢</div>
+                        <div class="month-stat-icon"><i data-lucide="building" style="width: 28px; height: 28px;"></i></div>
                         <div class="month-stat-value" id="monthHostizzyRevenue">₹0</div>
                         <div class="month-stat-label">Hostizzy Revenue</div>
                         <div class="month-stat-change" id="monthHostizzyChange">
@@ -6578,7 +6578,7 @@
                     </div>
                 </div>
                 <div style="padding: 12px 24px; background: rgba(0,0,0,0.2); font-size: 13px; opacity: 0.9; border-top: 1px solid rgba(255,255,255,0.1);">
-                    💡 Comparison with last month
+                    <i data-lucide="lightbulb" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Comparison with last month
                 </div>
             </div>
 
@@ -6592,17 +6592,17 @@
                 <!-- Revenue Distribution -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">💰 Revenue Distribution</h3>
+                        <h3 class="card-title"><i data-lucide="pie-chart" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Revenue Distribution</h3>
                     </div>
                     <div class="split-card">
                         <div class="split-item">
                             <div class="split-amount" style="color: var(--primary);" id="hostizzyTotal">₹0</div>
-                            <div class="split-label">🏢 Hostizzy Revenue</div>
+                            <div class="split-label">Hostizzy Revenue</div>
                             <div class="split-percentage" id="hostizzyPercentage">0%</div>
                         </div>
                         <div class="split-item">
                             <div class="split-amount" style="color: var(--success);" id="ownerTotal">₹0</div>
-                            <div class="split-label">🏠 Owner Revenue</div>
+                            <div class="split-label">Owner Revenue</div>
                             <div class="split-percentage" id="ownerPercentage">0%</div>
                         </div>
                     </div>
@@ -6614,17 +6614,17 @@
                 <!-- Payment Collection Status -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">💳 Payment Collection</h3>
+                        <h3 class="card-title"><i data-lucide="credit-card" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Collection</h3>
                     </div>
                     <div class="split-card">
                         <div class="split-item">
                             <div class="split-amount" style="color: var(--success);" id="totalCollected">₹0</div>
-                            <div class="split-label">✅ Collected</div>
+                            <div class="split-label"><i data-lucide="check-circle" style="width: 14px; height: 14px; color: var(--success); margin-right: 4px;"></i>Collected</div>
                             <div class="split-percentage" id="collectionRate">0%</div>
                         </div>
                         <div class="split-item">
                             <div class="split-amount" style="color: var(--danger);" id="pendingCollection">₹0</div>
-                            <div class="split-label">⏳ Pending</div>
+                            <div class="split-label"><i data-lucide="clock" style="width: 14px; height: 14px; color: var(--danger); margin-right: 4px;"></i>Pending</div>
                             <div class="split-percentage" id="pendingRate">0%</div>
                         </div>
                     </div>
@@ -6632,18 +6632,18 @@
                     <!-- Property & Hostizzy Breakdown -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
                         <div style="padding: 12px; background: linear-gradient(135deg, #10b98115 0%, #05966915 100%); border-radius: 8px; border-left: 3px solid #10b981;">
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">🏠 Properties</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;"><i data-lucide="home" style="width: 12px; height: 12px; margin-right: 3px;"></i>Properties</div>
                             <div style="font-size: 18px; font-weight: 700; color: #10b981;" id="propertyCollected">₹0</div>
                         </div>
                         <div style="padding: 12px; background: linear-gradient(135deg, #0891b215 0%, #06b6d415 100%); border-radius: 8px; border-left: 3px solid #0891b2;">
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">💼 Hostizzy</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;"><i data-lucide="briefcase" style="width: 12px; height: 12px; margin-right: 3px;"></i>Hostizzy</div>
                             <div style="font-size: 18px; font-weight: 700; color: #0891b2;" id="hostizzyCollected">₹0</div>
                         </div>
                     </div>
 
                     <!-- Payment Sources Chart -->
                     <div style="padding: 20px; background: var(--background-alt); border-radius: 8px; margin-top: 16px;">
-                        <div style="font-weight: 600; margin-bottom: 16px; font-size: 14px; color: var(--text-primary);">💰 Payment Sources</div>
+                        <div style="font-weight: 600; margin-bottom: 16px; font-size: 14px; color: var(--text-primary);">Payment Sources</div>
                         <canvas id="paymentChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
@@ -6653,9 +6653,9 @@
             <div class="card" id="actionCenterCard" style="display: none;">
                 <div class="card-header" style="cursor:pointer" onclick="toggleCollapse('actionCenterContent','actionCenterIcon')">
                     <h3 class="card-title">
-                        ⚡ Action Center 
+                        <i data-lucide="zap" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Action Center 
                         <span id="actionCenterTotalBadge" style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px;">0</span>
-                        <span id="actionCenterIcon">🔽</span>
+                        <span id="actionCenterIcon"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></span>
                     </h3>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <label style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; margin: 0;">
@@ -6670,13 +6670,13 @@
                     <div id="actionCenterBody">
                     <div style="display: flex; gap: 8px; margin-bottom: 16px;">
                         <button class="btn btn-sm" id="urgentTab" onclick="switchActionTab('urgent')" style="background: var(--danger); color: white;">
-                        🔴 Urgent (<span id="urgentCount">0</span>)
+                        <i data-lucide="alert-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Urgent (<span id="urgentCount">0</span>)
                         </button>
                         <button class="btn btn-sm" id="todayTab" onclick="switchActionTab('today')" style="background: var(--warning); color: white;">
-                        🟡 Today (<span id="todayCount">0</span>)
+                        <i data-lucide="clock" style="width: 14px; height: 14px; margin-right: 4px;"></i>Today (<span id="todayCount">0</span>)
                         </button>
                         <button class="btn btn-sm" id="upcomingTab" onclick="switchActionTab('upcoming')" style="background: var(--success); color: white;">
-                        🟢 Upcoming (<span id="upcomingCount">0</span>)
+                        <i data-lucide="calendar-check" style="width: 14px; height: 14px; margin-right: 4px;"></i>Upcoming (<span id="upcomingCount">0</span>)
                         </button>
                     </div>
                     </div>
@@ -6685,10 +6685,10 @@
                     <div id="urgentActions" class="action-tab-content">
                         <div class="action-section-header" onclick="toggleOverdueActions(event)" style="cursor: pointer; padding: 12px; background: #fef2f2; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <span style="font-weight: 600; color: var(--danger);">🚨 Overdue & Urgent</span>
+                                <span style="font-weight: 600; color: var(--danger);"><i data-lucide="alert-triangle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Overdue & Urgent</span>
                                 <span id="urgentBadge" style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">0</span>
                             </div>
-                            <span id="overdueToggleIcon">🔽</span>
+                            <span id="overdueToggleIcon"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span>
                         </div>
                         <div id="urgentActionsList"></div>
                     </div>
@@ -6708,7 +6708,7 @@
                 <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.2); cursor: pointer;" onclick="toggleCollapse('aiInsightsContent','aiInsightsIcon')">
                     <h3 class="card-title" style="color: white; display: flex; align-items: center; gap: 8px;">
                         🤖 AI-Powered Insights <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 10px;">SMART</span>
-                        <span id="aiInsightsIcon">🔽</span>
+                        <span id="aiInsightsIcon"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span>
                     </h3>
                     <div style="font-size: 13px; opacity: 0.9;">Intelligent recommendations for your business</div>
                 </div>
@@ -6728,19 +6728,19 @@
                 <div style="padding: 20px;">
                     <div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
                         <button class="btn btn-sm" id="sortByRevenue" onclick="sortPropertiesBy('revenue')" style="background: var(--primary); color: white;">
-                            💰 By Revenue
+                            <i data-lucide="dollar-sign" style="width: 12px; height: 12px; margin-right: 3px;"></i>By Revenue
                         </button>
                         <button class="btn btn-sm" id="sortByBookings" onclick="sortPropertiesBy('bookings')" style="background: var(--secondary); color: white;">
-                            📊 By Bookings
+                            <i data-lucide="bar-chart-2" style="width: 12px; height: 12px; margin-right: 3px;"></i>By Bookings
                         </button>
                         <button class="btn btn-sm" id="sortByNights" onclick="sortPropertiesBy('nights')" style="background: var(--secondary); color: white;">
-                            🌙 By Nights
+                            <i data-lucide="moon" style="width: 12px; height: 12px; margin-right: 3px;"></i>By Nights
                         </button>
                         <button class="btn btn-sm" id="sortByGuests" onclick="sortPropertiesBy('guests')" style="background: var(--secondary); color: white;">
-                            👥 By Guests
+                            <i data-lucide="users" style="width: 12px; height: 12px; margin-right: 3px;"></i>By Guests
                         </button>
                         <button class="btn btn-sm" id="sortByOccupancy" onclick="sortPropertiesBy('occupancy')" style="background: var(--secondary); color: white;">
-                            📈 By Occupancy
+                            <i data-lucide="trending-up" style="width: 12px; height: 12px; margin-right: 3px;"></i>By Occupancy
                         </button>
                     </div>
                     <div id="topPropertiesStats">
@@ -6755,7 +6755,7 @@
         <!-- Guests View -->
         <div id="guestsView" class="container hidden">
             <div class="card-header">
-                <h2>👥 Guest Directory</h2>
+                <h2><i data-lucide="users" style="width: 22px; height: 22px; margin-right: 8px; vertical-align: middle;"></i>Guest Directory</h2>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                     <button class="btn btn-secondary btn-sm" onclick="exportGuestsCSV()">📥 Export CSV</button>
                 </div>
@@ -6765,13 +6765,13 @@
                 <!-- Filters and Search -->
                 <div class="filters">
                     <div class="filter-item" style="flex: 1; max-width: 400px;">
-                        <input type="text" id="searchGuests" placeholder="🔍 Search by name, phone, or email..." onkeyup="searchGuests()" style="width: 100%;">
+                        <input type="text" id="searchGuests" placeholder="Search by name, phone, or email..." onkeyup="searchGuests()" style="width: 100%;">
                     </div>
                     
                     <!-- View Toggle -->
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <button class="btn btn-sm" id="tableViewBtn" onclick="switchGuestView('table')" style="background: var(--primary); color: white;">
-                            📊 Table
+                            Table
                         </button>
                         <button class="btn btn-sm" id="cardViewBtn" onclick="switchGuestView('cards')" style="background: var(--secondary); color: white;">
                             🎴 Cards
@@ -6783,7 +6783,7 @@
                             <option value="">All Guests</option>
                             <option value="repeat">🌟 Repeat Guests</option>
                             <option value="new">✨ New Guests</option>
-                            <option value="vip">👑 VIP (5+ Stays)</option>
+                            <option value="vip">VIP (5+ Stays)</option>
                             <option value="highvalue">💎 High Value (₹50K+)</option>
                         </select>
                     </div>
@@ -6890,10 +6890,10 @@
             <div class="card">
                 <div class="filters">
                     <div class="filter-item" style="flex: 1; max-width: 350px;">
-                        <input type="text" id="searchReservations" placeholder="🔍 Search by guest, booking ID, phone, property..." style="width: 100%;">
+                        <input type="text" id="searchReservations" placeholder="Search by guest, booking ID, phone, property..." style="width: 100%;">
                     </div>
                     <button class="btn btn-primary btn-sm" onclick="filterReservations()" style="white-space: nowrap;">
-                        🔍 Search
+                        Search
                     </button>
                     <div class="filter-item" style="max-width: 180px;">
                         <select id="statusFilter">
@@ -6913,11 +6913,11 @@
                     <div class="filter-item" style="max-width: 180px;">
                         <select id="bookingSourceFilter">
                             <option value="">All Sources</option>
-                            <option value="DIRECT">🟢 Direct</option>
-                            <option value="AIRBNB">🔵 Airbnb</option>
-                            <option value="AGODA/BOOKING.COM">🟡 Agoda/Booking.com</option>
-                            <option value="MMT/GOIBIBO">🟠 MakeMyTrip/Goibibo</option>
-                            <option value="OTHER">⚪ Other</option>
+                            <option value="DIRECT">Direct</option>
+                            <option value="AIRBNB">Airbnb</option>
+                            <option value="AGODA/BOOKING.COM">Agoda/Booking.com</option>
+                            <option value="MMT/GOIBIBO">MakeMyTrip/Goibibo</option>
+                            <option value="OTHER">Other</option>
                         </select>
                     </div>
                     <div class="filter-item" style="max-width: 180px;">
@@ -6932,10 +6932,10 @@
                 <div style="display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); align-items: center;">
                     <span style="font-weight: 600; color: var(--text-secondary); font-size: 14px;">View:</span>
                     <button class="btn btn-sm" id="tableViewBtn" onclick="switchReservationView('table')" style="background: var(--primary); color: white;">
-                        📊 Table
+                        Table
                     </button>
                     <button class="btn btn-sm" id="kanbanViewBtn" onclick="switchReservationView('kanban')" style="background: var(--secondary); color: white;">
-                        📋 Kanban Board
+                        Kanban Board
                     </button>
                 </div>
 
@@ -6970,7 +6970,7 @@
                         <!-- Confirmed Column -->
                         <div class="kanban-column">
                             <div class="kanban-column-header" style="background: var(--primary-light); color: var(--primary-dark);">
-                                <span>✅ Confirmed</span>
+                                <span><i data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Confirmed</span>
                                 <span class="kanban-column-count" id="kanbanConfirmedCount">0</span>
                             </div>
                             <div class="kanban-cards" id="kanban-confirmed" data-status="confirmed"></div>
@@ -6979,7 +6979,7 @@
                         <!-- Checked In Column -->
                         <div class="kanban-column">
                             <div class="kanban-column-header" style="background: var(--success-light); color: #155724;">
-                                <span>🏠 Checked In</span>
+                                <span><i data-lucide="log-in" style="width: 14px; height: 14px; margin-right: 4px;"></i>Checked In</span>
                                 <span class="kanban-column-count" id="kanbanCheckedInCount" style="background: var(--success);">0</span>
                             </div>
                             <div class="kanban-cards" id="kanban-checked-in" data-status="checked-in"></div>
@@ -6997,7 +6997,7 @@
                         <!-- Cancelled Column -->
                         <div class="kanban-column">
                             <div class="kanban-column-header" style="background: var(--danger-light); color: #7f1d1d;">
-                                <span>❌ Cancelled</span>
+                                <span><i data-lucide="x-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Cancelled</span>
                                 <span class="kanban-column-count" id="kanbanCancelledCount" style="background: var(--danger);">0</span>
                             </div>
                             <div class="kanban-cards" id="kanban-cancelled" data-status="cancelled"></div>
@@ -7009,7 +7009,7 @@
 
         <!-- Payments View -->
         <div id="paymentsView" class="container hidden">
-            <h2 style="margin-bottom: 24px;">💰 Payments Management</h2>
+            <h2 style="margin-bottom: 24px;"><i data-lucide="credit-card" style="width: 22px; height: 22px; margin-right: 8px; vertical-align: middle;"></i>Payments Management</h2>
             
             <div class="stats-grid" id="paymentStatsGrid">
                 <!-- Stats will be populated by JavaScript -->
@@ -7018,7 +7018,7 @@
             <!-- Payment Reminders -->
             <div class="card" id="paymentRemindersCard" style="display: none;">
                 <div class="card-header" onclick="togglePaymentReminders()" style="cursor: pointer; user-select: none;">
-                    <h3 class="card-title">⚠️ Payment Reminders <span id="paymentRemindersIcon">🔽</span></h3>
+                    <h3 class="card-title"><i data-lucide="alert-circle" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Reminders <span id="paymentRemindersIcon"><i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i></span></h3>
                     <span id="paymentRemindersCount" style="font-size: 14px; color: var(--text-secondary);"></span>
                 </div>
                 <div id="paymentRemindersList" style="display: block;">
@@ -7031,17 +7031,17 @@
                 <div class="card-header">
                     <h3 class="card-title">Payment Records</h3>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-primary btn-sm" onclick="openMultiPaymentModal()">➕ Add Multiple</button>
+                        <button class="btn btn-primary btn-sm" onclick="openMultiPaymentModal()"><i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i>Add Multiple</button>
                         <button class="btn btn-secondary btn-sm" onclick="exportPaymentsCSV()">📥 Export</button>
                     </div>
                 </div>
 
                 <div class="filters">
                     <div class="filter-item" style="flex: 1; max-width: 350px;">
-                        <input type="text" id="searchPayments" placeholder="🔍 Search by guest, booking ID..." onkeypress="if(event.key==='Enter') filterPayments()" style="width: 100%;">
+                        <input type="text" id="searchPayments" placeholder="Search by guest, booking ID..." onkeypress="if(event.key==='Enter') filterPayments()" style="width: 100%;">
                     </div>
                     <button class="btn btn-primary btn-sm" onclick="filterPayments()" style="white-space: nowrap;">
-                        🔍 Search
+                        Search
                     </button>
                     <div class="filter-item" style="max-width: 200px;">
                         <select id="paymentPropertyFilter" onchange="filterPayments()">
@@ -7114,15 +7114,15 @@
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-left: 3px solid #10b981; border-radius: 3px;"></div>
-                                <span>✅ Confirmed</span>
+                                <span><i data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Confirmed</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-left: 3px solid #3b82f6; border-radius: 3px;"></div>
-                                <span>🔵 Checked In</span>
+                                <span><i data-lucide="log-in" style="width: 14px; height: 14px; margin-right: 4px;"></i>Checked In</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <div style="width: 14px; height: 14px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-left: 3px solid #ef4444; border-radius: 3px;"></div>
-                                <span>🔴 OTA Blocked</span>
+                                <span><i data-lucide="ban" style="width: 14px; height: 14px; margin-right: 4px;"></i>OTA Blocked</span>
                             </div>
                         </div>
                     </div>    
@@ -7154,7 +7154,7 @@
             <!-- Header -->
             <div style="margin-bottom: 24px;">
                 <h2 style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 28px;">🏠</span>
+                    <i data-lucide="home" style="width: 28px; height: 28px;"></i>
                     <span>Property Analytics</span>
                 </h2>
                 <p style="color: var(--text-secondary); font-size: 14px;">
@@ -7168,7 +7168,7 @@
                     <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
                         <div style="flex: 1; min-width: 250px;">
                             <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                                🏠 Select Property *
+                                <i data-lucide="home" style="width: 14px; height: 14px; margin-right: 4px;"></i>Select Property *
                             </label>
                             <select id="propertySelectFilter" onchange="loadPropertyView()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
                                 <option value="">-- Select a Property --</option>
@@ -7176,7 +7176,7 @@
                         </div>
                         <div style="min-width: 180px;">
                             <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                                📅 Date Range
+                                <i data-lucide="calendar" style="width: 14px; height: 14px; margin-right: 4px;"></i>Date Range
                             </label>
                             <select id="propertyDateRange" onchange="loadPropertyView()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
                                 <option value="all">All Time</option>
@@ -7197,7 +7197,7 @@
                             <input type="date" id="propertyDateTo" onchange="loadPropertyView()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
                         </div>
                         <button class="btn btn-primary" onclick="loadPropertyView()" style="padding: 10px 24px;">
-                            🔍 Analyze
+                            <i data-lucide="search" style="width: 14px; height: 14px; margin-right: 4px;"></i>Analyze
                         </button>
                         <button class="btn btn-secondary" onclick="exportPropertyReport()" style="padding: 10px 24px;">
                             📥 Export
@@ -7214,7 +7214,7 @@
             <!-- All Reservations Table -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                    <h3 class="card-title" style="margin: 0;">📋 All Reservations</h3>
+                    <h3 class="card-title" style="margin: 0;"><i data-lucide="list" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>All Reservations</h3>
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <input type="text" id="propertyReservationsSearch" placeholder="Search..." onkeyup="filterPropertyReservations()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 200px;">
                         <button class="btn btn-secondary btn-sm" onclick="exportPropertyReservations()">
@@ -7257,7 +7257,7 @@
             <!-- Month-over-Month Comparison -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">📊 Month-over-Month Comparison</h3>
+                    <h3 class="card-title"><i data-lucide="bar-chart-2" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Month-over-Month Comparison</h3>
                 </div>
                 <div style="padding: 20px; overflow-x: auto;">
                     <div id="propertyMoMComparison">
@@ -7269,7 +7269,7 @@
             <!-- Payment Collection Breakdown -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">💰 Payment Collection Breakdown</h3>
+                    <h3 class="card-title"><i data-lucide="pie-chart" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Collection Breakdown</h3>
                 </div>
                 <div style="padding: 20px;">
                     <div id="propertyPaymentBreakdown">
@@ -7281,7 +7281,7 @@
             <!-- Performance Metrics Grid -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">📈 Performance Metrics</h3>
+                    <h3 class="card-title"><i data-lucide="trending-up" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Performance Metrics</h3>
                 </div>
                 <div style="padding: 20px;">
                     <div id="propertyPerformanceMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
@@ -7295,7 +7295,7 @@
                 <!-- Revenue Trend Chart -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">📈 Revenue Trend (12 Months)</h3>
+                        <h3 class="card-title"><i data-lucide="trending-up" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Revenue Trend (12 Months)</h3>
                     </div>
                     <div style="padding: 20px;">
                         <canvas id="propertyRevenueChart" style="max-height: 300px;"></canvas>
@@ -7305,7 +7305,7 @@
                 <!-- Booking Sources Chart -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">📊 Booking Sources</h3>
+                        <h3 class="card-title"><i data-lucide="bar-chart-2" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Booking Sources</h3>
                     </div>
                     <div style="padding: 20px;">
                         <canvas id="propertySourcesChart" style="max-height: 300px;"></canvas>
@@ -7315,7 +7315,7 @@
                 <!-- Payment Status Chart -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">💳 Payment Status</h3>
+                        <h3 class="card-title"><i data-lucide="credit-card" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Status</h3>
                     </div>
                     <div style="padding: 20px;">
                         <canvas id="propertyPaymentStatusChart" style="max-height: 300px;"></canvas>
@@ -7336,7 +7336,7 @@
             <!-- Booking Type Breakdown Table -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">🎯 Booking Type Breakdown</h3>
+                    <h3 class="card-title"><i data-lucide="target" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Booking Type Breakdown</h3>
                 </div>
                 <div style="padding: 20px; overflow-x: auto;">
                     <div id="propertyBookingTypeBreakdown">
@@ -7348,7 +7348,7 @@
             <!-- Occupancy Heatmap -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">📅 Occupancy Heatmap</h3>
+                    <h3 class="card-title"><i data-lucide="calendar" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Occupancy Heatmap</h3>
                 </div>
                 <div style="padding: 20px;">
                     <div id="propertyOccupancyHeatmap">
@@ -7362,7 +7362,7 @@
         <div id="businessView" class="container hidden">
             <div style="margin-bottom: 32px;">
                 <h2 style="margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
-                    <span>📊</span> Business Analytics
+                    <span><i data-lucide="bar-chart-2" style="width: 16px; height: 16px;"></i></span> Business Analytics
                 </h2>
                 <p style="color: var(--text-secondary); margin: 0;">Portfolio-wide performance metrics and insights</p>
             </div>
@@ -7484,7 +7484,7 @@
                 <div class="card">
                     <div style="padding: 20px; border-bottom: 1px solid var(--border);">
                         <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <span>👥</span> Guest Analytics
+                            <span><i data-lucide="users" style="width: 16px; height: 16px;"></i></span> Guest Analytics
                         </h3>
                     </div>
                     <div style="padding: 20px;">
@@ -7496,7 +7496,7 @@
                 <div class="card">
                     <div style="padding: 20px; border-bottom: 1px solid var(--border);">
                         <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <span>📅</span> Occupancy Analysis
+                            <span><i data-lucide="calendar" style="width: 16px; height: 16px;"></i></span> Occupancy Analysis
                         </h3>
                     </div>
                     <div style="padding: 20px;">
@@ -7509,7 +7509,7 @@
             <div class="card" style="margin-bottom: 24px;">
                 <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <span>📋</span> Property Comparison
+                        <span><i data-lucide="git-compare" style="width: 16px; height: 16px;"></i></span> Property Comparison
                     </h3>
                     <button class="btn btn-secondary btn-sm" onclick="exportBusinessViewToExcel()">
                         📥 Export to Excel
@@ -7539,7 +7539,7 @@
             <div class="card" style="margin-bottom: 24px;">
                 <div style="padding: 20px; border-bottom: 1px solid var(--border);">
                     <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <span>📈</span> Monthly Performance Breakdown
+                        <span><i data-lucide="trending-up" style="width: 16px; height: 16px;"></i></span> Monthly Performance Breakdown
                     </h3>
                 </div>
                 <div style="padding: 20px; overflow-x: auto;">
@@ -7553,7 +7553,7 @@
         <div id="financialsView" class="container hidden">
             <div style="margin-bottom: 32px;">
                 <h2 style="margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
-                    <span>💰</span> Financials & Payment Analytics
+                    <span><i data-lucide="dollar-sign" style="width: 16px; height: 16px;"></i></span> Financials & Payment Analytics
                 </h2>
                 <p style="color: var(--text-secondary); font-size: 14px;">
                     Comprehensive payment analytics, financial insights, and smart recommendations
@@ -7565,7 +7565,7 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
                     <div style="flex: 1; min-width: 200px;">
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            📅 Time Period
+                            Time Period
                         </label>
                         <select id="biDateRange" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
                             <option value="all_time">All Time</option>
@@ -7587,7 +7587,7 @@
                     </div>
                     <div style="min-width: 180px;">
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                            💳 Payment Method
+                            Payment Method
                         </label>
                         <select id="biPaymentMethodFilter" onchange="loadBusinessIntelligence()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
                             <option value="all">All Methods</option>
@@ -7635,7 +7635,7 @@
             <!-- Payment Method Performance -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">💳 Payment Method Performance</h3>
+                    <h3 class="card-title"><i data-lucide="credit-card" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Method Performance</h3>
                 </div>
                 <div style="padding: 20px;">
                     <div id="biPaymentMethodPerformance">
@@ -7661,7 +7661,7 @@
                 <!-- Payment Collection by Property -->
                 <div class="card">
                     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                        <h3 class="card-title" style="margin: 0;">🏠 Payment Collection by Property</h3>
+                        <h3 class="card-title" style="margin: 0;"><i data-lucide="building-2" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Collection by Property</h3>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <label style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">Sort:</label>
                             <select id="biPropertySort" onchange="renderPropertyPaymentsWithSort()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white;">
@@ -7686,7 +7686,7 @@
                 <!-- Payment Methods Distribution -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">💳 Payment Methods Distribution</h3>
+                        <h3 class="card-title"><i data-lucide="pie-chart" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Methods Distribution</h3>
                     </div>
                     <div style="padding: 20px;">
                         <canvas id="biPaymentMethodsChart" style="max-height: 350px;"></canvas>
@@ -7699,7 +7699,7 @@
                 <!-- Payment Collection Timeline -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">📈 Payment Collection Timeline</h3>
+                        <h3 class="card-title"><i data-lucide="trending-up" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Collection Timeline</h3>
                     </div>
                     <div style="padding: 20px;">
                         <canvas id="biPaymentTimelineChart" style="max-height: 300px;"></canvas>
@@ -7709,7 +7709,7 @@
                 <!-- Channel-wise Payment Analysis -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">📊 Channel Payment Performance</h3>
+                        <h3 class="card-title"><i data-lucide="bar-chart-2" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Channel Payment Performance</h3>
                     </div>
                     <div style="padding: 20px;">
                         <div id="biChannelPayments" style="max-height: 350px; overflow-y: auto;"></div>
@@ -7720,7 +7720,7 @@
             <!-- Collection Velocity Metrics -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">⚡ Collection Velocity & Efficiency</h3>
+                    <h3 class="card-title"><i data-lucide="zap" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Collection Velocity & Efficiency</h3>
                 </div>
                 <div id="biCollectionVelocity" style="padding: 20px;">
                     <!-- Will be populated by JavaScript -->
@@ -7730,7 +7730,7 @@
             <!-- Financial Summary -->
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-header">
-                    <h3 class="card-title">💰 Financial Summary</h3>
+                    <h3 class="card-title"><i data-lucide="dollar-sign" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Financial Summary</h3>
                 </div>
                 <div style="padding: 20px;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
@@ -7742,7 +7742,7 @@
             <!-- Revenue vs Collection Analysis -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">📊 Revenue vs Collection Analysis</h3>
+                    <h3 class="card-title"><i data-lucide="bar-chart-2" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Revenue vs Collection Analysis</h3>
                 </div>
                 <div style="padding: 20px;">
                     <canvas id="biRevenueCollectionChart" style="max-height: 300px;"></canvas>
@@ -7777,7 +7777,7 @@
         <!-- Property Owners View -->
         <div id="ownersView" class="container hidden">
             <div class="card-header">
-                <h2>🏠 Property Owners</h2>
+                <h2><i data-lucide="home" style="width: 14px; height: 14px; margin-right: 4px;"></i>Property Owners</h2>
                 <button class="btn btn-primary" onclick="openOwnerModal()">+ Add Owner</button>
             </div>
             <div class="card">
@@ -7805,7 +7805,7 @@
         <!-- Meals Management View -->
         <div id="mealsView" class="container hidden">
             <div class="card-header">
-                <h2>🍽️ Meal Management</h2>
+                <h2><i data-lucide="utensils" style="width: 22px; height: 22px; margin-right: 8px; vertical-align: middle;"></i>Meal Management</h2>
                 <div style="display: flex; gap: 12px;">
                     <button class="btn btn-secondary" onclick="refreshMeals()">
                         🔄 Refresh
@@ -7819,15 +7819,15 @@
                     <input
                         type="text"
                         id="mealSearchInput"
-                        placeholder="🔍 Search by booking ID or guest name..."
+                        placeholder="Search by booking ID or guest name..."
                         style="flex: 1; min-width: 200px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;"
                         oninput="searchMeals(this.value)"
                     >
                     <select id="mealStatusFilter" style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;" onchange="filterMealsByStatus(this.value)">
                         <option value="all">All Status</option>
-                        <option value="pending">⏳ Pending</option>
-                        <option value="approved">✅ Approved</option>
-                        <option value="rejected">❌ Rejected</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
                     </select>
                 </div>
             </div>
@@ -7859,7 +7859,7 @@
         <!-- Guest Documents View -->
         <div id="guestDocumentsView" class="container hidden">
             <div class="card-header">
-                <h2>📋 Guest ID Documents</h2>
+                <h2><i data-lucide="file-text" style="width: 22px; height: 22px; margin-right: 8px; vertical-align: middle;"></i>Guest ID Documents</h2>
                 <div style="display: flex; gap: 12px;">
                     <button class="btn btn-secondary" onclick="copyGuestPortalLink()" title="Copy guest portal link">
                         🔗 Copy Guest Portal Link
@@ -7877,16 +7877,16 @@
                         All Documents
                     </button>
                     <button class="filter-chip" data-status="pending" onclick="filterGuestDocuments('pending')">
-                        ⏳ Pending Review
+                        <i data-lucide="clock" style="width: 14px; height: 14px; margin-right: 4px;"></i>Pending Review
                     </button>
                     <button class="filter-chip" data-status="verified" onclick="filterGuestDocuments('verified')">
-                        ✅ Verified
+                        <i data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Verified
                     </button>
                     <button class="filter-chip" data-status="rejected" onclick="filterGuestDocuments('rejected')">
-                        ❌ Rejected
+                        <i data-lucide="x-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Rejected
                     </button>
                     <button class="filter-chip" data-status="incomplete" onclick="filterGuestDocuments('incomplete')">
-                        ⚠️ Incomplete
+                        <i data-lucide="alert-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Incomplete
                     </button>
                 </div>
 
@@ -7895,7 +7895,7 @@
                     <input
                         type="text"
                         id="guestDocSearch"
-                        placeholder="🔍 Search by booking ID, guest name, or phone..."
+                        placeholder="Search by booking ID, guest name, or phone..."
                         style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;"
                         oninput="searchGuestDocuments(this.value)"
                     >
@@ -7949,7 +7949,7 @@
             <!-- General Settings -->
             <div id="settings-general" class="settings-panel active">
                 <div class="card">
-                    <h3 style="margin-bottom: 20px;">🏢 General Settings</h3>
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="settings-2" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>General Settings</h3>
 
                     <div class="form-group">
                         <label>Business Name</label>
@@ -8038,7 +8038,7 @@
             <!-- Notifications Settings -->
             <div id="settings-notifications" class="settings-panel">
                 <div class="card">
-                    <h3 style="margin-bottom: 20px;">🔔 Notification Preferences</h3>
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="bell" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Notification Preferences</h3>
 
                     <div class="settings-toggle">
                         <div>
@@ -8140,7 +8140,7 @@
                 <div class="card" style="margin-bottom: 16px;">
                     <div class="integration-header">
                         <div>
-                            <h4 style="margin: 0 0 4px 0;">📆 iCal / Calendar Sync</h4>
+                            <h4 style="margin: 0 0 4px 0;"><i data-lucide="calendar-sync" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>iCal / Calendar Sync</h4>
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Import bookings from Airbnb, Booking.com, Agoda via iCal feed</p>
                         </div>
                         <span class="badge" style="background: var(--success); color: white;">Active</span>
@@ -8170,7 +8170,7 @@
                 <div class="card" style="margin-bottom: 16px; opacity: 0.8;">
                     <div class="integration-header">
                         <div>
-                            <h4 style="margin: 0 0 4px 0;">💬 WhatsApp Business</h4>
+                            <h4 style="margin: 0 0 4px 0;"><i data-lucide="message-circle" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>WhatsApp Business</h4>
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Send automated messages via WhatsApp Business API</p>
                         </div>
                         <span class="badge" style="background: var(--text-secondary); color: white;">Coming Soon</span>
@@ -8184,7 +8184,7 @@
                 <div class="card" style="opacity: 0.8;">
                     <div class="integration-header">
                         <div>
-                            <h4 style="margin: 0 0 4px 0;">💳 Payment Gateway</h4>
+                            <h4 style="margin: 0 0 4px 0;"><i data-lucide="credit-card" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Gateway</h4>
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Accept online payments via Razorpay / Stripe</p>
                         </div>
                         <span class="badge" style="background: var(--text-secondary); color: white;">Coming Soon</span>
@@ -8198,7 +8198,7 @@
             <!-- Advanced Settings -->
             <div id="settings-advanced" class="settings-panel">
                 <div class="card">
-                    <h3 style="margin-bottom: 20px;">🔧 Advanced Settings</h3>
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="sliders" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Advanced Settings</h3>
 
                     <div class="settings-toggle">
                         <div>
@@ -8275,7 +8275,7 @@
                     <h4 style="margin-bottom: 16px; color: var(--danger);">Danger Zone</h4>
 
                     <div style="background: rgba(239, 68, 68, 0.1); padding: 16px; border-radius: 8px; border-left: 3px solid var(--danger);">
-                        <p style="font-size: 14px; margin-bottom: 12px;">⚠️ Clearing data will permanently delete all your reservations, guests, payments, and settings. This action cannot be undone.</p>
+                        <p style="font-size: 14px; margin-bottom: 12px;"><i data-lucide="alert-triangle" style="width: 14px; height: 14px; margin-right: 4px; color: var(--danger); vertical-align: middle;"></i>Clearing data will permanently delete all your reservations, guests, payments, and settings. This action cannot be undone.</p>
                         <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
                     </div>
                 </div>
@@ -8305,11 +8305,11 @@
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
                     <button class="comm-template-btn" onclick="sendTemplate('booking-confirmation')">
-                        <span class="comm-template-icon">✅</span>
+                        <span class="comm-template-icon"><i data-lucide="check-circle" style="width: 18px; height: 18px;"></i></span>
                         <span>Booking Confirmation</span>
                     </button>
                     <button class="comm-template-btn" onclick="sendTemplate('payment-reminder')">
-                        <span class="comm-template-icon">💰</span>
+                        <span class="comm-template-icon"><i data-lucide="banknote" style="width: 18px; height: 18px;"></i></span>
                         <span>Payment Reminder</span>
                     </button>
                     <button class="comm-template-btn" onclick="sendTemplate('check-in')">
@@ -8317,11 +8317,11 @@
                         <span>Check-in Details</span>
                     </button>
                     <button class="comm-template-btn" onclick="sendTemplate('check-out')">
-                        <span class="comm-template-icon">👋</span>
+                        <span class="comm-template-icon"><i data-lucide="smile" style="width: 18px; height: 18px;"></i></span>
                         <span>Check-out Thanks</span>
                     </button>
                     <button class="comm-template-btn" onclick="sendTemplate('review-request')">
-                        <span class="comm-template-icon">⭐</span>
+                        <span class="comm-template-icon"><i data-lucide="star" style="width: 18px; height: 18px;"></i></span>
                         <span>Review Request</span>
                     </button>
                     <button class="comm-template-btn" onclick="sendTemplate('custom')">
@@ -8338,8 +8338,8 @@
                     <div style="display: flex; gap: 8px;">
                         <button class="filter-chip active" onclick="filterCommunications('all', this)" style="font-size: 12px; padding: 4px 12px;">All</button>
                         <button class="filter-chip" onclick="filterCommunications('email', this)" style="font-size: 12px; padding: 4px 12px;">📧 Email</button>
-                        <button class="filter-chip" onclick="filterCommunications('whatsapp', this)" style="font-size: 12px; padding: 4px 12px;">💬 WhatsApp</button>
-                        <button class="filter-chip" onclick="filterCommunications('sms', this)" style="font-size: 12px; padding: 4px 12px;">📱 SMS</button>
+                        <button class="filter-chip" onclick="filterCommunications('whatsapp', this)" style="font-size: 12px; padding: 4px 12px;"><i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp</button>
+                        <button class="filter-chip" onclick="filterCommunications('sms', this)" style="font-size: 12px; padding: 4px 12px;"><i data-lucide="smartphone" style="width: 12px; height: 12px; margin-right: 3px;"></i>SMS</button>
                     </div>
                 </div>
                 <div id="messageHistory">
@@ -8433,8 +8433,8 @@
                         <option value="STAYCATION">🏖️ Staycation</option>
                         <option value="WEDDING">💒 Wedding</option>
                         <option value="BIRTHDAY">🎂 Birthday Party</option>
-                        <option value="CORPORATE_EVENT">🏢 Corporate Event</option>
-                        <option value="CORPORATE_STAY">💼 Corporate Stay</option>
+                        <option value="CORPORATE_EVENT">Corporate Event</option>
+                        <option value="CORPORATE_STAY">Corporate Stay</option>
                         <option value="SHOOT">📸 Shoot</option>
                     </select>
                 </div>
@@ -8539,7 +8539,7 @@
             <!-- OTA Service Fee Field -->
             <div class="form-group" id="otaServiceFeeGroup" style="display: none;">
                 <label style="display: flex; align-items: center; gap: 8px;">
-                    <span>🏢 OTA Service Fee / Commission (₹)</span>
+                    <span><i data-lucide="building" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>OTA Service Fee / Commission (₹)</span>
                     <span style="font-size: 11px; color: var(--text-secondary); font-weight: 400;">
                         (e.g., Airbnb 15%, MMT 20%)
                     </span>
@@ -8627,9 +8627,9 @@
                 <label>Payment Method *</label>
                 <select id="paymentMethod" required onchange="toggleRecipientField()">
                     <option value="">Select Method</option>
-                    <option value="cash">💵 Cash</option>
-                    <option value="upi">📱 UPI</option>
-                    <option value="gateway">💳 Gateway</option>
+                    <option value="cash">Cash</option>
+                    <option value="upi">UPI</option>
+                    <option value="gateway">Gateway</option>
                     <option value="bank_transfer">🏦 Bank Transfer</option>
                 </select>
             </div>
@@ -8638,8 +8638,8 @@
                 <label>Payment Received By *</label>
                 <select id="paymentRecipient" required>
                     <option value="">Select Recipient</option>
-                    <option value="hostizzy">🏢 Hostizzy</option>
-                    <option value="property_owner">🏠 Property Owner</option>
+                    <option value="hostizzy">Hostizzy</option>
+                    <option value="property_owner"><i data-lucide="home" style="width: 14px; height: 14px; margin-right: 4px;"></i>Property Owner</option>
                 </select>
             </div>
 
@@ -8664,7 +8664,7 @@
                     <i class="fas fa-layer-group"></i> Add Multiple
                 </button>
                 <button class="btn btn-primary" onclick="savePayment()" style="flex: 1;">
-                    💰 Save Payment
+                    <i data-lucide="save" style="width: 14px; height: 14px; margin-right: 4px;"></i>Save Payment
                 </button>
             </div>
         </div>
@@ -8675,7 +8675,7 @@
         <div class="modal-content multi-payment-modal">
             <div class="modal-header">
                 <h3 class="modal-title">
-                    💰 Add Multiple Payments
+                    <i data-lucide="plus-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Add Multiple Payments
                     <span id="paymentEntryCount" class="entry-count"></span>
                 </h3>
                 <button class="close-btn" onclick="closeMultiPaymentModal()">&times;</button>
@@ -8714,20 +8714,20 @@
 
                 <!-- Add Row Button -->
                 <button class="btn btn-secondary btn-sm add-payment-btn" onclick="addPaymentRow()">
-                    ➕ <span class="desktop-text">Add Row</span><span class="mobile-text">Add Payment Entry</span>
+                    <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i><span class="desktop-text">Add Row</span><span class="mobile-text">Add Payment Entry</span>
                 </button>
 
                 <!-- Common Settings -->
                 <div class="common-settings-box">
-                    <div style="font-weight: 600; margin-bottom: 12px;">⚡ Quick Fill (Optional)</div>
+                    <div style="font-weight: 600; margin-bottom: 12px;"><i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Quick Fill (Optional)</div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Default Payment Method</label>
                             <select id="multiPaymentMethod">
                                 <option value="">Select Method</option>
-                                <option value="cash">💵 Cash</option>
-                                <option value="upi">📱 UPI</option>
-                                <option value="gateway">💳 Gateway</option>
+                                <option value="cash">Cash</option>
+                                <option value="upi">UPI</option>
+                                <option value="gateway">Gateway</option>
                                 <option value="bank_transfer">🏦 Bank Transfer</option>
                             </select>
                         </div>
@@ -8758,7 +8758,7 @@
     <div id="bulkPaymentModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h3 class="modal-title">💰 Bulk Payment Collection</h3>
+                <h3 class="modal-title"><i data-lucide="banknote" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Bulk Payment Collection</h3>
                 <button class="close-btn" onclick="closeBulkPaymentModal()">&times;</button>
             </div>
 
@@ -8779,9 +8779,9 @@
                     <label>Payment Method *</label>
                     <select id="bulkPaymentMethod" required onchange="toggleBulkRecipientField()">
                         <option value="">Select Method</option>
-                        <option value="cash">💵 Cash</option>
-                        <option value="upi">📱 UPI</option>
-                        <option value="gateway">💳 Gateway</option>
+                        <option value="cash">Cash</option>
+                        <option value="upi">UPI</option>
+                        <option value="gateway">Gateway</option>
                         <option value="bank_transfer">🏦 Bank Transfer</option>
                     </select>
                 </div>
@@ -8789,8 +8789,8 @@
                     <label>Payment Received By *</label>
                     <select id="bulkPaymentRecipient" required>
                         <option value="">Select Recipient</option>
-                        <option value="hostizzy">🏢 Hostizzy</option>
-                        <option value="property_owner">🏠 Property Owner</option>
+                        <option value="hostizzy">Hostizzy</option>
+                        <option value="property_owner"><i data-lucide="home" style="width: 14px; height: 14px; margin-right: 4px;"></i>Property Owner</option>
                     </select>
                 </div>
             </div>
@@ -8806,7 +8806,7 @@
             </div>
 
             <button class="btn btn-primary" style="width: 100%;" onclick="saveBulkPayments()">
-                💰 Collect All Payments
+                <i data-lucide="banknote" style="width: 14px; height: 14px; margin-right: 4px;"></i>Collect All Payments
             </button>
         </div>
     </div>
@@ -9086,7 +9086,7 @@
                 <!-- Actions -->
                 <div id="modalActions" style="display: flex; gap: 12px; margin-top: 20px;">
                     <button class="btn btn-success" style="flex: 1;" onclick="approveDocument()">
-                        ✅ Approve Document
+                        <i data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Approve Document
                     </button>
                     <button class="btn btn-danger" style="flex: 1;" onclick="showRejectForm()">
                         ❌ Reject Document
@@ -9123,7 +9123,7 @@
 
                 <!-- Already Verified Message -->
                 <div id="verifiedMessage" style="display: none; text-align: center; padding: 20px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;">
-                    <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+                    <div style="margin-bottom: 12px;"><i data-lucide="check-circle-2" style="width: 56px; height: 56px; color: var(--success);"></i></div>
                     <div style="font-weight: 600; color: #16a34a; margin-bottom: 4px;">Document Verified</div>
                     <div style="color: #15803d; font-size: 14px;">Verified by <span id="verifiedBy">-</span> on <span id="verifiedAt">-</span></div>
                     
@@ -9180,7 +9180,7 @@
                     <div style="margin-top: 20px;">
                         <button onclick="toggleFormatGuide()" 
                                 style="width: 100%; padding: 12px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600;">
-                            <span>📋 CSV Format Requirements</span>
+                            <span><i data-lucide="file-text" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>CSV Format Requirements</span>
                             <span id="formatGuideIcon">▼</span>
                         </button>
                         <div id="formatGuide" style="display: none; margin-top: 12px; padding: 16px; background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; font-size: 13px; line-height: 1.7;">
@@ -9259,7 +9259,7 @@
                 <!-- Step 3: Progress -->
                 <div id="importStep3" class="import-step" style="display: none;">
                     <div style="text-align: center; padding: 40px 20px;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">⏳</div>
+                        <div style="margin-bottom: 16px;"><i data-lucide="loader" style="width: 56px; height: 56px; color: var(--primary); opacity: 0.7;"></i></div>
                         <div style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">Importing...</div>
                         <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
                             <span id="importProgress">0</span> / <span id="importTotal">0</span> completed
@@ -9273,7 +9273,7 @@
                 <!-- Step 4: Complete -->
                 <div id="importStep4" class="import-step" style="display: none;">
                     <div style="text-align: center; padding: 40px 20px;">
-                        <div style="font-size: 56px; margin-bottom: 16px;">✅</div>
+                        <div style="margin-bottom: 16px;"><i data-lucide="check-circle-2" style="width: 64px; height: 64px; color: var(--success);"></i></div>
                         <div style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Import Complete!</div>
                         <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">
                             Successfully imported <span id="importedCount" style="color: var(--success); font-weight: 700;">0</span> reservations
@@ -9289,7 +9289,7 @@
     <div id="whatsappModal" class="modal">
          <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h3 class="modal-title">📱 Send WhatsApp Message</h3>
+                <h3 class="modal-title"><i data-lucide="message-circle" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Send WhatsApp Message</h3>
                 <button class="close-btn" onclick="closeWhatsAppModal()">&times;</button>
             </div>
             
@@ -9297,7 +9297,7 @@
                 <!-- Guest Info Card -->
                 <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; color: white;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                        <div style="font-size: 32px;">👤</div>
+                        <div><i data-lucide="user-circle" style="width: 36px; height: 36px; color: var(--text-secondary);"></i></div>
                         <div style="flex: 1;">
                             <div style="font-weight: 700; font-size: 18px; margin-bottom: 4px;" id="whatsappGuestName">Guest Name</div>
                             <div style="font-size: 14px; opacity: 0.9; display: flex; align-items: center; gap: 8px;">
@@ -9315,11 +9315,11 @@
                 <div class="form-group">
                     <label>Select Message Template *</label>
                     <select id="whatsappTemplate" onchange="previewWhatsAppMessage()" style="font-size: 14px;">
-                        <option value="booking_confirmation">✅ Booking Confirmation - Full booking details</option>
-                        <option value="payment_reminder">💰 Payment Reminder - Pending balance alert</option>
-                        <option value="check_in_instructions">🏠 Check-in Instructions - Arrival details</option>
+                        <option value="booking_confirmation">Booking Confirmation - Full booking details</option>
+                        <option value="payment_reminder">Payment Reminder - Pending balance alert</option>
+                        <option value="check_in_instructions">Check-in Instructions - Arrival details</option>
                         <option value="thank_you">🙏 Thank You Message - Post-checkout feedback</option>
-                        <option value="custom">💬 Custom Message - Write your own</option>
+                        <option value="custom">Custom Message - Write your own</option>
                     </select>
                 </div>
                 
@@ -9332,11 +9332,11 @@
                 <!-- Message Preview -->
                 <div style="background: #dcf8c6; padding: 16px; border-radius: 12px; margin-bottom: 20px; max-height: 350px; overflow-y: auto; position: relative;">
                     <div style="font-size: 11px; color: #128c7e; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        📱 Message Preview
+                        <i data-lucide="smartphone" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Message Preview
                     </div>
                     <div id="whatsappPreview" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #303030;"></div>
                     <div style="position: absolute; top: 12px; right: 12px; background: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        💬
+                        <i data-lucide="message-circle" style="width: 20px; height: 20px; color: #25d366;"></i>
                     </div>
                 </div>
                 
@@ -9346,7 +9346,7 @@
                         Cancel
                     </button>
                     <button class="btn btn-success" onclick="confirmSendWhatsApp()" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <span style="font-size: 18px;">📱</span>
+                        <i data-lucide="message-circle" style="width: 18px; height: 18px;"></i>
                         <span>Open WhatsApp</span>
                     </button>
                 </div>
@@ -9401,7 +9401,7 @@
                     <div id="gmailConnected" style="display: none;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="color: #22c55e;">✅</span>
+                                <i data-lucide="check-circle" style="width: 16px; height: 16px; color: #22c55e; vertical-align: middle;"></i>
                                 <span style="font-size: 14px; color: #1e293b; font-weight: 600;" id="connectedGmailEmail">email@gmail.com</span>
                             </div>
                             <button onclick="disconnectGmail()"
@@ -9488,7 +9488,7 @@
             <!-- Property Info -->
             <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                    <span style="font-size: 24px;" id="settingsPropertyIcon">🏠</span>
+                    <span id="settingsPropertyIcon"><i data-lucide="home" style="width: 24px; height: 24px;"></i></span>
                     <div>
                         <div style="font-weight: 600; font-size: 16px; color: #1e293b;" id="settingsPropertyName">Property Name</div>
                         <div style="font-size: 14px; color: #64748b;" id="settingsPropertyLocation">Location</div>
@@ -9499,7 +9499,7 @@
             <!-- Commission Rate -->
             <div style="margin-bottom: 24px; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fbbf24;">
                 <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">
-                    💰 Hostizzy Commission Rate (%)
+                    <i data-lucide="percent" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Hostizzy Commission Rate (%)
                 </label>
                 <input type="number" id="settingsCommissionRate" min="0" max="100" step="0.1" placeholder="15"
                     style="width: 100%; padding: 12px; border: 2px solid #fbbf24; border-radius: 8px; font-size: 14px; background: white;">
@@ -9511,7 +9511,7 @@
             <!-- iCal Sync Configuration -->
             <div style="margin-bottom: 24px;">
                 <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">
-                    📅 iCal Sync URL (Airbnb/OTA)
+                    <i data-lucide="link" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>iCal Sync URL (Airbnb/OTA)
                 </label>
                 <input type="url" id="icalUrlInput" placeholder="https://www.airbnb.com/calendar/ical/..." 
                     style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; transition: all 0.3s;">
@@ -11716,6 +11716,9 @@
                 console.error(`❌ Error loading view ${viewName}:`, error);
                 hideViewLoadingSpinner(viewName);
             }
+
+            // Re-initialize Lucide icons after view renders
+            setTimeout(() => refreshIcons(), 100);
         }
 
         // Settings Functions
@@ -12078,8 +12081,8 @@
                             <label>Channel *</label>
                             <select id="composeChannel" onchange="updateComposeChannelHint(this.value)">
                                 <option value="email">📧 Email</option>
-                                <option value="whatsapp">💬 WhatsApp (logged only)</option>
-                                <option value="sms">📱 SMS (logged only)</option>
+                                <option value="whatsapp"><i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp (logged only)</option>
+                                <option value="sms"><i data-lucide="smartphone" style="width: 12px; height: 12px; margin-right: 3px;"></i>SMS (logged only)</option>
                             </select>
                         </div>
                         <div id="composeChannelHint" style="margin: -8px 0 12px 0; font-size: 12px; color: var(--text-secondary); padding: 8px 12px; background: ${emailJSConfigured ? '#e0f2f7' : '#fff7ed'}; border-radius: 6px;">
@@ -12839,7 +12842,7 @@
                         const checkIn = new Date(r.check_in);
                         return checkIn >= today && checkIn <= next7Days && r.status !== 'cancelled';
                     });
-                    updateFilterInfo(`📅 Next 7 Days (${filteredReservations.length} bookings)`);
+                    updateFilterInfo(`Next 7 Days (${filteredReservations.length} bookings)`);
                     break;
                     
                 case 'today':
@@ -12852,7 +12855,7 @@
                         return (checkIn.getTime() === today.getTime() || checkOut.getTime() === today.getTime()) 
                             && r.status !== 'cancelled';
                     });
-                    updateFilterInfo(`🏠 Today's Activity (${filteredReservations.length} check-ins/outs)`);
+                    updateFilterInfo(`Today's Activity (${filteredReservations.length} check-ins/outs)`);
                     break;
                     
                 case 'payment-due':
@@ -12865,7 +12868,7 @@
                         const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
                         return balance > 0;
                     });
-                    updateFilterInfo(`💰 Payment Due (${filteredReservations.length} with outstanding balance)`);
+                    updateFilterInfo(`Payment Due (${filteredReservations.length} with outstanding balance)`);
                     break;
                     
                 case 'this-month':
@@ -12873,7 +12876,7 @@
                         const checkIn = new Date(r.check_in);
                         return checkIn >= startOfMonth && checkIn <= endOfMonth;
                     });
-                    updateFilterInfo(`📆 This Month (${filteredReservations.length} bookings)`);
+                    updateFilterInfo(`This Month (${filteredReservations.length} bookings)`);
                     break;
                     
                 case 'needs-attention':
@@ -12902,7 +12905,7 @@
                         
                         return overduePayment || soonCheckinUnpaid || missingInfo;
                     });
-                    updateFilterInfo(`⚠️ Needs Attention (${filteredReservations.length} items)`);
+                    updateFilterInfo(`Needs Attention (${filteredReservations.length} items)`);
                     break;
                     
                 case 'all':
@@ -13204,7 +13207,7 @@
             if (statusOptions.length > 0) {
                 const statuses = statusOptions.map(o => o.value);
                 filteredReservations = filteredReservations.filter(r => statuses.includes(r.status));
-                filterLabels.push(`📋 Status: ${statuses.join(', ')}`);
+                filterLabels.push(`<i data-lucide="list" style="width: 14px; height: 14px; margin-right: 4px;"></i>Status: ${statuses.join(', ')}`);
             }
             
             // Property
@@ -13226,7 +13229,7 @@
             const source = document.getElementById('advFilterSource').value;
             if (source) {
                 filteredReservations = filteredReservations.filter(r => r.booking_source === source);
-                filterLabels.push(`📱 Source: ${source}`);
+                filterLabels.push(`<i data-lucide="globe" style="width: 14px; height: 14px; margin-right: 4px;"></i>Source: ${source}`);
             }
             
             // Amount range
@@ -16016,7 +16019,7 @@
             const modal = document.getElementById('multiPaymentModal');
             const title = modal.querySelector('.modal-title');
             
-            title.innerHTML = `💰 Add Multiple Payments - ${reservation.guest_name}`;
+            title.innerHTML = `<i data-lucide="plus-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Add Multiple Payments - ${reservation.guest_name}`;
             
             // Initialize with 2 rows
             multiPaymentRows = [];
@@ -16172,7 +16175,7 @@
             const title = modal.querySelector('.modal-title');
             
             // Reset title for general multi-payment entry
-            title.innerHTML = '💰 Add Multiple Payments';
+            title.innerHTML = '<i data-lucide="plus-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Add Multiple Payments';
             
             modal.classList.add('active');
             document.getElementById('multiPaymentDate').value = new Date().toISOString().split('T')[0];
@@ -16268,9 +16271,9 @@
                     <td style="padding: 8px;">
                         <select id="method_${row.id}" onchange="handleMethodChange(${row.id})" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
                             <option value="">Select</option>
-                            <option value="cash">💵 Cash</option>
-                            <option value="upi">📱 UPI</option>
-                            <option value="gateway">💳 Gateway</option>
+                            <option value="cash">Cash</option>
+                            <option value="upi">UPI</option>
+                            <option value="gateway">Gateway</option>
                             <option value="bank_transfer">🏦 Bank</option>
                         </select>
                     </td>
@@ -16344,9 +16347,9 @@
                             <label>Payment Method *</label>
                             <select id="method_mobile_${row.id}" onchange="handleMethodChangeMobile(${row.id})" required>
                                 <option value="">Select Method</option>
-                                <option value="cash">💵 Cash</option>
-                                <option value="upi">📱 UPI</option>
-                                <option value="gateway">💳 Gateway</option>
+                                <option value="cash">Cash</option>
+                                <option value="upi">UPI</option>
+                                <option value="gateway">Gateway</option>
                                 <option value="bank_transfer">🏦 Bank Transfer</option>
                             </select>
                         </div>
@@ -16356,7 +16359,7 @@
                             <select id="recipient_mobile_${row.id}">
                                 <option value="">Select Recipient</option>
                                 <option value="Hostizzy">🏢 Hostizzy</option>
-                                <option value="Property Owner">🏠 Property Owner</option>
+                                <option value="Property Owner"><i data-lucide="home" style="width: 14px; height: 14px; margin-right: 4px;"></i>Property Owner</option>
                             </select>
                         </div>
                     </div>
@@ -16611,7 +16614,7 @@
             const title = modal.querySelector('.modal-title');
             
             // Update title to show it's for a specific reservation
-            title.innerHTML = `💰 Add Multiple Payments - ${reservation.guest_name}`;
+            title.innerHTML = `<i data-lucide="plus-circle" style="width: 14px; height: 14px; margin-right: 4px;"></i>Add Multiple Payments - ${reservation.guest_name}`;
             
             // Pre-fill booking ID in all rows
             document.getElementById('multiPaymentDate').value = new Date().toISOString().split('T')[0];
@@ -17042,7 +17045,7 @@
                     status: 'Available in Version 2.0'
                 },
                 whatsapp: {
-                    title: '💬 WhatsApp Business API',
+                    title: '<i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp Business API',
                     icon: '💬',
                     description: 'Send automated WhatsApp messages to guests for instant communication and better engagement.',
                     features: [
@@ -22912,7 +22915,7 @@ function printPropertyView() {
                                     </button>
                                 </div>
                                 <button class="btn btn-primary btn-sm" onclick="sendMealWhatsApp('${bookingId}', '${reservation.guest_phone || ''}', 'approval')" style="width: 100%;">
-                                    💬 WhatsApp Approval
+                                    <i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp Approval
                                 </button>
                             ` : status === 'rejected' ? `
                                 <button class="btn btn-warning btn-sm" onclick="unrejectMeal('${mealPref.id}')" style="width: 100%;">
@@ -23192,7 +23195,7 @@ function printPropertyView() {
                     box-shadow: 0 10px 40px rgba(0,0,0,0.2);
                 ">
                     <h3 style="margin-bottom: 16px; color: var(--text-primary); display: flex; gap: 8px; align-items: center;">
-                        💬 Message Preview
+                        <i data-lucide="message-circle" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Message Preview
                     </h3>
                     <div style="
                         background: var(--background);
@@ -24276,7 +24279,7 @@ function printPropertyView() {
                                 ${verifiedCount > 0 ? `<span style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">✅ ${verifiedCount} Verified</span>` : ''}
                                 ${rejectedCount > 0 ? `<span style="background: var(--danger); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">❌ ${rejectedCount} Rejected</span>` : ''}
                                 <button class="btn btn-sm btn-secondary" onclick="sendGuestReminder('${bookingId}', '${reservation?.guest_phone || ''}', '${reservation?.guest_name || ''}')">
-                                    📱 Send Reminder
+                                    <i data-lucide="send" style="width: 14px; height: 14px; margin-right: 4px;"></i>Send Reminder
                                 </button>
                             </div>
                         </div>
