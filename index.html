@@ -2432,6 +2432,114 @@
             color: var(--danger);
         }
 
+        /* ---- Booking Wizard Stepper ---- */
+        .wizard-steps {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--background);
+            border-bottom: 1px solid var(--border);
+        }
+        .wizard-step {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        .wizard-step:last-child { flex: 0; }
+        .wizard-step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .wizard-step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            border: 2px solid var(--border);
+            color: var(--text-secondary);
+            background: var(--surface);
+            flex-shrink: 0;
+            transition: all 0.25s;
+        }
+        .wizard-step-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            transition: color 0.25s;
+        }
+        .wizard-connector {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            margin: 0 8px;
+            transition: background 0.3s;
+        }
+        .wizard-step.ws-active .wizard-step-number {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        .wizard-step.ws-active .wizard-step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .wizard-step.ws-done .wizard-step-number {
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff;
+        }
+        .wizard-step.ws-done .wizard-step-label { color: var(--text-secondary); }
+        .wizard-step.ws-done + .wizard-connector { background: var(--success); }
+        .wizard-panel { display: none; padding: 24px; }
+        .wizard-panel.wp-active { display: block; }
+        .wizard-nav {
+            display: flex;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            background: var(--background);
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        }
+        .wizard-review-section {
+            margin-bottom: 16px;
+            padding: 14px 16px;
+            background: var(--background);
+            border-radius: var(--radius-lg);
+        }
+        .wizard-review-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .wizard-review-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .wizard-review-row:last-child { border-bottom: none; }
+        .wizard-review-label { color: var(--text-secondary); }
+        .wizard-review-value { color: var(--text-primary); font-weight: 600; text-align: right; max-width: 60%; }
+        @media (max-width: 480px) {
+            .wizard-step-label { display: none; }
+            .wizard-connector { margin: 0 4px; }
+        }
+        /* ---- End Wizard CSS ---- */
+
         .form-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -8491,155 +8599,186 @@
 
     <!-- Reservation Modal -->
     <div id="reservationModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 700px;">
+            <!-- Modal Header -->
             <div class="modal-header">
                 <h3 class="modal-title" id="reservationModalTitle">New Reservation</h3>
                 <button class="close-btn" onclick="closeReservationModal()">&times;</button>
             </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Property *</label>
-                    <select id="propertySelect" required onchange="calculateTaxes()">
-                        <option value="">Select Property</option>
-                    </select>
+
+            <!-- Wizard Steps Progress Bar -->
+            <div class="wizard-steps">
+                <div class="wizard-step ws-active" id="ws-1">
+                    <div class="wizard-step-indicator">
+                        <div class="wizard-step-number" id="wsn-1">1</div>
+                        <div class="wizard-step-label">Guest</div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Booking Status *</label>
-                    <select id="bookingStatus">
-                        <option value="confirmed" selected>Confirmed</option>
-                        <option value="checked-in">Checked In</option>
-                        <option value="checked-out">Checked Out</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
+                <div class="wizard-connector" id="wc-1"></div>
+                <div class="wizard-step" id="ws-2">
+                    <div class="wizard-step-indicator">
+                        <div class="wizard-step-number" id="wsn-2">2</div>
+                        <div class="wizard-step-label">Booking</div>
+                    </div>
+                </div>
+                <div class="wizard-connector" id="wc-2"></div>
+                <div class="wizard-step" id="ws-3">
+                    <div class="wizard-step-indicator">
+                        <div class="wizard-step-number" id="wsn-3">3</div>
+                        <div class="wizard-step-label">Pricing</div>
+                    </div>
+                </div>
+                <div class="wizard-connector" id="wc-3"></div>
+                <div class="wizard-step" id="ws-4">
+                    <div class="wizard-step-indicator">
+                        <div class="wizard-step-number" id="wsn-4">4</div>
+                        <div class="wizard-step-label">Review</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Booking Type *</label>
-                    <select id="bookingType" required>
-                        <option value="STAYCATION">Staycation</option>
-                        <option value="WEDDING">Wedding</option>
-                        <option value="BIRTHDAY">Birthday Party</option>
-                        <option value="CORPORATE_EVENT">Corporate Event</option>
-                        <option value="CORPORATE_STAY">Corporate Stay</option>
-                        <option value="SHOOT">Shoot</option>
-                    </select>
+            <!-- Step 1: Guest Info -->
+            <div class="wizard-panel wp-active" id="wp-1">
+                <p style="margin: 0 0 20px 0; font-size: 13px; color: var(--text-secondary);">Enter the guest's contact information.</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Guest Name *</label>
+                        <input type="text" id="guestName" required placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number *</label>
+                        <input type="tel" id="guestPhone" required placeholder="+91 XXXXX XXXXX">
+                    </div>
                 </div>
-            
-                <div class="form-group">
-                    <label>Booking Source</label>
-                    <select id="bookingSource" onchange="toggleReservationCodeField(); toggleOtaServiceFeeField();">
-                        <option value="DIRECT">Direct</option>
-                        <option value="AIRBNB">Airbnb</option>
-                        <option value="AGODA/BOOKING.COM">Agoda/Booking.com</option>
-                        <option value="MMT/GOIBIBO">MMT/Goibibo</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-row" id="reservationCodeRow" style="display: none;">
-                <div class="form-group">
-                    <label>Reservation Code / OTA Booking ID *</label>
-                    <input type="text" id="reservationCode" placeholder="Enter OTA booking code">
-                    <small style="font-size: 12px; color: var(--text-secondary); display: block; margin-top: 4px;">
-                        Enter the booking code from Airbnb, MMT, Agoda, etc.
-                    </small>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="guestEmail" placeholder="guest@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Travelling From</label>
+                        <input type="text" id="guestCity" placeholder="City / Country">
+                    </div>
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Check-in Date *</label>
-                    <input type="date" id="checkInDate" required onchange="calculateTaxes()">
+            <!-- Step 2: Booking Details -->
+            <div class="wizard-panel" id="wp-2">
+                <p style="margin: 0 0 20px 0; font-size: 13px; color: var(--text-secondary);">Select the property, dates, and booking details.</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Property *</label>
+                        <select id="propertySelect" required onchange="calculateTaxes()">
+                            <option value="">Select Property</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Booking Status *</label>
+                        <select id="bookingStatus">
+                            <option value="confirmed" selected>Confirmed</option>
+                            <option value="pending">Pending</option>
+                            <option value="checked-in">Checked In</option>
+                            <option value="checked-out">Checked Out</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Check-out Date *</label>
-                    <input type="date" id="checkOutDate" required onchange="calculateTaxes()">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Booking Type *</label>
+                        <select id="bookingType" required>
+                            <option value="STAYCATION">Staycation</option>
+                            <option value="WEDDING">Wedding</option>
+                            <option value="BIRTHDAY">Birthday Party</option>
+                            <option value="CORPORATE_EVENT">Corporate Event</option>
+                            <option value="CORPORATE_STAY">Corporate Stay</option>
+                            <option value="SHOOT">Shoot</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Booking Source</label>
+                        <select id="bookingSource" onchange="toggleReservationCodeField(); toggleOtaServiceFeeField();">
+                            <option value="DIRECT">Direct</option>
+                            <option value="AIRBNB">Airbnb</option>
+                            <option value="AGODA/BOOKING.COM">Agoda/Booking.com</option>
+                            <option value="MMT/GOIBIBO">MMT/Goibibo</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
                 </div>
-                <!-- NEW: auto nights -->
-                <div class="form-group">
-                    <label>Nights (auto)</label>
-                    <input type="number" id="nights" value="0" readonly style="background:#f1f5f9;">
+                <div class="form-row" id="reservationCodeRow" style="display: none;">
+                    <div class="form-group">
+                        <label>Reservation Code / OTA Booking ID *</label>
+                        <input type="text" id="reservationCode" placeholder="Enter OTA booking code">
+                        <small style="font-size: 12px; color: var(--text-secondary); display: block; margin-top: 4px;">
+                            Enter the booking code from Airbnb, MMT, Agoda, etc.
+                        </small>
+                    </div>
                 </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Guest Name *</label>
-                    <input type="text" id="guestName" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Check-in Date *</label>
+                        <input type="date" id="checkInDate" required onchange="calculateTaxes()">
+                    </div>
+                    <div class="form-group">
+                        <label>Check-out Date *</label>
+                        <input type="date" id="checkOutDate" required onchange="calculateTaxes()">
+                    </div>
+                    <div class="form-group">
+                        <label>Nights (auto)</label>
+                        <input type="number" id="nights" value="0" readonly style="background:#f1f5f9;">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Phone Number *</label>
-                    <input type="tel" id="guestPhone" required>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="guestEmail">
-                </div>
-                <div class="form-group">
-                    <label>Travelling From</label>
-                    <input type="text" id="guestCity">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Number of Rooms</label>
-                    <input type="number" id="numberOfRooms" min="1" value="1">
-                </div>
-
-                <div class="form-group">
-                    <label>Adults *</label>
-                    <input type="number" id="adults" min="1" value="2" required>
-                </div>
-                <div class="form-group">
-                    <label>Kids</label>
-                    <input type="number" id="kids" min="0" value="0">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Stay Amount (₹)</label>
-                    <input type="number" id="stayAmount" min="0" step="0.01" value="0" oninput="calculateTaxes()">
-                </div>
-                <div class="form-group">
-                    <label>Extra Guest Charges (₹)</label>
-                    <input type="number" id="extraGuestCharges" min="0" step="0.01" value="0" oninput="calculateTaxes()">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Meals/Chef (₹)</label>
-                    <input type="number" id="mealsChef" min="0" step="0.01" value="0" oninput="calculateTaxes()">
-                </div>
-                <div class="form-group">
-                    <label>Bonfire/Other (₹)</label>
-                    <input type="number" id="bonfireOther" min="0" step="0.01" value="0" oninput="calculateTaxes()">
-                </div>
-            </div>
-            <!-- OTA Service Fee Field -->
-            <div class="form-group" id="otaServiceFeeGroup" style="display: none;">
-                <label style="display: flex; align-items: center; gap: 8px;">
-                    <span><i data-lucide="building" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>OTA Service Fee / Commission (₹)</span>
-                    <span style="font-size: 11px; color: var(--text-secondary); font-weight: 400;">
-                        (e.g., Airbnb 15%, MMT 20%)
-                    </span>
-                </label>
-                <input type="number" id="otaServiceFee" min="0" step="0.01" value="0" placeholder="Enter OTA commission amount">
-                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; padding: 8px; background: #fef3c7; border-radius: 6px;">
-                    <i data-lucide="lightbulb" style="width: 13px; height: 13px; margin-right: 3px; vertical-align: middle;"></i><strong>Tip:</strong> Calculate based on OTA's commission rate. Amount deducted from gross revenue.
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Number of Rooms</label>
+                        <input type="number" id="numberOfRooms" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Adults *</label>
+                        <input type="number" id="adults" min="1" value="2" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kids</label>
+                        <input type="number" id="kids" min="0" value="0">
+                    </div>
                 </div>
             </div>
 
-            <div class="form-row">
+            <!-- Step 3: Pricing -->
+            <div class="wizard-panel" id="wp-3">
+                <p style="margin: 0 0 20px 0; font-size: 13px; color: var(--text-secondary);">Enter rates and charges. Taxes are calculated automatically.</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Stay Amount (&#8377;)</label>
+                        <input type="number" id="stayAmount" min="0" step="0.01" value="0" oninput="calculateTaxes()">
+                    </div>
+                    <div class="form-group">
+                        <label>Extra Guest Charges (&#8377;)</label>
+                        <input type="number" id="extraGuestCharges" min="0" step="0.01" value="0" oninput="calculateTaxes()">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Meals/Chef (&#8377;)</label>
+                        <input type="number" id="mealsChef" min="0" step="0.01" value="0" oninput="calculateTaxes()">
+                    </div>
+                    <div class="form-group">
+                        <label>Bonfire/Other (&#8377;)</label>
+                        <input type="number" id="bonfireOther" min="0" step="0.01" value="0" oninput="calculateTaxes()">
+                    </div>
+                </div>
+                <div class="form-group" id="otaServiceFeeGroup" style="display: none;">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <span><i data-lucide="building" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>OTA Service Fee / Commission (&#8377;)</span>
+                        <span style="font-size: 11px; color: var(--text-secondary); font-weight: 400;">(e.g., Airbnb 15%, MMT 20%)</span>
+                    </label>
+                    <input type="number" id="otaServiceFee" min="0" step="0.01" value="0" placeholder="Enter OTA commission amount">
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; padding: 8px; background: #fef3c7; border-radius: 6px;">
+                        <i data-lucide="lightbulb" style="width: 13px; height: 13px; margin-right: 3px; vertical-align: middle;"></i><strong>Tip:</strong> Calculate based on OTA's commission rate. Amount deducted from gross revenue.
+                    </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>GST Status *</label>
                         <select id="gstStatus" onchange="calculateTaxes()">
@@ -8647,31 +8786,51 @@
                             <option value="non_gst">Non-GST</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>Taxes (&#8377;) &mdash; Auto-calculated</label>
+                        <input type="number" id="taxes" min="0" step="0.01" value="0" readonly style="background: #f1f5f9;">
+                        <small style="font-size: 11px; color: var(--text-secondary); display: block; margin-top: 4px;">
+                            5% for &le;&#8377;7500/night, 18% for &gt;&#8377;7500/night
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>Damages (&#8377;)</label>
+                        <input type="number" id="damages" min="0" step="0.01" value="0" oninput="calculateTaxes()">
+                    </div>
+                </div>
                 <div class="form-group">
-                    <label>Taxes (₹) - Auto-calculated</label>
-                    <input type="number" id="taxes" min="0" step="0.01" value="0" readonly style="background: #f1f5f9;">
-                    <small style="font-size: 11px; color: var(--text-secondary); display: block; margin-top: 4px;">
-                        5% for ≤₹7500/night, 18% for >₹7500/night
+                    <label>Hostizzy Revenue (&#8377;)</label>
+                    <input type="number" id="hostizzyRevenue" min="0" step="0.01" value="0" readonly style="background: var(--background);">
+                    <small style="font-size: 12px; color: var(--text-secondary); display: block; margin-top: 4px;">
+                        Auto-calculated based on property's revenue share %
                     </small>
                 </div>
-                <div class="form-group">
-                    <label>Damages (₹)</label>
-                    <input type="number" id="damages" min="0" step="0.01" value="0" oninput="calculateTaxes()">
+            </div>
+
+            <!-- Step 4: Review & Confirm -->
+            <div class="wizard-panel" id="wp-4">
+                <p style="margin: 0 0 16px 0; font-size: 13px; color: var(--text-secondary);">Review all details before saving.</p>
+                <div id="wizardReviewContent">
+                    <!-- Populated by renderWizardReview() -->
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Hostizzy Revenue (₹)</label>
-                <input type="number" id="hostizzyRevenue" min="0" step="0.01" value="0" readonly style="background: var(--background);">
-                <small style="font-size: 12px; color: var(--text-secondary); display: block; margin-top: 4px;">
-                    Auto-calculated based on property's revenue share %
-                </small>
-            </div>
-
+            <!-- Hidden fields -->
             <input type="hidden" id="editReservationId">
-            <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="saveReservation()">
-                Save Reservation
-            </button>
+
+            <!-- Wizard Navigation -->
+            <div class="wizard-nav">
+                <button class="btn btn-secondary" id="wizardBackBtn" onclick="prevWizardStep()" style="display: none;">
+                    <i data-lucide="arrow-left" style="width: 14px; height: 14px; margin-right: 6px;"></i>Back
+                </button>
+                <div style="flex: 1;"></div>
+                <button class="btn btn-primary" id="wizardNextBtn" onclick="nextWizardStep()">
+                    Next<i data-lucide="arrow-right" style="width: 14px; height: 14px; margin-left: 6px;"></i>
+                </button>
+                <button class="btn btn-primary" id="wizardSaveBtn" onclick="saveReservation()" style="display: none;">
+                    <i data-lucide="check" style="width: 14px; height: 14px; margin-right: 6px;"></i>Save Reservation
+                </button>
+            </div>
         </div>
     </div>
 
@@ -15460,6 +15619,143 @@
  
 
         // Reservation Modal Functions
+        // ============================================
+        // BOOKING WIZARD NAVIGATION
+        // ============================================
+        var _wizardStep = 1;
+
+        function goToWizardStep(step) {
+            var totalSteps = 4;
+            // Deactivate all panels and steps
+            for (var i = 1; i <= totalSteps; i++) {
+                var panel = document.getElementById('wp-' + i);
+                var stepEl = document.getElementById('ws-' + i);
+                if (panel) panel.classList.remove('wp-active');
+                if (stepEl) {
+                    stepEl.classList.remove('ws-active', 'ws-done');
+                    if (i < step) stepEl.classList.add('ws-done');
+                    else if (i === step) stepEl.classList.add('ws-active');
+                }
+            }
+            // Activate current panel
+            var currentPanel = document.getElementById('wp-' + step);
+            if (currentPanel) currentPanel.classList.add('wp-active');
+
+            // Update connector colours
+            for (var c = 1; c <= totalSteps - 1; c++) {
+                var conn = document.getElementById('wc-' + c);
+                if (conn) {
+                    conn.style.background = c < step ? 'var(--success)' : 'var(--border)';
+                }
+            }
+
+            // Update step numbers – show checkmark SVG for done steps
+            for (var n = 1; n <= totalSteps; n++) {
+                var numEl = document.getElementById('wsn-' + n);
+                if (!numEl) continue;
+                if (n < step) {
+                    numEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+                } else {
+                    numEl.textContent = n;
+                }
+            }
+
+            // Show/hide nav buttons
+            var backBtn = document.getElementById('wizardBackBtn');
+            var nextBtn = document.getElementById('wizardNextBtn');
+            var saveBtn = document.getElementById('wizardSaveBtn');
+            if (backBtn) backBtn.style.display = step > 1 ? 'inline-flex' : 'none';
+            if (nextBtn) nextBtn.style.display = step < totalSteps ? 'inline-flex' : 'none';
+            if (saveBtn) saveBtn.style.display = step === totalSteps ? 'inline-flex' : 'none';
+
+            // Render review on last step
+            if (step === totalSteps) renderWizardReview();
+
+            _wizardStep = step;
+            if (typeof refreshIcons === 'function') refreshIcons();
+        }
+
+        function validateWizardStep(step) {
+            if (step === 1) {
+                var name = (document.getElementById('guestName').value || '').trim();
+                var phone = (document.getElementById('guestPhone').value || '').trim();
+                if (!name) { showToast('Required', 'Please enter the guest name', '⚠️'); return false; }
+                if (!phone) { showToast('Required', 'Please enter the phone number', '⚠️'); return false; }
+            } else if (step === 2) {
+                var prop = document.getElementById('propertySelect').value;
+                var checkIn = document.getElementById('checkInDate').value;
+                var checkOut = document.getElementById('checkOutDate').value;
+                if (!prop) { showToast('Required', 'Please select a property', '⚠️'); return false; }
+                if (!checkIn) { showToast('Required', 'Please select a check-in date', '⚠️'); return false; }
+                if (!checkOut) { showToast('Required', 'Please select a check-out date', '⚠️'); return false; }
+                if (new Date(checkOut) <= new Date(checkIn)) { showToast('Invalid Dates', 'Check-out must be after check-in', '⚠️'); return false; }
+            }
+            return true;
+        }
+
+        function nextWizardStep() {
+            if (!validateWizardStep(_wizardStep)) return;
+            if (_wizardStep < 4) goToWizardStep(_wizardStep + 1);
+        }
+
+        function prevWizardStep() {
+            if (_wizardStep > 1) goToWizardStep(_wizardStep - 1);
+        }
+
+        function renderWizardReview() {
+            var prop = document.getElementById('propertySelect');
+            var propName = prop.options[prop.selectedIndex] ? prop.options[prop.selectedIndex].text : '-';
+            var status = document.getElementById('bookingStatus').value || '-';
+            var type = document.getElementById('bookingType').value || '-';
+            var source = document.getElementById('bookingSource').value || '-';
+            var checkIn = document.getElementById('checkInDate').value || '-';
+            var checkOut = document.getElementById('checkOutDate').value || '-';
+            var nights = document.getElementById('nights').value || '0';
+            var rooms = document.getElementById('numberOfRooms').value || '1';
+            var adults = document.getElementById('adults').value || '-';
+            var kids = document.getElementById('kids').value || '0';
+            var guestName = document.getElementById('guestName').value || '-';
+            var guestPhone = document.getElementById('guestPhone').value || '-';
+            var guestEmail = document.getElementById('guestEmail').value || '-';
+            var guestCity = document.getElementById('guestCity').value || '-';
+            var stayAmt = parseFloat(document.getElementById('stayAmount').value) || 0;
+            var extraGuest = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
+            var meals = parseFloat(document.getElementById('mealsChef').value) || 0;
+            var bonfire = parseFloat(document.getElementById('bonfireOther').value) || 0;
+            var taxes = parseFloat(document.getElementById('taxes').value) || 0;
+            var damages = parseFloat(document.getElementById('damages').value) || 0;
+            var hostizzy = parseFloat(document.getElementById('hostizzyRevenue').value) || 0;
+            var total = stayAmt + extraGuest + meals + bonfire + taxes + damages;
+            var fmt = function(n) { return '\u20B9' + Number(n).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); };
+
+            var html = '<div class="wizard-review-section">' +
+                '<div class="wizard-review-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Guest</div>' +
+                row('Name', guestName) + row('Phone', guestPhone) + row('Email', guestEmail) + row('From', guestCity) +
+                '</div>' +
+                '<div class="wizard-review-section">' +
+                '<div class="wizard-review-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Booking</div>' +
+                row('Property', propName) + row('Status', status) + row('Type', type) + row('Source', source) +
+                row('Check-in', checkIn) + row('Check-out', checkOut) + row('Nights', nights) +
+                row('Rooms', rooms) + row('Adults', adults) + row('Kids', kids) +
+                '</div>' +
+                '<div class="wizard-review-section">' +
+                '<div class="wizard-review-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Pricing</div>' +
+                row('Stay Amount', fmt(stayAmt)) + row('Extra Guest Charges', fmt(extraGuest)) +
+                row('Meals/Chef', fmt(meals)) + row('Bonfire/Other', fmt(bonfire)) +
+                row('Taxes', fmt(taxes)) + row('Damages', fmt(damages)) +
+                row('Hostizzy Revenue', fmt(hostizzy)) +
+                '<div class="wizard-review-row" style="margin-top: 8px; padding-top: 10px; border-top: 2px solid var(--primary); border-bottom: none;">' +
+                '<span class="wizard-review-label" style="font-weight: 700; color: var(--text-primary);">Total Amount</span>' +
+                '<span class="wizard-review-value" style="font-size: 16px; color: var(--primary);">' + fmt(total) + '</span></div>' +
+                '</div>';
+
+            function row(label, value) {
+                return '<div class="wizard-review-row"><span class="wizard-review-label">' + label + '</span><span class="wizard-review-value">' + value + '</span></div>';
+            }
+
+            document.getElementById('wizardReviewContent').innerHTML = html;
+        }
+
         function openReservationModal(booking_id = null) {
             const modal = document.getElementById('reservationModal');
             if (booking_id) {
@@ -15511,10 +15807,13 @@
                 toggleOtaServiceFeeField(); // Reset OTA fee visibility
             }
             modal.classList.add('active');
+            // Reset wizard to step 1 every time the modal opens
+            goToWizardStep(1);
         }
 
         function closeReservationModal() {
             document.getElementById('reservationModal').classList.remove('active');
+            _wizardStep = 1;
         }
 
         // Auto-calculate taxes based on per night rate
