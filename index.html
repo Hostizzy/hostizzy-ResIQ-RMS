@@ -16287,6 +16287,8 @@
                 document.getElementById('guestEmail').value = r.guest_email || '';
                 document.getElementById('guestCity').value = r.guest_city || '';
                 document.getElementById('bookingSource').value = r.booking_source || 'DIRECT';
+                document.getElementById('reservationCode').value = r.booking_id || '';
+                toggleReservationCodeField();
                 document.getElementById('numberOfRooms').value = r.number_of_rooms || 1;
                 document.getElementById('adults').value = r.adults || 2;
                 document.getElementById('kids').value = r.kids || 0;
@@ -19730,8 +19732,11 @@
                 const reservationIds = reservations.map(r => r.id);
                 const filteredPayments = payments.filter(p => reservationIds.includes(p.reservation_id));
 
+                // All reservations for this property (no date filter) — needed for prev period MoM
+                const allPropertyReservations = allReservations.filter(r => r.property_id == propertyId);
+
                 // Render all sections
-                renderPropertyKPIs(reservations, filteredPayments, dateFilter);
+                renderPropertyKPIs(reservations, allPropertyReservations, filteredPayments, dateFilter);
                 renderAllReservationsTable(reservations);
                 renderMoMComparison(reservations, propertyId);
                 renderPaymentBreakdown(reservations, filteredPayments);
@@ -19749,45 +19754,57 @@
         // Get date filter based on selection
         function getPropertyDateFilter(dateRange) {
             const now = new Date();
-            let start, end;
+            let start, end, prevStart, prevEnd;
 
             switch(dateRange) {
                 case 'this_month':
                     start = new Date(now.getFullYear(), now.getMonth(), 1);
                     end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
                 case 'last_month':
                     start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
                     end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
                 case 'last_3_months':
                     start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
                     end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
                 case 'last_6_months':
                     start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
                     end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
                 case 'this_year':
                     start = new Date(now.getFullYear(), 0, 1);
                     end = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear() - 1, 0, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
-                case 'custom':
+                case 'custom': {
                     const fromInput = document.getElementById('propertyDateFrom').value;
                     const toInput = document.getElementById('propertyDateTo').value;
                     if (fromInput && toInput) {
                         start = new Date(fromInput);
-                        end = new Date(toInput);
-                        end.setHours(23, 59, 59);
+                        end = new Date(toInput); end.setHours(23, 59, 59);
+                        const dur = end - start;
+                        prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                        prevStart = new Date(prevEnd.getTime() - dur + 1);
                     }
                     break;
+                }
                 case 'all':
                 default:
-                    start = null;
-                    end = null;
+                    start = null; end = null; prevStart = null; prevEnd = null;
             }
 
-            return { start, end };
+            return { start, end, prevStart, prevEnd };
         }
 
         // Calculate previous month's data for MoM comparison
@@ -19815,10 +19832,10 @@
 // ============================================================================
 
 // Render KPI Cards with MoM comparison
-function renderPropertyKPIs(reservations, payments, dateFilter) {
+function renderPropertyKPIs(reservations, allPropertyReservations, payments, dateFilter) {
     const container = document.getElementById('propertyKPICards');
 
-    // Filter active reservations
+    // Filter active reservations (current period)
     const activeRes = reservations.filter(r => r.status !== 'cancelled');
 
     // Calculate current metrics
@@ -19829,78 +19846,75 @@ function renderPropertyKPIs(reservations, payments, dateFilter) {
     // Calculate ADR (Average Daily Rate)
     const adr = totalNights > 0 ? totalRevenue / totalNights : 0;
 
-    // Calculate occupancy (assuming 200 nights/year target)
+    // Occupancy: nights booked vs days in period
     const daysInPeriod = dateFilter.start && dateFilter.end
         ? Math.ceil((dateFilter.end - dateFilter.start) / (1000 * 60 * 60 * 24))
         : 365;
     const occupancy = daysInPeriod > 0 ? (totalNights / daysInPeriod) * 100 : 0;
 
-    // Calculate collection rate
+    // Collection rate from payments
     const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
     const collectionRate = totalRevenue > 0 ? (totalPaid / totalRevenue) * 100 : 0;
 
-    // Get previous period data for MoM if applicable
+    // Previous period — use allPropertyReservations (full property history, not date-filtered)
+    const hasPrevPeriod = !!(dateFilter.prevStart && dateFilter.prevEnd);
     let prevRevenue = 0, prevBookings = 0, prevOccupancy = 0, prevADR = 0, prevCollection = 0;
-    if (dateFilter.start && dateFilter.end) {
-        const periodDuration = Math.ceil((dateFilter.end - dateFilter.start) / (1000 * 60 * 60 * 24));
-        const prevStart = new Date(dateFilter.start);
-        prevStart.setDate(prevStart.getDate() - periodDuration);
-        const prevEnd = new Date(dateFilter.start);
-        prevEnd.setSeconds(prevEnd.getSeconds() - 1);
 
-        // Filter reservations from previous period
-        const prevData = reservations.filter(r => {
+    if (hasPrevPeriod) {
+        const prevData = (allPropertyReservations || []).filter(r => {
             const checkIn = new Date(r.check_in);
-            return checkIn >= prevStart && checkIn <= prevEnd;
+            return checkIn >= dateFilter.prevStart && checkIn <= dateFilter.prevEnd;
         });
 
         const prevActiveRes = prevData.filter(r => r.status !== 'cancelled');
-        prevRevenue = prevActiveRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+        prevRevenue  = prevActiveRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
         prevBookings = prevActiveRes.length;
         const prevNights = prevActiveRes.reduce((sum, r) => sum + (r.nights || 0), 0);
-        prevADR = prevNights > 0 ? prevRevenue / prevNights : 0;
+        prevADR      = prevNights > 0 ? prevRevenue / prevNights : 0;
         prevOccupancy = daysInPeriod > 0 ? (prevNights / daysInPeriod) * 100 : 0;
 
-        // Calculate actual previous period collection rate
-        const prevBookingIds = prevActiveRes.map(r => r.booking_id);
-        const prevPayments = payments.filter(p => prevBookingIds.includes(p.booking_id));
-        const prevPaid = prevPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        const prevBookingIds = new Set(prevActiveRes.map(r => r.booking_id));
+        const prevPaid = payments
+            .filter(p => prevBookingIds.has(p.booking_id))
+            .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
         prevCollection = prevRevenue > 0 ? (prevPaid / prevRevenue) * 100 : 0;
     }
 
-    // Calculate MoM changes
-    const revenueMoM = calculateMoMChange(totalRevenue, prevRevenue);
-    const bookingsMoM = calculateMoMChange(totalBookings, prevBookings);
-    const occupancyMoM = calculateMoMChange(occupancy, prevOccupancy);
-    const adrMoM = calculateMoMChange(adr, prevADR);
-    const collectionMoM = calculateMoMChange(collectionRate, prevCollection);
+    // MoM helper — returns null when no prev period to avoid misleading 100%
+    const mom = (cur, prev) => hasPrevPeriod ? calculateMoMChange(cur, prev) : null;
+
+    const revenueMoM    = mom(totalRevenue, prevRevenue);
+    const bookingsMoM   = mom(totalBookings, prevBookings);
+    const occupancyMoM  = mom(occupancy, prevOccupancy);
+    const adrMoM        = mom(adr, prevADR);
+    const collectionMoM = mom(collectionRate, prevCollection);
 
     // Render KPI cards
     container.innerHTML = `
         <div class="stat-card">
             <div class="stat-value">${formatCurrency(totalRevenue)}</div>
             <div class="stat-label">Total Revenue</div>
-            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(revenueMoM)}</div>` : ''}
+            ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(revenueMoM)}</div>` : ''}
         </div>
         <div class="stat-card">
             <div class="stat-value">${formatPercentage(occupancy)}</div>
             <div class="stat-label">Occupancy Rate</div>
-            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(occupancyMoM)}</div>` : ''}
+            ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(occupancyMoM)}</div>` : ''}
         </div>
         <div class="stat-card">
             <div class="stat-value">${formatCurrency(adr)}</div>
             <div class="stat-label">Avg Daily Rate (ADR)</div>
-            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(adrMoM)}</div>` : ''}
+            ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(adrMoM)}</div>` : ''}
         </div>
         <div class="stat-card">
             <div class="stat-value">${totalBookings}</div>
             <div class="stat-label">Total Bookings</div>
-            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(bookingsMoM)}</div>` : ''}
+            ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(bookingsMoM)}</div>` : ''}
         </div>
         <div class="stat-card">
             <div class="stat-value">${formatPercentage(collectionRate)}</div>
             <div class="stat-label">Collection Rate</div>
-            ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(collectionMoM)}</div>` : ''}
+            ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(collectionMoM)}</div>` : ''}
         </div>
     `;
 }
@@ -20202,10 +20216,11 @@ function formatMonthName(monthKey) {
 // Compact MoM change format (for table cells)
 function formatMoMChange(change) {
     if (change === null || change === undefined || isNaN(change)) return '';
-    const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
-    const color = change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-secondary)';
-    const label = change > 0 ? 'vs last month' : change < 0 ? 'vs last month' : 'no change';
-    return `<span style="color: ${color};">${arrow} ${Math.abs(change).toFixed(1)}% ${label}</span>`;
+    const n = parseFloat(change);
+    const arrow = n > 0 ? '↑' : n < 0 ? '↓' : '→';
+    const color = n > 0 ? 'var(--success)' : n < 0 ? 'var(--danger)' : 'var(--text-secondary)';
+    const label = n === 0 ? 'no change' : 'vs prev. period';
+    return `<span style="color: ${color};">${arrow} ${Math.abs(n).toFixed(1)}% ${label}</span>`;
 }
 
 function formatMoMChangeCompact(change) {
@@ -21340,7 +21355,7 @@ function printPropertyView() {
                 };
 
                 // Render all sections
-                renderBusinessKPIs(filteredReservations, properties, payments, dateFilter);
+                renderBusinessKPIs(filteredReservations, allReservations, properties, payments, dateFilter);
                 renderTopPropertiesLeaderboard(filteredReservations, properties, payments);
                 renderChannelPerformanceTable(filteredReservations);
                 renderGuestAnalytics(filteredReservations);
@@ -21358,55 +21373,67 @@ function printPropertyView() {
         // Get date filter based on selection
         function getBusinessDateFilter(dateRange) {
             const now = new Date();
-            let start, end;
+            let start, end, prevStart, prevEnd;
 
             switch(dateRange) {
                 case 'this_month':
                     start = new Date(now.getFullYear(), now.getMonth(), 1);
                     end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
                 case 'last_month':
                     start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
                     end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
                 case 'last_3_months':
                     start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
                     end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
                 case 'last_6_months':
                     start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
                     end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
                 case 'this_year':
                     start = new Date(now.getFullYear(), 0, 1);
                     end = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+                    prevStart = new Date(now.getFullYear() - 1, 0, 1);
+                    prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
                     break;
-                case 'custom':
+                case 'custom': {
                     const fromInput = document.getElementById('businessDateFrom').value;
                     const toInput = document.getElementById('businessDateTo').value;
                     if (fromInput && toInput) {
                         start = new Date(fromInput);
-                        end = new Date(toInput);
-                        end.setHours(23, 59, 59);
+                        end = new Date(toInput); end.setHours(23, 59, 59);
+                        const dur = end - start;
+                        prevEnd = new Date(start); prevEnd.setMilliseconds(-1);
+                        prevStart = new Date(prevEnd.getTime() - dur + 1);
                     }
                     break;
+                }
                 case 'all':
                 default:
-                    start = null;
-                    end = null;
+                    start = null; end = null; prevStart = null; prevEnd = null;
             }
 
-            return { start, end };
+            return { start, end, prevStart, prevEnd };
         }
 
         // Render Global KPI Cards
-        function renderBusinessKPIs(reservations, properties, payments, dateFilter) {
+        function renderBusinessKPIs(reservations, allReservationsData, properties, payments, dateFilter) {
             const container = document.getElementById('businessKPICards');
 
-            // Filter active reservations
+            // Filter active reservations (current period)
             const activeRes = reservations.filter(r => r.status !== 'cancelled');
 
-            // Calculate metrics
+            // Calculate current period metrics
             const totalRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
             const totalBookings = activeRes.length;
             const totalNights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
@@ -21421,7 +21448,7 @@ function printPropertyView() {
             // Average Hostizzy share percentage
             const avgHostizzyShare = netRevenue > 0 ? (hostizzyRevenue / netRevenue) * 100 : 0;
 
-            // Portfolio occupancy (total nights / (properties * target nights))
+            // Portfolio occupancy
             const targetNightsPerProperty = 200;
             const totalTargetNights = activeProperties * targetNightsPerProperty;
             const portfolioOccupancy = totalTargetNights > 0 ? (totalNights / totalTargetNights) * 100 : 0;
@@ -21429,18 +21456,13 @@ function printPropertyView() {
             // Average booking value
             const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
-            // Calculate previous period for MoM (simplified)
+            // Calculate previous period using allReservationsData (not filtered current period)
             let prevRevenue = 0, prevBookings = 0, prevOccupancy = 0, prevAvgValue = 0, prevHostizzy = 0;
-            if (dateFilter.start && dateFilter.end) {
-                const monthDiff = Math.round((dateFilter.end - dateFilter.start) / (1000 * 60 * 60 * 24));
-                const prevStart = new Date(dateFilter.start);
-                prevStart.setDate(prevStart.getDate() - monthDiff);
-                const prevEnd = new Date(dateFilter.start);
-                prevEnd.setSeconds(prevEnd.getSeconds() - 1);
-
-                const prevData = reservations.filter(r => {
+            const hasPrevPeriod = dateFilter.prevStart && dateFilter.prevEnd;
+            if (hasPrevPeriod) {
+                const prevData = (allReservationsData || []).filter(r => {
                     const checkIn = new Date(r.check_in);
-                    return checkIn >= prevStart && checkIn <= prevEnd && r.status !== 'cancelled';
+                    return checkIn >= dateFilter.prevStart && checkIn <= dateFilter.prevEnd && r.status !== 'cancelled';
                 });
 
                 prevRevenue = prevData.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
@@ -21451,24 +21473,27 @@ function printPropertyView() {
                 prevHostizzy = prevData.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
             }
 
+            // MoM helper that returns null when no prev data (prevents misleading 100%)
+            const mom = (cur, prev) => hasPrevPeriod ? calculateMoMChange(cur, prev) : null;
+
             // Calculate MoM changes
-            const revenueMoM = calculateMoMChange(totalRevenue, prevRevenue);
-            const bookingsMoM = calculateMoMChange(totalBookings, prevBookings);
-            const occupancyMoM = calculateMoMChange(portfolioOccupancy, prevOccupancy);
-            const avgValueMoM = calculateMoMChange(avgBookingValue, prevAvgValue);
-            const hostizzyMoM = calculateMoMChange(hostizzyRevenue, prevHostizzy);
+            const revenueMoM = mom(totalRevenue, prevRevenue);
+            const bookingsMoM = mom(totalBookings, prevBookings);
+            const occupancyMoM = mom(portfolioOccupancy, prevOccupancy);
+            const avgValueMoM = mom(avgBookingValue, prevAvgValue);
+            const hostizzyMoM = mom(hostizzyRevenue, prevHostizzy);
 
             // Render KPI cards
             container.innerHTML = `
                 <div class="stat-card" style="border-left-color: var(--primary);">
                     <div class="stat-value">${formatCurrency(totalRevenue)}</div>
                     <div class="stat-label">Total Revenue</div>
-                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(revenueMoM)}</div>` : ''}
+                    ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(revenueMoM)}</div>` : ''}
                 </div>
                 <div class="stat-card" style="border-left-color: #10b981;">
                     <div class="stat-value">${formatCurrency(hostizzyRevenue)}</div>
                     <div class="stat-label"><i data-lucide="trending-up" style="width: 13px; height: 13px; margin-right: 4px;"></i>Hostizzy Revenue</div>
-                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(hostizzyMoM)}</div>` : ''}
+                    ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(hostizzyMoM)}</div>` : ''}
                 </div>
                 <div class="stat-card" style="border-left-color: #3b82f6;">
                     <div class="stat-value">${formatCurrency(ownerRevenue)}</div>
@@ -21490,17 +21515,17 @@ function printPropertyView() {
                 <div class="stat-card" style="border-left-color: #8b5cf6;">
                     <div class="stat-value">${formatPercentage(portfolioOccupancy)}</div>
                     <div class="stat-label">Portfolio Occupancy</div>
-                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(occupancyMoM)}</div>` : ''}
+                    ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(occupancyMoM)}</div>` : ''}
                 </div>
                 <div class="stat-card" style="border-left-color: #f59e0b;">
                     <div class="stat-value">${totalBookings}</div>
                     <div class="stat-label">Total Bookings</div>
-                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(bookingsMoM)}</div>` : ''}
+                    ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(bookingsMoM)}</div>` : ''}
                 </div>
                 <div class="stat-card" style="border-left-color: #06b6d4;">
                     <div class="stat-value">${formatCurrency(avgBookingValue)}</div>
                     <div class="stat-label">Avg Booking Value</div>
-                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(avgValueMoM)}</div>` : ''}
+                    ${hasPrevPeriod ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(avgValueMoM)}</div>` : ''}
                 </div>
                 <div class="stat-card" style="border-left-color: #ec4899;">
                     <div class="stat-value">${formatPercentage(avgHostizzyShare)}</div>
