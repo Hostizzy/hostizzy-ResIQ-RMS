@@ -16287,6 +16287,8 @@
                 document.getElementById('guestEmail').value = r.guest_email || '';
                 document.getElementById('guestCity').value = r.guest_city || '';
                 document.getElementById('bookingSource').value = r.booking_source || 'DIRECT';
+                document.getElementById('reservationCode').value = r.booking_id || '';
+                toggleReservationCodeField();
                 document.getElementById('numberOfRooms').value = r.number_of_rooms || 1;
                 document.getElementById('adults').value = r.adults || 2;
                 document.getElementById('kids').value = r.kids || 0;
