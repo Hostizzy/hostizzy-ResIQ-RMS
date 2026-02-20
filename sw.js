@@ -1,6 +1,6 @@
 /**
  * ResIQ Service Worker
- * Version: 5.4.0
+ * Version: 5.8.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  *
  * IMPORTANT FOR DEVELOPERS:
@@ -11,6 +11,10 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.8.0: Phase 4 multi-step booking wizard - 4-step form (Guest → Booking → Pricing → Review)
+ * - v5.7.0: Phase 5 empty states - improved table empty messages with inline SVG icons, metric card CSS
+ * - v5.6.0: Phase 3 view redesigns - improved page headers for all views, professional filter bars, clean CTAs
+ * - v5.5.0: Phase 1 icon overhaul - Lucide icons replace all ~200 emojis, utility classes, empty states, skeletons
  * - v5.4.0: Guesty-inspired UI overhaul + EmailJS email sending + settings cleanup + comm view
  * - v5.3.0: Complete global color replacement - all hardcoded purple eliminated, full teal theme
  * - v5.2.0: Professional color scheme (teal) + Gmail global settings + property auto-detection
@@ -22,7 +26,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.4.0';
+const CACHE_VERSION = 'v5.8.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
