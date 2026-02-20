@@ -2268,6 +2268,138 @@
             border-bottom: none;
         }
 
+        /* ========================================
+           ENHANCED RESERVATIONS TABLE
+           ======================================== */
+        #reservationsTableBody tr {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        #reservationsTableBody tr:hover {
+            background: var(--background-alt);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transform: translateY(-1px);
+        }
+
+        #reservationsTableBody tr:hover .row-hover-actions {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .row-hover-actions {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        /* Reservation Status Badge */
+        .res-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 11px;
+            border-radius: 14px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .res-status-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .res-status-badge.confirmed {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e40af;
+        }
+
+        .res-status-badge.pending {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+        }
+
+        .res-status-badge.checked-in {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+        }
+
+        .res-status-badge.checked-out {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            color: #3730a3;
+        }
+
+        .res-status-badge.cancelled {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+        }
+
+        /* Status change dropdown */
+        .status-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            min-width: 160px;
+            padding: 6px 0;
+            display: none;
+        }
+
+        .status-dropdown.active {
+            display: block;
+        }
+
+        .status-dropdown-item {
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dropdown-item:hover {
+            background: var(--background-alt);
+        }
+
+        /* Quick action buttons */
+        .quick-action-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
         /* Status Badges */
         .badge {
             display: inline-block;
@@ -2325,29 +2457,103 @@
             font-weight: var(--font-medium);
         }
 
+        /* Payment Status Badges - Enhanced */
         .payment-status {
-            display: inline-block;
-            padding: var(--space-1) 14px;
-            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            border-radius: 16px;
             font-size: 11px;
-            font-weight: var(--font-semibold);
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
         }
 
         .payment-status.paid {
-            background: var(--success-pale);
-            color: var(--success-text);
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            box-shadow: 0 1px 3px rgba(5, 150, 105, 0.2);
         }
 
         .payment-status.pending {
-            background: var(--warning-alt-pale);
-            color: var(--warning-text);
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+            box-shadow: 0 1px 3px rgba(220, 38, 38, 0.2);
         }
 
         .payment-status.partial {
-            background: var(--warning-pale);
-            color: var(--warning-text);
+            background: linear-gradient(135deg, #fed7aa, #fdba74);
+            color: #9a3412;
+            box-shadow: 0 1px 3px rgba(234, 88, 12, 0.2);
+        }
+
+        .payment-status.overdue {
+            background: linear-gradient(135deg, #fecaca, #fca5a5);
+            color: #7f1d1d;
+            box-shadow: 0 1px 3px rgba(153, 27, 27, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
+        /* Payment Method Icons */
+        .payment-method-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Payment Progress Bar */
+        .payment-progress {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .payment-progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .payment-progress-fill.full {
+            background: linear-gradient(90deg, var(--success), #10b981);
+        }
+
+        .payment-progress-fill.partial {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .payment-progress-fill.pending {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+            width: 2% !important;
+        }
+
+        /* Balance Highlight */
+        .balance-amount {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .balance-amount.positive {
+            color: var(--danger);
+        }
+
+        .balance-amount.negative {
+            color: var(--success);
+        }
+
+        .balance-amount.zero {
+            color: var(--text-tertiary);
         }
 
         /* Modal */
@@ -9872,6 +10078,13 @@
         let currentUser = null;
         let currentWhatsAppBooking = null;
 
+        // Payment filter state (persists across data refreshes)
+        let paymentFilterState = {
+            search: '',
+            status: '',
+            property: ''
+        };
+
         // ==========================================
         // PERFORMANCE UTILITIES
         // ==========================================
@@ -15230,7 +15443,7 @@
         function displayReservations(reservations) {
             const tbody = document.getElementById('reservationsTableBody');
             if (reservations.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
+                tbody.innerHTML = `<tr><td colspan="10" style="padding: 60px 20px; text-align: center; color: var(--text-secondary);">
                     <div style="max-width: 320px; margin: 0 auto;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.3; margin-bottom: 16px;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                         <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">No reservations found</div>
@@ -15240,45 +15453,134 @@
                 return;
             }
 
-            tbody.innerHTML = reservations.map(r => `
-                <tr ${r.status === 'cancelled' ? 'class="cancelled-reservation" style="opacity: 0.5; background: #f8f9fa; color: #6c757d;"' : ''}>
-                    <td>
-                        <input type="checkbox" class="row-select-checkbox" data-booking-id="${r.booking_id}"
-                               onchange="toggleRowSelection(this, '${r.booking_id}')" ${r.status === 'cancelled' ? 'disabled' : ''}>
-                    </td>
-                    <td><strong style="${r.status === 'cancelled' ? 'text-decoration: line-through;' : ''}">${r.booking_id || 'N/A'}</strong></td>
-                    <td>${r.property_name || '-'}</td>
-                    <td>
-                        ${r.booking_source ? getBookingSourceBadge(r.booking_source) : '-'}
-                    </td>
-                    <td>${r.guest_name || '-'}</td>
-                    <td>${r.check_in ? formatDate(r.check_in) : '-'}</td>
-                    <td>${r.nights || '-'}</td>
-                    <td>
-                        ${r.total_amount ? `
-                            <div style="font-weight: 700; font-size: 15px; ${r.status === 'cancelled' ? 'text-decoration: line-through;' : ''}">
-                                ${formatCurrency(r.total_amount)}
+            tbody.innerHTML = reservations.map(r => {
+                const statusIcons = {
+                    'confirmed': '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
+                    'pending': '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+                    'checked-in': '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>',
+                    'checked-out': '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>',
+                    'cancelled': '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>'
+                };
+
+                const statusIcon = statusIcons[r.status] || statusIcons.pending;
+                const isCancelled = r.status === 'cancelled';
+
+                return `
+                    <tr ${isCancelled ? 'style="opacity: 0.6;"' : ''}>
+                        <td style="width: 40px;">
+                            <input type="checkbox" class="row-select-checkbox" data-booking-id="${r.booking_id}"
+                                   onchange="toggleRowSelection(this, '${r.booking_id}')" ${isCancelled ? 'disabled' : ''}>
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--primary); cursor: pointer; ${isCancelled ? 'text-decoration: line-through;' : ''}"
+                                 onclick="openReservationModal('${r.booking_id}')" title="Click to edit">
+                                ${r.booking_id || 'N/A'}
                             </div>
-                            ${r.ota_service_fee > 0 ? `
-                                <div style="font-size: 11px; color: var(--danger); margin-top: 2px;">
-                                    🏢 Fee: ${formatCurrency(r.ota_service_fee)}
+                            ${r.booking_source && r.booking_source !== 'DIRECT' ? `<div style="font-size: 10px; color: var(--text-tertiary); margin-top: 2px;">${getBookingSourceBadge(r.booking_source)}</div>` : ''}
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">${r.property_name || '-'}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">${r.guest_name || '-'}</div>
+                            ${r.guest_phone ? `<div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${r.guest_phone}</div>` : ''}
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 13px;">${r.check_in ? formatDate(r.check_in) : '-'}</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${r.nights || 0}N</div>
+                        </td>
+                        <td>
+                            ${r.total_amount ? `
+                                <div style="font-weight: 700; font-size: 14px; ${isCancelled ? 'text-decoration: line-through;' : ''}">
+                                    ${formatCurrency(r.total_amount)}
                                 </div>
-                                <div style="font-size: 11px; color: var(--success); margin-top: 2px; font-weight: 600;">
-                                    Net: ${formatCurrency(r.total_amount - r.ota_service_fee)}
+                                ${r.ota_service_fee > 0 ? `
+                                    <div style="font-size: 10px; color: var(--danger); margin-top: 2px;">
+                                        Fee: ${formatCurrency(r.ota_service_fee)}
+                                    </div>
+                                    <div style="font-size: 10px; color: var(--success); margin-top: 2px; font-weight: 600;">
+                                        Net: ${formatCurrency(r.total_amount - r.ota_service_fee)}
+                                    </div>
+                                ` : ''}
+                            ` : '<span style="color: var(--text-tertiary); font-size: 12px;">—</span>'}
+                        </td>
+                        <td>
+                            <div style="position: relative;">
+                                <span class="res-status-badge ${r.status}" onclick="toggleStatusDropdown(event, '${r.booking_id}')">
+                                    ${statusIcon}${r.status.replace('-', ' ')}
+                                </span>
+                                <div class="status-dropdown" id="status-dropdown-${r.booking_id}">
+                                    ${['confirmed', 'pending', 'checked-in', 'checked-out', 'cancelled'].map(status => `
+                                        <div class="status-dropdown-item" onclick="changeReservationStatus('${r.booking_id}', '${status}')">
+                                            ${statusIcons[status]}${status.replace('-', ' ')}
+                                        </div>
+                                    `).join('')}
                                 </div>
-                            ` : ''}
-                        ` : '<span style="color: #adb5bd;">No amount</span>'}
-                    </td>
-                    <td><span class="badge badge-${r.status}">${r.status}</span></td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" onclick="openPaymentModal('${r.booking_id}')" title="Add Payments">💰</button>
-                        <button class="btn btn-success btn-sm" onclick="viewPaymentHistory('${r.booking_id}')" title="View Payments">📜</button>
-                        <button class="btn btn-success btn-sm" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send WhatsApp">📱</button>
-                        <button class="btn btn-secondary btn-sm" onclick="editReservation('${r.booking_id}')" title="Edit Reservation">📝</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteReservation('${r.booking_id}')">×</button>
-                    </td>
-                </tr>
-            `).join('');
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row-hover-actions">
+                                <button class="quick-action-btn" onclick="openPaymentModal('${r.booking_id}')" title="Add Payment">
+                                    <i data-lucide="credit-card" style="width: 11px; height: 11px;"></i>Pay
+                                </button>
+                                <button class="quick-action-btn" onclick="viewPaymentHistory('${r.booking_id}')" title="Payment History">
+                                    <i data-lucide="history" style="width: 11px; height: 11px;"></i>History
+                                </button>
+                                <button class="quick-action-btn" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send WhatsApp">
+                                    <i data-lucide="message-circle" style="width: 11px; height: 11px;"></i>Message
+                                </button>
+                                ${!isCancelled ? `<button class="quick-action-btn" onclick="deleteReservation('${r.booking_id}')" title="Delete" style="color: var(--danger);">
+                                    <i data-lucide="trash-2" style="width: 11px; height: 11px;"></i>
+                                </button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Refresh Lucide icons
+            setTimeout(() => { if (typeof refreshIcons === 'function') refreshIcons(); }, 100);
+        }
+
+
+        // Toggle status dropdown
+        function toggleStatusDropdown(event, bookingId) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(`status-dropdown-${bookingId}`);
+            const allDropdowns = document.querySelectorAll('.status-dropdown');
+            
+            // Close all other dropdowns
+            allDropdowns.forEach(d => {
+                if (d.id !== `status-dropdown-${bookingId}`) {
+                    d.classList.remove('active');
+                }
+            });
+            
+            dropdown.classList.toggle('active');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.status-dropdown.active').forEach(d => d.classList.remove('active'));
+        });
+
+        // Change reservation status inline
+        async function changeReservationStatus(bookingId, newStatus) {
+            try {
+                const { error } = await supabase
+                    .from('reservations')
+                    .update({ status: newStatus })
+                    .eq('booking_id', bookingId);
+
+                if (error) throw error;
+
+                // Reload data
+                await loadReservations();
+                showToast('Status Updated', `Reservation ${bookingId} is now ${newStatus}`, '✅');
+            } catch (error) {
+                console.error('Status update error:', error);
+                showToast('Error', 'Failed to update status', '❌');
+            }
         }
 
         // Store filtered reservations for CSV export
@@ -16150,10 +16452,18 @@
                 const propertyFilter = document.getElementById('paymentPropertyFilter');
                 if (propertyFilter) {
                     const uniqueProperties = [...new Set(allReservations.map(r => r.property_name))].sort();
-                    propertyFilter.innerHTML = '<option value="">All Properties</option>' + 
+                    propertyFilter.innerHTML = '<option value="">All Properties</option>' +
                         uniqueProperties.map(p => `<option value="${p}">${p}</option>`).join('');
+                    // Restore previous filter state
+                    propertyFilter.value = paymentFilterState.property;
                 }
-                
+
+                // Restore other filter values
+                const searchInput = document.getElementById('searchPayments');
+                const statusFilter = document.getElementById('paymentStatusFilter');
+                if (searchInput) searchInput.value = paymentFilterState.search;
+                if (statusFilter) statusFilter.value = paymentFilterState.status;
+
                 // Filter confirmed reservations (reuse later for reminders)
                 const confirmedReservations = allReservations.filter(r => r.status !== 'cancelled');
                 
@@ -16221,11 +16531,17 @@
                 `;
                 
                 document.getElementById('paymentStatsGrid').innerHTML = statsHTML;
-                
+
                 // Render payment reminders
                 renderPaymentReminders(confirmedReservations);
-                
-                displayPayments(allReservations);
+
+                // Apply filters if any are active, otherwise show all
+                const hasActiveFilters = paymentFilterState.search || paymentFilterState.status || paymentFilterState.property;
+                if (hasActiveFilters) {
+                    filterPayments(); // Reapply saved filters
+                } else {
+                    displayPayments(allReservations);
+                }
             } catch (error) {
                 console.error('Payments error:', error);
                 showToast('Error', 'Failed to load payments', '❌');
@@ -16250,22 +16566,37 @@
                 const otaFee = parseFloat(r.ota_service_fee) || 0;
                 const netAmount = total - otaFee;
                 const paid = parseFloat(r.paid_amount) || 0;
-                // Calculate balance based on booking source
                 const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                // For OTA: Balance = Net Amount - Paid
-                // For Direct: Balance = Total - Paid (ignore OTA fee calc)
                 const balance = isOTA ? (netAmount - paid) : (total - paid);
                 const status = r.payment_status || 'pending';
-                
+
+                // Calculate payment progress %
+                const baseAmount = isOTA ? netAmount : total;
+                const progressPercent = baseAmount > 0 ? Math.min((paid / baseAmount) * 100, 100) : 0;
+                const progressClass = status === 'paid' ? 'full' : status === 'partial' ? 'partial' : 'pending';
+
+                // Status icon
+                const statusIcon = status === 'paid'
+                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+                    : status === 'partial'
+                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>'
+                    : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/></svg>';
+
+                // Balance class
+                const balanceClass = balance > 0 ? 'positive' : balance < 0 ? 'negative' : 'zero';
+
                 return `
                     <tr>
                         <td>
-                            <strong style="color: var(--primary); cursor: pointer; text-decoration: underline;" 
+                            <strong style="color: var(--primary); cursor: pointer; text-decoration: underline;"
                                     onclick="navigateToReservation('${r.booking_id}')">
                                 ${r.booking_id || 'N/A'}
                             </strong>
                         </td>
-                        <td>${r.guest_name}</td>
+                        <td>
+                            <div style="font-weight: 600;">${r.guest_name}</div>
+                            ${r.guest_phone ? `<div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">${r.guest_phone}</div>` : ''}
+                        </td>
                         <td>${r.property_name}</td>
                         <td>${formatDate(r.check_in)}</td>
                         <td>
@@ -16274,33 +16605,39 @@
                             </div>
                             ${otaFee > 0 ? `
                                 <div style="font-size: 11px; color: var(--danger); margin-top: 2px;">
-                                    OTA Fee: ${formatCurrency(otaFee, {compact: false})}
+                                    <i data-lucide="building" style="width: 10px; height: 10px; margin-right: 2px;"></i>OTA Fee: ${formatCurrency(otaFee, {compact: false})}
                                 </div>
                                 <div style="font-size: 11px; color: var(--success); margin-top: 2px; font-weight: 600;">
-                                    Net: ${formatCurrency(netAmount, {compact: false})}
+                                    <i data-lucide="coins" style="width: 10px; height: 10px; margin-right: 2px;"></i>Net: ${formatCurrency(netAmount, {compact: false})}
                                 </div>
                             ` : ''}
                         </td>
-                        <td style="color: var(--success); font-weight: 600;">${formatCurrency(paid, {compact: false})}</td>
-                        <td style="color: ${balance > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight: 600;">
-                            ${formatCurrency(balance, {compact: false})}
+                        <td>
+                            <div style="color: var(--success); font-weight: 700; font-size: 14px;">${formatCurrency(paid, {compact: false})}</div>
+                            <div class="payment-progress"><div class="payment-progress-fill ${progressClass}" style="width: ${progressPercent}%;"></div></div>
+                            <div style="font-size: 10px; color: var(--text-tertiary); margin-top: 2px;">${progressPercent.toFixed(0)}% collected</div>
                         </td>
                         <td>
-                            <span class="payment-status ${status}">${status.toUpperCase()}</span>
-                            ${r.booking_source && r.booking_source !== 'DIRECT' ? 
-                                '<div style="font-size: 10px; color: var(--warning); margin-top: 4px;">💳 Guest Prepaid via OTA</div>' 
+                            <span class="balance-amount ${balanceClass}">${formatCurrency(Math.abs(balance), {compact: false})}</span>
+                        </td>
+                        <td>
+                            <span class="payment-status ${status}">${statusIcon}${status.toUpperCase()}</span>
+                            ${isOTA ?
+                                '<div style="font-size: 10px; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 3px;"><i data-lucide="credit-card" style="width: 10px; height: 10px;"></i>Guest Prepaid via OTA</div>'
                                 : ''}
                         </td>
                         <td>
                             <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                                ${balance > 0 ? `<button class="btn btn-primary btn-sm" onclick="openPaymentModal('${r.booking_id}')">💰 Add</button>` : ''}
-                                <button class="btn btn-success btn-sm" onclick="viewPaymentHistory('${r.booking_id}')">📜 History</button>
-                                ${balance > 0 ? `<button class="btn btn-success btn-sm" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send Payment Reminder">📱 Remind</button>` : ''}
+                                ${balance > 0 ? `<button class="btn btn-primary btn-sm" onclick="openPaymentModal('${r.booking_id}')" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" style="width: 12px; height: 12px;"></i>Add</button>` : ''}
+                                <button class="btn btn-secondary btn-sm" onclick="viewPaymentHistory('${r.booking_id}')" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="history" style="width: 12px; height: 12px;"></i>History</button>
+                                ${balance > 0 ? `<button class="btn btn-secondary btn-sm" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send Payment Reminder" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="message-circle" style="width: 12px; height: 12px;"></i>Remind</button>` : ''}
                             </div>
                         </td>
                     </tr>
                 `;
             }).join('');
+            // Refresh Lucide icons after rendering
+            setTimeout(() => { if (typeof refreshIcons === 'function') refreshIcons(); }, 100);
         }
 
         // Store filtered payments for CSV export
@@ -16310,7 +16647,10 @@
             const search = document.getElementById('searchPayments').value.toLowerCase();
             const status = document.getElementById('paymentStatusFilter').value;
             const property = document.getElementById('paymentPropertyFilter').value;
-            
+
+            // Save filter state for persistence
+            paymentFilterState = { search, status, property };
+
             filteredPayments = allReservations.filter(r => {
                 const matchesSearch = !search || 
                     (r.guest_name || '').toLowerCase().includes(search) ||
@@ -16327,6 +16667,8 @@
             document.getElementById('searchPayments').value = '';
             document.getElementById('paymentStatusFilter').value = '';
             document.getElementById('paymentPropertyFilter').value = '';
+            // Reset saved filter state
+            paymentFilterState = { search: '', status: '', property: '' };
             filteredPayments = [];
             displayPayments(allReservations);
             showToast('Filters Cleared', 'All filters have been reset', 'ℹ️');
