@@ -1,6 +1,6 @@
 /**
  * ResIQ Service Worker
- * Version: 5.6.0
+ * Version: 5.7.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  *
  * IMPORTANT FOR DEVELOPERS:
@@ -11,6 +11,7 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.7.0: Phase 5 empty states - improved table empty messages with inline SVG icons, metric card CSS
  * - v5.6.0: Phase 3 view redesigns - improved page headers for all views, professional filter bars, clean CTAs
  * - v5.5.0: Phase 1 icon overhaul - Lucide icons replace all ~200 emojis, utility classes, empty states, skeletons
  * - v5.4.0: Guesty-inspired UI overhaul + EmailJS email sending + settings cleanup + comm view
@@ -24,7 +25,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.6.0';
+const CACHE_VERSION = 'v5.7.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
