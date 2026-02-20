@@ -11,6 +11,7 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.15.0: Fix Business + Property View MoM % - previous period now reads from full history
  * - v5.14.0: Dashboard filter fully working + period button pills + accurate MoM trends
  * - v5.13.0: Dashboard Redesign - consolidated 18 metrics to 8 Core KPIs, simplified filters, improved Action Center
  * - v5.12.0: Dashboard Activity Widgets - real-time check-ins, check-outs, arrivals, pending payments with guest lists
@@ -32,7 +33,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.14.0';
+const CACHE_VERSION = 'v5.15.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
