@@ -19634,6 +19634,14 @@ function formatMonthName(monthKey) {
 }
 
 // Compact MoM change format (for table cells)
+function formatMoMChange(change) {
+    if (change === null || change === undefined || isNaN(change)) return '';
+    const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
+    const color = change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-secondary)';
+    const label = change > 0 ? 'vs last month' : change < 0 ? 'vs last month' : 'no change';
+    return `<span style="color: ${color};">${arrow} ${Math.abs(change).toFixed(1)}% ${label}</span>`;
+}
+
 function formatMoMChangeCompact(change) {
     const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
     const color = change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-secondary)';
