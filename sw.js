@@ -1,6 +1,6 @@
 /**
  * ResIQ Service Worker
- * Version: 5.12.0
+ * Version: 5.13.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  *
  * IMPORTANT FOR DEVELOPERS:
@@ -11,6 +11,7 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.13.0: Dashboard Redesign - consolidated 18 metrics to 8 Core KPIs, simplified filters, improved Action Center
  * - v5.12.0: Dashboard Activity Widgets - real-time check-ins, check-outs, arrivals, pending payments with guest lists
  * - v5.11.0: Business View Hostizzy Income + Property View % fix - added revenue breakdown KPIs, fixed MoM calculations
  * - v5.10.0: Kanban Board drag & drop fully functional - uses Sortable.js, Lucide icons, syncs with database
@@ -30,7 +31,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.12.0';
+const CACHE_VERSION = 'v5.13.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
