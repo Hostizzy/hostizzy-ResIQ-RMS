@@ -90,7 +90,7 @@
             --gradient-danger: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
             --gradient-ocean: linear-gradient(135deg, #0891b2 0%, #3b82f6 100%);
             --gradient-sunset: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            --gradient-purple: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
 
             /* Border Radius System */
             --radius-sm: 8px;
@@ -445,7 +445,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             padding: 20px;
             padding-bottom: 120px; /* Space for fixed footer */
         }
@@ -778,7 +778,7 @@
             outline: none;
             border-color: var(--primary);
             background: white;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
         }
 
         .search-clear {
@@ -1167,7 +1167,7 @@
         }
 
         .notification-item.unread {
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, rgba(99, 102, 241, 0) 100%);
+            background: linear-gradient(90deg, rgba(8, 145, 178, 0.05) 0%, rgba(8, 145, 178, 0) 100%);
         }
 
         .notification-item.unread::before {
@@ -1791,7 +1791,7 @@
 
         /* btn-icon kept for other parts of the app */
         .btn-icon {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(8, 145, 178, 0.1);
             border: none;
             border-radius: 8px;
             padding: 8px 12px;
@@ -2303,7 +2303,7 @@
         .sidebar-item.active {
             background: var(--primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 2px 8px rgba(8, 145, 178, 0.3);
             transform: translateX(2px);
         }
 
@@ -2893,13 +2893,13 @@
             }
 
             .mobile-nav-item.active {
-                color: #667eea;
+                color: #0891b2;
                 font-weight: 600;
             }
 
             .mobile-nav-item.active .mobile-nav-icon {
                 transform: translateY(-2px);
-                filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+                filter: drop-shadow(0 2px 4px rgba(8, 145, 178, 0.3));
             }
 
             .mobile-nav-item.active .mobile-nav-label {
@@ -2926,7 +2926,7 @@
                 border-radius: 50%;
                 background: var(--gradient-primary);
                 border: 4px solid white;
-                box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4);
+                box-shadow: 0 8px 16px rgba(8, 145, 178, 0.4);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -2979,7 +2979,7 @@
             .mobile-nav-fab:hover {
                 animation: none;
                 transform: scale(1.1);
-                box-shadow: 0 12px 24px rgba(99, 102, 241, 0.5);
+                box-shadow: 0 12px 24px rgba(8, 145, 178, 0.5);
             }
 
             .mobile-nav-fab:active {
@@ -3111,8 +3111,8 @@
 
         #icalUrlInput:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #0891b2;
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
         }
 
         details[open] summary {
@@ -3280,7 +3280,7 @@
 
         .drop-zone.drag-over {
             border-color: var(--primary);
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(8, 145, 178, 0.05) 100%);
             border-width: 3px;
             transform: scale(1.02);
         }
@@ -3290,7 +3290,7 @@
             position: absolute;
             inset: 0;
             border-radius: 12px;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.05) 0%, transparent 100%);
             pointer-events: none;
         }
 
@@ -3357,11 +3357,11 @@
         }
 
         [data-theme="dark"] .drop-zone:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(8, 145, 178, 0.1);
         }
 
         [data-theme="dark"] .drop-zone.drag-over {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.2) 0%, rgba(8, 145, 178, 0.1) 100%);
         }
 
         /* Revenue Split Card */
@@ -3731,7 +3731,7 @@
             border: none;
             font-size: 28px;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+            box-shadow: 0 8px 24px rgba(8, 145, 178, 0.5);
             transition: var(--transition);
             z-index: 999;
             display: flex;
@@ -3758,7 +3758,7 @@
 
         .quick-action-fab:hover {
             transform: scale(1.1) rotate(5deg);
-            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.7);
+            box-shadow: 0 12px 32px rgba(8, 145, 178, 0.7);
         }
 
         .quick-action-fab:hover::before {
@@ -3782,7 +3782,7 @@
             border: none;
             font-size: 28px;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
+            box-shadow: 0 8px 24px rgba(8, 145, 178, 0.5);
             transition: var(--transition);
             z-index: 999;
             display: flex;
@@ -3809,7 +3809,7 @@
 
         .keyboard-shortcuts-fab:hover {
             transform: scale(1.1) rotate(-5deg);
-            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.7);
+            box-shadow: 0 12px 32px rgba(8, 145, 178, 0.7);
         }
 
         .keyboard-shortcuts-fab:hover::before {
@@ -4674,7 +4674,7 @@
         left: 0;
         width: 100%;
         height: 100vh;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+        background: var(--gradient-primary);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -4706,7 +4706,7 @@
                 <img src="assets/logo.png" alt="ResIQ Logo" style="width: 100px; height: 100px; object-fit: contain;" 
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <!-- Fallback if logo doesn't load -->
-               <div style="display: none; font-size: 64px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">R</div>
+               <div style="display: none; font-size: 64px; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">R</div>
             </div>
             
             <h1 style="
@@ -5061,9 +5061,9 @@
             <!-- Owner Portal Link -->
             <div style="margin-top: 24px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
                 <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Property Owner?</p>
-                <a href="owner-portal.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);"
-                   onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(139, 92, 246, 0.4)';"
-                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(139, 92, 246, 0.3)';">
+                <a href="owner-portal.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);"
+                   onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(8, 145, 178, 0.4)';"
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(8, 145, 178, 0.3)';">
                     <span style="font-size: 18px;">🏠</span>
                     <span>Access Owner Portal</span>
                     <span style="font-size: 16px;">→</span>
@@ -5573,7 +5573,7 @@
         <style>
         /* Home View Styles */
         .home-welcome-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             border-radius: var(--radius-lg);
             padding: 32px 24px;
             margin-bottom: 24px;
@@ -5709,7 +5709,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             transform: scaleX(0);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -5721,7 +5721,7 @@
         .quick-action-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 8px 8px rgba(0, 0, 0, 0.08);
-            border-color: rgba(102, 126, 234, 0.2);
+            border-color: rgba(8, 145, 178, 0.2);
         }
 
         .quick-action-icon {
@@ -5780,7 +5780,7 @@
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             transform: scaleY(0);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -5792,7 +5792,7 @@
         .category-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
-            border-color: rgba(102, 126, 234, 0.2);
+            border-color: rgba(8, 145, 178, 0.2);
         }
 
         .category-card:active {
@@ -5845,7 +5845,7 @@
         }
 
         .category-card:hover .category-card-arrow {
-            color: #667eea;
+            color: #0891b2;
             transform: translateX(4px);
         }
 
@@ -6240,7 +6240,7 @@
             </div>
 
             <!-- This Month Performance Card -->
-            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+            <div class="card" style="margin-bottom: 24px; background: var(--gradient-primary); color: white; border: none;">
                 <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.2); padding: 20px 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 class="card-title" style="color: white; margin: 0;">📊 This Month Performance</h3>
@@ -6336,9 +6336,9 @@
                             <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">🏠 Properties</div>
                             <div style="font-size: 18px; font-weight: 700; color: #10b981;" id="propertyCollected">₹0</div>
                         </div>
-                        <div style="padding: 12px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 8px; border-left: 3px solid #667eea;">
+                        <div style="padding: 12px; background: linear-gradient(135deg, #0891b215 0%, #06b6d415 100%); border-radius: 8px; border-left: 3px solid #0891b2;">
                             <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">💼 Hostizzy</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #667eea;" id="hostizzyCollected">₹0</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #0891b2;" id="hostizzyCollected">₹0</div>
                         </div>
                     </div>
 
@@ -6405,7 +6405,7 @@
                 </div>
 
             <!-- AI-Powered Insights Section -->
-            <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; margin-bottom: 24px;">
+            <div class="card" style="background: var(--gradient-primary); border: none; color: white; margin-bottom: 24px;">
                 <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.2); cursor: pointer;" onclick="toggleCollapse('aiInsightsContent','aiInsightsIcon')">
                     <h3 class="card-title" style="color: white; display: flex; align-items: center; gap: 8px;">
                         🤖 AI-Powered Insights <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 10px;">SMART</span>
@@ -6688,9 +6688,9 @@
 
                         <!-- Checked Out Column -->
                         <div class="kanban-column">
-                            <div class="kanban-column-header" style="background: #e0e7ff; color: #4338ca;">
+                            <div class="kanban-column-header" style="background: #e0f2f7; color: var(--primary-dark);">
                                 <span>🎉 Checked Out</span>
-                                <span class="kanban-column-count" id="kanbanCheckedOutCount" style="background: #6366f1;">0</span>
+                                <span class="kanban-column-count" id="kanbanCheckedOutCount" style="background: var(--primary);">0</span>
                             </div>
                             <div class="kanban-cards" id="kanban-checked-out" data-status="checked-out"></div>
                         </div>
@@ -7310,7 +7310,7 @@
             </div>
 
             <!-- Payment Health Dashboard -->
-            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">
+            <div class="card" style="margin-bottom: 24px; background: var(--gradient-danger); color: white; border: none;">
                 <div style="padding: 24px;">
                     <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: white;">
                         <span>❤️</span> Payment Health Score
@@ -7346,7 +7346,7 @@
             </div>
 
             <!-- Smart Insights & Alerts -->
-            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+            <div class="card" style="margin-bottom: 24px; background: var(--gradient-primary); color: white; border: none;">
                 <div style="padding: 24px;">
                     <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: white;">
                         <span>💡</span> Smart Insights & Alerts
@@ -9068,7 +9068,7 @@
 <!-- Property Settings Modal -->
 <div id="propertySettingsModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 600px;">
-        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px 12px 0 0;">
+        <div class="modal-header" style="background: var(--gradient-primary); color: white; padding: 24px; border-radius: 12px 12px 0 0;">
             <h2 style="margin: 0; font-size: 24px; display: flex; align-items: center; gap: 12px;">
                 <span>⚙️</span>
                 <span id="settingsModalTitle">Property Settings</span>
@@ -9162,7 +9162,7 @@
                     Cancel
                 </button>
                 <button onclick="savePropertySettings()" 
-                    style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+                    style="padding: 12px 24px; background: var(--gradient-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(8, 145, 178, 0.3);">
                     💾 Save Settings
                 </button>
             </div>
@@ -12105,7 +12105,7 @@
                         <div class="metric-label">Occupancy Rate</div>
                         <div class="metric-trend">${totalNights}/${targetNights} nights booked</div>
                     </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <div class="metric-card" style="background: var(--gradient-primary);">
                         <div class="metric-icon">🏆</div>
                         <div class="metric-value">${formatCurrency(hostizzyRevenue)}</div>
                         <div class="metric-label">Hostizzy Revenue</div>
@@ -12351,7 +12351,7 @@
                     <div class="metric-label">Occupancy Rate</div>
                     <div class="metric-trend">${totalNights}/${targetNights} nights booked</div>
                 </div>
-                <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                <div class="metric-card" style="background: var(--gradient-primary);">
                     <div class="metric-icon">🏆</div>
                     <div class="metric-value">${formatCurrency(hostizzyRevenue)}</div>
                     <div class="metric-label">Hostizzy Revenue</div>
@@ -12746,7 +12746,7 @@
                     <div class="metric-label">Occupancy Rate</div>
                     <div class="metric-trend">${totalNights}/${targetNights} nights booked</div>
                 </div>
-                <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                <div class="metric-card" style="background: var(--gradient-primary);">
                     <div class="metric-icon">🏆</div>
                     <div class="metric-value">${formatCurrency(hostizzyRevenue)}</div>
                     <div class="metric-label">Hostizzy Revenue</div>
@@ -13004,7 +13004,7 @@
                 .sort((a, b) => b[1].amount - a[1].amount);
             
             const totalAmount = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-            const colors = { cash: '#10b981', upi: '#3b82f6', gateway: '#8b5cf6', bank_transfer: '#f59e0b' };
+            const colors = { cash: '#10b981', upi: '#3b82f6', gateway: 'var(--primary)', bank_transfer: '#f59e0b' };
             const icons = { cash: '💵', upi: '📱', gateway: '💳', bank_transfer: '🏦' };
             
             const html = sortedMethods.length > 0 ? sortedMethods.map(([method, data]) => {
@@ -13352,7 +13352,7 @@
                         title: 'Premium Pricing Success',
                         message: `${highValueProps.length} ${highValueProps.length === 1 ? 'property is' : 'properties are'} achieving 20%+ higher booking values. Apply similar strategies to other properties.`,
                         action: 'View Pricing',
-                        color: 'rgba(139, 92, 246, 0.15)'
+                        color: 'rgba(8, 145, 178, 0.15)'
                     });
                 }
             }
@@ -13483,7 +13483,7 @@
             
             const totalBookings = reservations.length;
             const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-            const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+            const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', 'var(--primary)', '#ec4899'];
             const icons = {
                 'AIRBNB': '🏠',
                 'BOOKING.COM': '🌐',
@@ -15158,7 +15158,7 @@
                 
                 // Render payment stats cards
                 let statsHTML = `
-                    <div class="stat-card" style="border-left-color: #8b5cf6;">
+                    <div class="stat-card" style="border-left-color: var(--primary);">
                         <div class="stat-label">Total Revenue</div>
                         <div class="stat-value">${formatCurrency(totalRevenue)}</div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
@@ -16501,7 +16501,7 @@
                     </div>
                 </div>
 
-                <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                <div style="background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(8, 145, 178, 0.1) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span style="font-size: 24px;">⏰</span>
                         <div>
@@ -20757,7 +20757,7 @@ function printPropertyView() {
                     label: 'Total Revenue',
                     value: `₹${(totalRevenue / 100000).toFixed(2)}L`,
                     subtext: `${reservations.length} bookings`,
-                    color: '#667eea',
+                    color: '#0891b2',
                     trend: 'up'
                 },
                 {
@@ -20789,7 +20789,7 @@ function printPropertyView() {
                     label: 'Active Properties',
                     value: activeProperties,
                     subtext: `${payments.length} transactions`,
-                    color: '#8b5cf6',
+                    color: 'var(--primary)',
                     trend: 'up'
                 }
             ];
@@ -21155,7 +21155,7 @@ function printPropertyView() {
                                     <td style="padding: 12px; text-align: right;">
                                         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                                             <div style="flex: 0 0 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
-                                                <div style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: ${m.share}%;"></div>
+                                                <div style="height: 100%; background: var(--gradient-primary); width: ${m.share}%;"></div>
                                             </div>
                                             <span style="font-weight: 600; min-width: 45px;">${m.share.toFixed(1)}%</span>
                                         </div>
@@ -21167,7 +21167,7 @@ function printPropertyView() {
                 </div>
 
                 <!-- Key Recommendations -->
-                <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 8px; border-left: 4px solid #667eea;">
+                <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #0891b215, #06b6d415); border-radius: 8px; border-left: 4px solid #0891b2;">
                     <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
                         <span>💡</span> Recommendations
                     </div>
@@ -21520,7 +21520,7 @@ function printPropertyView() {
             const methodData = {
                 cash: { count: 0, amount: 0, label: 'Cash', color: '#10b981' },
                 upi: { count: 0, amount: 0, label: 'UPI', color: '#3b82f6' },
-                gateway: { count: 0, amount: 0, label: 'Gateway', color: '#8b5cf6' },
+                gateway: { count: 0, amount: 0, label: 'Gateway', color: 'var(--primary)' },
                 bank_transfer: { count: 0, amount: 0, label: 'Bank Transfer', color: '#f59e0b' }
             };
 
@@ -21620,8 +21620,8 @@ function printPropertyView() {
                     datasets: [{
                         label: 'Payment Collection',
                         data: amounts,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderColor: '#0891b2',
+                        backgroundColor: 'rgba(8, 145, 178, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4
@@ -21744,8 +21744,8 @@ function printPropertyView() {
 
             const html = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba205 100%); border-radius: 12px;">
-                        <div style="font-size: 48px; font-weight: 700; color: #667eea; margin-bottom: 8px;">${avgDays}</div>
+                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #0891b215 0%, #06b6d405 100%); border-radius: 12px;">
+                        <div style="font-size: 48px; font-weight: 700; color: #0891b2; margin-bottom: 8px;">${avgDays}</div>
                         <div style="font-size: 14px; color: var(--text-secondary);">Avg Days to Collect</div>
                         <div style="font-size: 12px; color: ${avgDays <= 7 ? '#10b981' : avgDays <= 15 ? '#f59e0b' : '#ef4444'}; font-weight: 600; margin-top: 4px;">
                             ${avgDays <= 7 ? '🟢 Excellent' : avgDays <= 15 ? '🟡 Good' : '🔴 Needs Improvement'}
@@ -21795,12 +21795,12 @@ function printPropertyView() {
             const ownerRevenue = netRevenue - hostizzyRevenue;
 
             const metrics = [
-                { label: 'Gross Revenue', value: totalRevenue, color: '#667eea', icon: '💰' },
+                { label: 'Gross Revenue', value: totalRevenue, color: '#0891b2', icon: '💰' },
                 { label: 'OTA Fees', value: otaFees, color: '#ef4444', icon: '💸' },
                 { label: 'Net Revenue', value: netRevenue, color: '#10b981', icon: '💵' },
                 { label: 'Collected', value: totalCollected, color: '#10b981', icon: '✅' },
                 { label: 'Pending', value: totalPending, color: '#f59e0b', icon: '⏳' },
-                { label: 'Hostizzy Share', value: hostizzyRevenue, color: '#8b5cf6', icon: '🏢' },
+                { label: 'Hostizzy Share', value: hostizzyRevenue, color: 'var(--primary)', icon: '🏢' },
                 { label: 'Owner Share', value: ownerRevenue, color: '#3b82f6', icon: '🏠' }
             ];
 
@@ -21861,8 +21861,8 @@ function printPropertyView() {
                         {
                             label: 'Revenue',
                             data: revenueData,
-                            backgroundColor: 'rgba(102, 126, 234, 0.7)',
-                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(8, 145, 178, 0.7)',
+                            borderColor: '#0891b2',
                             borderWidth: 1
                         },
                         {
@@ -22893,7 +22893,7 @@ function printPropertyView() {
 
                 // Add checkout indicator if guests are checking out (date remains available)
                 if (hasCheckout && !hasBooking) {
-                    checkoutIndicator = `<div style="font-size: 14px; color: #6366f1; font-weight: 700; margin-top: 2px;">↓</div>`;
+                    checkoutIndicator = `<div style="font-size: 14px; color: var(--primary); font-weight: 700; margin-top: 2px;">↓</div>`;
                     tooltip = `${checkoutCount} guest(s) checking out • Available for new booking`;
                 }
 
@@ -26375,7 +26375,7 @@ function printPropertyView() {
             </div>
             <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                 <!-- Guest Profile Card -->
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+                <div style="background: var(--gradient-primary); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 16px;">
                         <div style="flex: 1;">
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
@@ -26491,14 +26491,14 @@ function printPropertyView() {
     </div>
 
     <!-- PWA Install Banner -->
-    <div id="pwaInstallBanner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 16px 24px; border-radius: 16px; box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4); z-index: 9999; max-width: 90%; width: 400px; animation: slideUp 0.4s ease-out;">
+    <div id="pwaInstallBanner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--gradient-primary); color: white; padding: 16px 24px; border-radius: 16px; box-shadow: 0 10px 40px rgba(8, 145, 178, 0.4); z-index: 9999; max-width: 90%; width: 400px; animation: slideUp 0.4s ease-out;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 32px;">📱</div>
             <div style="flex: 1;">
                 <div style="font-weight: 600; margin-bottom: 4px;">Install ResIQ</div>
                 <div style="font-size: 13px; opacity: 0.9;">Get the app experience with offline access</div>
             </div>
-            <button onclick="installPWA()" style="background: white; color: #6366f1; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; white-space: nowrap;">
+            <button onclick="installPWA()" style="background: white; color: var(--primary); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; white-space: nowrap;">
                 Install
             </button>
             <button onclick="dismissInstallBanner()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 18px; line-height: 1; width: 32px; height: 32px;">
@@ -26830,7 +26830,7 @@ function printPropertyView() {
                 'pending': 'var(--warning)',
                 'confirmed': 'var(--primary)',
                 'checked-in': 'var(--success)',
-                'checked-out': '#6366f1',
+                'checked-out': '#0891b2',
                 'cancelled': 'var(--danger)'
             };
             card.style.borderLeftColor = borderColors[reservation.status] || 'var(--primary)';
@@ -26939,11 +26939,11 @@ function printPropertyView() {
                     datasets: [{
                         data: [hostizzyRevenue, ownerRevenue],
                         backgroundColor: [
-                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(8, 145, 178, 0.8)',
                             'rgba(16, 185, 129, 0.8)'
                         ],
                         borderColor: [
-                            'rgba(99, 102, 241, 1)',
+                            'rgba(8, 145, 178, 1)',
                             'rgba(16, 185, 129, 1)'
                         ],
                         borderWidth: 2
@@ -27004,7 +27004,7 @@ function printPropertyView() {
 
             // Color scheme for payment methods
             const colors = {
-                'UPI': 'rgba(139, 92, 246, 0.8)',
+                'UPI': 'rgba(8, 145, 178, 0.8)',
                 'CASH': 'rgba(16, 185, 129, 0.8)',
                 'CARD': 'rgba(59, 130, 246, 0.8)',
                 'BANK TRANSFER': 'rgba(245, 158, 11, 0.8)',
@@ -27013,7 +27013,7 @@ function printPropertyView() {
             };
 
             const borderColors = {
-                'UPI': 'rgba(139, 92, 246, 1)',
+                'UPI': 'rgba(8, 145, 178, 1)',
                 'CASH': 'rgba(16, 185, 129, 1)',
                 'CARD': 'rgba(59, 130, 246, 1)',
                 'BANK TRANSFER': 'rgba(245, 158, 11, 1)',
@@ -27021,8 +27021,8 @@ function printPropertyView() {
                 'Unknown': 'rgba(148, 163, 184, 1)'
             };
 
-            const backgroundColors = labels.map(label => colors[label] || 'rgba(99, 102, 241, 0.8)');
-            const borderColorsArray = labels.map(label => borderColors[label] || 'rgba(99, 102, 241, 1)');
+            const backgroundColors = labels.map(label => colors[label] || 'rgba(8, 145, 178, 0.8)');
+            const borderColorsArray = labels.map(label => borderColors[label] || 'rgba(8, 145, 178, 1)');
 
             paymentChartInstance = new Chart(ctx, {
                 type: 'bar',
