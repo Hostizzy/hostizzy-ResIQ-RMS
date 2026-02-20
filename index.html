@@ -19649,15 +19649,30 @@ function renderPropertyKPIs(reservations, payments, dateFilter) {
     // Get previous period data for MoM if applicable
     let prevRevenue = 0, prevBookings = 0, prevOccupancy = 0, prevADR = 0, prevCollection = 0;
     if (dateFilter.start && dateFilter.end) {
-        const prevData = getPreviousMonthData(reservations, dateFilter.start, dateFilter.end);
+        const periodDuration = Math.ceil((dateFilter.end - dateFilter.start) / (1000 * 60 * 60 * 24));
+        const prevStart = new Date(dateFilter.start);
+        prevStart.setDate(prevStart.getDate() - periodDuration);
+        const prevEnd = new Date(dateFilter.start);
+        prevEnd.setSeconds(prevEnd.getSeconds() - 1);
+
+        // Filter reservations from previous period
+        const prevData = reservations.filter(r => {
+            const checkIn = new Date(r.check_in);
+            return checkIn >= prevStart && checkIn <= prevEnd;
+        });
+
         const prevActiveRes = prevData.filter(r => r.status !== 'cancelled');
         prevRevenue = prevActiveRes.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
         prevBookings = prevActiveRes.length;
         const prevNights = prevActiveRes.reduce((sum, r) => sum + (r.nights || 0), 0);
         prevADR = prevNights > 0 ? prevRevenue / prevNights : 0;
         prevOccupancy = daysInPeriod > 0 ? (prevNights / daysInPeriod) * 100 : 0;
-        // Simplified prev collection for demo
-        prevCollection = collectionRate - 5; // Placeholder
+
+        // Calculate actual previous period collection rate
+        const prevBookingIds = prevActiveRes.map(r => r.booking_id);
+        const prevPayments = payments.filter(p => prevBookingIds.includes(p.booking_id));
+        const prevPaid = prevPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        prevCollection = prevRevenue > 0 ? (prevPaid / prevRevenue) * 100 : 0;
     }
 
     // Calculate MoM changes
@@ -21204,6 +21219,15 @@ function printPropertyView() {
             const totalNights = activeRes.reduce((sum, r) => sum + (r.nights || 0), 0);
             const activeProperties = properties.length;
 
+            // Calculate Hostizzy Revenue and OTA fees
+            const hostizzyRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
+            const otaFees = activeRes.reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
+            const netRevenue = totalRevenue - otaFees;
+            const ownerRevenue = netRevenue - hostizzyRevenue;
+
+            // Average Hostizzy share percentage
+            const avgHostizzyShare = netRevenue > 0 ? (hostizzyRevenue / netRevenue) * 100 : 0;
+
             // Portfolio occupancy (total nights / (properties * target nights))
             const targetNightsPerProperty = 200;
             const totalTargetNights = activeProperties * targetNightsPerProperty;
@@ -21213,7 +21237,7 @@ function printPropertyView() {
             const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
             // Calculate previous period for MoM (simplified)
-            let prevRevenue = 0, prevBookings = 0, prevOccupancy = 0, prevAvgValue = 0;
+            let prevRevenue = 0, prevBookings = 0, prevOccupancy = 0, prevAvgValue = 0, prevHostizzy = 0;
             if (dateFilter.start && dateFilter.end) {
                 const monthDiff = Math.round((dateFilter.end - dateFilter.start) / (1000 * 60 * 60 * 24));
                 const prevStart = new Date(dateFilter.start);
@@ -21231,6 +21255,7 @@ function printPropertyView() {
                 const prevNights = prevData.reduce((sum, r) => sum + (r.nights || 0), 0);
                 prevOccupancy = totalTargetNights > 0 ? (prevNights / totalTargetNights) * 100 : 0;
                 prevAvgValue = prevBookings > 0 ? prevRevenue / prevBookings : 0;
+                prevHostizzy = prevData.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
             }
 
             // Calculate MoM changes
@@ -21238,37 +21263,67 @@ function printPropertyView() {
             const bookingsMoM = calculateMoMChange(totalBookings, prevBookings);
             const occupancyMoM = calculateMoMChange(portfolioOccupancy, prevOccupancy);
             const avgValueMoM = calculateMoMChange(avgBookingValue, prevAvgValue);
+            const hostizzyMoM = calculateMoMChange(hostizzyRevenue, prevHostizzy);
 
             // Render KPI cards
             container.innerHTML = `
-                <div class="stat-card">
+                <div class="stat-card" style="border-left-color: var(--primary);">
                     <div class="stat-value">${formatCurrency(totalRevenue)}</div>
                     <div class="stat-label">Total Revenue</div>
                     ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(revenueMoM)}</div>` : ''}
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="border-left-color: #10b981;">
+                    <div class="stat-value">${formatCurrency(hostizzyRevenue)}</div>
+                    <div class="stat-label"><i data-lucide="trending-up" style="width: 13px; height: 13px; margin-right: 4px;"></i>Hostizzy Revenue</div>
+                    ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(hostizzyMoM)}</div>` : ''}
+                </div>
+                <div class="stat-card" style="border-left-color: #3b82f6;">
+                    <div class="stat-value">${formatCurrency(ownerRevenue)}</div>
+                    <div class="stat-label"><i data-lucide="shield" style="width: 13px; height: 13px; margin-right: 4px;"></i>Owner Revenue</div>
+                    <div class="stat-trend" style="font-size: 11px; margin-top: 4px; color: var(--text-tertiary);">After Hostizzy share</div>
+                </div>
+                ${otaFees > 0 ? `
+                <div class="stat-card" style="border-left-color: #ef4444;">
+                    <div class="stat-value">${formatCurrency(otaFees)}</div>
+                    <div class="stat-label"><i data-lucide="building" style="width: 13px; height: 13px; margin-right: 4px;"></i>OTA Fees</div>
+                    <div class="stat-trend" style="font-size: 11px; margin-top: 4px; color: var(--danger);">Commission deducted</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #10b981;">
+                    <div class="stat-value">${formatCurrency(netRevenue)}</div>
+                    <div class="stat-label"><i data-lucide="coins" style="width: 13px; height: 13px; margin-right: 4px;"></i>Net Revenue</div>
+                    <div class="stat-trend" style="font-size: 11px; margin-top: 4px; color: var(--text-tertiary);">After OTA fees</div>
+                </div>
+                ` : ''}
+                <div class="stat-card" style="border-left-color: #8b5cf6;">
                     <div class="stat-value">${formatPercentage(portfolioOccupancy)}</div>
                     <div class="stat-label">Portfolio Occupancy</div>
                     ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(occupancyMoM)}</div>` : ''}
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="border-left-color: #f59e0b;">
                     <div class="stat-value">${totalBookings}</div>
                     <div class="stat-label">Total Bookings</div>
                     ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(bookingsMoM)}</div>` : ''}
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="border-left-color: #06b6d4;">
                     <div class="stat-value">${formatCurrency(avgBookingValue)}</div>
                     <div class="stat-label">Avg Booking Value</div>
                     ${dateFilter.start ? `<div class="stat-trend" style="font-size: 12px; margin-top: 4px;">${formatMoMChange(avgValueMoM)}</div>` : ''}
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="border-left-color: #ec4899;">
+                    <div class="stat-value">${formatPercentage(avgHostizzyShare)}</div>
+                    <div class="stat-label"><i data-lucide="percent" style="width: 13px; height: 13px; margin-right: 4px;"></i>Avg Hostizzy Share</div>
+                    <div class="stat-trend" style="font-size: 11px; margin-top: 4px; color: var(--text-tertiary);">Of net revenue</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #64748b;">
                     <div class="stat-value">${activeProperties}</div>
                     <div class="stat-label">Active Properties</div>
-                    <div class="stat-trend" style="font-size: 12px; margin-top: 4px; color: var(--text-secondary);">-</div>
+                    <div class="stat-trend" style="font-size: 12px; margin-top: 4px; color: var(--text-secondary);">Portfolio size</div>
                 </div>
             `;
-        }
 
+            // Refresh Lucide icons
+            setTimeout(() => { if (typeof refreshIcons === 'function') refreshIcons(); }, 100);
+        }
         // Render Top Properties Leaderboard
         function renderTopPropertiesLeaderboard(reservations, properties, payments) {
             const container = document.getElementById('topPropertiesLeaderboard');
