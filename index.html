@@ -90,7 +90,7 @@
             --gradient-danger: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
             --gradient-ocean: linear-gradient(135deg, #0891b2 0%, #3b82f6 100%);
             --gradient-sunset: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            --gradient-purple: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
 
             /* Border Radius System */
             --radius-sm: 8px;
@@ -445,7 +445,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             padding: 20px;
             padding-bottom: 120px; /* Space for fixed footer */
         }
@@ -533,6 +533,219 @@
             box-shadow: var(--shadow-input-focus);
             background: var(--surface);
         }
+
+        /* =================================================================
+           UTILITY CLASSES (Tailwind-inspired)
+           ================================================================= */
+
+        /* Spacing Utilities (8px grid system) */
+        .m-0 { margin: 0; }
+        .m-1 { margin: var(--space-1); }
+        .m-2 { margin: var(--space-2); }
+        .m-3 { margin: var(--space-3); }
+        .m-4 { margin: var(--space-4); }
+        .m-6 { margin: var(--space-6); }
+        .m-8 { margin: var(--space-8); }
+
+        .mt-0 { margin-top: 0; }
+        .mt-1 { margin-top: var(--space-1); }
+        .mt-2 { margin-top: var(--space-2); }
+        .mt-3 { margin-top: var(--space-3); }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-6 { margin-top: var(--space-6); }
+        .mt-8 { margin-top: var(--space-8); }
+
+        .mb-0 { margin-bottom: 0; }
+        .mb-1 { margin-bottom: var(--space-1); }
+        .mb-2 { margin-bottom: var(--space-2); }
+        .mb-3 { margin-bottom: var(--space-3); }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mb-6 { margin-bottom: var(--space-6); }
+        .mb-8 { margin-bottom: var(--space-8); }
+
+        .ml-0 { margin-left: 0; }
+        .ml-1 { margin-left: var(--space-1); }
+        .ml-2 { margin-left: var(--space-2); }
+        .ml-3 { margin-left: var(--space-3); }
+        .ml-4 { margin-left: var(--space-4); }
+
+        .mr-0 { margin-right: 0; }
+        .mr-1 { margin-right: var(--space-1); }
+        .mr-2 { margin-right: var(--space-2); }
+        .mr-3 { margin-right: var(--space-3); }
+        .mr-4 { margin-right: var(--space-4); }
+
+        .p-0 { padding: 0; }
+        .p-1 { padding: var(--space-1); }
+        .p-2 { padding: var(--space-2); }
+        .p-3 { padding: var(--space-3); }
+        .p-4 { padding: var(--space-4); }
+        .p-6 { padding: var(--space-6); }
+        .p-8 { padding: var(--space-8); }
+
+        .pt-0 { padding-top: 0; }
+        .pt-2 { padding-top: var(--space-2); }
+        .pt-3 { padding-top: var(--space-3); }
+        .pt-4 { padding-top: var(--space-4); }
+        .pt-6 { padding-top: var(--space-6); }
+
+        .pb-0 { padding-bottom: 0; }
+        .pb-2 { padding-bottom: var(--space-2); }
+        .pb-3 { padding-bottom: var(--space-3); }
+        .pb-4 { padding-bottom: var(--space-4); }
+        .pb-6 { padding-bottom: var(--space-6); }
+
+        .px-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
+        .px-3 { padding-left: var(--space-3); padding-right: var(--space-3); }
+        .px-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+        .px-6 { padding-left: var(--space-6); padding-right: var(--space-6); }
+
+        .py-2 { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+        .py-3 { padding-top: var(--space-3); padding-bottom: var(--space-3); }
+        .py-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+        .py-6 { padding-top: var(--space-6); padding-bottom: var(--space-6); }
+
+        /* Gap Utilities (for flexbox/grid) */
+        .gap-1 { gap: var(--space-1); }
+        .gap-2 { gap: var(--space-2); }
+        .gap-3 { gap: var(--space-3); }
+        .gap-4 { gap: var(--space-4); }
+        .gap-6 { gap: var(--space-6); }
+        .gap-8 { gap: var(--space-8); }
+
+        /* Typography Utilities */
+        .text-xs { font-size: var(--font-size-xs); }
+        .text-sm { font-size: var(--font-size-sm); }
+        .text-base { font-size: var(--font-size-base); }
+        .text-md { font-size: var(--font-size-md); }
+        .text-lg { font-size: var(--font-size-lg); }
+        .text-xl { font-size: var(--font-size-xl); }
+        .text-2xl { font-size: var(--font-size-2xl); }
+        .text-3xl { font-size: var(--font-size-3xl); }
+        .text-4xl { font-size: var(--font-size-4xl); }
+
+        .font-normal { font-weight: var(--font-normal); }
+        .font-medium { font-weight: var(--font-medium); }
+        .font-semibold { font-weight: var(--font-semibold); }
+        .font-bold { font-weight: var(--font-bold); }
+
+        .text-primary { color: var(--text-primary); }
+        .text-secondary { color: var(--text-secondary); }
+        .text-tertiary { color: var(--text-tertiary); }
+        .text-white { color: white; }
+
+        .text-left { text-align: left; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+
+        .uppercase { text-transform: uppercase; }
+        .capitalize { text-transform: capitalize; }
+        .lowercase { text-transform: lowercase; }
+
+        /* Flex Utilities */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-wrap { flex-wrap: wrap; }
+        .flex-nowrap { flex-wrap: nowrap; }
+
+        .items-start { align-items: flex-start; }
+        .items-center { align-items: center; }
+        .items-end { align-items: flex-end; }
+        .items-stretch { align-items: stretch; }
+
+        .justify-start { justify-content: flex-start; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .justify-between { justify-content: space-between; }
+        .justify-around { justify-content: space-around; }
+
+        .flex-1 { flex: 1; }
+        .flex-none { flex: none; }
+        .flex-shrink-0 { flex-shrink: 0; }
+
+        /* Grid Utilities */
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+        /* Display Utilities */
+        .block { display: block; }
+        .inline { display: inline; }
+        .inline-block { display: inline-block; }
+        .hidden { display: none; }
+
+        /* Width/Height Utilities */
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .w-auto { width: auto; }
+        .h-auto { height: auto; }
+
+        /* Border Utilities */
+        .rounded { border-radius: var(--radius-sm); }
+        .rounded-md { border-radius: var(--radius-md); }
+        .rounded-lg { border-radius: var(--radius-lg); }
+        .rounded-xl { border-radius: var(--radius-xl); }
+        .rounded-full { border-radius: 9999px; }
+
+        .border { border: 1px solid var(--border); }
+        .border-0 { border: none; }
+        .border-t { border-top: 1px solid var(--border); }
+        .border-b { border-bottom: 1px solid var(--border); }
+        .border-l { border-left: 1px solid var(--border); }
+        .border-r { border-right: 1px solid var(--border); }
+
+        /* Background Utilities */
+        .bg-white { background-color: #ffffff; }
+        .bg-surface { background-color: var(--surface); }
+        .bg-background { background-color: var(--background); }
+        .bg-primary { background-color: var(--primary); }
+        .bg-success { background-color: var(--success); }
+        .bg-danger { background-color: var(--danger); }
+        .bg-warning { background-color: var(--warning); }
+
+        /* Shadow Utilities */
+        .shadow { box-shadow: var(--shadow); }
+        .shadow-md { box-shadow: var(--shadow-md); }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        .shadow-xl { box-shadow: var(--shadow-xl); }
+        .shadow-none { box-shadow: none; }
+
+        /* Opacity Utilities */
+        .opacity-0 { opacity: 0; }
+        .opacity-50 { opacity: 0.5; }
+        .opacity-75 { opacity: 0.75; }
+        .opacity-100 { opacity: 1; }
+
+        /* Cursor Utilities */
+        .cursor-pointer { cursor: pointer; }
+        .cursor-default { cursor: default; }
+        .cursor-not-allowed { cursor: not-allowed; }
+
+        /* Overflow Utilities */
+        .overflow-hidden { overflow: hidden; }
+        .overflow-auto { overflow: auto; }
+        .overflow-scroll { overflow: scroll; }
+
+        /* Position Utilities */
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .fixed { position: fixed; }
+        .sticky { position: sticky; }
+
+        /* Z-Index Utilities */
+        .z-0 { z-index: 0; }
+        .z-10 { z-index: 10; }
+        .z-20 { z-index: 20; }
+        .z-30 { z-index: 30; }
+        .z-40 { z-index: 40; }
+        .z-50 { z-index: 50; }
+
+        /* Transition Utilities */
+        .transition { transition: var(--transition); }
+        .transition-none { transition: none; }
 
         /* Buttons */
         .btn {
@@ -778,7 +991,7 @@
             outline: none;
             border-color: var(--primary);
             background: white;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
         }
 
         .search-clear {
@@ -1167,7 +1380,7 @@
         }
 
         .notification-item.unread {
-            background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, rgba(99, 102, 241, 0) 100%);
+            background: linear-gradient(90deg, rgba(8, 145, 178, 0.05) 0%, rgba(8, 145, 178, 0) 100%);
         }
 
         .notification-item.unread::before {
@@ -1451,6 +1664,86 @@
             gap: 12px;
         }
 
+        /* =================================================================
+           EMPTY STATES
+           ================================================================= */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i[data-lucide] {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            opacity: 0.3;
+            stroke-width: 1.5;
+        }
+
+        .empty-state h3 {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+            margin: 0 0 8px 0;
+        }
+
+        .empty-state p {
+            font-size: var(--font-size-base);
+            color: var(--text-secondary);
+            margin: 0 0 24px 0;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .empty-state .btn {
+            margin-top: 16px;
+        }
+
+        /* =================================================================
+           LOADING SKELETONS
+           ================================================================= */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: var(--radius-md);
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .skeleton-text.w-full { width: 100%; }
+        .skeleton-text.w-3-4 { width: 75%; }
+        .skeleton-text.w-1-2 { width: 50%; }
+        .skeleton-text.w-1-4 { width: 25%; }
+
+        .skeleton-card {
+            height: 120px;
+            margin-bottom: 16px;
+        }
+
+        .skeleton-row {
+            height: 48px;
+            margin-bottom: 8px;
+        }
+
+        /* Dark mode skeletons */
+        [data-theme="dark"] .skeleton {
+            background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+            background-size: 200% 100%;
+        }
+
         .card-title {
             font-size: var(--font-size-2xl);
             font-weight: var(--font-bold);
@@ -1475,49 +1768,36 @@
 
         .stat-card {
             background: var(--surface);
-            padding: var(--space-5);
+            padding: 20px 24px;
             border-radius: var(--radius-md);
-            box-shadow: var(--shadow);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
             border: 1px solid var(--border);
-            transition: var(--transition);
+            border-left: 4px solid var(--primary);
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--gradient-primary);
-            transform: scaleY(0);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .stat-card:hover::before {
-            transform: scaleY(1);
-        }
-
         .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-card-hover);
-            border-color: var(--primary-pale);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left-color: var(--primary-dark);
         }
 
         .stat-label {
-            font-size: var(--font-size-sm);
+            font-size: 11px;
             color: var(--text-secondary);
-            margin-bottom: var(--space-2);
-            font-weight: var(--font-medium);
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .stat-value {
-            font-size: var(--font-size-4xl);
-            font-weight: var(--font-bold);
+            font-size: 32px;
+            font-weight: 700;
             color: var(--text-primary);
             letter-spacing: -0.02em;
+            line-height: 1.1;
         }
         
         /* ============================================
@@ -1791,7 +2071,7 @@
 
         /* btn-icon kept for other parts of the app */
         .btn-icon {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(8, 145, 178, 0.1);
             border: none;
             border-radius: 8px;
             padding: 8px 12px;
@@ -2303,7 +2583,7 @@
         .sidebar-item.active {
             background: var(--primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 2px 8px rgba(8, 145, 178, 0.3);
             transform: translateX(2px);
         }
 
@@ -2893,13 +3173,13 @@
             }
 
             .mobile-nav-item.active {
-                color: #667eea;
+                color: #0891b2;
                 font-weight: 600;
             }
 
             .mobile-nav-item.active .mobile-nav-icon {
                 transform: translateY(-2px);
-                filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+                filter: drop-shadow(0 2px 4px rgba(8, 145, 178, 0.3));
             }
 
             .mobile-nav-item.active .mobile-nav-label {
@@ -2926,7 +3206,7 @@
                 border-radius: 50%;
                 background: var(--gradient-primary);
                 border: 4px solid white;
-                box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4);
+                box-shadow: 0 8px 16px rgba(8, 145, 178, 0.4);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -2979,7 +3259,7 @@
             .mobile-nav-fab:hover {
                 animation: none;
                 transform: scale(1.1);
-                box-shadow: 0 12px 24px rgba(99, 102, 241, 0.5);
+                box-shadow: 0 12px 24px rgba(8, 145, 178, 0.5);
             }
 
             .mobile-nav-fab:active {
@@ -3111,8 +3391,8 @@
 
         #icalUrlInput:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #0891b2;
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
         }
 
         details[open] summary {
@@ -3280,7 +3560,7 @@
 
         .drop-zone.drag-over {
             border-color: var(--primary);
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(8, 145, 178, 0.05) 100%);
             border-width: 3px;
             transform: scale(1.02);
         }
@@ -3290,7 +3570,7 @@
             position: absolute;
             inset: 0;
             border-radius: 12px;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.05) 0%, transparent 100%);
             pointer-events: none;
         }
 
@@ -3357,11 +3637,11 @@
         }
 
         [data-theme="dark"] .drop-zone:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(8, 145, 178, 0.1);
         }
 
         [data-theme="dark"] .drop-zone.drag-over {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.2) 0%, rgba(8, 145, 178, 0.1) 100%);
         }
 
         /* Revenue Split Card */
@@ -3731,7 +4011,7 @@
             border: none;
             font-size: 28px;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+            box-shadow: 0 8px 24px rgba(8, 145, 178, 0.5);
             transition: var(--transition);
             z-index: 999;
             display: flex;
@@ -3758,7 +4038,7 @@
 
         .quick-action-fab:hover {
             transform: scale(1.1) rotate(5deg);
-            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.7);
+            box-shadow: 0 12px 32px rgba(8, 145, 178, 0.7);
         }
 
         .quick-action-fab:hover::before {
@@ -3782,7 +4062,7 @@
             border: none;
             font-size: 28px;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
+            box-shadow: 0 8px 24px rgba(8, 145, 178, 0.5);
             transition: var(--transition);
             z-index: 999;
             display: flex;
@@ -3809,7 +4089,7 @@
 
         .keyboard-shortcuts-fab:hover {
             transform: scale(1.1) rotate(-5deg);
-            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.7);
+            box-shadow: 0 12px 32px rgba(8, 145, 178, 0.7);
         }
 
         .keyboard-shortcuts-fab:hover::before {
@@ -4674,7 +4954,7 @@
         left: 0;
         width: 100%;
         height: 100vh;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+        background: var(--gradient-primary);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -4706,7 +4986,7 @@
                 <img src="assets/logo.png" alt="ResIQ Logo" style="width: 100px; height: 100px; object-fit: contain;" 
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <!-- Fallback if logo doesn't load -->
-               <div style="display: none; font-size: 64px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">R</div>
+               <div style="display: none; font-size: 64px; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">R</div>
             </div>
             
             <h1 style="
@@ -4981,6 +5261,10 @@
     <!-- jsPDF for PDF exports -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
+    <!-- EmailJS: send emails directly from browser (no backend required) -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Lucide Icons: Professional icon library (replaces emojis) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     
@@ -5061,9 +5345,9 @@
             <!-- Owner Portal Link -->
             <div style="margin-top: 24px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
                 <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Property Owner?</p>
-                <a href="owner-portal.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);"
-                   onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(139, 92, 246, 0.4)';"
-                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(139, 92, 246, 0.3)';">
+                <a href="owner-portal.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);"
+                   onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(8, 145, 178, 0.4)';"
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(8, 145, 178, 0.3)';">
                     <span style="font-size: 18px;">🏠</span>
                     <span>Access Owner Portal</span>
                     <span style="font-size: 16px;">→</span>
@@ -5368,7 +5652,7 @@
             <!-- Today's Overview - Priority Stats -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">📊 Today's Overview</h2>
+                    <h2 class="home-section-title">Today's Overview</h2>
                 </div>
                 <div class="today-stats-grid">
                     <div class="today-stat-card">
@@ -5397,7 +5681,7 @@
             <!-- Quick Actions - Prominent -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">⚡ Quick Actions</h2>
+                    <h2 class="home-section-title">Quick Actions</h2>
                 </div>
                 <div class="quick-actions-grid">
                     <button class="quick-action-card" onclick="openReservationModal()">
@@ -5426,7 +5710,7 @@
             <!-- Analytics Category -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">📈 Analytics</h2>
+                    <h2 class="home-section-title">Analytics</h2>
                     <span class="home-section-subtitle">Performance insights</span>
                 </div>
                 <div class="category-grid">
@@ -5460,7 +5744,7 @@
             <!-- Operations Category -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">⚡ Operations</h2>
+                    <h2 class="home-section-title">Operations</h2>
                     <span class="home-section-subtitle">Daily management</span>
                 </div>
                 <div class="category-grid">
@@ -5510,7 +5794,7 @@
             <!-- Management Category -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">🔧 Management</h2>
+                    <h2 class="home-section-title">Management</h2>
                     <span class="home-section-subtitle">Settings & admin</span>
                 </div>
                 <div class="category-grid">
@@ -5560,7 +5844,7 @@
             <!-- Recent Activity -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">🕐 Recent Activity</h2>
+                    <h2 class="home-section-title">Recent Activity</h2>
                 </div>
                 <div class="recent-activity-card">
                     <div id="recentActivityList" class="recent-activity-list">
@@ -5573,7 +5857,7 @@
         <style>
         /* Home View Styles */
         .home-welcome-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             border-radius: var(--radius-lg);
             padding: 32px 24px;
             margin-bottom: 24px;
@@ -5615,20 +5899,25 @@
         .home-section-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
             margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
         }
 
         .home-section-title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--text-secondary);
             margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
 
         .home-section-subtitle {
-            font-size: 13px;
-            color: var(--text-secondary);
+            font-size: 12px;
+            color: var(--text-tertiary);
             font-weight: 400;
         }
 
@@ -5640,42 +5929,49 @@
         }
 
         .today-stat-card {
-            background: #ffffff;
+            background: var(--surface);
             border-radius: 12px;
-            padding: 24px 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(0, 0, 0, 0.06);
+            padding: 20px 20px 20px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
             position: relative;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: box-shadow 0.2s ease;
         }
 
+        .today-stat-card:nth-child(1) { border-left-color: #0891b2; }
+        .today-stat-card:nth-child(2) { border-left-color: #d97706; }
+        .today-stat-card:nth-child(3) { border-left-color: #3b82f6; }
+        .today-stat-card:nth-child(4) { border-left-color: #059669; }
+
         .today-stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .today-stat-value {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 6px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
             letter-spacing: -0.02em;
+            line-height: 1.1;
         }
 
         .today-stat-label {
-            font-size: 13px;
-            color: #718096;
-            margin-bottom: 8px;
-            font-weight: 500;
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .today-stat-icon {
             position: absolute;
-            top: 16px;
+            top: 14px;
             right: 16px;
-            font-size: 28px;
-            opacity: 0.1;
+            font-size: 22px;
+            opacity: 0.15;
         }
 
         /* Quick Actions */
@@ -5709,7 +6005,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             transform: scaleX(0);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -5721,34 +6017,34 @@
         .quick-action-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 8px 8px rgba(0, 0, 0, 0.08);
-            border-color: rgba(102, 126, 234, 0.2);
+            border-color: rgba(8, 145, 178, 0.2);
         }
 
         .quick-action-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 10px;
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 24px;
+            background: linear-gradient(135deg, #e0f2f7 0%, #cffafe 100%);
+            transition: transform 0.2s ease, background 0.2s ease;
         }
 
         .quick-action-card:hover .quick-action-icon {
-            transform: scale(1.1);
+            background: var(--gradient-primary);
+            transform: scale(1.05);
         }
 
         .quick-action-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-primary);
         }
 
         .quick-action-desc {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
         }
 
@@ -5780,7 +6076,7 @@
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             transform: scaleY(0);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -5792,7 +6088,7 @@
         .category-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.06);
-            border-color: rgba(102, 126, 234, 0.2);
+            border-color: rgba(8, 145, 178, 0.2);
         }
 
         .category-card:active {
@@ -5845,7 +6141,7 @@
         }
 
         .category-card:hover .category-card-arrow {
-            color: #667eea;
+            color: #0891b2;
             transform: translateX(4px);
         }
 
@@ -6058,10 +6354,13 @@
 
         <!-- Dashboard View -->
         <div id="dashboardView" class="container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="margin: 0;">Dashboard Overview</h2>
-                <button class="btn btn-secondary btn-sm" onclick="exportDashboardPDF()" style="display: flex; align-items: center; gap: 8px;">
-                    📄 Export PDF Report
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary);">Reservations Dashboard</h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Real-time overview of bookings, revenue, and performance</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="exportDashboardPDF()" style="display: flex; align-items: center; gap: 6px;">
+                    📄 Export PDF
                 </button>
             </div>
 
@@ -6122,9 +6421,9 @@
                 </div>
                 
                 <!-- Active Filter Info -->
-                <div id="activeFilterInfo" style="display: none; margin-top: 12px; padding: 8px 16px; background: #e0e7ff; border-radius: 8px; font-size: 13px; color: #4338ca;">
+                <div id="activeFilterInfo" style="display: none; margin-top: 12px; padding: 8px 16px; background: #e0f2f7; border-radius: 8px; font-size: 13px; color: var(--primary-dark); border: 1px solid rgba(8,145,178,0.2);">
                     <span id="activeFilterText"></span>
-                    <button onclick="clearAllFilters()" style="margin-left: 12px; color: #4338ca; text-decoration: underline; background: none; border: none; cursor: pointer; font-weight: 600;">
+                    <button onclick="clearAllFilters()" style="margin-left: 12px; color: var(--primary); text-decoration: underline; background: none; border: none; cursor: pointer; font-weight: 600;">
                         Clear
                     </button>
                 </div>
@@ -6240,7 +6539,7 @@
             </div>
 
             <!-- This Month Performance Card -->
-            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+            <div class="card" style="margin-bottom: 24px; background: var(--gradient-primary); color: white; border: none;">
                 <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.2); padding: 20px 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 class="card-title" style="color: white; margin: 0;">📊 This Month Performance</h3>
@@ -6336,9 +6635,9 @@
                             <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">🏠 Properties</div>
                             <div style="font-size: 18px; font-weight: 700; color: #10b981;" id="propertyCollected">₹0</div>
                         </div>
-                        <div style="padding: 12px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 8px; border-left: 3px solid #667eea;">
+                        <div style="padding: 12px; background: linear-gradient(135deg, #0891b215 0%, #06b6d415 100%); border-radius: 8px; border-left: 3px solid #0891b2;">
                             <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">💼 Hostizzy</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #667eea;" id="hostizzyCollected">₹0</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #0891b2;" id="hostizzyCollected">₹0</div>
                         </div>
                     </div>
 
@@ -6405,7 +6704,7 @@
                 </div>
 
             <!-- AI-Powered Insights Section -->
-            <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; margin-bottom: 24px;">
+            <div class="card" style="background: var(--gradient-primary); border: none; color: white; margin-bottom: 24px;">
                 <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.2); cursor: pointer;" onclick="toggleCollapse('aiInsightsContent','aiInsightsIcon')">
                     <h3 class="card-title" style="color: white; display: flex; align-items: center; gap: 8px;">
                         🤖 AI-Powered Insights <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 10px;">SMART</span>
@@ -6688,9 +6987,9 @@
 
                         <!-- Checked Out Column -->
                         <div class="kanban-column">
-                            <div class="kanban-column-header" style="background: #e0e7ff; color: #4338ca;">
+                            <div class="kanban-column-header" style="background: #e0f2f7; color: var(--primary-dark);">
                                 <span>🎉 Checked Out</span>
-                                <span class="kanban-column-count" id="kanbanCheckedOutCount" style="background: #6366f1;">0</span>
+                                <span class="kanban-column-count" id="kanbanCheckedOutCount" style="background: var(--primary);">0</span>
                             </div>
                             <div class="kanban-cards" id="kanban-checked-out" data-status="checked-out"></div>
                         </div>
@@ -7310,7 +7609,7 @@
             </div>
 
             <!-- Payment Health Dashboard -->
-            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">
+            <div class="card" style="margin-bottom: 24px; background: var(--gradient-danger); color: white; border: none;">
                 <div style="padding: 24px;">
                     <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: white;">
                         <span>❤️</span> Payment Health Score
@@ -7346,7 +7645,7 @@
             </div>
 
             <!-- Smart Insights & Alerts -->
-            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+            <div class="card" style="margin-bottom: 24px; background: var(--gradient-primary); color: white; border: none;">
                 <div style="padding: 24px;">
                     <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: white;">
                         <span>💡</span> Smart Insights & Alerts
@@ -7633,8 +7932,9 @@
 
         <!-- Settings View -->
         <div id="settingsView" class="container hidden">
-            <div class="card-header">
-                <h2>⚙️ Settings</h2>
+            <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary);">Settings</h2>
+                <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Configure your ResIQ workspace, integrations, and preferences</p>
             </div>
 
             <!-- Settings Tabs -->
@@ -7801,52 +8101,97 @@
 
             <!-- Integrations Settings -->
             <div id="settings-integrations" class="settings-panel">
-                <div class="card">
-                    <h3 style="margin-bottom: 20px;">🔌 Integrations</h3>
 
-                    <div class="integration-card">
-                        <div class="integration-header">
-                            <div>
-                                <h4>📧 Email Integration</h4>
-                                <p style="font-size: 13px; color: var(--text-secondary);">Connect your email for automated communications</p>
-                            </div>
-                            <span class="badge badge-warning">Not Connected</span>
+                <!-- EmailJS Integration (Functional) -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="integration-header" style="margin-bottom: 16px;">
+                        <div>
+                            <h4 style="margin: 0 0 4px 0;">📧 Email Sending (EmailJS)</h4>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Send emails directly to guests from ResIQ — no backend needed</p>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('email')">Configure</button>
+                        <span class="badge" id="emailjsBadge" style="background: var(--warning); color: white;">Not Configured</span>
                     </div>
 
-                    <div class="integration-card">
-                        <div class="integration-header">
-                            <div>
-                                <h4>💬 WhatsApp Business API</h4>
-                                <p style="font-size: 13px; color: var(--text-secondary);">Send automated WhatsApp messages to guests</p>
-                            </div>
-                            <span class="badge badge-warning">Not Connected</span>
-                        </div>
-                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('whatsapp')">Configure</button>
+                    <div style="background: #e0f2f7; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; border-left: 3px solid var(--primary); font-size: 13px;">
+                        <strong>How to set up:</strong> Create a free account at
+                        <a href="https://www.emailjs.com" target="_blank" style="color: var(--primary);">emailjs.com</a>,
+                        add your Gmail/Outlook service, create an email template, then paste your credentials below.
                     </div>
 
-                    <div class="integration-card">
-                        <div class="integration-header">
-                            <div>
-                                <h4>💳 Payment Gateway</h4>
-                                <p style="font-size: 13px; color: var(--text-secondary);">Accept online payments from guests</p>
-                            </div>
-                            <span class="badge badge-warning">Not Connected</span>
-                        </div>
-                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('payment')">Configure</button>
+                    <div class="form-group">
+                        <label>Service ID <span style="font-size: 11px; color: var(--text-secondary);">(e.g. service_xxxxxx)</span></label>
+                        <input type="text" id="emailjsServiceId" placeholder="service_xxxxxxx" oninput="checkEmailJSConfig()">
                     </div>
+                    <div class="form-group">
+                        <label>Template ID <span style="font-size: 11px; color: var(--text-secondary);">(e.g. template_xxxxxx)</span></label>
+                        <input type="text" id="emailjsTemplateId" placeholder="template_xxxxxxx" oninput="checkEmailJSConfig()">
+                    </div>
+                    <div class="form-group">
+                        <label>Public Key <span style="font-size: 11px; color: var(--text-secondary);">(from EmailJS Account → API Keys)</span></label>
+                        <input type="text" id="emailjsPublicKey" placeholder="Your EmailJS public key" oninput="checkEmailJSConfig()">
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+                        Your template should include variables: <code>{{to_email}}</code>, <code>{{to_name}}</code>, <code>{{subject}}</code>, <code>{{message}}</code>, <code>{{from_name}}</code>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveEmailJSConfig()">💾 Save EmailJS Config</button>
+                </div>
 
-                    <div class="integration-card">
-                        <div class="integration-header">
-                            <div>
-                                <h4>📆 Calendar Sync</h4>
-                                <p style="font-size: 13px; color: var(--text-secondary);">Sync with Google Calendar, Airbnb, Booking.com</p>
-                            </div>
-                            <span class="badge badge-warning">Not Connected</span>
+                <!-- iCal / Calendar Sync (Active) -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="integration-header">
+                        <div>
+                            <h4 style="margin: 0 0 4px 0;">📆 iCal / Calendar Sync</h4>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Import bookings from Airbnb, Booking.com, Agoda via iCal feed</p>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="showIntegrationInfo('calendar')">Configure</button>
+                        <span class="badge" style="background: var(--success); color: white;">Active</span>
                     </div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 12px 0;">
+                        iCal sync is configured per property. Go to <strong>Properties</strong> → select a property → <strong>Settings</strong> to add your OTA iCal feed URL and set sync frequency.
+                    </p>
+                    <button class="btn btn-secondary btn-sm" onclick="showView('properties')">Go to Properties →</button>
+                </div>
+
+                <!-- Gmail Auto-Import (Active) -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="integration-header">
+                        <div>
+                            <h4 style="margin: 0 0 4px 0;">📬 Gmail Booking Import</h4>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Auto-create reservations from booking confirmation emails (stay@hostizzy.com)</p>
+                        </div>
+                        <span class="badge" id="gmailIntegrationBadge" style="background: var(--warning); color: white;">Not Connected</span>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 12px 0;">
+                        Configure in App Settings (⚙️ top right) to connect your Gmail account.
+                    </p>
+                    <button class="btn btn-secondary btn-sm" onclick="openAppSettings()">Open App Settings →</button>
+                </div>
+
+                <!-- WhatsApp (Coming Soon) -->
+                <div class="card" style="margin-bottom: 16px; opacity: 0.8;">
+                    <div class="integration-header">
+                        <div>
+                            <h4 style="margin: 0 0 4px 0;">💬 WhatsApp Business</h4>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Send automated messages via WhatsApp Business API</p>
+                        </div>
+                        <span class="badge" style="background: var(--text-secondary); color: white;">Coming Soon</span>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 0 0;">
+                        WhatsApp Business API integration is planned for v3.0. For now, use the direct WhatsApp link from the Guest view.
+                    </p>
+                </div>
+
+                <!-- Payment Gateway (Coming Soon) -->
+                <div class="card" style="opacity: 0.8;">
+                    <div class="integration-header">
+                        <div>
+                            <h4 style="margin: 0 0 4px 0;">💳 Payment Gateway</h4>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Accept online payments via Razorpay / Stripe</p>
+                        </div>
+                        <span class="badge" style="background: var(--text-secondary); color: white;">Coming Soon</span>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 0 0;">
+                        Online payment collection is planned for v3.0. Contact <a href="mailto:support@hostizzy.com" style="color: var(--primary);">support@hostizzy.com</a> for early access.
+                    </p>
                 </div>
             </div>
 
@@ -7939,57 +8284,119 @@
 
         <!-- Communication View -->
         <div id="communicationView" class="container hidden">
-            <div class="card-header">
-                <h2>💬 Communication Center</h2>
-                <button class="btn btn-primary" onclick="openComposeModal()">✉️ Compose Message</button>
-            </div>
-
-            <!-- Communication Tabs -->
-            <div class="card" style="margin-bottom: 20px;">
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="filter-chip active" onclick="filterCommunications('all', this)">All Messages</button>
-                    <button class="filter-chip" onclick="filterCommunications('whatsapp', this)">💬 WhatsApp</button>
-                    <button class="filter-chip" onclick="filterCommunications('email', this)">📧 Email</button>
-                    <button class="filter-chip" onclick="filterCommunications('sms', this)">📱 SMS</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary);">Communication Center</h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Email guests directly or log WhatsApp / SMS messages</p>
                 </div>
+                <button class="btn btn-primary" onclick="openComposeModal()" style="display: flex; align-items: center; gap: 8px;">
+                    <span>✉️</span> Compose
+                </button>
             </div>
 
-            <!-- Quick Actions -->
+            <!-- Email Status Banner -->
+            <div id="emailStatusBanner" style="margin-bottom: 20px;"></div>
+
+            <!-- Quick Templates -->
             <div class="card" style="margin-bottom: 20px;">
-                <h3 style="margin-bottom: 16px;">⚡ Quick Templates</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                    <button class="btn btn-secondary" onclick="sendTemplate('booking-confirmation')">
-                        ✅ Booking Confirmation
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Quick Templates</h3>
+                    <span style="font-size: 12px; color: var(--text-secondary);">Click to pre-fill compose window</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
+                    <button class="comm-template-btn" onclick="sendTemplate('booking-confirmation')">
+                        <span class="comm-template-icon">✅</span>
+                        <span>Booking Confirmation</span>
                     </button>
-                    <button class="btn btn-secondary" onclick="sendTemplate('payment-reminder')">
-                        💰 Payment Reminder
+                    <button class="comm-template-btn" onclick="sendTemplate('payment-reminder')">
+                        <span class="comm-template-icon">💰</span>
+                        <span>Payment Reminder</span>
                     </button>
-                    <button class="btn btn-secondary" onclick="sendTemplate('check-in')">
-                        🔑 Check-in Details
+                    <button class="comm-template-btn" onclick="sendTemplate('check-in')">
+                        <span class="comm-template-icon">🔑</span>
+                        <span>Check-in Details</span>
                     </button>
-                    <button class="btn btn-secondary" onclick="sendTemplate('check-out')">
-                        👋 Check-out Thank You
+                    <button class="comm-template-btn" onclick="sendTemplate('check-out')">
+                        <span class="comm-template-icon">👋</span>
+                        <span>Check-out Thanks</span>
                     </button>
-                    <button class="btn btn-secondary" onclick="sendTemplate('review-request')">
-                        ⭐ Review Request
+                    <button class="comm-template-btn" onclick="sendTemplate('review-request')">
+                        <span class="comm-template-icon">⭐</span>
+                        <span>Review Request</span>
                     </button>
-                    <button class="btn btn-secondary" onclick="sendTemplate('custom')">
-                        ✏️ Custom Message
+                    <button class="comm-template-btn" onclick="sendTemplate('custom')">
+                        <span class="comm-template-icon">✏️</span>
+                        <span>Custom Message</span>
                     </button>
                 </div>
             </div>
 
             <!-- Message History -->
             <div class="card">
-                <h3 style="margin-bottom: 16px;">📬 Recent Messages</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Message History</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="filter-chip active" onclick="filterCommunications('all', this)" style="font-size: 12px; padding: 4px 12px;">All</button>
+                        <button class="filter-chip" onclick="filterCommunications('email', this)" style="font-size: 12px; padding: 4px 12px;">📧 Email</button>
+                        <button class="filter-chip" onclick="filterCommunications('whatsapp', this)" style="font-size: 12px; padding: 4px 12px;">💬 WhatsApp</button>
+                        <button class="filter-chip" onclick="filterCommunications('sms', this)" style="font-size: 12px; padding: 4px 12px;">📱 SMS</button>
+                    </div>
+                </div>
                 <div id="messageHistory">
                     <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
-                        <h3 style="margin-bottom: 8px;">No messages yet</h3>
-                        <p>Start communicating with your guests using the quick templates above</p>
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;">✉️</div>
+                        <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-weight: 600;">No messages yet</h3>
+                        <p style="font-size: 14px;">Use the quick templates above or compose a message to get started</p>
                     </div>
                 </div>
             </div>
+
+            <style>
+            .comm-template-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                padding: 16px 12px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text-primary);
+                transition: all 0.2s ease;
+                text-align: center;
+            }
+            .comm-template-btn:hover {
+                background: #e0f2f7;
+                border-color: var(--primary);
+                color: var(--primary-dark);
+            }
+            .comm-template-icon {
+                font-size: 20px;
+            }
+            .comm-msg-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 14px 0;
+                border-bottom: 1px solid var(--border);
+            }
+            .comm-msg-item:last-child { border-bottom: none; }
+            .comm-msg-avatar {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: var(--gradient-primary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                flex-shrink: 0;
+                color: white;
+            }
+            </style>
         </div>
     </div>
 
@@ -9068,7 +9475,7 @@
 <!-- Property Settings Modal -->
 <div id="propertySettingsModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 600px;">
-        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px 12px 0 0;">
+        <div class="modal-header" style="background: var(--gradient-primary); color: white; padding: 24px; border-radius: 12px 12px 0 0;">
             <h2 style="margin: 0; font-size: 24px; display: flex; align-items: center; gap: 12px;">
                 <span>⚙️</span>
                 <span id="settingsModalTitle">Property Settings</span>
@@ -9162,7 +9569,7 @@
                     Cancel
                 </button>
                 <button onclick="savePropertySettings()" 
-                    style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+                    style="padding: 12px 24px; background: var(--gradient-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(8, 145, 178, 0.3);">
                     💾 Save Settings
                 </button>
             </div>
@@ -11379,6 +11786,17 @@
                 document.getElementById('paymentReminderDays').value = localStorage.getItem('paymentReminderDays') || '7';
                 document.getElementById('documentExpiryDays').value = localStorage.getItem('documentExpiryDays') || '30';
                 document.getElementById('automationInterval').value = localStorage.getItem('automationInterval') || '30';
+
+                // Load EmailJS config
+                loadEmailJSConfig();
+
+                // Update Gmail integration badge
+                const gmailBadge = document.getElementById('gmailIntegrationBadge');
+                if (gmailBadge) {
+                    const gmailConnected = !!localStorage.getItem('gmail_access_token');
+                    gmailBadge.style.background = gmailConnected ? 'var(--success)' : 'var(--warning)';
+                    gmailBadge.textContent = gmailConnected ? 'Connected' : 'Not Connected';
+                }
             } catch (error) {
                 console.error('Error loading settings:', error);
             }
@@ -11539,9 +11957,35 @@
                 const stored = localStorage.getItem('communicationMessages');
                 communicationMessages = stored ? JSON.parse(stored) : [];
                 renderCommunicationMessages();
+                renderEmailStatusBanner();
             } catch (error) {
                 console.error('Error loading communications:', error);
                 communicationMessages = [];
+            }
+        }
+
+        function renderEmailStatusBanner() {
+            const banner = document.getElementById('emailStatusBanner');
+            if (!banner) return;
+            const configured = !!(localStorage.getItem('emailjs_service_id') &&
+                                  localStorage.getItem('emailjs_template_id') &&
+                                  localStorage.getItem('emailjs_public_key'));
+            if (configured) {
+                banner.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #dcfce7; border-radius: 8px; border-left: 3px solid var(--success); font-size: 13px; color: #166534;">
+                        <span>✅</span>
+                        <span><strong>Email sending active</strong> via EmailJS — emails go directly to guest inboxes</span>
+                    </div>`;
+            } else {
+                banner.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff7ed; border-radius: 8px; border-left: 3px solid var(--warning); font-size: 13px; color: #92400e;">
+                        <span>⚠️</span>
+                        <span>Email sending not configured.
+                            <button onclick="showView('settings'); setTimeout(() => switchSettingsTab('integrations'), 200)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-weight: 600; text-decoration: underline; font-size: 13px; padding: 0; margin-left: 4px;">
+                                Set up EmailJS →
+                            </button>
+                        </span>
+                    </div>`;
             }
         }
 
@@ -11557,36 +12001,49 @@
             if (filteredMessages.length === 0) {
                 messageHistory.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
-                        <h3 style="margin-bottom: 8px;">No messages yet</h3>
-                        <p>Start communicating with your guests using the quick templates above</p>
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;">✉️</div>
+                        <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-weight: 600;">No messages yet</h3>
+                        <p style="font-size: 14px;">Use the quick templates above or compose a message to get started</p>
                     </div>
                 `;
                 return;
             }
 
-            messageHistory.innerHTML = filteredMessages.map(msg => `
-                <div class="communication-message" style="padding: 16px; border-bottom: 1px solid var(--border); transition: background 0.2s;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 24px;">${getChannelIcon(msg.channel)}</span>
+            const channelColors = {
+                email: { bg: '#e0f2f7', color: '#0e7490', icon: '📧' },
+                whatsapp: { bg: '#dcfce7', color: '#166534', icon: '💬' },
+                sms: { bg: '#f3f4f6', color: '#374151', icon: '📱' }
+            };
+
+            messageHistory.innerHTML = filteredMessages.map(msg => {
+                const ch = channelColors[msg.channel] || { bg: '#f3f4f6', color: '#374151', icon: '💬' };
+                const statusColor = msg.status === 'sent' ? 'var(--success)' : '#92400e';
+                const statusBg = msg.status === 'sent' ? '#dcfce7' : '#fef3c7';
+                const date = new Date(msg.timestamp);
+                const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                return `
+                <div class="comm-msg-item">
+                    <div class="comm-msg-avatar" style="background: ${ch.bg}; color: ${ch.color}; font-size: 18px;">
+                        ${ch.icon}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
                             <div>
-                                <div style="font-weight: 600; color: var(--text-primary);">${msg.recipient}</div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">${msg.channel.toUpperCase()}</div>
+                                <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${msg.recipient.split('(')[0].trim()}</span>
+                                ${msg.recipientEmail ? `<span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">${msg.recipientEmail}</span>` : ''}
                             </div>
+                            <span style="font-size: 11px; color: var(--text-tertiary); white-space: nowrap; margin-left: 12px;">${dateStr} ${timeStr}</span>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 12px; color: var(--text-tertiary);">${new Date(msg.timestamp).toLocaleDateString()}</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary);">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                        <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); margin-bottom: 4px;">${msg.subject}</div>
+                        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${msg.message.substring(0, 200)}${msg.message.length > 200 ? '…' : ''}</div>
+                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-block; padding: 2px 10px; background: ${ch.bg}; color: ${ch.color}; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase;">${msg.channel}</span>
+                            ${msg.status ? `<span style="display: inline-block; padding: 2px 10px; background: ${statusBg}; color: ${statusColor}; border-radius: 10px; font-size: 11px; font-weight: 600;">${msg.status}</span>` : ''}
                         </div>
                     </div>
-                    <div style="padding: 12px; background: var(--background); border-radius: 8px; margin-top: 8px;">
-                        <div style="font-weight: 600; margin-bottom: 4px; color: var(--primary);">${msg.subject}</div>
-                        <div style="color: var(--text-secondary); font-size: 14px; line-height: 1.5;">${msg.message}</div>
-                    </div>
-                    ${msg.status ? `<div style="margin-top: 8px; display: inline-block; padding: 4px 12px; background: ${msg.status === 'sent' ? '#dcfce7' : '#fef3c7'}; color: ${msg.status === 'sent' ? '#166534' : '#92400e'}; border-radius: 12px; font-size: 11px; font-weight: 600;">${msg.status.toUpperCase()}</div>` : ''}
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         function getChannelIcon(channel) {
@@ -11599,6 +12056,14 @@
         }
 
         function openComposeModal() {
+            const emailJSConfigured = !!(localStorage.getItem('emailjs_service_id') &&
+                                        localStorage.getItem('emailjs_template_id') &&
+                                        localStorage.getItem('emailjs_public_key'));
+
+            const emailLabel = emailJSConfigured
+                ? '📧 Email (will be sent)'
+                : '📧 Email (configure in Settings first)';
+
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.style.display = 'flex';
@@ -11611,20 +12076,25 @@
                     <div style="padding: 20px;">
                         <div class="form-group">
                             <label>Channel *</label>
-                            <select id="composeChannel">
-                                <option value="whatsapp">💬 WhatsApp</option>
+                            <select id="composeChannel" onchange="updateComposeChannelHint(this.value)">
                                 <option value="email">📧 Email</option>
-                                <option value="sms">📱 SMS</option>
+                                <option value="whatsapp">💬 WhatsApp (logged only)</option>
+                                <option value="sms">📱 SMS (logged only)</option>
                             </select>
+                        </div>
+                        <div id="composeChannelHint" style="margin: -8px 0 12px 0; font-size: 12px; color: var(--text-secondary); padding: 8px 12px; background: ${emailJSConfigured ? '#e0f2f7' : '#fff7ed'}; border-radius: 6px;">
+                            ${emailJSConfigured
+                                ? '✅ EmailJS configured — email will be sent directly to guest'
+                                : '⚠️ EmailJS not configured — go to <strong>Settings → Integrations</strong> to enable email sending'}
                         </div>
                         <div class="form-group">
                             <label>Recipient *</label>
                             <select id="composeRecipient">
-                                <option value="">Select Guest...</option>
+                                <option value="">Loading guests...</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Subject/Title</label>
+                            <label>Subject</label>
                             <input type="text" id="composeSubject" placeholder="e.g., Booking Confirmation">
                         </div>
                         <div class="form-group">
@@ -11634,21 +12104,34 @@
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                        <button class="btn btn-primary" onclick="sendComposedMessage()">📤 Send Message</button>
+                        <button class="btn btn-primary" onclick="sendComposedMessage()">📤 Send</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
 
-            // Close modal when clicking outside
             modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    modal.remove();
-                }
+                if (e.target === modal) modal.remove();
             });
 
-            // Load guests into recipient dropdown
             loadGuestsForCompose();
+        }
+
+        function updateComposeChannelHint(channel) {
+            const hint = document.getElementById('composeChannelHint');
+            if (!hint) return;
+            const emailJSConfigured = !!(localStorage.getItem('emailjs_service_id') &&
+                                        localStorage.getItem('emailjs_template_id') &&
+                                        localStorage.getItem('emailjs_public_key'));
+            if (channel === 'email') {
+                hint.style.background = emailJSConfigured ? '#e0f2f7' : '#fff7ed';
+                hint.innerHTML = emailJSConfigured
+                    ? '✅ EmailJS configured — email will be sent directly to guest'
+                    : '⚠️ EmailJS not configured — go to <strong>Settings → Integrations</strong> to enable email sending';
+            } else {
+                hint.style.background = '#f8fafc';
+                hint.innerHTML = `ℹ️ ${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'} messages are logged in history only. Direct sending coming soon.`;
+            }
         }
 
         async function loadGuestsForCompose() {
@@ -11664,19 +12147,29 @@
 
                 reservations.forEach(r => {
                     if (r.guest_name && r.guest_phone) {
-                        uniqueGuests[r.guest_phone] = r.guest_name;
+                        const key = r.guest_phone;
+                        if (!uniqueGuests[key]) {
+                            uniqueGuests[key] = {
+                                name: r.guest_name,
+                                phone: r.guest_phone,
+                                email: r.guest_email && r.guest_email !== 'placeholder@ical.import' ? r.guest_email : ''
+                            };
+                        }
                     }
                 });
 
-                const guestEntries = Object.entries(uniqueGuests);
+                const guestEntries = Object.values(uniqueGuests);
 
                 if (guestEntries.length === 0) {
                     select.innerHTML = '<option value="">No guests found</option>';
                 } else {
                     select.innerHTML = '<option value="">Select Guest...</option>' +
-                        guestEntries.map(([phone, name]) =>
-                            `<option value="${phone}">${name} (${phone})</option>`
-                        ).join('');
+                        guestEntries.map(g => {
+                            const label = g.email
+                                ? `${g.name} — ${g.email}`
+                                : `${g.name} (${g.phone}) — no email`;
+                            return `<option value="${g.phone}" data-email="${g.email || ''}" data-name="${g.name}">${label}</option>`;
+                        }).join('');
                 }
 
                 select.disabled = false;
@@ -11688,7 +12181,101 @@
             }
         }
 
-        function sendComposedMessage() {
+        // ============================================================
+        // EmailJS Integration - send emails directly from browser
+        // ============================================================
+        function saveEmailJSConfig() {
+            const serviceId = document.getElementById('emailjsServiceId').value.trim();
+            const templateId = document.getElementById('emailjsTemplateId').value.trim();
+            const publicKey = document.getElementById('emailjsPublicKey').value.trim();
+
+            if (!serviceId || !templateId || !publicKey) {
+                showToast('Missing Fields', 'Please fill in all three EmailJS fields', '⚠️');
+                return;
+            }
+
+            localStorage.setItem('emailjs_service_id', serviceId);
+            localStorage.setItem('emailjs_template_id', templateId);
+            localStorage.setItem('emailjs_public_key', publicKey);
+
+            // Initialize EmailJS with the public key
+            if (typeof emailjs !== 'undefined') {
+                emailjs.init(publicKey);
+            }
+
+            checkEmailJSConfig();
+            showToast('EmailJS Saved', 'Email configuration saved. You can now send emails to guests.', '✅');
+        }
+
+        function loadEmailJSConfig() {
+            const serviceId = localStorage.getItem('emailjs_service_id') || '';
+            const templateId = localStorage.getItem('emailjs_template_id') || '';
+            const publicKey = localStorage.getItem('emailjs_public_key') || '';
+
+            const svcEl = document.getElementById('emailjsServiceId');
+            const tplEl = document.getElementById('emailjsTemplateId');
+            const keyEl = document.getElementById('emailjsPublicKey');
+
+            if (svcEl) svcEl.value = serviceId;
+            if (tplEl) tplEl.value = templateId;
+            if (keyEl) keyEl.value = publicKey;
+
+            if (publicKey && typeof emailjs !== 'undefined') {
+                emailjs.init(publicKey);
+            }
+
+            checkEmailJSConfig();
+        }
+
+        function checkEmailJSConfig() {
+            const badge = document.getElementById('emailjsBadge');
+            if (!badge) return;
+            const serviceId = document.getElementById('emailjsServiceId')?.value.trim() ||
+                              localStorage.getItem('emailjs_service_id') || '';
+            const templateId = document.getElementById('emailjsTemplateId')?.value.trim() ||
+                               localStorage.getItem('emailjs_template_id') || '';
+            const publicKey = document.getElementById('emailjsPublicKey')?.value.trim() ||
+                              localStorage.getItem('emailjs_public_key') || '';
+
+            if (serviceId && templateId && publicKey) {
+                badge.style.background = 'var(--success)';
+                badge.textContent = 'Configured';
+            } else {
+                badge.style.background = 'var(--warning)';
+                badge.textContent = 'Not Configured';
+            }
+        }
+
+        async function sendEmailViaEmailJS(toEmail, toName, subject, message) {
+            const serviceId = localStorage.getItem('emailjs_service_id');
+            const templateId = localStorage.getItem('emailjs_template_id');
+            const publicKey = localStorage.getItem('emailjs_public_key');
+
+            if (!serviceId || !templateId || !publicKey) {
+                throw new Error('EmailJS not configured. Go to Settings → Integrations to set up email.');
+            }
+
+            if (typeof emailjs === 'undefined') {
+                throw new Error('EmailJS library not loaded. Please refresh the page.');
+            }
+
+            emailjs.init(publicKey);
+
+            const businessName = localStorage.getItem('businessName') || 'ResIQ';
+
+            const templateParams = {
+                to_email: toEmail,
+                to_name: toName,
+                subject: subject,
+                message: message,
+                from_name: businessName,
+                reply_to: localStorage.getItem('businessEmail') || ''
+            };
+
+            return emailjs.send(serviceId, templateId, templateParams);
+        }
+
+        async function sendComposedMessage() {
             try {
                 const channel = document.getElementById('composeChannel');
                 const recipient = document.getElementById('composeRecipient');
@@ -11713,16 +12300,47 @@
                     return;
                 }
 
-                const recipientText = recipient.options[recipient.selectedIndex].text;
+                const selectedOption = recipient.options[recipient.selectedIndex];
+                const recipientText = selectedOption.text;
+                const recipientEmail = selectedOption.dataset.email || '';
+                const recipientName = selectedOption.dataset.name || recipientText.split('(')[0].trim();
+
+                // For email channel, actually send via EmailJS
+                if (channel.value === 'email') {
+                    if (!recipientEmail) {
+                        showToast('No Email', 'This guest has no email address on file. Please update their profile.', '⚠️');
+                        return;
+                    }
+
+                    const sendBtn = document.querySelector('#composeModal .btn-primary') ||
+                                    document.querySelector('.modal .btn-primary');
+                    if (sendBtn) {
+                        sendBtn.disabled = true;
+                        sendBtn.textContent = '⏳ Sending...';
+                    }
+
+                    try {
+                        await sendEmailViaEmailJS(recipientEmail, recipientName, subject.value || 'Message from ResIQ', message);
+                        showToast('Email Sent', `Email sent to ${recipientName} (${recipientEmail})`, '✅');
+                    } catch (emailError) {
+                        showToast('Email Failed', emailError.message || 'Failed to send email. Check your EmailJS config in Settings.', '❌');
+                        if (sendBtn) {
+                            sendBtn.disabled = false;
+                            sendBtn.textContent = '📤 Send Message';
+                        }
+                        return;
+                    }
+                }
 
                 const newMessage = {
                     id: Date.now(),
                     channel: channel.value,
                     recipient: recipientText,
+                    recipientEmail,
                     subject: subject.value || 'Message',
                     message,
                     timestamp: new Date().toISOString(),
-                    status: 'sent'
+                    status: channel.value === 'email' ? 'sent' : 'logged'
                 };
 
                 communicationMessages.unshift(newMessage);
@@ -11730,12 +12348,13 @@
                 renderCommunicationMessages();
 
                 // Close modal
-                const modal = document.querySelector('.modal');
-                if (modal) {
-                    modal.remove();
-                }
+                document.querySelectorAll('.modal').forEach(m => {
+                    if (m.querySelector('#composeChannel')) m.remove();
+                });
 
-                showToast('Message Sent', `Message sent to ${recipientText.split('(')[0].trim()}`, '✅');
+                if (channel.value !== 'email') {
+                    showToast('Logged', `${channel.value.toUpperCase()} message logged for ${recipientName}`, '✅');
+                }
             } catch (error) {
                 console.error('Error sending message:', error);
                 showToast('Error', 'Failed to send message. Please try again.', '❌');
@@ -12105,7 +12724,7 @@
                         <div class="metric-label">Occupancy Rate</div>
                         <div class="metric-trend">${totalNights}/${targetNights} nights booked</div>
                     </div>
-                    <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <div class="metric-card" style="background: var(--gradient-primary);">
                         <div class="metric-icon">🏆</div>
                         <div class="metric-value">${formatCurrency(hostizzyRevenue)}</div>
                         <div class="metric-label">Hostizzy Revenue</div>
@@ -12351,7 +12970,7 @@
                     <div class="metric-label">Occupancy Rate</div>
                     <div class="metric-trend">${totalNights}/${targetNights} nights booked</div>
                 </div>
-                <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                <div class="metric-card" style="background: var(--gradient-primary);">
                     <div class="metric-icon">🏆</div>
                     <div class="metric-value">${formatCurrency(hostizzyRevenue)}</div>
                     <div class="metric-label">Hostizzy Revenue</div>
@@ -12746,7 +13365,7 @@
                     <div class="metric-label">Occupancy Rate</div>
                     <div class="metric-trend">${totalNights}/${targetNights} nights booked</div>
                 </div>
-                <div class="metric-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                <div class="metric-card" style="background: var(--gradient-primary);">
                     <div class="metric-icon">🏆</div>
                     <div class="metric-value">${formatCurrency(hostizzyRevenue)}</div>
                     <div class="metric-label">Hostizzy Revenue</div>
@@ -13004,7 +13623,7 @@
                 .sort((a, b) => b[1].amount - a[1].amount);
             
             const totalAmount = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-            const colors = { cash: '#10b981', upi: '#3b82f6', gateway: '#8b5cf6', bank_transfer: '#f59e0b' };
+            const colors = { cash: '#10b981', upi: '#3b82f6', gateway: 'var(--primary)', bank_transfer: '#f59e0b' };
             const icons = { cash: '💵', upi: '📱', gateway: '💳', bank_transfer: '🏦' };
             
             const html = sortedMethods.length > 0 ? sortedMethods.map(([method, data]) => {
@@ -13352,7 +13971,7 @@
                         title: 'Premium Pricing Success',
                         message: `${highValueProps.length} ${highValueProps.length === 1 ? 'property is' : 'properties are'} achieving 20%+ higher booking values. Apply similar strategies to other properties.`,
                         action: 'View Pricing',
-                        color: 'rgba(139, 92, 246, 0.15)'
+                        color: 'rgba(8, 145, 178, 0.15)'
                     });
                 }
             }
@@ -13483,7 +14102,7 @@
             
             const totalBookings = reservations.length;
             const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-            const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+            const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', 'var(--primary)', '#ec4899'];
             const icons = {
                 'AIRBNB': '🏠',
                 'BOOKING.COM': '🌐',
@@ -15158,7 +15777,7 @@
                 
                 // Render payment stats cards
                 let statsHTML = `
-                    <div class="stat-card" style="border-left-color: #8b5cf6;">
+                    <div class="stat-card" style="border-left-color: var(--primary);">
                         <div class="stat-label">Total Revenue</div>
                         <div class="stat-value">${formatCurrency(totalRevenue)}</div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
@@ -16501,7 +17120,7 @@
                     </div>
                 </div>
 
-                <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                <div style="background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(8, 145, 178, 0.1) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span style="font-size: 24px;">⏰</span>
                         <div>
@@ -18235,44 +18854,6 @@
         function calculateMoMChange(current, previous) {
             if (previous === 0) return current > 0 ? 100 : 0;
             return ((current - previous) / previous) * 100;
-        }
-
-        // Format MoM change with arrow
-        function formatMoMChange(change) {
-            const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
-            const color = change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-secondary)';
-            return `<span style="color: ${color}">${arrow} ${Math.abs(change).toFixed(1)}% MoM</span>`;
-        }
-
-        // Compact MoM change format (for table cells)
-        function formatMoMChangeCompact(change) {
-            const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
-            const color = change > 0 ? 'var(--success)' : change < 0 ? 'var(--danger)' : 'var(--text-secondary)';
-            return `<span style="color: ${color}; font-size: 12px;">${arrow} ${Math.abs(change).toFixed(1)}%</span>`;
-        }
-
-        // Group reservations by month (YYYY-MM format)
-        function groupReservationsByMonth(reservations) {
-            const grouped = {};
-
-            reservations.forEach(r => {
-                const checkIn = new Date(r.check_in);
-                const monthKey = `${checkIn.getFullYear()}-${String(checkIn.getMonth() + 1).padStart(2, '0')}`;
-
-                if (!grouped[monthKey]) {
-                    grouped[monthKey] = [];
-                }
-                grouped[monthKey].push(r);
-            });
-
-            return grouped;
-        }
-
-        // Format month name from YYYY-MM
-        function formatMonthName(monthKey) {
-            const [year, month] = monthKey.split('-');
-            const date = new Date(year, parseInt(month) - 1, 1);
-            return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
         }
 
 // ============================================================================
@@ -20757,7 +21338,7 @@ function printPropertyView() {
                     label: 'Total Revenue',
                     value: `₹${(totalRevenue / 100000).toFixed(2)}L`,
                     subtext: `${reservations.length} bookings`,
-                    color: '#667eea',
+                    color: '#0891b2',
                     trend: 'up'
                 },
                 {
@@ -20789,7 +21370,7 @@ function printPropertyView() {
                     label: 'Active Properties',
                     value: activeProperties,
                     subtext: `${payments.length} transactions`,
-                    color: '#8b5cf6',
+                    color: 'var(--primary)',
                     trend: 'up'
                 }
             ];
@@ -21155,7 +21736,7 @@ function printPropertyView() {
                                     <td style="padding: 12px; text-align: right;">
                                         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                                             <div style="flex: 0 0 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
-                                                <div style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: ${m.share}%;"></div>
+                                                <div style="height: 100%; background: var(--gradient-primary); width: ${m.share}%;"></div>
                                             </div>
                                             <span style="font-weight: 600; min-width: 45px;">${m.share.toFixed(1)}%</span>
                                         </div>
@@ -21167,7 +21748,7 @@ function printPropertyView() {
                 </div>
 
                 <!-- Key Recommendations -->
-                <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 8px; border-left: 4px solid #667eea;">
+                <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #0891b215, #06b6d415); border-radius: 8px; border-left: 4px solid #0891b2;">
                     <div style="font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
                         <span>💡</span> Recommendations
                     </div>
@@ -21520,7 +22101,7 @@ function printPropertyView() {
             const methodData = {
                 cash: { count: 0, amount: 0, label: 'Cash', color: '#10b981' },
                 upi: { count: 0, amount: 0, label: 'UPI', color: '#3b82f6' },
-                gateway: { count: 0, amount: 0, label: 'Gateway', color: '#8b5cf6' },
+                gateway: { count: 0, amount: 0, label: 'Gateway', color: 'var(--primary)' },
                 bank_transfer: { count: 0, amount: 0, label: 'Bank Transfer', color: '#f59e0b' }
             };
 
@@ -21620,8 +22201,8 @@ function printPropertyView() {
                     datasets: [{
                         label: 'Payment Collection',
                         data: amounts,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderColor: '#0891b2',
+                        backgroundColor: 'rgba(8, 145, 178, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4
@@ -21744,8 +22325,8 @@ function printPropertyView() {
 
             const html = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea15 0%, #764ba205 100%); border-radius: 12px;">
-                        <div style="font-size: 48px; font-weight: 700; color: #667eea; margin-bottom: 8px;">${avgDays}</div>
+                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #0891b215 0%, #06b6d405 100%); border-radius: 12px;">
+                        <div style="font-size: 48px; font-weight: 700; color: #0891b2; margin-bottom: 8px;">${avgDays}</div>
                         <div style="font-size: 14px; color: var(--text-secondary);">Avg Days to Collect</div>
                         <div style="font-size: 12px; color: ${avgDays <= 7 ? '#10b981' : avgDays <= 15 ? '#f59e0b' : '#ef4444'}; font-weight: 600; margin-top: 4px;">
                             ${avgDays <= 7 ? '🟢 Excellent' : avgDays <= 15 ? '🟡 Good' : '🔴 Needs Improvement'}
@@ -21795,12 +22376,12 @@ function printPropertyView() {
             const ownerRevenue = netRevenue - hostizzyRevenue;
 
             const metrics = [
-                { label: 'Gross Revenue', value: totalRevenue, color: '#667eea', icon: '💰' },
+                { label: 'Gross Revenue', value: totalRevenue, color: '#0891b2', icon: '💰' },
                 { label: 'OTA Fees', value: otaFees, color: '#ef4444', icon: '💸' },
                 { label: 'Net Revenue', value: netRevenue, color: '#10b981', icon: '💵' },
                 { label: 'Collected', value: totalCollected, color: '#10b981', icon: '✅' },
                 { label: 'Pending', value: totalPending, color: '#f59e0b', icon: '⏳' },
-                { label: 'Hostizzy Share', value: hostizzyRevenue, color: '#8b5cf6', icon: '🏢' },
+                { label: 'Hostizzy Share', value: hostizzyRevenue, color: 'var(--primary)', icon: '🏢' },
                 { label: 'Owner Share', value: ownerRevenue, color: '#3b82f6', icon: '🏠' }
             ];
 
@@ -21861,8 +22442,8 @@ function printPropertyView() {
                         {
                             label: 'Revenue',
                             data: revenueData,
-                            backgroundColor: 'rgba(102, 126, 234, 0.7)',
-                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(8, 145, 178, 0.7)',
+                            borderColor: '#0891b2',
                             borderWidth: 1
                         },
                         {
@@ -22893,7 +23474,7 @@ function printPropertyView() {
 
                 // Add checkout indicator if guests are checking out (date remains available)
                 if (hasCheckout && !hasBooking) {
-                    checkoutIndicator = `<div style="font-size: 14px; color: #6366f1; font-weight: 700; margin-top: 2px;">↓</div>`;
+                    checkoutIndicator = `<div style="font-size: 14px; color: var(--primary); font-weight: 700; margin-top: 2px;">↓</div>`;
                     tooltip = `${checkoutCount} guest(s) checking out • Available for new booking`;
                 }
 
@@ -23300,9 +23881,16 @@ function printPropertyView() {
             } catch (error) {
                 console.error('Failed to initialize offline DB:', error);
             }
-            
+
             isOnline = navigator.onLine;
             updateSyncIndicator();
+
+            // Initialize EmailJS if configured
+            const emailjsKey = localStorage.getItem('emailjs_public_key');
+            if (emailjsKey && typeof emailjs !== 'undefined') {
+                emailjs.init(emailjsKey);
+                console.log('[EmailJS] Initialized with saved public key');
+            }
             
             // Check localStorage for persistent session
             const storedUser = localStorage.getItem('currentUser');
@@ -26375,7 +26963,7 @@ function printPropertyView() {
             </div>
             <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                 <!-- Guest Profile Card -->
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+                <div style="background: var(--gradient-primary); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 16px;">
                         <div style="flex: 1;">
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
@@ -26491,14 +27079,14 @@ function printPropertyView() {
     </div>
 
     <!-- PWA Install Banner -->
-    <div id="pwaInstallBanner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 16px 24px; border-radius: 16px; box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4); z-index: 9999; max-width: 90%; width: 400px; animation: slideUp 0.4s ease-out;">
+    <div id="pwaInstallBanner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--gradient-primary); color: white; padding: 16px 24px; border-radius: 16px; box-shadow: 0 10px 40px rgba(8, 145, 178, 0.4); z-index: 9999; max-width: 90%; width: 400px; animation: slideUp 0.4s ease-out;">
         <div style="display: flex; align-items: center; gap: 16px;">
             <div style="font-size: 32px;">📱</div>
             <div style="flex: 1;">
                 <div style="font-weight: 600; margin-bottom: 4px;">Install ResIQ</div>
                 <div style="font-size: 13px; opacity: 0.9;">Get the app experience with offline access</div>
             </div>
-            <button onclick="installPWA()" style="background: white; color: #6366f1; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; white-space: nowrap;">
+            <button onclick="installPWA()" style="background: white; color: var(--primary); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; white-space: nowrap;">
                 Install
             </button>
             <button onclick="dismissInstallBanner()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 18px; line-height: 1; width: 32px; height: 32px;">
@@ -26830,7 +27418,7 @@ function printPropertyView() {
                 'pending': 'var(--warning)',
                 'confirmed': 'var(--primary)',
                 'checked-in': 'var(--success)',
-                'checked-out': '#6366f1',
+                'checked-out': '#0891b2',
                 'cancelled': 'var(--danger)'
             };
             card.style.borderLeftColor = borderColors[reservation.status] || 'var(--primary)';
@@ -26939,11 +27527,11 @@ function printPropertyView() {
                     datasets: [{
                         data: [hostizzyRevenue, ownerRevenue],
                         backgroundColor: [
-                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(8, 145, 178, 0.8)',
                             'rgba(16, 185, 129, 0.8)'
                         ],
                         borderColor: [
-                            'rgba(99, 102, 241, 1)',
+                            'rgba(8, 145, 178, 1)',
                             'rgba(16, 185, 129, 1)'
                         ],
                         borderWidth: 2
@@ -27004,7 +27592,7 @@ function printPropertyView() {
 
             // Color scheme for payment methods
             const colors = {
-                'UPI': 'rgba(139, 92, 246, 0.8)',
+                'UPI': 'rgba(8, 145, 178, 0.8)',
                 'CASH': 'rgba(16, 185, 129, 0.8)',
                 'CARD': 'rgba(59, 130, 246, 0.8)',
                 'BANK TRANSFER': 'rgba(245, 158, 11, 0.8)',
@@ -27013,7 +27601,7 @@ function printPropertyView() {
             };
 
             const borderColors = {
-                'UPI': 'rgba(139, 92, 246, 1)',
+                'UPI': 'rgba(8, 145, 178, 1)',
                 'CASH': 'rgba(16, 185, 129, 1)',
                 'CARD': 'rgba(59, 130, 246, 1)',
                 'BANK TRANSFER': 'rgba(245, 158, 11, 1)',
@@ -27021,8 +27609,8 @@ function printPropertyView() {
                 'Unknown': 'rgba(148, 163, 184, 1)'
             };
 
-            const backgroundColors = labels.map(label => colors[label] || 'rgba(99, 102, 241, 0.8)');
-            const borderColorsArray = labels.map(label => borderColors[label] || 'rgba(99, 102, 241, 1)');
+            const backgroundColors = labels.map(label => colors[label] || 'rgba(8, 145, 178, 0.8)');
+            const borderColorsArray = labels.map(label => borderColors[label] || 'rgba(8, 145, 178, 1)');
 
             paymentChartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -27372,6 +27960,29 @@ function printPropertyView() {
 
     <!-- Onboarding Flow -->
     <script src="onboarding.js"></script>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        // Initialize Lucide icons after DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+                console.log('[Icons] Lucide initialized');
+            }
+        });
+
+        // Helper function to create icon HTML (usage: icon('calendar', 20))
+        function icon(name, size = 16, className = '') {
+            return `<i data-lucide="${name}" class="${className}" style="width: ${size}px; height: ${size}px; display: inline-block; vertical-align: middle;"></i>`;
+        }
+
+        // Re-initialize icons after dynamic content updates
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+    </script>
 
 </body>
 </html>
