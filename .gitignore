@@ -40,6 +40,9 @@ lerna-debug.log*
 .env.local
 .env.production
 
+# Configuration (contains credentials)
+config.js
+
 # Temporary files
 *.tmp
 *.log

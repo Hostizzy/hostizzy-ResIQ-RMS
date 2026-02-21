@@ -5574,6 +5574,9 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- Supabase Configuration (contains credentials - NOT committed to Git) -->
+    <script src="config.js"></script>
+
     <!-- Chart.js for interactive charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
@@ -10108,21 +10111,16 @@
 
     <script>
         // Supabase Configuration
-        // WARNING: These keys are currently exposed in client code.
-        // SECURITY RECOMMENDATIONS:
-        // 1. Enable Row Level Security (RLS) on ALL Supabase tables
-        // 2. Set up environment variables in Vercel dashboard (see .env.example)
-        // 3. The /api/config endpoint will serve keys from environment variables
+        // Credentials are loaded from config.js (not committed to Git)
+        // For setup instructions, see config.example.js
         //
-        // To use environment variables:
-        // - Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel Project Settings
-        // - The /api/config endpoint will automatically use them
+        // SECURITY NOTES:
+        // - config.js is in .gitignore and will NOT be committed
+        // - New developers should copy config.example.js to config.js
+        // - RLS is enabled on all sensitive tables for data protection
 
-        const SUPABASE_URL = 'https://dxthxsguqrxpurorpokq.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg';
-
-        // Initialize Supabase client (use var to prevent duplicate declaration errors)
-        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Initialize Supabase client (credentials come from config.js)
+        var supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
         // Booking Type Constants
         const BOOKING_TYPES = {
