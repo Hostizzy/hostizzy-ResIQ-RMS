@@ -11640,24 +11640,29 @@
             if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Logging in...'; }
 
             try {
-                // ── Step 1: Try Supabase Auth (primary) ──────────────────────
-                let supabaseAuthUser = null;
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (!error && data.user) {
-                        supabaseAuthUser = data.user;
-                        console.log('[Auth] Supabase Auth login successful');
+                // ── Step 1: Determine user type by checking which table contains this email ──
+                const users = await db.getTeamMembers();
+                const owners = await db.getOwners();
+                const isStaff = users.some(u => u.email === email);
+                const isOwner = owners.some(o => o.email === email);
+
+                // ── Step 2: Staff Login (Supabase Auth + legacy fallback) ──────────────────
+                if (isStaff) {
+                    // Try Supabase Auth first for staff
+                    let supabaseAuthUser = null;
+                    try {
+                        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                        if (!error && data.user) {
+                            supabaseAuthUser = data.user;
+                            console.log('[Auth] Staff Supabase Auth login successful');
+                        }
+                    } catch (e) {
+                        console.warn('[Auth] Supabase Auth unavailable for staff, using legacy:', e.message);
                     }
-                } catch (e) {
-                    console.warn('[Auth] Supabase Auth unavailable, using legacy:', e.message);
-                }
 
-                // ── Step 2a: Supabase Auth succeeded — find staff profile ─────
-                if (supabaseAuthUser) {
-                    const users = await db.getTeamMembers();
-                    const profile = users.find(u => u.email === email);
-
-                    if (profile) {
+                    // Supabase Auth succeeded for staff
+                    if (supabaseAuthUser) {
+                        const profile = users.find(u => u.email === email);
                         if (!profile.is_active) {
                             await supabase.auth.signOut();
                             showToast('Account Inactive', 'Your account has been deactivated', '❌');
@@ -11674,59 +11679,48 @@
                         return;
                     }
 
-                    // Supabase Auth user exists but no team_members record — check owners
-                    const owners = await db.getOwners();
-                    const ownerProfile = owners.find(o => o.email === email);
-                    if (ownerProfile) {
-                        if (!ownerProfile.is_active) {
-                            await supabase.auth.signOut();
+                    // Legacy fallback for staff not yet migrated to Supabase Auth
+                    const staffUser = users.find(u => u.email === email && u.password === password);
+                    if (staffUser) {
+                        if (!staffUser.is_active) {
                             showToast('Account Inactive', 'Your account has been deactivated', '❌');
                             return;
                         }
-                        currentUser = { ...ownerProfile, userType: 'owner' };
+                        currentUser = { ...staffUser, userType: 'staff' };
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        showMainApp(currentUser);
+                        await loadDashboard();
+                        showToast('Welcome!', `Logged in as ${staffUser.name}`, '👋');
+                        const lastView = localStorage.getItem('lastView') || 'home';
+                        showView(lastView);
+                        if (lastView === 'home') setTimeout(() => updateHomeScreenStats(), 500);
+                        return;
+                    }
+
+                    showToast('Login Failed', 'Invalid password', '❌');
+                    return;
+                }
+
+                // ── Step 3: Owner Login (Legacy DB only — no Supabase Auth) ───────────────
+                if (isOwner) {
+                    const ownerUser = owners.find(o => o.email === email && o.password === password);
+                    if (ownerUser) {
+                        if (!ownerUser.is_active) {
+                            showToast('Account Inactive', 'Your account has been deactivated', '❌');
+                            return;
+                        }
+                        currentUser = { ...ownerUser, userType: 'owner' };
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
                         window.location.href = 'owner-portal.html';
                         return;
                     }
-                }
 
-                // ── Step 2b: Legacy fallback (plain-text DB comparison) ───────
-                // Used for users not yet migrated to Supabase Auth
-                console.log('[Auth] Attempting legacy DB login...');
-                const users = await db.getTeamMembers();
-                const staffUser = users.find(u => u.email === email && u.password === password);
-
-                if (staffUser) {
-                    if (!staffUser.is_active) {
-                        showToast('Account Inactive', 'Your account has been deactivated', '❌');
-                        return;
-                    }
-                    currentUser = { ...staffUser, userType: 'staff' };
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    showMainApp(currentUser);
-                    await loadDashboard();
-                    showToast('Welcome!', `Logged in as ${staffUser.name}`, '👋');
-                    const lastView = localStorage.getItem('lastView') || 'home';
-                    showView(lastView);
-                    if (lastView === 'home') setTimeout(() => updateHomeScreenStats(), 500);
+                    showToast('Login Failed', 'Invalid password', '❌');
                     return;
                 }
 
-                const owners = await db.getOwners();
-                const ownerUser = owners.find(o => o.email === email && o.password === password);
-
-                if (ownerUser) {
-                    if (!ownerUser.is_active) {
-                        showToast('Account Inactive', 'Your account has been deactivated', '❌');
-                        return;
-                    }
-                    currentUser = { ...ownerUser, userType: 'owner' };
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    window.location.href = 'owner-portal.html';
-                    return;
-                }
-
-                showToast('Login Failed', 'Invalid email or password', '❌');
+                // Email not found in either table
+                showToast('Login Failed', 'Email not found', '❌');
 
             } catch (error) {
                 console.error('Login error:', error);
@@ -11764,7 +11758,7 @@
             showToast('Logged Out', 'See you soon!', '👋');
         }
 
-        // ── Forgot Password ──────────────────────────────────────────────────
+        // ── Forgot Password (Staff Only) ─────────────────────────────────────
         async function submitForgotPassword() {
             const email = document.getElementById('forgotPasswordEmail').value.trim();
             const msgEl = document.getElementById('forgotPasswordMessage');
@@ -11779,14 +11773,33 @@
             }
 
             btn.disabled = true;
-            btn.textContent = 'Sending...';
+            btn.textContent = 'Checking...';
             msgEl.style.display = 'none';
 
             try {
+                // Check if email belongs to a staff member (only staff use Supabase Auth reset)
+                const users = await db.getTeamMembers();
+                const isStaff = users.some(u => u.email === email);
+
+                if (!isStaff) {
+                    // Owner or non-existent email — show contact support message
+                    msgEl.style.display = 'block';
+                    msgEl.style.background = '#fef3c7';
+                    msgEl.style.color = '#92400e';
+                    msgEl.textContent = 'Please contact support@hostizzy.com to reset your password.';
+                    btn.disabled = false;
+                    btn.textContent = 'Send Reset Link';
+                    return;
+                }
+
+                // Staff email — send Supabase Auth reset link
+                btn.textContent = 'Sending...';
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
                     redirectTo: window.location.origin + window.location.pathname
                 });
+
                 if (error) throw error;
+
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#dcfce7';
                 msgEl.style.color = '#16a34a';
