@@ -10108,103 +10108,33 @@
 
     <script>
         // Supabase Configuration
-        // Credentials are fetched from /api/config (serverless function)
-        // This reads from Vercel environment variables (SUPABASE_URL, SUPABASE_ANON_KEY)
-        //
-        // SETUP FOR PRODUCTION:
-        // 1. Go to Vercel Project Settings → Environment Variables
-        // 2. Add: SUPABASE_URL = https://your-project.supabase.co
-        // 3. Add: SUPABASE_ANON_KEY = your-anon-key
-        //
-        // FOR LOCAL DEVELOPMENT:
-        // Create .env file:
-        //   SUPABASE_URL=https://your-project.supabase.co
-        //   SUPABASE_ANON_KEY=your-anon-key
+        // IMPORTANT: Change these values to match your Supabase project
+        // Get them from: Supabase Dashboard → Settings → API
+        const SUPABASE_URL = 'https://dxthxsguqrxpurorpokq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg';
 
-        // Initialize Supabase client (fetched from API)
-        var supabase = null; // Will be initialized after config is fetched
-        var supabaseReady = false; // Track initialization state
+        // Initialize Supabase client (waits for CDN library to load)
+        var supabase = null;
 
-        // Helper to wait for Supabase JS library to load from CDN (with timeout)
-        function waitForSupabaseLibrary(timeoutMs = 5000) {
-            return new Promise((resolve, reject) => {
+        (function initSupabase() {
+            const checkInterval = setInterval(() => {
                 if (window.supabase) {
-                    resolve();
-                    return;
-                }
-
-                const timeout = setTimeout(() => {
                     clearInterval(checkInterval);
-                    reject(new Error('Supabase library failed to load from CDN'));
-                }, timeoutMs);
-
-                const checkInterval = setInterval(() => {
-                    if (window.supabase) {
-                        clearTimeout(timeout);
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
-                }, 50);
-            });
-        }
-
-        // Store the initialization promise so we can await it
-        const supabaseInit = (async function initSupabase() {
-            try {
-                console.log('[Config] Fetching Supabase config from /api/config...');
-                const response = await fetch('/api/config');
-
-                if (!response.ok) {
-                    throw new Error(`API returned ${response.status}: ${response.statusText}`);
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('[Config] ✅ Supabase client initialized');
                 }
+            }, 100);
 
-                const config = await response.json();
-                console.log('[Config] Config received:', {
-                    hasUrl: !!config.supabaseUrl,
-                    hasKey: !!config.supabaseAnonKey
-                });
-
-                if (!config.supabaseUrl || !config.supabaseAnonKey) {
-                    throw new Error('Config missing required fields');
+            // Fallback timeout after 10 seconds
+            setTimeout(() => {
+                if (!supabase && window.supabase) {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('[Config] ⚠️ Supabase initialized after timeout');
+                } else if (!window.supabase) {
+                    console.error('[Config] ❌ Supabase library failed to load from CDN');
                 }
-
-                // Wait for Supabase JS library to load
-                console.log('[Config] Waiting for Supabase JS library...');
-                await waitForSupabaseLibrary();
-                console.log('[Config] Supabase JS library loaded');
-
-                supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-                supabaseReady = true;
-                console.log('[Config] ✅ Supabase client initialized from API');
-            } catch (error) {
-                console.error('[Config] ❌ Failed to initialize:', error.message);
-
-                // Try waiting for library one more time for fallback
-                try {
-                    console.warn('[Config] 🔄 Attempting fallback with hardcoded config...');
-                    await waitForSupabaseLibrary();
-
-                    supabase = window.supabase.createClient(
-                        'https://dxthxsguqrxpurorpokq.supabase.co',
-                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg'
-                    );
-                    supabaseReady = true;
-                    console.log('[Config] ⚠️ Supabase client initialized with fallback');
-                } catch (fallbackError) {
-                    console.error('[Config] ❌ Fallback also failed:', fallbackError.message);
-                    console.error('[Config] 🚨 Supabase unavailable - auth features will not work');
-                    supabaseReady = true; // Set to true to unblock ensureSupabase()
-                }
-            }
+            }, 10000);
         })();
-
-        // Helper to ensure Supabase is ready before use
-        async function ensureSupabase() {
-            if (!supabaseReady) {
-                await supabaseInit;
-            }
-            return supabase;
-        }
 
         // Booking Type Constants
         const BOOKING_TYPES = {
@@ -11723,7 +11653,7 @@
 
             try {
                 // Wait for Supabase to be initialized from /api/config
-                await ensureSupabase();
+                
 
                 // ── Step 1: Determine user type by checking which table contains this email ──
                 const users = await db.getTeamMembers();
@@ -11833,7 +11763,7 @@
         }
 
         async function logout() {
-            await ensureSupabase();
+            
             try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
             currentUser = null;
@@ -11863,7 +11793,7 @@
             msgEl.style.display = 'none';
 
             try {
-                await ensureSupabase();
+                
 
                 // Check if email belongs to a staff member (only staff use Supabase Auth reset)
                 const users = await db.getTeamMembers();
@@ -11930,7 +11860,7 @@
             btn.textContent = 'Updating...';
 
             try {
-                await ensureSupabase();
+                
                 const { error } = await supabase.auth.updateUser({ password: newPassword });
                 if (error) throw error;
                 msgEl.style.display = 'block';
@@ -25260,7 +25190,7 @@ function printPropertyView() {
 
                 await Promise.race([
                     (async () => {
-                        await ensureSupabase();
+                        
                         const { data: { session } } = await supabase.auth.getSession();
                         if (session && session.user) {
                             const allMembers = await db.getTeamMembers();
