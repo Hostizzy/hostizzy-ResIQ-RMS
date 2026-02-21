@@ -10123,13 +10123,15 @@
 
         // Initialize Supabase client (fetched from API)
         var supabase = null; // Will be initialized after config is fetched
+        var supabaseReady = false; // Track initialization state
 
-        // Fetch Supabase config and initialize client
-        (async function initSupabase() {
+        // Store the initialization promise so we can await it
+        const supabaseInit = (async function initSupabase() {
             try {
                 const response = await fetch('/api/config');
                 const config = await response.json();
                 supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                supabaseReady = true;
                 console.log('[Config] Supabase client initialized from API');
             } catch (error) {
                 console.error('[Config] Failed to fetch Supabase config:', error);
@@ -10138,6 +10140,14 @@
                 throw new Error('Supabase configuration unavailable. Please check server configuration.');
             }
         })();
+
+        // Helper to ensure Supabase is ready before use
+        async function ensureSupabase() {
+            if (!supabaseReady) {
+                await supabaseInit;
+            }
+            return supabase;
+        }
 
         // Booking Type Constants
         const BOOKING_TYPES = {
@@ -11655,6 +11665,9 @@
             if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Logging in...'; }
 
             try {
+                // Wait for Supabase to be initialized from /api/config
+                await ensureSupabase();
+
                 // ── Step 1: Determine user type by checking which table contains this email ──
                 const users = await db.getTeamMembers();
                 const owners = await db.getOwners();
@@ -11763,6 +11776,7 @@
         }
 
         async function logout() {
+            await ensureSupabase();
             try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
             currentUser = null;
@@ -11792,6 +11806,8 @@
             msgEl.style.display = 'none';
 
             try {
+                await ensureSupabase();
+
                 // Check if email belongs to a staff member (only staff use Supabase Auth reset)
                 const users = await db.getTeamMembers();
                 const isStaff = users.some(u => u.email === email);
@@ -11857,6 +11873,7 @@
             btn.textContent = 'Updating...';
 
             try {
+                await ensureSupabase();
                 const { error } = await supabase.auth.updateUser({ password: newPassword });
                 if (error) throw error;
                 msgEl.style.display = 'block';
@@ -25179,6 +25196,7 @@ function printPropertyView() {
             }
 
             try {
+                await ensureSupabase();
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session && session.user) {
                     const allMembers = await db.getTeamMembers();
