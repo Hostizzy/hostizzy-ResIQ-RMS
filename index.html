@@ -5574,9 +5574,6 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Supabase Configuration (contains credentials - NOT committed to Git) -->
-    <script src="config.js"></script>
-
     <!-- Chart.js for interactive charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
@@ -10111,16 +10108,39 @@
 
     <script>
         // Supabase Configuration
-        // Credentials are loaded from config.js (not committed to Git)
-        // For setup instructions, see config.example.js
+        // Credentials are fetched from /api/config (serverless function)
+        // This reads from Vercel environment variables (SUPABASE_URL, SUPABASE_ANON_KEY)
         //
-        // SECURITY NOTES:
-        // - config.js is in .gitignore and will NOT be committed
-        // - New developers should copy config.example.js to config.js
-        // - RLS is enabled on all sensitive tables for data protection
+        // SETUP FOR PRODUCTION:
+        // 1. Go to Vercel Project Settings → Environment Variables
+        // 2. Add: SUPABASE_URL = https://your-project.supabase.co
+        // 3. Add: SUPABASE_ANON_KEY = your-anon-key
+        //
+        // FOR LOCAL DEVELOPMENT:
+        // Create .env file:
+        //   SUPABASE_URL=https://your-project.supabase.co
+        //   SUPABASE_ANON_KEY=your-anon-key
 
-        // Initialize Supabase client (credentials come from config.js)
-        var supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        // Initialize Supabase client (fetched from API)
+        var supabase = null; // Will be initialized after config is fetched
+
+        // Fetch Supabase config and initialize client
+        (async function initSupabase() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                console.log('[Config] Supabase client initialized from API');
+            } catch (error) {
+                console.error('[Config] Failed to fetch Supabase config:', error);
+                // Fallback: initialize with hardcoded values for development
+                supabase = window.supabase.createClient(
+                    'https://dxthxsguqrxpurorpokq.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg'
+                );
+                console.warn('[Config] Using fallback hardcoded config');
+            }
+        })();
 
         // Booking Type Constants
         const BOOKING_TYPES = {
