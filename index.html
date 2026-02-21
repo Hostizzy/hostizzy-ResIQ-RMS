@@ -10125,6 +10125,22 @@
         var supabase = null; // Will be initialized after config is fetched
         var supabaseReady = false; // Track initialization state
 
+        // Helper to wait for Supabase JS library to load from CDN
+        function waitForSupabaseLibrary() {
+            return new Promise((resolve) => {
+                if (window.supabase) {
+                    resolve();
+                    return;
+                }
+                const checkInterval = setInterval(() => {
+                    if (window.supabase) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 50);
+            });
+        }
+
         // Store the initialization promise so we can await it
         const supabaseInit = (async function initSupabase() {
             try {
@@ -10145,12 +10161,20 @@
                     throw new Error('Config missing required fields');
                 }
 
+                // Wait for Supabase JS library to load
+                console.log('[Config] Waiting for Supabase JS library...');
+                await waitForSupabaseLibrary();
+                console.log('[Config] Supabase JS library loaded');
+
                 supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
                 supabaseReady = true;
                 console.log('[Config] ✅ Supabase client initialized from API');
             } catch (error) {
                 console.error('[Config] ❌ Failed to fetch config from /api/config:', error.message);
                 console.warn('[Config] 🔄 Using fallback hardcoded configuration');
+
+                // Wait for library before using fallback
+                await waitForSupabaseLibrary();
 
                 // Fallback to hardcoded values (temporary - only in /api/config.js anyway)
                 supabase = window.supabase.createClient(
