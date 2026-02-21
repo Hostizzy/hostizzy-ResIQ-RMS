@@ -18738,6 +18738,34 @@
         /**
          * Create or update reservations from iCal events (AUTO-IMPORT)
          */
+        /**
+         * Detect iCal events that are blocked/unavailable dates — NOT real reservations.
+         * OTAs use these to mark owner blocks, maintenance holds, or platform-managed unavailability.
+         * These should be saved to synced_availability (blocked dates) but NOT to reservations.
+         */
+        function isBlockedEvent(event) {
+            if (!event.summary) return false;
+            const s = event.summary.toUpperCase().trim();
+
+            // Explicit blocking terms used by Airbnb, Booking.com, Agoda, VRBO, MakeMyTrip, etc.
+            const blockedPatterns = [
+                'NOT AVAILABLE',
+                'UNAVAILABLE',
+                'BLOCKED',
+                'CLOSED',
+                'MAINTENANCE',
+                'OWNER BLOCK',
+                'OWNER STAY',
+                'HOLD',
+                'AIRBNB (NOT AVAILABLE)',
+                'BOOKING.COM (NOT AVAILABLE)',
+                'UNAVAILABLE DATES',
+                'PROPERTY UNAVAILABLE',
+            ];
+
+            return blockedPatterns.some(pattern => s.includes(pattern));
+        }
+
         async function createReservationsFromIcal(propertyId, reservationEvents, property) {
             if (!reservationEvents || reservationEvents.length === 0) {
                 return { created: 0, updated: 0, skipped: 0 };
@@ -18749,8 +18777,15 @@
 
             try {
                 for (const event of reservationEvents) {
+                    // Skip blocked/unavailable dates — not real guest reservations
+                    if (isBlockedEvent(event)) {
+                        console.log(`[iCal] Skipping blocked event: "${event.summary}"`);
+                        skipped++;
+                        continue;
+                    }
+
                     // Parse guest name and booking source from SUMMARY
-                    // Format examples: "Rahul Sharma (AIRBNB)", "John Doe (Booking.com)", "Reserved"
+                    // Format examples: "Rahul Sharma (AIRBNB)", "John Doe (Booking.com)", "HMXXXXXXXXXX"
                     let guestName = 'Guest';
                     let bookingSource = 'OTHER';
 
