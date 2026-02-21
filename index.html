@@ -5657,7 +5657,7 @@
                     <input type="checkbox" id="rememberMe" style="width: auto; min-height: auto; cursor: pointer;">
                     <span style="font-size: 14px; font-weight: 500; color: var(--text-secondary);">Remember me</span>
                 </label>
-                <a href="#" onclick="alert('Please contact support@hostizzy.com to reset your password'); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 500;">
+                <a href="#" onclick="showForgotPassword(); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 500;">
                     Forgot password?
                 </a>
             </div>
@@ -5676,6 +5676,48 @@
                 </a>
                 <p style="font-size: 12px; color: var(--text-secondary); margin-top: 12px;">View bookings, revenue, and manage your properties</p>
             </div>
+        </div>
+
+        <!-- Forgot Password Panel -->
+        <div id="forgotPasswordPanel" class="login-card hidden" style="margin-top: 0;">
+            <div class="logo">
+                <img src="assets/logo.png" alt="ResIQ" class="logo-img">
+                <p>Reset Your Password</p>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Enter your email address and we'll send you a link to reset your password.</p>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="forgotPasswordEmail" placeholder="Email Address" autocomplete="email">
+            </div>
+            <div id="forgotPasswordMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="submitForgotPassword()">Send Reset Link</button>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="#" onclick="showLoginPanel(); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none;">← Back to Login</a>
+            </div>
+        </div>
+
+        <!-- Reset Password Panel (shown when user clicks email recovery link) -->
+        <div id="resetPasswordPanel" class="login-card hidden" style="margin-top: 0;">
+            <div class="logo">
+                <img src="assets/logo.png" alt="ResIQ" class="logo-img">
+                <p>Set New Password</p>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Choose a strong new password for your account.</p>
+            <div class="form-group">
+                <label>New Password</label>
+                <div style="position: relative;">
+                    <input type="password" id="resetNewPassword" placeholder="New Password" style="padding-right: 48px;">
+                    <button type="button" onclick="this.previousElementSibling.type = this.previousElementSibling.type === 'password' ? 'text' : 'password';" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; font-size: 18px; opacity: 0.6;">
+                        <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="resetConfirmPassword" placeholder="Confirm New Password">
+            </div>
+            <div id="resetPasswordMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="submitResetPassword()">Update Password</button>
         </div>
 
         <!-- Login Page Footer with Legal Links -->
@@ -11550,34 +11592,107 @@
         }
 
         // Authentication (Hybrid: Staff + Owner)
-        async function login() {
-            console.log('🚀 LOGIN FUNCTION CALLED');
+        // ==========================================
+        // AUTH HELPERS
+        // ==========================================
 
+        function showMainApp(user) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateUserEmailDisplay(user.email);
+            document.querySelector('.mobile-nav').classList.remove('hidden');
+            document.getElementById('mobileHeader').classList.remove('hidden');
+            document.getElementById('mobileUserEmail').textContent = user.email;
+            if (user.role === 'staff') hidePerformanceForStaff();
+        }
+
+        function showLoginPanel() {
+            document.getElementById('forgotPasswordPanel').classList.add('hidden');
+            document.getElementById('resetPasswordPanel').classList.add('hidden');
+            document.querySelector('.login-card').classList.remove('hidden');
+        }
+
+        function showForgotPassword() {
+            document.querySelector('.login-card').classList.add('hidden');
+            document.getElementById('resetPasswordPanel').classList.add('hidden');
+            document.getElementById('forgotPasswordPanel').classList.remove('hidden');
+            const stored = localStorage.getItem('rememberedEmail') || document.getElementById('loginEmail').value.trim();
+            if (stored) document.getElementById('forgotPasswordEmail').value = stored;
+        }
+
+        async function login() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             const rememberMe = document.getElementById('rememberMe').checked;
 
-            console.log('📧 Email:', email);
-            console.log('🔑 Password length:', password.length);
-            console.log('💾 Remember me:', rememberMe);
-
             if (!email || !password) {
-                console.log('❌ Missing credentials');
                 showToast('Login Error', 'Please enter email and password', '❌');
                 return;
             }
 
-            // Handle "Remember me" - save email only (not password for security)
             if (rememberMe) {
                 localStorage.setItem('rememberedEmail', email);
             } else {
                 localStorage.removeItem('rememberedEmail');
             }
 
-            console.log('✅ Credentials provided, attempting login...');
+            const loginBtn = document.querySelector('#loginScreen .btn-primary');
+            if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Logging in...'; }
 
             try {
-                // Try staff/admin login first
+                // ── Step 1: Try Supabase Auth (primary) ──────────────────────
+                let supabaseAuthUser = null;
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (!error && data.user) {
+                        supabaseAuthUser = data.user;
+                        console.log('[Auth] Supabase Auth login successful');
+                    }
+                } catch (e) {
+                    console.warn('[Auth] Supabase Auth unavailable, using legacy:', e.message);
+                }
+
+                // ── Step 2a: Supabase Auth succeeded — find staff profile ─────
+                if (supabaseAuthUser) {
+                    const users = await db.getTeamMembers();
+                    const profile = users.find(u => u.email === email);
+
+                    if (profile) {
+                        if (!profile.is_active) {
+                            await supabase.auth.signOut();
+                            showToast('Account Inactive', 'Your account has been deactivated', '❌');
+                            return;
+                        }
+                        currentUser = { ...profile, userType: 'staff' };
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        showMainApp(currentUser);
+                        await loadDashboard();
+                        showToast('Welcome!', `Logged in as ${profile.name}`, '👋');
+                        const lastView = localStorage.getItem('lastView') || 'home';
+                        showView(lastView);
+                        if (lastView === 'home') setTimeout(() => updateHomeScreenStats(), 500);
+                        return;
+                    }
+
+                    // Supabase Auth user exists but no team_members record — check owners
+                    const owners = await db.getOwners();
+                    const ownerProfile = owners.find(o => o.email === email);
+                    if (ownerProfile) {
+                        if (!ownerProfile.is_active) {
+                            await supabase.auth.signOut();
+                            showToast('Account Inactive', 'Your account has been deactivated', '❌');
+                            return;
+                        }
+                        currentUser = { ...ownerProfile, userType: 'owner' };
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        window.location.href = 'owner-portal.html';
+                        return;
+                    }
+                }
+
+                // ── Step 2b: Legacy fallback (plain-text DB comparison) ───────
+                // Used for users not yet migrated to Supabase Auth
+                console.log('[Auth] Attempting legacy DB login...');
                 const users = await db.getTeamMembers();
                 const staffUser = users.find(u => u.email === email && u.password === password);
 
@@ -11586,74 +11701,38 @@
                         showToast('Account Inactive', 'Your account has been deactivated', '❌');
                         return;
                     }
-
-                    currentUser = staffUser;
-                    currentUser.userType = 'staff';
+                    currentUser = { ...staffUser, userType: 'staff' };
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('mainApp').classList.remove('hidden');
-                    updateUserEmailDisplay(currentUser.email);
-                    document.querySelector('.mobile-nav').classList.remove('hidden');
-                    document.getElementById('mobileHeader').classList.remove('hidden');
-                    document.getElementById('mobileUserEmail').textContent = staffUser.email;
-
-                    if (staffUser.role === 'staff') {
-                        hidePerformanceForStaff();
-                    }
-
+                    showMainApp(currentUser);
                     await loadDashboard();
                     showToast('Welcome!', `Logged in as ${staffUser.name}`, '👋');
-
                     const lastView = localStorage.getItem('lastView') || 'home';
                     showView(lastView);
-
-                    if (lastView === 'home') {
-                        setTimeout(() => updateHomeScreenStats(), 500);
-                    }
+                    if (lastView === 'home') setTimeout(() => updateHomeScreenStats(), 500);
                     return;
                 }
 
-                // Try owner login
-                console.log('🔍 Attempting owner login...');
                 const owners = await db.getOwners();
-                console.log('📋 Owners fetched:', owners.length);
-
                 const ownerUser = owners.find(o => o.email === email && o.password === password);
-                console.log('🔎 Owner match found:', !!ownerUser);
 
                 if (ownerUser) {
-                    console.log('👤 Owner user:', ownerUser);
-
                     if (!ownerUser.is_active) {
-                        console.log('❌ Owner account is inactive');
                         showToast('Account Inactive', 'Your account has been deactivated', '❌');
                         return;
                     }
-
-                    currentUser = ownerUser;
-                    currentUser.userType = 'owner';
-                    console.log('✅ Setting userType to "owner"');
-                    console.log('💾 Saving to localStorage:', currentUser);
-
+                    currentUser = { ...ownerUser, userType: 'owner' };
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-                    // Verify it was saved
-                    const saved = localStorage.getItem('currentUser');
-                    console.log('✔️ Verified saved user:', JSON.parse(saved));
-
-                    // Redirect to owner portal
-                    console.log('🔄 Redirecting to owner-portal.html');
                     window.location.href = 'owner-portal.html';
                     return;
                 }
 
-                // No match found
-                showToast('Login Failed', 'Invalid credentials', '❌');
+                showToast('Login Failed', 'Invalid email or password', '❌');
 
             } catch (error) {
                 console.error('Login error:', error);
                 showToast('Login Error', error.message, '❌');
+            } finally {
+                if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Login'; }
             }
         }
 
@@ -11674,7 +11753,8 @@
             
         }
 
-        function logout() {
+        async function logout() {
+            try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
             currentUser = null;
             document.getElementById('mainApp').classList.add('hidden');
@@ -11682,6 +11762,91 @@
             document.querySelector('.mobile-nav')?.classList.add('hidden');
             document.getElementById('mobileHeader')?.classList.add('hidden');
             showToast('Logged Out', 'See you soon!', '👋');
+        }
+
+        // ── Forgot Password ──────────────────────────────────────────────────
+        async function submitForgotPassword() {
+            const email = document.getElementById('forgotPasswordEmail').value.trim();
+            const msgEl = document.getElementById('forgotPasswordMessage');
+            const btn = document.querySelector('#forgotPasswordPanel .btn-primary');
+
+            if (!email) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Please enter your email address.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            msgEl.style.display = 'none';
+
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + window.location.pathname
+                });
+                if (error) throw error;
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#dcfce7';
+                msgEl.style.color = '#16a34a';
+                msgEl.textContent = 'Reset link sent! Check your email inbox (and spam folder).';
+                btn.textContent = 'Sent';
+            } catch (err) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                msgEl.textContent = err.message || 'Failed to send reset email. Please try again.';
+                btn.disabled = false;
+                btn.textContent = 'Send Reset Link';
+            }
+        }
+
+        async function submitResetPassword() {
+            const newPassword = document.getElementById('resetNewPassword').value;
+            const confirmPassword = document.getElementById('resetConfirmPassword').value;
+            const msgEl = document.getElementById('resetPasswordMessage');
+            const btn = document.querySelector('#resetPasswordPanel .btn-primary');
+
+            msgEl.style.display = 'none';
+
+            if (!newPassword || newPassword.length < 8) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Password must be at least 8 characters.';
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Passwords do not match.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            try {
+                const { error } = await supabase.auth.updateUser({ password: newPassword });
+                if (error) throw error;
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#dcfce7';
+                msgEl.style.color = '#16a34a';
+                msgEl.textContent = 'Password updated successfully! Redirecting to login...';
+                setTimeout(() => {
+                    window.location.hash = '';
+                    window.location.reload();
+                }, 2000);
+            } catch (err) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                msgEl.textContent = err.message || 'Failed to update password. Please try again.';
+                btn.disabled = false;
+                btn.textContent = 'Update Password';
+            }
         }
 
         // Mobile Navigation
@@ -18573,6 +18738,34 @@
         /**
          * Create or update reservations from iCal events (AUTO-IMPORT)
          */
+        /**
+         * Detect iCal events that are blocked/unavailable dates — NOT real reservations.
+         * OTAs use these to mark owner blocks, maintenance holds, or platform-managed unavailability.
+         * These should be saved to synced_availability (blocked dates) but NOT to reservations.
+         */
+        function isBlockedEvent(event) {
+            if (!event.summary) return false;
+            const s = event.summary.toUpperCase().trim();
+
+            // Explicit blocking terms used by Airbnb, Booking.com, Agoda, VRBO, MakeMyTrip, etc.
+            const blockedPatterns = [
+                'NOT AVAILABLE',
+                'UNAVAILABLE',
+                'BLOCKED',
+                'CLOSED',
+                'MAINTENANCE',
+                'OWNER BLOCK',
+                'OWNER STAY',
+                'HOLD',
+                'AIRBNB (NOT AVAILABLE)',
+                'BOOKING.COM (NOT AVAILABLE)',
+                'UNAVAILABLE DATES',
+                'PROPERTY UNAVAILABLE',
+            ];
+
+            return blockedPatterns.some(pattern => s.includes(pattern));
+        }
+
         async function createReservationsFromIcal(propertyId, reservationEvents, property) {
             if (!reservationEvents || reservationEvents.length === 0) {
                 return { created: 0, updated: 0, skipped: 0 };
@@ -18584,8 +18777,15 @@
 
             try {
                 for (const event of reservationEvents) {
+                    // Skip blocked/unavailable dates — not real guest reservations
+                    if (isBlockedEvent(event)) {
+                        console.log(`[iCal] Skipping blocked event: "${event.summary}"`);
+                        skipped++;
+                        continue;
+                    }
+
                     // Parse guest name and booking source from SUMMARY
-                    // Format examples: "Rahul Sharma (AIRBNB)", "John Doe (Booking.com)", "Reserved"
+                    // Format examples: "Rahul Sharma (AIRBNB)", "John Doe (Booking.com)", "HMXXXXXXXXXX"
                     let guestName = 'Guest';
                     let bookingSource = 'OTHER';
 
@@ -24934,27 +25134,44 @@ function printPropertyView() {
                 console.log('[EmailJS] Initialized with saved public key');
             }
             
+            // ── Check Supabase Auth session first, then fall back to localStorage ──
+            // Also detect password-recovery email link (#type=recovery in URL hash)
+            const urlHash = window.location.hash;
+            if (urlHash.includes('type=recovery')) {
+                // User clicked a password reset email link — show the set-new-password form
+                document.querySelector('.login-card').classList.add('hidden');
+                document.getElementById('forgotPasswordPanel').classList.add('hidden');
+                document.getElementById('resetPasswordPanel').classList.remove('hidden');
+                // Supabase JS picks up the session from the hash automatically
+                setTimeout(() => {
+                    const splash = document.getElementById('splashScreen');
+                    if (splash) { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 500); }
+                }, 1000);
+                return; // Don't try to restore a regular session
+            }
+
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session && session.user) {
+                    const allMembers = await db.getTeamMembers();
+                    const profile = allMembers.find(u => u.email === session.user.email);
+                    if (profile && profile.is_active) {
+                        const sessionUser = { ...profile, userType: 'staff' };
+                        localStorage.setItem('currentUser', JSON.stringify(sessionUser));
+                        console.log('[Auth] Supabase session restored for:', profile.email);
+                    }
+                }
+            } catch (e) {
+                console.warn('[Auth] Supabase session check failed, using localStorage fallback:', e.message);
+            }
+
             // Check localStorage for persistent session
             const storedUser = localStorage.getItem('currentUser');
 
             if (storedUser) {
                 try {
                     currentUser = JSON.parse(storedUser);
-                    
-                    // User context set via RLS policies (custom auth)
-                    
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('mainApp').classList.remove('hidden');
-                    // Update email in both navbar and dropdown
-                    updateUserEmailDisplay(currentUser.email);
-                    document.querySelector('.mobile-nav').classList.remove('hidden');
-                    document.getElementById('mobileHeader').classList.remove('hidden');
-                    document.getElementById('mobileUserEmail').textContent = currentUser.email;
-                    
-                    // Hide Performance for staff
-                    if (currentUser.role === 'staff') {
-                        hidePerformanceForStaff();
-                    }
+                    showMainApp(currentUser);
                     
                     // ✅ MOBILE PERFORMANCE: Detect mobile and optimize loading
                     const isMobile = window.innerWidth <= 768;

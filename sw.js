@@ -1,6 +1,6 @@
 /**
  * ResIQ Service Worker
- * Version: 5.14.0
+ * Version: 5.16.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  *
  * IMPORTANT FOR DEVELOPERS:
@@ -11,6 +11,7 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.16.0: Supabase Auth migration - signInWithPassword, signOut, getSession, resetPasswordForEmail, updateUser
  * - v5.15.0: Fix Business + Property View MoM % - previous period now reads from full history
  * - v5.14.0: Dashboard filter fully working + period button pills + accurate MoM trends
  * - v5.13.0: Dashboard Redesign - consolidated 18 metrics to 8 Core KPIs, simplified filters, improved Action Center
@@ -33,7 +34,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.15.0';
+const CACHE_VERSION = 'v5.16.1';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
