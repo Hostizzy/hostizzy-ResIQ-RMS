@@ -10133,12 +10133,9 @@
                 console.log('[Config] Supabase client initialized from API');
             } catch (error) {
                 console.error('[Config] Failed to fetch Supabase config:', error);
-                // Fallback: initialize with hardcoded values for development
-                supabase = window.supabase.createClient(
-                    'https://dxthxsguqrxpurorpokq.supabase.co',
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg'
-                );
-                console.warn('[Config] Using fallback hardcoded config');
+                console.error('[Config] Please ensure /api/config endpoint is accessible and environment variables are set');
+                // No fallback - force proper configuration
+                throw new Error('Supabase configuration unavailable. Please check server configuration.');
             }
         })();
 
