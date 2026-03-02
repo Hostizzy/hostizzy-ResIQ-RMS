@@ -75,34 +75,17 @@ jobs:
             fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
           "
 
-      - name: Serve manifest locally and generate Android project
+      - name: Generate Android project
         run: |
-          # Start a local HTTP server so bubblewrap can fetch manifest.json
-          # and icon assets from localhost (avoids needing the site deployed)
-          npx http-server . -p 8080 --silent &
-          SERVER_PID=$!
-          sleep 2
-
-          # Verify the server is serving manifest.json correctly
-          echo "Verifying local server..."
-          curl -sf http://localhost:8080/manifest.json | head -c 100
-          echo ""
-
           # Save our custom twa-manifest.json before init overwrites it
           cp twa-manifest.json /tmp/custom-twa-manifest.json
 
-          # Point twa-manifest icon URLs at localhost for the init fetch
-          sed -i 's|https://resiq.app/|http://localhost:8080/|g' twa-manifest.json
-
-          # Run bubblewrap init against the local server.
+          # Fetch web manifest directly from the live site.
           # Empty lines (Enter) accept all interactive prompt defaults.
-          yes "" | bubblewrap init --manifest="http://localhost:8080/manifest.json" || true
+          yes "" | bubblewrap init --manifest="https://resiq.hostizzy.com/manifest.json" || true
 
-          # Stop the local server
-          kill $SERVER_PID 2>/dev/null || true
-
-          # Restore our custom twa-manifest.json (with the real host, package ID,
-          # version, signing key, etc.) over the one init generated
+          # Restore our custom twa-manifest.json (with our package ID, version,
+          # signing key, etc.) over the one init generated from web manifest
           cp /tmp/custom-twa-manifest.json twa-manifest.json
 
           # Verify the project was created
