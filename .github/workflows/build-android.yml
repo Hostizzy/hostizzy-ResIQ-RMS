@@ -109,7 +109,11 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          yes "" | bubblewrap build --skipPwaValidation
+          # Bubblewrap build asks interactive questions:
+          #   1. "Apply changes from twa-manifest.json?" → y
+          #   2. "versionName for the new App version:" → version from input
+          #   3. Any remaining prompts → empty (accept defaults)
+          (printf 'y\n%s\n%s\n' '${{ inputs.version_name }}' '${{ inputs.version_code }}'; yes "") | bubblewrap build --skipPwaValidation
 
       - name: List build outputs
         run: |
