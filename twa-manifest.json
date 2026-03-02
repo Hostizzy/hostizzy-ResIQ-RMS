@@ -43,7 +43,7 @@
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "fullScopeUrl": "https://resiq.hostizzy.com/",
-  "minSdkVersion": 19,
+  "minSdkVersion": 21,
   "orientation": "any",
   "fingerprints": [
     {
