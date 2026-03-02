@@ -1272,7 +1272,7 @@
                     <input type="checkbox" id="ownerRememberMe" style="width: auto; cursor: pointer;">
                     <span style="font-size: 14px; font-weight: 500; color: var(--text-secondary);">Remember me</span>
                 </label>
-                <a href="#" onclick="alert('Please contact support@hostizzy.com to reset your password'); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 500;">
+                <a href="#" onclick="showOwnerForgotPassword(); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 500;">
                     Forgot password?
                 </a>
             </div>
@@ -1286,6 +1286,52 @@
             <div style="margin-top: 24px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Admin or Staff?</p>
                 <a href="index.html" style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 14px;">← Back to Admin Login</a>
+            </div>
+        </div>
+
+        <!-- Forgot Password Panel -->
+        <div id="ownerForgotPasswordPanel" class="hidden" style="display: none; justify-content: center; align-items: center; min-height: 100vh; background: var(--background); padding: 20px; padding-bottom: 140px;">
+            <div style="width: 100%; max-width: 400px; background: var(--surface); border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <h1 style="font-size: 24px; margin: 0 0 8px 0; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Reset Your Password</h1>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Enter your email and we'll send you a reset link.</p>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Email</label>
+                    <input type="email" id="ownerForgotPasswordEmail" placeholder="your@email.com" autocomplete="email" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+                </div>
+                <div id="ownerForgotPasswordMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
+                <button id="ownerForgotPasswordBtn" onclick="submitOwnerForgotPassword()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
+                    Send Reset Link
+                </button>
+                <div style="margin-top: 16px; text-align: center;">
+                    <a href="#" onclick="showOwnerLoginPanel(); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 500;">← Back to Login</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Password Panel (shown when user clicks email recovery link) -->
+        <div id="ownerResetPasswordPanel" class="hidden" style="display: none; justify-content: center; align-items: center; min-height: 100vh; background: var(--background); padding: 20px; padding-bottom: 140px;">
+            <div style="width: 100%; max-width: 400px; background: var(--surface); border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <h1 style="font-size: 24px; margin: 0 0 8px 0; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Set New Password</h1>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Choose a strong new password for your account.</p>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">New Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="ownerResetNewPassword" placeholder="New Password" style="width: 100%; padding: 12px; padding-right: 48px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+                        <button type="button" onclick="this.previousElementSibling.type = this.previousElementSibling.type === 'password' ? 'text' : 'password';" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; font-size: 18px; opacity: 0.6;">👁️</button>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Confirm Password</label>
+                    <input type="password" id="ownerResetConfirmPassword" placeholder="Confirm New Password" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--background);">
+                </div>
+                <div id="ownerResetPasswordMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
+                <button id="ownerResetPasswordBtn" onclick="submitOwnerResetPassword()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
+                    Update Password
+                </button>
             </div>
         </div>
 
@@ -2278,6 +2324,133 @@
             // Show login screen
             document.getElementById('ownerApp').classList.add('hidden');
             document.getElementById('ownerLoginScreen').classList.remove('hidden');
+            document.getElementById('ownerLoginScreen').style.display = 'flex';
+        }
+
+        // ── Password Reset Functions ──────────────────────────────
+
+        function showOwnerForgotPassword() {
+            document.getElementById('ownerLoginScreen').style.display = 'none';
+            document.getElementById('ownerForgotPasswordPanel').style.display = 'flex';
+            document.getElementById('ownerForgotPasswordPanel').classList.remove('hidden');
+            // Pre-fill email if available
+            const loginEmail = document.getElementById('ownerLoginEmail').value.trim();
+            if (loginEmail) {
+                document.getElementById('ownerForgotPasswordEmail').value = loginEmail;
+            }
+        }
+
+        function showOwnerLoginPanel() {
+            document.getElementById('ownerForgotPasswordPanel').style.display = 'none';
+            document.getElementById('ownerForgotPasswordPanel').classList.add('hidden');
+            document.getElementById('ownerResetPasswordPanel').style.display = 'none';
+            document.getElementById('ownerResetPasswordPanel').classList.add('hidden');
+            document.getElementById('ownerLoginScreen').style.display = 'flex';
+        }
+
+        async function submitOwnerForgotPassword() {
+            const email = document.getElementById('ownerForgotPasswordEmail').value.trim();
+            const msgEl = document.getElementById('ownerForgotPasswordMessage');
+            const btn = document.getElementById('ownerForgotPasswordBtn');
+
+            if (!email) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Please enter your email address.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            msgEl.style.display = 'none';
+
+            try {
+                await firebaseAuth.sendPasswordResetEmail(email, {
+                    url: window.location.origin + '/owner-portal.html'
+                });
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#dcfce7';
+                msgEl.style.color = '#16a34a';
+                msgEl.textContent = 'Reset link sent! Check your email inbox (and spam folder).';
+                btn.textContent = 'Sent';
+            } catch (err) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                if (err.code === 'auth/user-not-found') {
+                    msgEl.textContent = 'No account found with this email.';
+                } else if (err.code === 'auth/too-many-requests') {
+                    msgEl.textContent = 'Too many attempts. Please try again later.';
+                } else {
+                    msgEl.textContent = 'Error: ' + err.message;
+                }
+                btn.disabled = false;
+                btn.textContent = 'Send Reset Link';
+            }
+        }
+
+        async function submitOwnerResetPassword() {
+            const newPassword = document.getElementById('ownerResetNewPassword').value;
+            const confirmPassword = document.getElementById('ownerResetConfirmPassword').value;
+            const msgEl = document.getElementById('ownerResetPasswordMessage');
+            const btn = document.getElementById('ownerResetPasswordBtn');
+
+            msgEl.style.display = 'none';
+
+            if (!newPassword || newPassword.length < 8) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Password must be at least 8 characters.';
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Passwords do not match.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            try {
+                // Verify the password reset code from the URL and apply the new password
+                const urlParams = new URLSearchParams(window.location.search);
+                const oobCode = urlParams.get('oobCode');
+                if (oobCode) {
+                    await firebaseAuth.confirmPasswordReset(oobCode, newPassword);
+                } else {
+                    // User is already signed in (e.g., changing password from profile)
+                    const user = firebaseAuth.currentUser;
+                    if (!user) throw new Error('No authenticated user. Please use the reset link from your email.');
+                    await user.updatePassword(newPassword);
+                }
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#dcfce7';
+                msgEl.style.color = '#16a34a';
+                msgEl.textContent = 'Password updated successfully! Redirecting to login...';
+                setTimeout(() => {
+                    window.location.href = 'owner-portal.html';
+                }, 2000);
+            } catch (err) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2';
+                msgEl.style.color = '#dc2626';
+                if (err.code === 'auth/expired-action-code') {
+                    msgEl.textContent = 'This reset link has expired. Please request a new one.';
+                } else if (err.code === 'auth/invalid-action-code') {
+                    msgEl.textContent = 'This reset link is invalid or has already been used.';
+                } else if (err.code === 'auth/weak-password') {
+                    msgEl.textContent = 'Password is too weak. Please use a stronger password.';
+                } else {
+                    msgEl.textContent = 'Error: ' + err.message;
+                }
+                btn.disabled = false;
+                btn.textContent = 'Update Password';
+            }
         }
 
         // Check authentication on page load
@@ -2285,6 +2458,18 @@
             // Load saved theme preference
             const savedTheme = localStorage.getItem('ownerPortalTheme') || 'light';
             applyOwnerTheme(savedTheme);
+
+            // ── Detect password reset email link ──────────────────────
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlHash = window.location.hash;
+            const mode = urlParams.get('mode');
+            if (mode === 'resetPassword' || urlHash.includes('mode=resetPassword') || urlHash.includes('type=recovery')) {
+                // User clicked a password reset email link — show the set-new-password form
+                document.getElementById('ownerLoginScreen').style.display = 'none';
+                document.getElementById('ownerResetPasswordPanel').style.display = 'flex';
+                document.getElementById('ownerResetPasswordPanel').classList.remove('hidden');
+                return;
+            }
 
             // Initialize owner login page - populate remembered email
             const ownerRememberedEmail = localStorage.getItem('ownerRememberedEmail');
@@ -2318,6 +2503,22 @@
                         ownerLogin();
                     }
                 });
+            }
+
+            // ── Try Firebase session restore ──────────────────────────
+            try {
+                const firebaseUser = firebaseAuth.currentUser;
+                if (firebaseUser) {
+                    const { data: owners } = await supabase.from('property_owners').select('*');
+                    const profile = owners ? owners.find(o => o.email === firebaseUser.email) : null;
+                    if (profile && profile.is_active) {
+                        const sessionUser = { ...profile, userType: 'owner' };
+                        localStorage.setItem('currentUser', JSON.stringify(sessionUser));
+                        console.log('[Auth] Firebase session restored for owner:', profile.email);
+                    }
+                }
+            } catch (e) {
+                console.warn('[Auth] Firebase session check failed, using localStorage fallback:', e.message);
             }
 
             const storedUser = localStorage.getItem('currentUser');
