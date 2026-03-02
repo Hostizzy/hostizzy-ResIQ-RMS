@@ -2345,6 +2345,14 @@
         }
 
         /* ========================================
+           RESPONSIVE TABLE - MOBILE
+           ======================================== */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ========================================
            ENHANCED RESERVATIONS TABLE
            ======================================== */
         #reservationsTableBody tr {
@@ -2370,6 +2378,14 @@
             display: flex;
             gap: 4px;
             align-items: center;
+        }
+
+        /* Always show actions on touch/mobile devices */
+        @media (hover: none), (max-width: 1024px) {
+            .row-hover-actions {
+                opacity: 1;
+                pointer-events: all;
+            }
         }
 
         /* Reservation Status Badge */
@@ -2453,7 +2469,6 @@
             background: var(--background-alt);
         }
 
-        /* Quick action buttons */
         .quick-action-btn {
             padding: 4px 8px;
             font-size: 11px;
@@ -2473,7 +2488,6 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
-            transform: translateY(-1px);
         }
 
         /* Status Badges */
@@ -7344,11 +7358,24 @@
             font-weight: 600;
             box-shadow: 0 2px 6px rgba(8,145,178,0.3);
         }
+
+        /* Dashboard filter bar: allow horizontal scroll on mobile */
+        @media (max-width: 768px) {
+            .dash-filter-bar > div {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                flex-wrap: nowrap;
+            }
+
+            .dash-period-label {
+                display: none;
+            }
+        }
         </style>
 
         <!-- Dashboard View -->
         <div id="dashboardView" class="container">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary);">Reservations Dashboard</h2>
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Real-time overview of bookings, revenue, and performance</p>
@@ -7359,9 +7386,9 @@
             </div>
 
             <!-- Dashboard Period Filter -->
-            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 14px 20px; background: white; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+            <div class="dash-filter-bar" style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 14px 20px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
                 <i data-lucide="calendar-range" style="width: 18px; height: 18px; color: var(--primary); flex-shrink: 0;"></i>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 8px; flex-wrap: nowrap;">
                     <button class="dash-period-btn active" data-range="this-month" onclick="applyDashboardDateFilter('this-month')">This Month</button>
                     <button class="dash-period-btn" data-range="last-month" onclick="applyDashboardDateFilter('last-month')">Last Month</button>
                     <button class="dash-period-btn" data-range="this-quarter" onclick="applyDashboardDateFilter('this-quarter')">This Quarter</button>
@@ -7370,7 +7397,7 @@
                     <button class="dash-period-btn" data-range="last-90" onclick="applyDashboardDateFilter('last-90')">Last 90 Days</button>
                     <button class="dash-period-btn" data-range="all-time" onclick="applyDashboardDateFilter('all-time')">All Time</button>
                 </div>
-                <div style="margin-left: auto; font-size: 12px; color: var(--text-tertiary); white-space: nowrap;" id="dashboardPeriodLabel">Showing: This Month</div>
+                <div class="dash-period-label" style="margin-left: auto; font-size: 12px; color: var(--text-tertiary); white-space: nowrap;" id="dashboardPeriodLabel">Showing: This Month</div>
             </div>
 
             <!-- Core Metrics - Essential KPIs -->
@@ -7746,7 +7773,7 @@
 
         <!-- Guests View -->
         <div id="guestsView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="users" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -7825,7 +7852,7 @@
                 <!-- Table View Container -->
                 <div id="guestTableView" style="display: block;">
                     <div class="table-container">
-                        <table>
+                        <table class="data-table">
                             <thead>
                                 <tr>
                                     <th onclick="sortGuestsTable('name')" style="cursor: pointer;">
@@ -7876,7 +7903,7 @@
 
         <!-- Reservations View -->
         <div id="reservationsView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="calendar" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8018,7 +8045,7 @@
 
                 <!-- Table View -->
                 <div id="tableView" class="table-container">
-                    <table>
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th style="width: 40px;">
@@ -8087,7 +8114,7 @@
         <!-- Payments View -->
         <div id="paymentsView" class="container hidden">
             <!-- Page Header -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="credit-card" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8159,7 +8186,7 @@
                 </div>
 
                 <div class="table-container">
-                    <table>
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Booking ID</th>
@@ -8174,7 +8201,7 @@
                             </tr>
                         </thead>
                         <tbody id="paymentsTableBody">
-                            <tr><td colspan="8" class="text-center">Loading...</td></tr>
+                            <tr><td colspan="9" class="text-center">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -8245,7 +8272,7 @@
         <!-- Properties View -->
         <div id="propertiesView" class="container hidden">
             <!-- Page Header -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="building-2" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8333,7 +8360,7 @@
                         </button>
                     </div>
                 </div>
-                <div style="padding: 20px; overflow-x: auto;">
+                <div class="table-container" style="padding: 20px;">
                     <table id="propertyReservationsTable" class="data-table" style="width: 100%;">
                         <thead>
                             <tr>
@@ -8544,7 +8571,7 @@
             </div>
 
             <!-- Revenue Breakdown Section -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 24px; margin-bottom: 24px;">
                 <!-- Revenue by Property -->
                 <div class="card">
                     <div style="padding: 20px; border-bottom: 1px solid var(--border);">
@@ -8567,7 +8594,7 @@
             </div>
 
             <!-- Channel Mix & Monthly Trend -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 24px; margin-bottom: 24px;">
                 <!-- Channel Mix Chart -->
                 <div class="card">
                     <div style="padding: 20px; border-bottom: 1px solid var(--border);">
@@ -8590,7 +8617,7 @@
             </div>
 
             <!-- Guest Analytics & Occupancy Analysis -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 24px; margin-bottom: 24px;">
                 <!-- Guest Analytics -->
                 <div class="card">
                     <div style="padding: 20px; border-bottom: 1px solid var(--border);">
@@ -8626,7 +8653,7 @@
                         <i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i>Export to Excel
                     </button>
                 </div>
-                <div style="padding: 20px; overflow-x: auto;">
+                <div class="table-container" style="padding: 20px;">
                     <table class="data-table" id="propertyComparisonTable">
                         <thead>
                             <tr>
@@ -8653,7 +8680,7 @@
                         <span><i data-lucide="trending-up" style="width: 16px; height: 16px;"></i></span> Monthly Performance Breakdown
                     </h3>
                 </div>
-                <div style="padding: 20px; overflow-x: auto;">
+                <div class="table-container" style="padding: 20px;">
                     <div id="businessMonthlyBreakdown"></div>
                 </div>
             </div>
@@ -8863,7 +8890,7 @@
 
         <!-- Team View -->
         <div id="teamView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="user-check" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8876,26 +8903,28 @@
                 </button>
             </div>
             <div class="card">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teamTableBody">
-                        <tr><td colspan="5" class="text-center">Loading...</td></tr>
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teamTableBody">
+                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- Property Owners View -->
         <div id="ownersView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="shield" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8908,30 +8937,32 @@
                 </button>
             </div>
             <div class="card">
-                <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                <p style="margin-bottom: 20px; padding: 16px 16px 0; color: var(--text-secondary); font-size: 14px;">
                     Manage property owner credentials. Owners can access their assigned properties via the Owner Portal.
                 </p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Assigned Properties</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ownersTableBody">
-                        <tr><td colspan="6" class="text-center">Loading...</td></tr>
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Properties</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ownersTableBody">
+                            <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- Meals Management View -->
         <div id="mealsView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="utensils" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8989,7 +9020,7 @@
 
         <!-- Guest Documents View -->
         <div id="guestDocumentsView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="file-text" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -9421,7 +9452,7 @@
 
         <!-- Communication View -->
         <div id="communicationView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="message-circle" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -15703,45 +15734,47 @@
             
             const rows = sortedMonths.map(([month, data]) => {
                 const occRate = monthlyTargetNights > 0 ? ((data.nights / monthlyTargetNights) * 100).toFixed(1) : 0;
-                
+
                 // Calculate Hostizzy revenue for this month
                 const monthReservations = reservations.filter(r => r.month === month);
                 const hostizzyRev = monthReservations.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
                 const collected = monthReservations.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
                 const pending = data.revenue - collected;
-                
+
                 return `
-                    <tr style="border-bottom: 1px solid var(--border);">
-                        <td style="padding: 12px; font-weight: 600;">${month}</td>
-                        <td style="text-align: center; padding: 12px;">${data.bookings}</td>
-                        <td style="text-align: center; padding: 12px;">${data.nights}</td>
-                        <td style="text-align: center; padding: 12px; font-weight: 600; color: ${occRate >= 50 ? 'var(--success)' : 'var(--warning)'};">${occRate}%</td>
-                        <td style="text-align: right; padding: 12px; font-weight: 700; color: var(--success);">₹${(data.revenue/100000).toFixed(1)}L</td>
-                        <td style="text-align: right; padding: 12px; color: var(--primary);">₹${(hostizzyRev/100000).toFixed(1)}L</td>
-                        <td style="text-align: right; padding: 12px; color: var(--success);">₹${(collected/100000).toFixed(1)}L</td>
-                        <td style="text-align: right; padding: 12px; color: var(--danger);">₹${(pending/100000).toFixed(1)}L</td>
+                    <tr>
+                        <td><strong>${month}</strong></td>
+                        <td style="text-align: center;">${data.bookings}</td>
+                        <td style="text-align: center;">${data.nights}</td>
+                        <td style="text-align: center; font-weight: 600; color: ${occRate >= 50 ? 'var(--success)' : 'var(--warning)'};">${occRate}%</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--success);">₹${(data.revenue/100000).toFixed(1)}L</td>
+                        <td style="text-align: right; color: var(--primary);">₹${(hostizzyRev/100000).toFixed(1)}L</td>
+                        <td style="text-align: right; color: var(--success);">₹${(collected/100000).toFixed(1)}L</td>
+                        <td style="text-align: right; color: var(--danger);">₹${(pending/100000).toFixed(1)}L</td>
                     </tr>
                 `;
             }).join('');
-            
+
             const html = `
-                <table style="width: 100%;">
+                <div class="table-container">
+                <table class="data-table">
                     <thead>
-                        <tr style="border-bottom: 2px solid var(--border);">
-                            <th style="text-align: left; padding: 12px;">Month</th>
-                            <th style="text-align: center; padding: 12px;">Bookings</th>
-                            <th style="text-align: center; padding: 12px;">Nights</th>
-                            <th style="text-align: center; padding: 12px;">Occ %</th>
-                            <th style="text-align: right; padding: 12px;">Revenue</th>
-                            <th style="text-align: right; padding: 12px;">Hostizzy</th>
-                            <th style="text-align: right; padding: 12px;">Collected</th>
-                            <th style="text-align: right; padding: 12px;">Pending</th>
+                        <tr>
+                            <th>Month</th>
+                            <th>Bookings</th>
+                            <th>Nights</th>
+                            <th>Occ %</th>
+                            <th>Revenue</th>
+                            <th>Hostizzy</th>
+                            <th>Collected</th>
+                            <th>Pending</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${rows}
                     </tbody>
                 </table>
+                </div>
             `;
             
             document.getElementById('monthlyTrends').innerHTML = html || '<div style="text-align: center; color: var(--text-secondary);">No data available</div>';
@@ -21053,6 +21086,7 @@ function renderMoMComparison(reservations, propertyId) {
 
     // Render comparison table
     container.innerHTML = `
+        <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
@@ -21091,6 +21125,7 @@ function renderMoMComparison(reservations, propertyId) {
                 }).join('')}
             </tbody>
         </table>
+        </div>
     `;
 }
 
@@ -21809,18 +21844,19 @@ function renderBookingTypeBreakdown(reservations) {
 
     // Render table
     container.innerHTML = `
+        <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Booking Type</th>
+                    <th>Type</th>
                     <th>Bookings</th>
-                    <th>% of Total</th>
-                    <th>Total Revenue</th>
-                    <th>% Revenue</th>
-                    <th>Total Nights</th>
-                    <th>Avg Nights</th>
+                    <th>% Total</th>
+                    <th>Revenue</th>
+                    <th>% Rev</th>
+                    <th>Nights</th>
+                    <th>Avg</th>
                     <th>ADR</th>
-                    <th>Collection %</th>
+                    <th>Collect %</th>
                 </tr>
             </thead>
             <tbody>
@@ -21873,6 +21909,7 @@ function renderBookingTypeBreakdown(reservations) {
                 </tr>
             </tbody>
         </table>
+        </div>
     `;
 }
 // ============================================================================
@@ -22484,10 +22521,11 @@ function printPropertyView() {
 
             // Render leaderboard
             container.innerHTML = `
+                <div class="table-container">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th style="width: 60px;">Rank</th>
+                            <th style="width: 50px;">Rank</th>
                             <th>Property</th>
                             <th>Revenue</th>
                             <th>Bookings</th>
@@ -22503,14 +22541,14 @@ function printPropertyView() {
 
                             return `
                                 <tr>
-                                    <td style="text-align: center; font-size: 20px;">${medal || (idx + 1)}</td>
+                                    <td style="text-align: center; font-size: 18px;">${medal || (idx + 1)}</td>
                                     <td><strong>${m.property.name}</strong></td>
                                     <td><strong>${formatCurrency(m.revenue)}</strong></td>
                                     <td>${m.bookings}</td>
                                     <td>${formatPercentage(m.occupancy)}</td>
                                     <td>${formatCurrency(m.adr)}</td>
                                     <td>
-                                        <span style="font-size: 18px; font-weight: bold; color: ${scoreColor};">
+                                        <span style="font-size: 16px; font-weight: bold; color: ${scoreColor};">
                                             ${m.score}/100
                                         </span>
                                     </td>
@@ -22519,6 +22557,7 @@ function printPropertyView() {
                         }).join('')}
                     </tbody>
                 </table>
+                </div>
             `;
         }
 
@@ -22549,16 +22588,17 @@ function printPropertyView() {
             const totalCommission = activeRes.reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
 
             container.innerHTML = `
+                <div class="table-container">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Booking Channel</th>
+                            <th>Channel</th>
                             <th>Bookings</th>
                             <th>Revenue</th>
                             <th>Avg Value</th>
                             <th>Commission</th>
                             <th>Net Revenue</th>
-                            <th>% of Total</th>
+                            <th>% Total</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -22591,6 +22631,7 @@ function printPropertyView() {
                         </tr>
                     </tbody>
                 </table>
+                </div>
             `;
         }
 

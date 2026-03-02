@@ -22,7 +22,7 @@ body {
 }
 
 .safe-area-bottom {
-    padding-bottom: calc(--sab) + 16px);
+    padding-bottom: calc(var(--sab) + 16px);
 }
 
 .safe-area-left {
