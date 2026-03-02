@@ -80,13 +80,12 @@ jobs:
           # Save our custom twa-manifest.json before init overwrites it
           cp twa-manifest.json /tmp/custom-twa-manifest.json
 
-          # Use bubblewrap init with piped empty input to accept all defaults.
-          # The pre-created ~/.bubblewrap/config.json prevents JDK/SDK prompts.
-          # Empty lines (Enter) accept the default value for each prompt.
-          yes "" | bubblewrap init --manifest="https://resiq.app/manifest.json" || true
+          # Fetch web manifest directly from the live site.
+          # Empty lines (Enter) accept all interactive prompt defaults.
+          yes "" | bubblewrap init --manifest="https://resiq.hostizzy.com/manifest.json" || true
 
           # Restore our custom twa-manifest.json (with our package ID, version,
-          # signing key path, etc.) over the one init generated from web manifest
+          # signing key, etc.) over the one init generated from web manifest
           cp /tmp/custom-twa-manifest.json twa-manifest.json
 
           # Verify the project was created

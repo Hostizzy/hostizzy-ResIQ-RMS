@@ -1,6 +1,6 @@
 {
   "packageId": "com.hostizzy.resiq",
-  "host": "resiq.app",
+  "host": "resiq.hostizzy.com",
   "name": "ResIQ by Hostizzy",
   "launcherName": "ResIQ",
   "display": "standalone",
@@ -13,8 +13,8 @@
   "backgroundColor": "#ffffff",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://resiq.app/assets/logo-512-maskable.png",
-  "maskableIconUrl": "https://resiq.app/assets/logo-512-maskable.png",
+  "iconUrl": "https://resiq.hostizzy.com/assets/logo-512-maskable.png",
+  "maskableIconUrl": "https://resiq.hostizzy.com/assets/logo-512-maskable.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./build/keystore.jks",
@@ -27,22 +27,22 @@
       "name": "New Reservation",
       "shortName": "New Booking",
       "url": "/?action=new-reservation",
-      "chosenIconUrl": "https://resiq.app/assets/logo-192.png"
+      "chosenIconUrl": "https://resiq.hostizzy.com/assets/logo-192.png"
     },
     {
       "name": "Dashboard",
       "shortName": "Dashboard",
       "url": "/?view=dashboard",
-      "chosenIconUrl": "https://resiq.app/assets/logo-192.png"
+      "chosenIconUrl": "https://resiq.hostizzy.com/assets/logo-192.png"
     }
   ],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://resiq.app/manifest.json",
+  "webManifestUrl": "https://resiq.hostizzy.com/manifest.json",
   "fallbackType": "customtabs",
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "https://resiq.app/",
+  "fullScopeUrl": "https://resiq.hostizzy.com/",
   "minSdkVersion": 19,
   "orientation": "any",
   "fingerprints": [
