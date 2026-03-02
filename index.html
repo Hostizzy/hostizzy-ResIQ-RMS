@@ -2350,135 +2350,6 @@
         .table-container {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            border-radius: var(--radius-sm);
-            position: relative;
-        }
-
-        /* Scroll shadow hint on right edge */
-        .table-container::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 24px;
-            background: linear-gradient(to left, rgba(0,0,0,0.04), transparent);
-            pointer-events: none;
-            opacity: 1;
-            transition: opacity 0.3s;
-        }
-
-        .table-container.scrolled-end::after {
-            opacity: 0;
-        }
-
-        @media (max-width: 768px) {
-            table th, table td {
-                padding: 10px 8px;
-                font-size: 12px;
-            }
-
-            table th {
-                font-size: 10px;
-                letter-spacing: 0.3px;
-                white-space: nowrap;
-            }
-
-            table td {
-                white-space: nowrap;
-            }
-
-            .data-table th, .data-table td {
-                padding: 8px 6px;
-                font-size: 11px;
-            }
-
-            .data-table th {
-                font-size: 9px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            table th, table td {
-                padding: 8px 6px;
-                font-size: 11px;
-            }
-
-            .data-table th, .data-table td {
-                padding: 6px 4px;
-                font-size: 10px;
-            }
-        }
-
-        /* ========================================
-           MOBILE LAYOUT OVERRIDES
-           ======================================== */
-        @media (max-width: 768px) {
-            .container {
-                padding: 12px !important;
-            }
-
-            /* Reduce card inner padding on mobile */
-            #businessView .card > div[style*="padding: 20px"] {
-                padding: 12px !important;
-            }
-
-            /* Stack header + export button vertically */
-            #businessView .card > div[style*="justify-content: space-between"] {
-                flex-direction: column;
-                gap: 8px;
-                align-items: flex-start !important;
-            }
-
-            /* Make KPI cards 2-column on mobile */
-            #businessKPICards {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 8px !important;
-            }
-
-            .stat-card {
-                padding: 12px !important;
-            }
-
-            .stat-card .stat-value {
-                font-size: 20px !important;
-            }
-
-            .stat-card .stat-label {
-                font-size: 11px !important;
-            }
-
-            /* Reduce h2/h3 size */
-            #businessView h2 {
-                font-size: 18px;
-            }
-
-            #businessView h3 {
-                font-size: 14px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 8px !important;
-            }
-
-            #businessKPICards {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 6px !important;
-            }
-
-            .stat-card {
-                padding: 8px !important;
-            }
-
-            .stat-card .stat-value {
-                font-size: 16px !important;
-            }
-
-            .stat-card .stat-label {
-                font-size: 10px !important;
-            }
         }
 
         /* ========================================
@@ -2510,46 +2381,11 @@
         }
 
         /* Always show actions on touch/mobile devices */
-        @media (max-width: 1024px) {
+        @media (hover: none), (max-width: 1024px) {
             .row-hover-actions {
                 opacity: 1;
                 pointer-events: all;
             }
-        }
-
-        /* Better action button styling */
-        .quick-action-btn {
-            width: 30px;
-            height: 30px;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.15s;
-            font-size: 0;
-        }
-
-        .quick-action-btn i {
-            width: 14px !important;
-            height: 14px !important;
-        }
-
-        .quick-action-btn:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            transform: scale(1.1);
-        }
-
-        .quick-action-btn[style*="color: var(--danger)"]:hover {
-            background: var(--danger) !important;
-            border-color: var(--danger) !important;
-            color: white !important;
         }
 
         /* Reservation Status Badge */
@@ -2633,7 +2469,26 @@
             background: var(--background-alt);
         }
 
-        /* Quick action buttons - defined above in row-hover-actions section */
+        .quick-action-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
 
         /* Status Badges */
         .badge {
@@ -7504,51 +7359,16 @@
             box-shadow: 0 2px 6px rgba(8,145,178,0.3);
         }
 
-        /* Dashboard filter bar mobile */
+        /* Dashboard filter bar: allow horizontal scroll on mobile */
         @media (max-width: 768px) {
-            .dash-filter-bar {
-                flex-direction: column !important;
-                padding: 10px 12px !important;
-                gap: 10px !important;
-            }
-
             .dash-filter-bar > div {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-                gap: 6px !important;
-                padding-bottom: 4px;
+                flex-wrap: nowrap;
             }
 
-            .dash-period-btn {
-                padding: 5px 10px;
-                font-size: 11px;
-            }
-
-            .dash-filter-bar .dash-period-label {
+            .dash-period-label {
                 display: none;
-            }
-        }
-
-        /* Dashboard header mobile */
-        @media (max-width: 640px) {
-            .view-header {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                gap: 12px;
-            }
-
-            .view-header h2 {
-                font-size: 18px !important;
-            }
-
-            /* Core metric cards on mobile */
-            #coreMetrics {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 8px !important;
-            }
-
-            #coreMetrics .stat-card > div > div:nth-child(2) {
-                font-size: 20px !important;
             }
         }
         </style>
@@ -16812,19 +16632,19 @@
                         <td>
                             <div class="row-hover-actions">
                                 <button class="quick-action-btn" onclick="openPaymentModal('${r.booking_id}')" title="Add Payment">
-                                    <i data-lucide="credit-card"></i>
+                                    <i data-lucide="credit-card" style="width: 11px; height: 11px;"></i>Pay
                                 </button>
                                 <button class="quick-action-btn" onclick="viewPaymentHistory('${r.booking_id}')" title="Payment History">
-                                    <i data-lucide="history"></i>
+                                    <i data-lucide="history" style="width: 11px; height: 11px;"></i>
                                 </button>
                                 <button class="quick-action-btn" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send WhatsApp">
-                                    <i data-lucide="message-circle"></i>
+                                    <i data-lucide="message-circle" style="width: 11px; height: 11px;"></i>
                                 </button>
                                 <button class="quick-action-btn" onclick="openReservationModal('${r.booking_id}')" title="Edit">
-                                    <i data-lucide="edit"></i>
+                                    <i data-lucide="edit" style="width: 11px; height: 11px;"></i>
                                 </button>
                                 ${!isCancelled ? `<button class="quick-action-btn" onclick="deleteReservation('${r.booking_id}')" title="Delete" style="color: var(--danger);">
-                                    <i data-lucide="trash-2"></i>
+                                    <i data-lucide="trash-2" style="width: 11px; height: 11px;"></i>
                                 </button>` : ''}
                             </div>
                         </td>
