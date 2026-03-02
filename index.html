@@ -339,6 +339,28 @@
             border-color: rgba(30, 41, 59, 0.98);
         }
 
+        [data-theme="dark"] .sidebar {
+            background: #1e293b;
+            border-right-color: #334155;
+        }
+
+        [data-theme="dark"] .sidebar-item {
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .sidebar-item:hover {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        [data-theme="dark"] .sidebar-category-header:hover {
+            background: #0f172a;
+        }
+
+        [data-theme="dark"] .sidebar-footer {
+            border-top-color: #334155;
+        }
+
         [data-theme="dark"] .mobile-header {
             background: rgba(30, 41, 59, 0.98);
             backdrop-filter: saturate(180%) blur(20px);
@@ -2820,6 +2842,205 @@
             min-width: 200px;
         }
 
+        /* Mobile Filters - Search bar + bottom sheet */
+        .filters-mobile {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .filters-mobile-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filters-mobile-search {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--background);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            transition: border-color 0.2s ease;
+        }
+
+        .filters-mobile-search:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+
+        .filters-mobile-search input {
+            flex: 1;
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .filters-mobile-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 14px;
+            background: var(--background);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .filters-mobile-toggle:active {
+            transform: scale(0.96);
+        }
+
+        .filter-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Filter Bottom Sheet */
+        .filter-sheet-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .filter-sheet-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .filter-sheet {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            z-index: 2001;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .filter-sheet.active {
+            display: block;
+            transform: translateY(0);
+        }
+
+        .filter-sheet-handle {
+            display: flex;
+            justify-content: center;
+            padding: 12px 0 4px;
+            cursor: pointer;
+        }
+
+        .filter-sheet-handle-bar {
+            width: 40px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .filter-sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px 16px;
+        }
+
+        .filter-sheet-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .filter-sheet-body {
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .filter-sheet-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-sheet-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-sheet-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            background: var(--background);
+            color: var(--text-primary);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .filter-sheet-footer {
+            padding: 20px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+        }
+
+        /* Dark mode support for filter sheet */
+        [data-theme="dark"] .filter-sheet {
+            background: #1e293b;
+        }
+
+        [data-theme="dark"] .filter-sheet-group select {
+            background: #0f172a;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+
+        [data-theme="dark"] .filters-mobile-search {
+            background: #0f172a;
+            border-color: #334155;
+        }
+
+        [data-theme="dark"] .filters-mobile-search input {
+            color: #e2e8f0;
+        }
+
+        [data-theme="dark"] .filters-mobile-toggle {
+            background: #0f172a;
+            border-color: #334155;
+            color: #94a3b8;
+        }
+
         /* Utilities */
         .hidden {
             display: none;
@@ -3386,7 +3607,7 @@
             }
         }
 
-        /* Tablet Compact Sidebar (769px - 1024px) */
+        /* Tablet Sidebar (769px - 1024px) — Full sidebar with labels */
         @media (min-width: 769px) and (max-width: 1024px) {
             body {
                 padding-top: 60px;
@@ -3398,32 +3619,40 @@
 
             .sidebar {
                 display: flex;
-                width: 80px;
-            }
-
-            .sidebar.compact {
-                width: 80px;
+                width: 220px;
             }
 
             .sidebar-item-label {
-                display: none;
+                display: block;
+                font-size: 13px;
             }
 
             .sidebar-item {
-                justify-content: center;
-                padding: 12px 8px;
-            }
-
-            .sidebar-title {
-                display: none;
+                justify-content: flex-start;
+                padding: 10px 14px;
+                gap: 10px;
             }
 
             .sidebar-item-icon {
-                font-size: 24px;
+                font-size: 20px;
+            }
+
+            .sidebar-item-icon i {
+                width: 22px !important;
+                height: 22px !important;
+            }
+
+            .sidebar-category-header {
+                display: flex;
+                padding: 8px 10px;
+            }
+
+            .sidebar-category-title {
+                font-size: 12px;
             }
 
             .container {
-                margin-left: 80px;
+                margin-left: 220px;
                 padding-top: 0;
             }
 
@@ -3458,13 +3687,17 @@
                 display: none;
             }
 
-            /* Sidebar hidden by default, shown when active */
+            /* Sidebar as full-width drawer on mobile */
             .sidebar {
                 display: flex;
-                width: 80px;
-                left: -80px;
+                width: 280px;
+                left: -290px;
                 transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 1001;
+                top: 0;
+                height: 100vh;
+                padding-top: 60px;
+                box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
             }
 
             .sidebar.active,
@@ -3472,24 +3705,41 @@
                 left: 0;
             }
 
-            /* Compact sidebar styles for mobile */
-            .sidebar-item-label,
-            .sidebar-title,
+            /* Full sidebar with labels and large icons */
+            .sidebar-item-label {
+                display: block;
+                font-size: 15px;
+                font-weight: 500;
+            }
+
             .sidebar-category-header {
-                display: none;
+                display: flex;
+                padding: 10px 14px;
+            }
+
+            .sidebar-category-title {
+                font-size: 13px;
+                display: flex;
+                align-items: center;
             }
 
             .sidebar-item {
-                justify-content: center;
-                padding: 12px 8px;
+                justify-content: flex-start;
+                padding: 12px 16px;
+                gap: 14px;
             }
 
             .sidebar-item-icon {
-                font-size: 24px;
+                font-size: 22px;
+            }
+
+            .sidebar-item-icon i {
+                width: 24px !important;
+                height: 24px !important;
             }
 
             .sidebar-category-items {
-                padding: 0;
+                padding: 0 0 0 8px;
             }
 
             .container {
@@ -4697,15 +4947,13 @@
                 width: 100%;
             }
             
-            /* Filters - Stack on mobile */
-            .filters {
-                flex-direction: column;
-                align-items: stretch !important;
+            /* Filters - Hide desktop, show mobile bottom sheet */
+            .filters-desktop {
+                display: none !important;
             }
-            
-            .filter-item {
-                width: 100% !important;
-                max-width: 100% !important;
+
+            .filters-mobile {
+                display: block !important;
             }
             
             /* Quick Filters - Better mobile layout */
@@ -5160,26 +5408,13 @@
                 flex: 1;
             }
             
-            /* Filter scroll on mobile */
-            .filters {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                padding-bottom: 8px;
-                gap: 8px;
+            /* Desktop filters hidden on mobile, mobile filters shown */
+            .filters-desktop {
+                display: none !important;
             }
-            
-            .filters::-webkit-scrollbar {
-                height: 4px;
-            }
-            
-            .filters::-webkit-scrollbar-thumb {
-                background: var(--border);
-                border-radius: 4px;
-            }
-            
-            .filter-item {
-                min-width: 140px;
-                flex-shrink: 0;
+
+            .filters-mobile {
+                display: block !important;
             }
             
             /* Modal full-screen on mobile */
@@ -6052,9 +6287,9 @@
                     <div class="mobile-nav-icon"><i data-lucide="credit-card" style="width: 22px; height: 22px;"></i></div>
                     <div class="mobile-nav-label">Payments</div>
                 </a>
-                <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('guestDocuments');">
-                    <div class="mobile-nav-icon"><i data-lucide="file-text" style="width: 22px; height: 22px;"></i></div>
-                    <div class="mobile-nav-label">Documents</div>
+                <a class="mobile-nav-item" onclick="triggerHaptic('light'); toggleSidebar();">
+                    <div class="mobile-nav-icon"><i data-lucide="menu" style="width: 22px; height: 22px;"></i></div>
+                    <div class="mobile-nav-label">More</div>
                 </a>
             </div>
         </div>
@@ -7663,7 +7898,8 @@
             </div>
 
             <div class="card">
-                <div class="filters">
+                <!-- Desktop filters (hidden on mobile) -->
+                <div class="filters filters-desktop">
                     <div class="filter-item" style="flex: 1; max-width: 350px;">
                         <input type="text" id="searchReservations" placeholder="Search by guest, booking ID, phone, property..." style="width: 100%;">
                     </div>
@@ -7701,6 +7937,72 @@
                         </select>
                     </div>
                     <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
+                </div>
+
+                <!-- Mobile filters: search bar + filter button + bottom sheet -->
+                <div class="filters-mobile">
+                    <div class="filters-mobile-bar">
+                        <div class="filters-mobile-search">
+                            <i data-lucide="search" style="width: 18px; height: 18px; color: var(--text-tertiary); flex-shrink: 0;"></i>
+                            <input type="text" id="searchReservationsMobile" placeholder="Search guest, ID, phone..." oninput="document.getElementById('searchReservations').value = this.value;" onkeydown="if(event.key==='Enter') filterReservations();">
+                        </div>
+                        <button class="filters-mobile-toggle" onclick="toggleFilterSheet()">
+                            <i data-lucide="sliders-horizontal" style="width: 18px; height: 18px;"></i>
+                            <span>Filters</span>
+                            <span class="filter-badge" id="activeFilterCount" style="display: none;">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Bottom Sheet -->
+                <div class="filter-sheet-overlay" id="filterSheetOverlay" onclick="closeFilterSheet()"></div>
+                <div class="filter-sheet" id="filterSheet">
+                    <div class="filter-sheet-handle" onclick="closeFilterSheet()"><div class="filter-sheet-handle-bar"></div></div>
+                    <div class="filter-sheet-header">
+                        <h3>Filter Reservations</h3>
+                        <button class="btn btn-sm" onclick="clearFilters(); updateActiveFilterCount(); closeFilterSheet();" style="color: var(--danger); background: none; border: none; font-weight: 600;">Reset All</button>
+                    </div>
+                    <div class="filter-sheet-body">
+                        <div class="filter-sheet-group">
+                            <label class="filter-sheet-label">Status</label>
+                            <select id="statusFilterMobile" onchange="document.getElementById('statusFilter').value = this.value;">
+                                <option value="">All Status</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="pending">Pending</option>
+                                <option value="checked-in">Checked In</option>
+                                <option value="checked-out">Checked Out</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="filter-sheet-group">
+                            <label class="filter-sheet-label">Property</label>
+                            <select id="propertyFilterMobile" onchange="document.getElementById('propertyFilter').value = this.value;">
+                                <option value="">All Properties</option>
+                            </select>
+                        </div>
+                        <div class="filter-sheet-group">
+                            <label class="filter-sheet-label">Booking Source</label>
+                            <select id="bookingSourceFilterMobile" onchange="document.getElementById('bookingSourceFilter').value = this.value;">
+                                <option value="">All Sources</option>
+                                <option value="DIRECT">Direct</option>
+                                <option value="AIRBNB">Airbnb</option>
+                                <option value="AGODA/BOOKING.COM">Agoda/Booking.com</option>
+                                <option value="MMT/GOIBIBO">MakeMyTrip/Goibibo</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                        <div class="filter-sheet-group">
+                            <label class="filter-sheet-label">Month</label>
+                            <select id="monthFilterMobile" onchange="document.getElementById('monthFilter').value = this.value;">
+                                <option value="">All Months</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-sheet-footer">
+                        <button class="btn btn-primary" onclick="filterReservations(); updateActiveFilterCount(); closeFilterSheet();" style="width: 100%; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 12px;">
+                            Apply Filters
+                        </button>
+                    </div>
                 </div>
 
                 <!-- View Toggle -->
@@ -10643,10 +10945,9 @@
 
         /**
          * Haptic Feedback System - Native-feeling interactions
-         * Supports both Web Vibration API and Capacitor Haptics Engine
+         * Uses Web Vibration API (works in TWA and all modern browsers)
          */
         function triggerHaptic(type = 'light') {
-            // Web Vibration API (supported on Android, some iOS)
             if ('vibrate' in navigator) {
                 switch(type) {
                     case 'light':
@@ -10667,35 +10968,6 @@
                     case 'warning':
                         navigator.vibrate([15, 75, 15]);
                         break;
-                }
-            }
-
-            // iOS Haptic Engine via Capacitor (if available)
-            if (window.Capacitor && window.Capacitor.Plugins.Haptics) {
-                const { Haptics, ImpactStyle, NotificationType } = window.Capacitor.Plugins;
-                try {
-                    switch(type) {
-                        case 'light':
-                            Haptics.impact({ style: ImpactStyle.Light });
-                            break;
-                        case 'medium':
-                            Haptics.impact({ style: ImpactStyle.Medium });
-                            break;
-                        case 'heavy':
-                            Haptics.impact({ style: ImpactStyle.Heavy });
-                            break;
-                        case 'success':
-                            Haptics.notification({ type: NotificationType.Success });
-                            break;
-                        case 'error':
-                            Haptics.notification({ type: NotificationType.Error });
-                            break;
-                        case 'warning':
-                            Haptics.notification({ type: NotificationType.Warning });
-                            break;
-                    }
-                } catch (e) {
-                    console.log('Haptic feedback not available');
                 }
             }
         }
@@ -28847,6 +29119,76 @@ function printPropertyView() {
             }
             if (hamburger) {
                 hamburger.textContent = '☰';
+            }
+        }
+
+        // Filter Bottom Sheet
+        function toggleFilterSheet() {
+            const sheet = document.getElementById('filterSheet');
+            const overlay = document.getElementById('filterSheetOverlay');
+            if (sheet && overlay) {
+                const isActive = sheet.classList.contains('active');
+                if (isActive) {
+                    closeFilterSheet();
+                } else {
+                    // Sync desktop filter values to mobile before opening
+                    syncFiltersToMobile();
+                    overlay.classList.add('active');
+                    sheet.style.display = 'block';
+                    requestAnimationFrame(() => {
+                        sheet.classList.add('active');
+                    });
+                }
+            }
+        }
+
+        function closeFilterSheet() {
+            const sheet = document.getElementById('filterSheet');
+            const overlay = document.getElementById('filterSheetOverlay');
+            if (sheet) {
+                sheet.classList.remove('active');
+                setTimeout(() => { sheet.style.display = 'none'; }, 350);
+            }
+            if (overlay) {
+                overlay.classList.remove('active');
+                setTimeout(() => { overlay.style.display = 'none'; }, 300);
+            }
+        }
+
+        function syncFiltersToMobile() {
+            const pairs = [
+                ['statusFilter', 'statusFilterMobile'],
+                ['propertyFilter', 'propertyFilterMobile'],
+                ['bookingSourceFilter', 'bookingSourceFilterMobile'],
+                ['monthFilter', 'monthFilterMobile']
+            ];
+            pairs.forEach(([desktopId, mobileId]) => {
+                const desktop = document.getElementById(desktopId);
+                const mobile = document.getElementById(mobileId);
+                if (desktop && mobile) {
+                    // Copy options for dynamically populated selects
+                    if (mobile.options.length <= 1 && desktop.options.length > 1) {
+                        mobile.innerHTML = desktop.innerHTML;
+                    }
+                    mobile.value = desktop.value;
+                }
+            });
+        }
+
+        function updateActiveFilterCount() {
+            let count = 0;
+            ['statusFilterMobile', 'propertyFilterMobile', 'bookingSourceFilterMobile', 'monthFilterMobile'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value) count++;
+            });
+            const badge = document.getElementById('activeFilterCount');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
             }
         }
 

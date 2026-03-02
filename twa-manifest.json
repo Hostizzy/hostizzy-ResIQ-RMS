@@ -1,0 +1,54 @@
+{
+  "packageId": "com.hostizzy.resiq",
+  "host": "resiq.app",
+  "name": "ResIQ by Hostizzy",
+  "launcherName": "ResIQ",
+  "display": "standalone",
+  "themeColor": "#0891b2",
+  "themeColorDark": "#1e293b",
+  "navigationColor": "#ffffff",
+  "navigationColorDark": "#1e293b",
+  "navigationDividerColor": "#e2e8f0",
+  "navigationDividerColorDark": "#334155",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "/assets/logo-512-maskable.png",
+  "maskableIconUrl": "/assets/logo-512-maskable.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./build/keystore.jks",
+    "alias": "resiq"
+  },
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "shortcuts": [
+    {
+      "name": "New Reservation",
+      "shortName": "New Booking",
+      "url": "/?action=new-reservation",
+      "chosenIconUrl": "/assets/logo-192.png"
+    },
+    {
+      "name": "Dashboard",
+      "shortName": "Dashboard",
+      "url": "/?view=dashboard",
+      "chosenIconUrl": "/assets/logo-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "/manifest.json",
+  "fallbackType": "customtabs",
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://resiq.app/",
+  "minSdkVersion": 19,
+  "orientation": "any",
+  "fingerprints": [
+    {
+      "name": "play-store",
+      "value": "TODO:REPLACE_WITH_YOUR_SIGNING_KEY_SHA256_FINGERPRINT"
+    }
+  ]
+}
