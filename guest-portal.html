@@ -16,8 +16,8 @@
   <link rel="stylesheet" href="native-app-styles.css">
   <link rel="stylesheet" href="mobile-enhanced-forms.css">
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase Proxy (routes DB calls through Vercel to avoid ISP blocking) -->
+  <script src="supabase-proxy.js"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -810,7 +810,8 @@ const CONFIG = {
   ID_NEEDS_BACK: ['aadhar', 'driving_license', 'voter_id']
 };
 
-const client = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+// Use proxy to avoid ISP blocking of direct supabase.co connections
+const client = createSupabaseProxy();
 
 /* ========================================
    DOM HELPER UTILITIES
