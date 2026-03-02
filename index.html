@@ -2345,6 +2345,143 @@
         }
 
         /* ========================================
+           RESPONSIVE TABLE - MOBILE
+           ======================================== */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: var(--radius-sm);
+            position: relative;
+        }
+
+        /* Scroll shadow hint on right edge */
+        .table-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 24px;
+            background: linear-gradient(to left, rgba(0,0,0,0.04), transparent);
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        .table-container.scrolled-end::after {
+            opacity: 0;
+        }
+
+        @media (max-width: 768px) {
+            table th, table td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            table th {
+                font-size: 10px;
+                letter-spacing: 0.3px;
+                white-space: nowrap;
+            }
+
+            table td {
+                white-space: nowrap;
+            }
+
+            .data-table th, .data-table td {
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+
+            .data-table th {
+                font-size: 9px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            table th, table td {
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+
+            .data-table th, .data-table td {
+                padding: 6px 4px;
+                font-size: 10px;
+            }
+        }
+
+        /* ========================================
+           MOBILE LAYOUT OVERRIDES
+           ======================================== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px !important;
+            }
+
+            /* Reduce card inner padding on mobile */
+            #businessView .card > div[style*="padding: 20px"] {
+                padding: 12px !important;
+            }
+
+            /* Stack header + export button vertically */
+            #businessView .card > div[style*="justify-content: space-between"] {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start !important;
+            }
+
+            /* Make KPI cards 2-column on mobile */
+            #businessKPICards {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+
+            .stat-card {
+                padding: 12px !important;
+            }
+
+            .stat-card .stat-value {
+                font-size: 20px !important;
+            }
+
+            .stat-card .stat-label {
+                font-size: 11px !important;
+            }
+
+            /* Reduce h2/h3 size */
+            #businessView h2 {
+                font-size: 18px;
+            }
+
+            #businessView h3 {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px !important;
+            }
+
+            #businessKPICards {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 6px !important;
+            }
+
+            .stat-card {
+                padding: 8px !important;
+            }
+
+            .stat-card .stat-value {
+                font-size: 16px !important;
+            }
+
+            .stat-card .stat-label {
+                font-size: 10px !important;
+            }
+        }
+
+        /* ========================================
            ENHANCED RESERVATIONS TABLE
            ======================================== */
         #reservationsTableBody tr {
@@ -8544,7 +8681,7 @@
             </div>
 
             <!-- Revenue Breakdown Section -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 24px; margin-bottom: 24px;">
                 <!-- Revenue by Property -->
                 <div class="card">
                     <div style="padding: 20px; border-bottom: 1px solid var(--border);">
@@ -8567,7 +8704,7 @@
             </div>
 
             <!-- Channel Mix & Monthly Trend -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 24px; margin-bottom: 24px;">
                 <!-- Channel Mix Chart -->
                 <div class="card">
                     <div style="padding: 20px; border-bottom: 1px solid var(--border);">
@@ -8590,7 +8727,7 @@
             </div>
 
             <!-- Guest Analytics & Occupancy Analysis -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 24px; margin-bottom: 24px;">
                 <!-- Guest Analytics -->
                 <div class="card">
                     <div style="padding: 20px; border-bottom: 1px solid var(--border);">
@@ -8626,7 +8763,7 @@
                         <i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i>Export to Excel
                     </button>
                 </div>
-                <div style="padding: 20px; overflow-x: auto;">
+                <div class="table-container" style="padding: 20px;">
                     <table class="data-table" id="propertyComparisonTable">
                         <thead>
                             <tr>
@@ -8653,7 +8790,7 @@
                         <span><i data-lucide="trending-up" style="width: 16px; height: 16px;"></i></span> Monthly Performance Breakdown
                     </h3>
                 </div>
-                <div style="padding: 20px; overflow-x: auto;">
+                <div class="table-container" style="padding: 20px;">
                     <div id="businessMonthlyBreakdown"></div>
                 </div>
             </div>
@@ -22484,10 +22621,11 @@ function printPropertyView() {
 
             // Render leaderboard
             container.innerHTML = `
+                <div class="table-container">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th style="width: 60px;">Rank</th>
+                            <th style="width: 50px;">Rank</th>
                             <th>Property</th>
                             <th>Revenue</th>
                             <th>Bookings</th>
@@ -22503,14 +22641,14 @@ function printPropertyView() {
 
                             return `
                                 <tr>
-                                    <td style="text-align: center; font-size: 20px;">${medal || (idx + 1)}</td>
+                                    <td style="text-align: center; font-size: 18px;">${medal || (idx + 1)}</td>
                                     <td><strong>${m.property.name}</strong></td>
                                     <td><strong>${formatCurrency(m.revenue)}</strong></td>
                                     <td>${m.bookings}</td>
                                     <td>${formatPercentage(m.occupancy)}</td>
                                     <td>${formatCurrency(m.adr)}</td>
                                     <td>
-                                        <span style="font-size: 18px; font-weight: bold; color: ${scoreColor};">
+                                        <span style="font-size: 16px; font-weight: bold; color: ${scoreColor};">
                                             ${m.score}/100
                                         </span>
                                     </td>
@@ -22519,6 +22657,7 @@ function printPropertyView() {
                         }).join('')}
                     </tbody>
                 </table>
+                </div>
             `;
         }
 
@@ -22549,16 +22688,17 @@ function printPropertyView() {
             const totalCommission = activeRes.reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
 
             container.innerHTML = `
+                <div class="table-container">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Booking Channel</th>
+                            <th>Channel</th>
                             <th>Bookings</th>
                             <th>Revenue</th>
                             <th>Avg Value</th>
                             <th>Commission</th>
                             <th>Net Revenue</th>
-                            <th>% of Total</th>
+                            <th>% Total</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -22591,6 +22731,7 @@ function printPropertyView() {
                         </tr>
                     </tbody>
                 </table>
+                </div>
             `;
         }
 
