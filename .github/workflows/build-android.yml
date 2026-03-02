@@ -63,6 +63,9 @@ jobs:
           mkdir -p build
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > ./keystore.jks
           cp ./keystore.jks ./build/keystore.jks
+          # Also place at android.keystore so bubblewrap init finds it
+          # and skips the interactive "create keystore" prompts
+          cp ./keystore.jks ./android.keystore
 
       - name: Update twa-manifest.json for this build
         run: |
@@ -76,6 +79,9 @@ jobs:
           "
 
       - name: Generate Android project
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           # Save our custom twa-manifest.json before init overwrites it
           cp twa-manifest.json /tmp/custom-twa-manifest.json
