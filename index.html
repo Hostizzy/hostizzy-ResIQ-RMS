@@ -276,6 +276,48 @@
             border-color: var(--border) !important;
         }
 
+        /* Dark Mode - Home Screen Components */
+        [data-theme="dark"] .quick-action-card,
+        [data-theme="dark"] .category-card,
+        [data-theme="dark"] .today-stat-card,
+        [data-theme="dark"] .recent-activity-card {
+            background: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-theme="dark"] .category-card-title {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .category-card-stat {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-theme="dark"] .category-card-arrow {
+            color: var(--text-tertiary) !important;
+        }
+
+        [data-theme="dark"] .category-card:hover .category-card-arrow {
+            color: var(--primary) !important;
+        }
+
+        [data-theme="dark"] .quick-action-icon {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(6, 182, 212, 0.1) 100%) !important;
+        }
+
+        [data-theme="dark"] .category-card-icon {
+            background: linear-gradient(135deg, var(--background-alt) 0%, var(--surface-elevated) 100%) !important;
+        }
+
+        /* Dark Mode - App Launcher */
+        [data-theme="dark"] .app-icon-label {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .app-launcher-section-title {
+            color: var(--text-tertiary);
+        }
+
         /* Dark Mode - Mobile Navigation */
         [data-theme="dark"] .mobile-nav {
             background: rgba(30, 41, 59, 0.98);
@@ -330,7 +372,7 @@
         }
 
         .loading-content {
-            background: white;
+            background: var(--surface);
             padding: 24px 32px;
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -451,12 +493,24 @@
         }
 
         .login-card {
-            background: white;
+            background: var(--surface);
             padding: 48px;
-            border-radius: 12px;
-            box-shadow: var(--shadow-lg);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             width: 100%;
             max-width: 400px;
+            animation: loginCardSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes loginCardSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 640px) {
@@ -5574,6 +5628,10 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- Firebase Auth SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
     <!-- Chart.js for interactive charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
@@ -5721,7 +5779,7 @@
         </div>
 
         <!-- Login Page Footer with Legal Links -->
-        <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(0, 0, 0, 0.1); z-index: 1000;">
+        <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: var(--surface); backdrop-filter: blur(10px); border-top: 1px solid var(--border); z-index: 1000;">
             <div style="max-width: 600px; margin: 0 auto; text-align: center;">
                 <!-- Links -->
                 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-bottom: 12px;">
@@ -6042,7 +6100,153 @@
                 </div>
             </div>
 
-            <!-- Quick Actions - Prominent -->
+            <!-- App Launcher Grid (Mobile & Tablet) -->
+            <div class="app-launcher-grid">
+                <!-- Quick Actions -->
+                <div class="app-launcher-section">
+                    <div class="app-launcher-section-title">Quick Actions</div>
+                    <div class="app-launcher-icons">
+                        <div class="app-icon" onclick="triggerHaptic('light'); openReservationModal();">
+                            <div class="app-icon-box bg-teal">
+                                <i data-lucide="plus-circle" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">New Booking</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); openMultiPaymentModal();">
+                            <div class="app-icon-box bg-green">
+                                <i data-lucide="banknote" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Add Payment</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('guestDocuments');">
+                            <div class="app-icon-box bg-blue">
+                                <span class="app-icon-badge" id="launcherDocsBadge" style="display:none;">0</span>
+                                <i data-lucide="file-check" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Review Docs</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); openPropertyModal();">
+                            <div class="app-icon-box bg-purple">
+                                <i data-lucide="building-2" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Add Property</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operations -->
+                <div class="app-launcher-section">
+                    <div class="app-launcher-section-title">Operations</div>
+                    <div class="app-launcher-icons">
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('reservations');">
+                            <div class="app-icon-box bg-teal">
+                                <i data-lucide="calendar" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Bookings</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('payments');">
+                            <div class="app-icon-box bg-amber">
+                                <i data-lucide="credit-card" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Payments</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('guests');">
+                            <div class="app-icon-box bg-indigo">
+                                <i data-lucide="users" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Guests</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('guestDocuments');">
+                            <div class="app-icon-box bg-cyan">
+                                <i data-lucide="file-text" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Documents</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('meals');">
+                            <div class="app-icon-box bg-orange">
+                                <i data-lucide="utensils" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Meals</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('availability');">
+                            <div class="app-icon-box bg-emerald">
+                                <i data-lucide="calendar-days" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Availability</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics -->
+                <div class="app-launcher-section">
+                    <div class="app-launcher-section-title">Analytics</div>
+                    <div class="app-launcher-icons">
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('dashboard');">
+                            <div class="app-icon-box bg-blue">
+                                <i data-lucide="bar-chart-3" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Dashboard</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('property');">
+                            <div class="app-icon-box bg-slate">
+                                <i data-lucide="building" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Property</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('business');">
+                            <div class="app-icon-box bg-rose">
+                                <i data-lucide="briefcase" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Business</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('financials');">
+                            <div class="app-icon-box bg-emerald">
+                                <i data-lucide="dollar-sign" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Financials</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Management -->
+                <div class="app-launcher-section">
+                    <div class="app-launcher-section-title">Management</div>
+                    <div class="app-launcher-icons">
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('properties');">
+                            <div class="app-icon-box bg-purple">
+                                <i data-lucide="building-2" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Properties</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('team');">
+                            <div class="app-icon-box bg-pink">
+                                <i data-lucide="user-check" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Team</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('owners');">
+                            <div class="app-icon-box bg-indigo">
+                                <i data-lucide="shield" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Owners</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('communication');">
+                            <div class="app-icon-box bg-green">
+                                <i data-lucide="message-circle" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Messages</div>
+                        </div>
+                        <div class="app-icon" onclick="triggerHaptic('light'); showView('settings');">
+                            <div class="app-icon-box bg-slate">
+                                <i data-lucide="settings" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <div class="app-icon-label">Settings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions - Prominent (Desktop only, hidden on mobile via app launcher) -->
             <div class="home-section">
                 <div class="home-section-header">
                     <h2 class="home-section-title">Quick Actions</h2>
@@ -6346,7 +6550,7 @@
         }
 
         .quick-action-card {
-            background: #ffffff;
+            background: var(--surface);
             border-radius: 12px;
             padding: 24px 16px;
             border: 1px solid rgba(0, 0, 0, 0.06);
@@ -6419,7 +6623,7 @@
         }
 
         .category-card {
-            background: #ffffff;
+            background: var(--surface);
             border-radius: 12px;
             padding: 20px;
             display: flex;
@@ -6511,7 +6715,7 @@
 
         /* Recent Activity */
         .recent-activity-card {
-            background: white;
+            background: var(--surface);
             border-radius: var(--radius-md);
             padding: 20px;
             box-shadow: var(--shadow);
@@ -6521,6 +6725,117 @@
             font-size: 14px;
             color: var(--text-secondary);
         }
+
+        /* ==========================================
+           APP LAUNCHER GRID (Mobile & Tablet)
+           ========================================== */
+        .app-launcher-grid {
+            display: none; /* Hidden on desktop, shown on mobile/tablet */
+        }
+
+        .app-launcher-section {
+            margin-bottom: 24px;
+        }
+
+        .app-launcher-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+
+        .app-launcher-icons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px 12px;
+            justify-items: center;
+        }
+
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            width: 100%;
+            max-width: 80px;
+        }
+
+        .app-icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-icon-box::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .app-icon:active .app-icon-box {
+            transform: scale(0.9);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .app-icon-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.2;
+            max-width: 72px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .app-icon-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+            z-index: 1;
+        }
+
+        /* App Icon Color Variants */
+        .app-icon-box.bg-teal { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+        .app-icon-box.bg-blue { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .app-icon-box.bg-green { background: linear-gradient(135deg, #059669, #10b981); }
+        .app-icon-box.bg-amber { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        .app-icon-box.bg-purple { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+        .app-icon-box.bg-rose { background: linear-gradient(135deg, #e11d48, #f43f5e); }
+        .app-icon-box.bg-indigo { background: linear-gradient(135deg, #4f46e5, #6366f1); }
+        .app-icon-box.bg-cyan { background: linear-gradient(135deg, #0e7490, #22d3ee); }
+        .app-icon-box.bg-emerald { background: linear-gradient(135deg, #047857, #34d399); }
+        .app-icon-box.bg-orange { background: linear-gradient(135deg, #ea580c, #f97316); }
+        .app-icon-box.bg-slate { background: linear-gradient(135deg, #475569, #64748b); }
+        .app-icon-box.bg-pink { background: linear-gradient(135deg, #db2777, #ec4899); }
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -6540,12 +6855,17 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .quick-actions-grid {
-                grid-template-columns: repeat(2, 1fr);
+            /* Hide desktop-style home sections on mobile, show app launcher */
+            .quick-actions-grid,
+            .category-grid,
+            .home-section .category-grid,
+            .home-section:has(.quick-actions-grid),
+            .home-section:has(.category-grid) {
+                display: none;
             }
 
-            .category-grid {
-                grid-template-columns: 1fr;
+            .app-launcher-grid {
+                display: block;
             }
 
             .home-section {
@@ -6553,7 +6873,56 @@
             }
         }
 
-        @media (min-width: 769px) {
+        /* Tablet: larger icons, 5 columns */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .app-launcher-icons {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 20px 16px;
+            }
+
+            .app-icon-box {
+                width: 64px;
+                height: 64px;
+                border-radius: 18px;
+            }
+
+            .app-icon-label {
+                font-size: 12px;
+                max-width: 80px;
+            }
+        }
+
+        /* Tablet landscape / iPad */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .app-launcher-grid {
+                display: block;
+            }
+
+            .app-launcher-icons {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 24px 20px;
+            }
+
+            .app-icon-box {
+                width: 68px;
+                height: 68px;
+                border-radius: 18px;
+            }
+
+            .app-icon-label {
+                font-size: 12px;
+            }
+
+            .home-section:has(.category-grid) {
+                display: none;
+            }
+
+            .category-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1025px) {
             .category-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -10107,22 +10476,70 @@
     </div>
 
     <script>
-        // Supabase Configuration
-        // WARNING: These keys are currently exposed in client code.
-        // SECURITY RECOMMENDATIONS:
+        // ==========================================
+        // BACKEND CONFIGURATION
+        // ==========================================
+        // Auth: Firebase Authentication (email/password)
+        // Database: Supabase (PostgreSQL via PostgREST)
+        //
+        // SECURITY NOTES:
         // 1. Enable Row Level Security (RLS) on ALL Supabase tables
         // 2. Set up environment variables in Vercel dashboard (see .env.example)
-        // 3. The /api/config endpoint will serve keys from environment variables
-        //
-        // To use environment variables:
-        // - Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel Project Settings
-        // - The /api/config endpoint will automatically use them
+        // 3. Firebase config keys are safe to expose (security enforced via Firebase Rules)
+        // 4. Supabase anon key is safe with RLS enabled
 
         const SUPABASE_URL = 'https://dxthxsguqrxpurorpokq.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg';
 
-        // Initialize Supabase client (use var to prevent duplicate declaration errors)
+        // Initialize Supabase client for DATABASE operations only (auth moved to Firebase)
         var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ==========================================
+        // FIREBASE AUTH CONFIGURATION
+        // ==========================================
+        // Firebase is used for authentication (replaces Supabase Auth)
+        // Supabase is retained for database operations (Postgres)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_REPLACE_WITH_YOUR_FIREBASE_API_KEY",
+            authDomain: "resiq-by-hostizzy.firebaseapp.com",
+            projectId: "resiq-by-hostizzy",
+            storageBucket: "resiq-by-hostizzy.appspot.com",
+            messagingSenderId: "REPLACE_WITH_SENDER_ID",
+            appId: "REPLACE_WITH_APP_ID"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const firebaseAuth = firebase.auth();
+
+        // Firebase Auth Helper - unified auth interface
+        const authService = {
+            async signIn(email, password) {
+                const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                return { user: credential.user, error: null };
+            },
+            async signOut() {
+                await firebaseAuth.signOut();
+            },
+            async sendPasswordReset(email, redirectUrl) {
+                await firebaseAuth.sendPasswordResetEmail(email, {
+                    url: redirectUrl || window.location.origin + window.location.pathname
+                });
+            },
+            async updatePassword(newPassword) {
+                const user = firebaseAuth.currentUser;
+                if (!user) throw new Error('No authenticated user');
+                await user.updatePassword(newPassword);
+            },
+            async getCurrentUser() {
+                return firebaseAuth.currentUser;
+            },
+            onAuthStateChanged(callback) {
+                return firebaseAuth.onAuthStateChanged(callback);
+            }
+        };
 
         // Booking Type Constants
         const BOOKING_TYPES = {
@@ -11584,11 +12001,12 @@
 
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                toggleIcon.textContent = '👁️‍🗨️';
+                toggleIcon.innerHTML = '<i data-lucide="eye-off" style="width: 16px; height: 16px;"></i>';
             } else {
                 passwordInput.type = 'password';
-                toggleIcon.textContent = '👁️';
+                toggleIcon.innerHTML = '<i data-lucide="eye" style="width: 16px; height: 16px;"></i>';
             }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         // Authentication (Hybrid: Staff + Owner)
@@ -11640,26 +12058,26 @@
             if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Logging in...'; }
 
             try {
-                // ── Step 1: Try Supabase Auth (primary) ──────────────────────
-                let supabaseAuthUser = null;
+                // ── Step 1: Try Firebase Auth (primary) ──────────────────────
+                let firebaseAuthUser = null;
                 try {
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (!error && data.user) {
-                        supabaseAuthUser = data.user;
-                        console.log('[Auth] Supabase Auth login successful');
+                    const { user } = await authService.signIn(email, password);
+                    if (user) {
+                        firebaseAuthUser = user;
+                        console.log('[Auth] Firebase Auth login successful');
                     }
                 } catch (e) {
-                    console.warn('[Auth] Supabase Auth unavailable, using legacy:', e.message);
+                    console.warn('[Auth] Firebase Auth failed, using legacy fallback:', e.message);
                 }
 
-                // ── Step 2a: Supabase Auth succeeded — find staff profile ─────
-                if (supabaseAuthUser) {
+                // ── Step 2a: Firebase Auth succeeded — find staff profile ─────
+                if (firebaseAuthUser) {
                     const users = await db.getTeamMembers();
                     const profile = users.find(u => u.email === email);
 
                     if (profile) {
                         if (!profile.is_active) {
-                            await supabase.auth.signOut();
+                            await authService.signOut();
                             showToast('Account Inactive', 'Your account has been deactivated', '❌');
                             return;
                         }
@@ -11674,12 +12092,12 @@
                         return;
                     }
 
-                    // Supabase Auth user exists but no team_members record — check owners
+                    // Firebase Auth user exists but no team_members record — check owners
                     const owners = await db.getOwners();
                     const ownerProfile = owners.find(o => o.email === email);
                     if (ownerProfile) {
                         if (!ownerProfile.is_active) {
-                            await supabase.auth.signOut();
+                            await authService.signOut();
                             showToast('Account Inactive', 'Your account has been deactivated', '❌');
                             return;
                         }
@@ -11691,7 +12109,7 @@
                 }
 
                 // ── Step 2b: Legacy fallback (plain-text DB comparison) ───────
-                // Used for users not yet migrated to Supabase Auth
+                // Used for users not yet migrated to Firebase Auth
                 console.log('[Auth] Attempting legacy DB login...');
                 const users = await db.getTeamMembers();
                 const staffUser = users.find(u => u.email === email && u.password === password);
@@ -11754,7 +12172,7 @@
         }
 
         async function logout() {
-            try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
+            try { await authService.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
             currentUser = null;
             document.getElementById('mainApp').classList.add('hidden');
@@ -11783,10 +12201,7 @@
             msgEl.style.display = 'none';
 
             try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + window.location.pathname
-                });
-                if (error) throw error;
+                await authService.sendPasswordReset(email, window.location.origin + window.location.pathname);
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#dcfce7';
                 msgEl.style.color = '#16a34a';
@@ -11829,8 +12244,7 @@
             btn.textContent = 'Updating...';
 
             try {
-                const { error } = await supabase.auth.updateUser({ password: newPassword });
-                if (error) throw error;
+                await authService.updatePassword(newPassword);
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#dcfce7';
                 msgEl.style.color = '#16a34a';
@@ -12024,7 +12438,10 @@
                 
                 // Update recent activity
                 updateRecentActivity();
-                
+
+                // Update app launcher badges (mobile)
+                updateAppLauncherBadges(pendingPayments);
+
             } catch (error) {
                 console.error('Error updating home screen:', error);
                 // Set default values on error
@@ -12035,7 +12452,7 @@
                 const homeStatProperties = document.getElementById('homeStatProperties');
                 const homeStatGuests = document.getElementById('homeStatGuests');
                 const homeStatRevenue = document.getElementById('homeStatRevenue');
-                
+
                 if (homeStatReservations) homeStatReservations.textContent = '0';
                 if (homeStatActive) homeStatActive.textContent = '0';
                 if (homeStatPending) homeStatPending.textContent = '0';
@@ -12043,6 +12460,21 @@
                 if (homeStatProperties) homeStatProperties.textContent = '0';
                 if (homeStatGuests) homeStatGuests.textContent = '0';
                 if (homeStatRevenue) homeStatRevenue.textContent = '₹0';
+            }
+        }
+
+        /**
+         * Update app launcher icon badges with live counts
+         */
+        function updateAppLauncherBadges(pendingCount) {
+            const docsBadge = document.getElementById('launcherDocsBadge');
+            if (docsBadge) {
+                if (pendingCount > 0) {
+                    docsBadge.textContent = pendingCount > 99 ? '99+' : pendingCount;
+                    docsBadge.style.display = 'flex';
+                } else {
+                    docsBadge.style.display = 'none';
+                }
             }
         }
 
@@ -25137,12 +25569,12 @@ function printPropertyView() {
             // ── Check Supabase Auth session first, then fall back to localStorage ──
             // Also detect password-recovery email link (#type=recovery in URL hash)
             const urlHash = window.location.hash;
-            if (urlHash.includes('type=recovery')) {
+            if (urlHash.includes('mode=resetPassword') || urlHash.includes('type=recovery')) {
                 // User clicked a password reset email link — show the set-new-password form
                 document.querySelector('.login-card').classList.add('hidden');
                 document.getElementById('forgotPasswordPanel').classList.add('hidden');
                 document.getElementById('resetPasswordPanel').classList.remove('hidden');
-                // Supabase JS picks up the session from the hash automatically
+                // Firebase handles the oobCode from the URL automatically
                 setTimeout(() => {
                     const splash = document.getElementById('splashScreen');
                     if (splash) { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 500); }
@@ -25151,18 +25583,18 @@ function printPropertyView() {
             }
 
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session && session.user) {
+                const firebaseUser = await authService.getCurrentUser();
+                if (firebaseUser) {
                     const allMembers = await db.getTeamMembers();
-                    const profile = allMembers.find(u => u.email === session.user.email);
+                    const profile = allMembers.find(u => u.email === firebaseUser.email);
                     if (profile && profile.is_active) {
                         const sessionUser = { ...profile, userType: 'staff' };
                         localStorage.setItem('currentUser', JSON.stringify(sessionUser));
-                        console.log('[Auth] Supabase session restored for:', profile.email);
+                        console.log('[Auth] Firebase session restored for:', profile.email);
                     }
                 }
             } catch (e) {
-                console.warn('[Auth] Supabase session check failed, using localStorage fallback:', e.message);
+                console.warn('[Auth] Firebase session check failed, using localStorage fallback:', e.message);
             }
 
             // Check localStorage for persistent session

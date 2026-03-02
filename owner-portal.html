@@ -1238,6 +1238,9 @@
 </head>
 <body>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Firebase Auth SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <!-- Owner Login Screen -->
@@ -1841,11 +1844,25 @@
     </div>
 
     <script>
-        // Supabase Configuration
-        // Using var instead of const to allow redeclaration if script runs multiple times
+        // Backend Configuration
+        // Auth: Firebase Authentication | Database: Supabase (PostgreSQL)
         var SUPABASE_URL = 'https://dxthxsguqrxpurorpokq.supabase.co';
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg';
         var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Firebase Auth Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_REPLACE_WITH_YOUR_FIREBASE_API_KEY",
+            authDomain: "resiq-by-hostizzy.firebaseapp.com",
+            projectId: "resiq-by-hostizzy",
+            storageBucket: "resiq-by-hostizzy.appspot.com",
+            messagingSenderId: "REPLACE_WITH_SENDER_ID",
+            appId: "REPLACE_WITH_APP_ID"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const firebaseAuth = firebase.auth();
 
         // Current user
         let currentUser = null;
@@ -2162,11 +2179,12 @@
 
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                toggleIcon.textContent = '👁️‍🗨️';
+                toggleIcon.innerHTML = '<i data-lucide="eye-off" style="width: 16px; height: 16px;"></i>';
             } else {
                 passwordInput.type = 'password';
-                toggleIcon.textContent = '👁️';
+                toggleIcon.innerHTML = '<i data-lucide="eye" style="width: 16px; height: 16px;"></i>';
             }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         // Owner Login Function
@@ -2188,17 +2206,37 @@
             }
 
             try {
-                // Get all owners
+                // ── Step 1: Try Firebase Auth (primary) ──────────────────
+                let firebaseAuthUser = null;
+                try {
+                    const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                    if (credential.user) {
+                        firebaseAuthUser = credential.user;
+                        console.log('[Auth] Firebase Auth login successful for owner');
+                    }
+                } catch (e) {
+                    console.warn('[Auth] Firebase Auth failed, using legacy fallback:', e.message);
+                }
+
+                // Get all owners from database
                 const { data: owners, error } = await supabase
                     .from('property_owners')
                     .select('*');
-
                 if (error) throw error;
 
-                const owner = owners.find(o => o.email === email && o.password === password);
+                let owner = null;
+
+                if (firebaseAuthUser) {
+                    // Firebase Auth succeeded — find owner by email
+                    owner = owners.find(o => o.email === email);
+                } else {
+                    // Legacy fallback — plain-text password comparison
+                    owner = owners.find(o => o.email === email && o.password === password);
+                }
 
                 if (owner) {
                     if (!owner.is_active) {
+                        if (firebaseAuthUser) await firebaseAuth.signOut();
                         showToast('Account Inactive', 'Your account has been deactivated', '❌');
                         return;
                     }
@@ -2223,6 +2261,7 @@
 
                     showToast('Welcome!', `Logged in as ${owner.name}`, '👋');
                 } else {
+                    if (firebaseAuthUser) await firebaseAuth.signOut();
                     showToast('Login Failed', 'Invalid email or password', '❌');
                 }
 
@@ -2232,7 +2271,8 @@
         }
 
         // Logout function
-        function logout() {
+        async function logout() {
+            try { await firebaseAuth.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
             currentUser = null;
             // Show login screen

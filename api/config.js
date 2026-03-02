@@ -1,6 +1,6 @@
 /**
- * Vercel Serverless Function to serve Supabase configuration
- * This keeps secrets out of client-side code
+ * Vercel Serverless Function to serve backend configuration
+ * Auth: Firebase | Database: Supabase (PostgreSQL)
  */
 
 export default function handler(req, res) {
@@ -14,11 +14,15 @@ export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 
-  // Return Supabase configuration from environment variables
-  // These will be set in Vercel dashboard
+  // Return configuration from environment variables
   const config = {
+    // Supabase (Database)
     supabaseUrl: process.env.SUPABASE_URL || 'https://dxthxsguqrxpurorpokq.supabase.co',
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg'
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg',
+    // Firebase (Authentication)
+    firebaseApiKey: process.env.FIREBASE_API_KEY || '',
+    firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || 'resiq-by-hostizzy.firebaseapp.com',
+    firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'resiq-by-hostizzy'
   };
 
   res.status(200).json(config);
