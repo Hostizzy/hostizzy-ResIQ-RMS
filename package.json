@@ -4,10 +4,10 @@
   "description": "Property Management System for Vacation Rentals — TWA (Trusted Web Activity)",
   "main": "index.html",
   "scripts": {
-    "twa:init": "bubblewrap init --manifest https://resiq.app/manifest.json",
-    "twa:build": "bubblewrap build",
-    "twa:update": "bubblewrap update --manifest https://resiq.app/manifest.json",
-    "twa:validate": "bubblewrap validate --url https://resiq.app",
+    "twa:init": "npx @bubblewrap/cli init --manifest https://resiq.app/manifest.json",
+    "twa:build": "npx @bubblewrap/cli build",
+    "twa:update": "npx @bubblewrap/cli update --manifest https://resiq.app/manifest.json",
+    "twa:validate": "npx @bubblewrap/cli validate --url https://resiq.app",
     "serve": "python3 -m http.server 8080",
     "generate-logos": "python3 generate-logos.py || bash generate-logos.sh"
   },
@@ -24,7 +24,5 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {},
-  "devDependencies": {
-    "bubblewrap": "^1.22.0"
-  }
+  "devDependencies": {}
 }
