@@ -13,8 +13,8 @@
   "backgroundColor": "#ffffff",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "/assets/logo-512-maskable.png",
-  "maskableIconUrl": "/assets/logo-512-maskable.png",
+  "iconUrl": "https://resiq.app/assets/logo-512-maskable.png",
+  "maskableIconUrl": "https://resiq.app/assets/logo-512-maskable.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./build/keystore.jks",
@@ -27,17 +27,17 @@
       "name": "New Reservation",
       "shortName": "New Booking",
       "url": "/?action=new-reservation",
-      "chosenIconUrl": "/assets/logo-192.png"
+      "chosenIconUrl": "https://resiq.app/assets/logo-192.png"
     },
     {
       "name": "Dashboard",
       "shortName": "Dashboard",
       "url": "/?view=dashboard",
-      "chosenIconUrl": "/assets/logo-192.png"
+      "chosenIconUrl": "https://resiq.app/assets/logo-192.png"
     }
   ],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "/manifest.json",
+  "webManifestUrl": "https://resiq.app/manifest.json",
   "fallbackType": "customtabs",
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
