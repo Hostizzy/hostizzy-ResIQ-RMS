@@ -1,9 +1,10 @@
-# Capacitor
+# TWA / Build
 /android/
 /ios/
 node_modules/
 /dist/
 /www/
+/build/
 
 # Build outputs
 *.apk
