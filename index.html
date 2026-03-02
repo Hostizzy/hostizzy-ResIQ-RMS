@@ -2509,6 +2509,49 @@
             align-items: center;
         }
 
+        /* Always show actions on touch/mobile devices */
+        @media (max-width: 1024px) {
+            .row-hover-actions {
+                opacity: 1;
+                pointer-events: all;
+            }
+        }
+
+        /* Better action button styling */
+        .quick-action-btn {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0;
+        }
+
+        .quick-action-btn i {
+            width: 14px !important;
+            height: 14px !important;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .quick-action-btn[style*="color: var(--danger)"]:hover {
+            background: var(--danger) !important;
+            border-color: var(--danger) !important;
+            color: white !important;
+        }
+
         /* Reservation Status Badge */
         .res-status-badge {
             display: inline-flex;
@@ -2590,28 +2633,7 @@
             background: var(--background-alt);
         }
 
-        /* Quick action buttons */
-        .quick-action-btn {
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .quick-action-btn:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            transform: translateY(-1px);
-        }
+        /* Quick action buttons - defined above in row-hover-actions section */
 
         /* Status Badges */
         .badge {
@@ -7481,11 +7503,59 @@
             font-weight: 600;
             box-shadow: 0 2px 6px rgba(8,145,178,0.3);
         }
+
+        /* Dashboard filter bar mobile */
+        @media (max-width: 768px) {
+            .dash-filter-bar {
+                flex-direction: column !important;
+                padding: 10px 12px !important;
+                gap: 10px !important;
+            }
+
+            .dash-filter-bar > div {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                gap: 6px !important;
+                padding-bottom: 4px;
+            }
+
+            .dash-period-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+
+            .dash-filter-bar .dash-period-label {
+                display: none;
+            }
+        }
+
+        /* Dashboard header mobile */
+        @media (max-width: 640px) {
+            .view-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .view-header h2 {
+                font-size: 18px !important;
+            }
+
+            /* Core metric cards on mobile */
+            #coreMetrics {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+
+            #coreMetrics .stat-card > div > div:nth-child(2) {
+                font-size: 20px !important;
+            }
+        }
         </style>
 
         <!-- Dashboard View -->
         <div id="dashboardView" class="container">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary);">Reservations Dashboard</h2>
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Real-time overview of bookings, revenue, and performance</p>
@@ -7496,9 +7566,9 @@
             </div>
 
             <!-- Dashboard Period Filter -->
-            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 14px 20px; background: white; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+            <div class="dash-filter-bar" style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 14px 20px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
                 <i data-lucide="calendar-range" style="width: 18px; height: 18px; color: var(--primary); flex-shrink: 0;"></i>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 8px; flex-wrap: nowrap;">
                     <button class="dash-period-btn active" data-range="this-month" onclick="applyDashboardDateFilter('this-month')">This Month</button>
                     <button class="dash-period-btn" data-range="last-month" onclick="applyDashboardDateFilter('last-month')">Last Month</button>
                     <button class="dash-period-btn" data-range="this-quarter" onclick="applyDashboardDateFilter('this-quarter')">This Quarter</button>
@@ -7507,7 +7577,7 @@
                     <button class="dash-period-btn" data-range="last-90" onclick="applyDashboardDateFilter('last-90')">Last 90 Days</button>
                     <button class="dash-period-btn" data-range="all-time" onclick="applyDashboardDateFilter('all-time')">All Time</button>
                 </div>
-                <div style="margin-left: auto; font-size: 12px; color: var(--text-tertiary); white-space: nowrap;" id="dashboardPeriodLabel">Showing: This Month</div>
+                <div class="dash-period-label" style="margin-left: auto; font-size: 12px; color: var(--text-tertiary); white-space: nowrap;" id="dashboardPeriodLabel">Showing: This Month</div>
             </div>
 
             <!-- Core Metrics - Essential KPIs -->
@@ -7883,7 +7953,7 @@
 
         <!-- Guests View -->
         <div id="guestsView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="users" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -7962,7 +8032,7 @@
                 <!-- Table View Container -->
                 <div id="guestTableView" style="display: block;">
                     <div class="table-container">
-                        <table>
+                        <table class="data-table">
                             <thead>
                                 <tr>
                                     <th onclick="sortGuestsTable('name')" style="cursor: pointer;">
@@ -8013,7 +8083,7 @@
 
         <!-- Reservations View -->
         <div id="reservationsView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="calendar" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8155,7 +8225,7 @@
 
                 <!-- Table View -->
                 <div id="tableView" class="table-container">
-                    <table>
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th style="width: 40px;">
@@ -8224,7 +8294,7 @@
         <!-- Payments View -->
         <div id="paymentsView" class="container hidden">
             <!-- Page Header -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="credit-card" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8296,7 +8366,7 @@
                 </div>
 
                 <div class="table-container">
-                    <table>
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Booking ID</th>
@@ -8311,7 +8381,7 @@
                             </tr>
                         </thead>
                         <tbody id="paymentsTableBody">
-                            <tr><td colspan="8" class="text-center">Loading...</td></tr>
+                            <tr><td colspan="9" class="text-center">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -8382,7 +8452,7 @@
         <!-- Properties View -->
         <div id="propertiesView" class="container hidden">
             <!-- Page Header -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="building-2" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -8470,7 +8540,7 @@
                         </button>
                     </div>
                 </div>
-                <div style="padding: 20px; overflow-x: auto;">
+                <div class="table-container" style="padding: 20px;">
                     <table id="propertyReservationsTable" class="data-table" style="width: 100%;">
                         <thead>
                             <tr>
@@ -9000,7 +9070,7 @@
 
         <!-- Team View -->
         <div id="teamView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="user-check" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -9013,26 +9083,28 @@
                 </button>
             </div>
             <div class="card">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teamTableBody">
-                        <tr><td colspan="5" class="text-center">Loading...</td></tr>
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teamTableBody">
+                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- Property Owners View -->
         <div id="ownersView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="shield" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -9045,30 +9117,32 @@
                 </button>
             </div>
             <div class="card">
-                <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                <p style="margin-bottom: 20px; padding: 16px 16px 0; color: var(--text-secondary); font-size: 14px;">
                     Manage property owner credentials. Owners can access their assigned properties via the Owner Portal.
                 </p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Assigned Properties</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ownersTableBody">
-                        <tr><td colspan="6" class="text-center">Loading...</td></tr>
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Properties</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ownersTableBody">
+                            <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- Meals Management View -->
         <div id="mealsView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="utensils" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -9126,7 +9200,7 @@
 
         <!-- Guest Documents View -->
         <div id="guestDocumentsView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="file-text" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -9558,7 +9632,7 @@
 
         <!-- Communication View -->
         <div id="communicationView" class="container hidden">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="message-circle" style="width: 24px; height: 24px; color: var(--primary);"></i>
@@ -15840,45 +15914,47 @@
             
             const rows = sortedMonths.map(([month, data]) => {
                 const occRate = monthlyTargetNights > 0 ? ((data.nights / monthlyTargetNights) * 100).toFixed(1) : 0;
-                
+
                 // Calculate Hostizzy revenue for this month
                 const monthReservations = reservations.filter(r => r.month === month);
                 const hostizzyRev = monthReservations.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
                 const collected = monthReservations.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
                 const pending = data.revenue - collected;
-                
+
                 return `
-                    <tr style="border-bottom: 1px solid var(--border);">
-                        <td style="padding: 12px; font-weight: 600;">${month}</td>
-                        <td style="text-align: center; padding: 12px;">${data.bookings}</td>
-                        <td style="text-align: center; padding: 12px;">${data.nights}</td>
-                        <td style="text-align: center; padding: 12px; font-weight: 600; color: ${occRate >= 50 ? 'var(--success)' : 'var(--warning)'};">${occRate}%</td>
-                        <td style="text-align: right; padding: 12px; font-weight: 700; color: var(--success);">₹${(data.revenue/100000).toFixed(1)}L</td>
-                        <td style="text-align: right; padding: 12px; color: var(--primary);">₹${(hostizzyRev/100000).toFixed(1)}L</td>
-                        <td style="text-align: right; padding: 12px; color: var(--success);">₹${(collected/100000).toFixed(1)}L</td>
-                        <td style="text-align: right; padding: 12px; color: var(--danger);">₹${(pending/100000).toFixed(1)}L</td>
+                    <tr>
+                        <td><strong>${month}</strong></td>
+                        <td style="text-align: center;">${data.bookings}</td>
+                        <td style="text-align: center;">${data.nights}</td>
+                        <td style="text-align: center; font-weight: 600; color: ${occRate >= 50 ? 'var(--success)' : 'var(--warning)'};">${occRate}%</td>
+                        <td style="text-align: right; font-weight: 700; color: var(--success);">₹${(data.revenue/100000).toFixed(1)}L</td>
+                        <td style="text-align: right; color: var(--primary);">₹${(hostizzyRev/100000).toFixed(1)}L</td>
+                        <td style="text-align: right; color: var(--success);">₹${(collected/100000).toFixed(1)}L</td>
+                        <td style="text-align: right; color: var(--danger);">₹${(pending/100000).toFixed(1)}L</td>
                     </tr>
                 `;
             }).join('');
-            
+
             const html = `
-                <table style="width: 100%;">
+                <div class="table-container">
+                <table class="data-table">
                     <thead>
-                        <tr style="border-bottom: 2px solid var(--border);">
-                            <th style="text-align: left; padding: 12px;">Month</th>
-                            <th style="text-align: center; padding: 12px;">Bookings</th>
-                            <th style="text-align: center; padding: 12px;">Nights</th>
-                            <th style="text-align: center; padding: 12px;">Occ %</th>
-                            <th style="text-align: right; padding: 12px;">Revenue</th>
-                            <th style="text-align: right; padding: 12px;">Hostizzy</th>
-                            <th style="text-align: right; padding: 12px;">Collected</th>
-                            <th style="text-align: right; padding: 12px;">Pending</th>
+                        <tr>
+                            <th>Month</th>
+                            <th>Bookings</th>
+                            <th>Nights</th>
+                            <th>Occ %</th>
+                            <th>Revenue</th>
+                            <th>Hostizzy</th>
+                            <th>Collected</th>
+                            <th>Pending</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${rows}
                     </tbody>
                 </table>
+                </div>
             `;
             
             document.getElementById('monthlyTrends').innerHTML = html || '<div style="text-align: center; color: var(--text-secondary);">No data available</div>';
@@ -16736,19 +16812,19 @@
                         <td>
                             <div class="row-hover-actions">
                                 <button class="quick-action-btn" onclick="openPaymentModal('${r.booking_id}')" title="Add Payment">
-                                    <i data-lucide="credit-card" style="width: 11px; height: 11px;"></i>Pay
+                                    <i data-lucide="credit-card"></i>
                                 </button>
                                 <button class="quick-action-btn" onclick="viewPaymentHistory('${r.booking_id}')" title="Payment History">
-                                    <i data-lucide="history" style="width: 11px; height: 11px;"></i>
+                                    <i data-lucide="history"></i>
                                 </button>
                                 <button class="quick-action-btn" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send WhatsApp">
-                                    <i data-lucide="message-circle" style="width: 11px; height: 11px;"></i>
+                                    <i data-lucide="message-circle"></i>
                                 </button>
                                 <button class="quick-action-btn" onclick="openReservationModal('${r.booking_id}')" title="Edit">
-                                    <i data-lucide="edit" style="width: 11px; height: 11px;"></i>
+                                    <i data-lucide="edit"></i>
                                 </button>
                                 ${!isCancelled ? `<button class="quick-action-btn" onclick="deleteReservation('${r.booking_id}')" title="Delete" style="color: var(--danger);">
-                                    <i data-lucide="trash-2" style="width: 11px; height: 11px;"></i>
+                                    <i data-lucide="trash-2"></i>
                                 </button>` : ''}
                             </div>
                         </td>
@@ -21190,6 +21266,7 @@ function renderMoMComparison(reservations, propertyId) {
 
     // Render comparison table
     container.innerHTML = `
+        <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
@@ -21228,6 +21305,7 @@ function renderMoMComparison(reservations, propertyId) {
                 }).join('')}
             </tbody>
         </table>
+        </div>
     `;
 }
 
@@ -21946,18 +22024,19 @@ function renderBookingTypeBreakdown(reservations) {
 
     // Render table
     container.innerHTML = `
+        <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Booking Type</th>
+                    <th>Type</th>
                     <th>Bookings</th>
-                    <th>% of Total</th>
-                    <th>Total Revenue</th>
-                    <th>% Revenue</th>
-                    <th>Total Nights</th>
-                    <th>Avg Nights</th>
+                    <th>% Total</th>
+                    <th>Revenue</th>
+                    <th>% Rev</th>
+                    <th>Nights</th>
+                    <th>Avg</th>
                     <th>ADR</th>
-                    <th>Collection %</th>
+                    <th>Collect %</th>
                 </tr>
             </thead>
             <tbody>
@@ -22010,6 +22089,7 @@ function renderBookingTypeBreakdown(reservations) {
                 </tr>
             </tbody>
         </table>
+        </div>
     `;
 }
 // ============================================================================
