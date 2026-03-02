@@ -34,6 +34,22 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses
+
+      - name: Pre-configure Bubblewrap (skip interactive prompts)
+        run: |
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          echo "Bubblewrap config written:"
+          cat ~/.bubblewrap/config.json
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Validate Bubblewrap setup
+        run: yes | bubblewrap doctor
+
       - name: Generate missing logo assets
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick
@@ -56,25 +72,37 @@ jobs:
             const m = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
             m.appVersionName = '${{ inputs.version_name }}';
             m.appVersionCode = parseInt('${{ inputs.version_code }}');
-            m.signingKey.path = './keystore.jks';
+            m.signingKey.path = '${{ github.workspace }}/keystore.jks';
             fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
           "
+          echo "Updated twa-manifest.json:"
+          cat twa-manifest.json
 
-      - name: Initialize and build TWA
+      - name: Generate Android project from manifest
+        run: |
+          yes | bubblewrap update --manifest="./twa-manifest.json"
+
+      - name: Build signed AAB and APK
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          npx @bubblewrap/cli init --manifest="https://resiq.app/manifest.json"
-          npx @bubblewrap/cli build
+          bubblewrap build --skipPwaValidation
+
+      - name: List build outputs
+        run: |
+          echo "Build outputs:"
+          find . -name "*.aab" -o -name "*.apk" | head -20
+          ls -lh *.aab *.apk 2>/dev/null || true
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: resiq-release-v${{ inputs.version_name }}
           path: |
-            **/app-release-bundle.aab
-            **/app-release-signed.apk
+            app-release-bundle.aab
+            app-release-signed.apk
+          if-no-files-found: warn
           retention-days: 90
 
       - name: Create GitHub Release
@@ -98,7 +126,7 @@ jobs:
             3. Create new release > Upload the `.aab` file
             4. Add release notes > Review and roll out
           files: |
-            **/app-release-bundle.aab
-            **/app-release-signed.apk
+            app-release-bundle.aab
+            app-release-signed.apk
           draft: false
           prerelease: false
