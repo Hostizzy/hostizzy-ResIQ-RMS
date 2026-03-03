@@ -66,11 +66,11 @@
         
         <div style="text-align: center; animation: fadeInUp 0.8s ease-out; position: relative; z-index: 1;">
             <div style="
-                width: 160px;
-                height: 160px;
+                width: 200px;
+                height: 200px;
                 background: rgba(255, 255, 255, 0.15);
                 backdrop-filter: blur(20px);
-                border-radius: 32px;
+                border-radius: 40px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -80,10 +80,10 @@
                 border: 3px solid rgba(255, 255, 255, 0.2);
             ">
                 <!-- Replace with your actual logo -->
-                <img src="assets/logo.png" alt="ResIQ Logo" style="width: 100px; height: 100px; object-fit: contain;" 
+                <img src="assets/logo.png" alt="ResIQ Logo" style="width: 140px; height: 140px; object-fit: contain; border-radius: 28px;"
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <!-- Fallback if logo doesn't load -->
-               <div style="display: none; font-size: 64px; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">R</div>
+               <div style="display: none; font-size: 80px; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">R</div>
             </div>
             
             <h1 style="
@@ -530,7 +530,7 @@
         <div id="mobileHeader" class="mobile-header hidden">
             <div class="mobile-header-content">
                 <button class="mobile-menu-btn" onclick="toggleMobileSidebar()"><i data-lucide="menu" style="width: 22px; height: 22px;"></i></button>
-                <img src="assets/logo.png" alt="ResIQ" class="mobile-logo">
+                <img src="assets/logo-132.png" alt="ResIQ" class="mobile-logo">
                 <span id="mobileUserEmail" style="font-size: 12px; color: var(--text-secondary);"></span>
             </div>
         </div>
@@ -1637,6 +1637,7 @@
 
             .app-icon-label {
                 font-size: 12px;
+                max-width: 100px;
             }
 
             /* Hide desktop Quick Actions and Category cards on tablet (app launcher handles them) */
@@ -1649,9 +1650,9 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            /* Today's stats: 2 columns on tablet */
+            /* Today's stats: 4 columns on tablet (sidebar is compact 80px, plenty of room) */
             .today-stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 

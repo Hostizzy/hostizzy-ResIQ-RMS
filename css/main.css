@@ -1651,7 +1651,7 @@ transition: margin-left 0.3s ease;
 
 @media (min-width: 769px) and (max-width: 1024px) {
 .container {
-    margin-left: 220px;
+    margin-left: 80px;
     padding-bottom: 24px;
 }
 }
@@ -3576,7 +3576,7 @@ body {
 }
 }
 
-/* Tablet Sidebar (769px - 1024px) — Full sidebar with labels */
+/* Tablet Sidebar (769px - 1024px) — Compact sidebar (JS adds .compact class) */
 @media (min-width: 769px) and (max-width: 1024px) {
 body {
     padding-top: 60px;
@@ -3621,7 +3621,7 @@ body {
 }
 
 .container {
-    margin-left: 220px;
+    margin-left: 80px;
     padding-top: 0;
 }
 
@@ -4376,6 +4376,7 @@ height: auto;
 margin-bottom: 12px;
 display: block;
 margin: 0 auto 12px;
+border-radius: 12px;
 }
 
 .navbar-logo {
@@ -4383,6 +4384,15 @@ max-width: 140px;
 width: 100%;
 height: auto;
 display: block;
+border-radius: 8px;
+}
+
+/* Make square logo blend with navbar background */
+[data-theme="dark"] .navbar-logo {
+filter: brightness(0.9) contrast(1.1);
+background: rgba(255,255,255,0.1);
+border-radius: 8px;
+padding: 2px;
 }
 
 .mobile-logo {
@@ -4390,6 +4400,7 @@ max-width: 120px;
 width: 100%;
 height: auto;
 display: block;
+border-radius: 6px;
 }
 
 /* Logo responsive styles */
