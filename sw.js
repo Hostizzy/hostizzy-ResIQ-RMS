@@ -1,6 +1,6 @@
 /**
  * ResIQ Service Worker
- * Version: 5.16.0
+ * Version: 5.17.0
  * Features: Caching, Push Notifications, Background Sync, Offline Support
  *
  * IMPORTANT FOR DEVELOPERS:
@@ -11,6 +11,8 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.18.0: Monolith split phase 1 - extracted 5700 lines CSS to css/main.css, added view router with History API + lazy-loading, shared utilities module, fixed QR codes (real qrcode-generator library), mobile guest cards, bottom tabs redesign
+ * - v5.17.0: ES Modules architecture - 12 new features: bottom tabs, swipe gestures, bottom sheets, skeleton loading, page transitions, notification center, QR check-in, WhatsApp deep integration, AI assist, centralized state, Web Components
  * - v5.16.0: Supabase Auth migration - signInWithPassword, signOut, getSession, resetPasswordForEmail, updateUser
  * - v5.15.0: Fix Business + Property View MoM % - previous period now reads from full history
  * - v5.14.0: Dashboard filter fully working + period button pills + accurate MoM trends
@@ -34,7 +36,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.16.1';
+const CACHE_VERSION = 'v5.18.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -58,6 +60,24 @@ const STATIC_CACHE = [
   '/onboarding.js',
   '/onboarding.css',
   '/owner-portal-functions.js',
+  '/supabase-proxy.js',
+  '/modules/init.js',
+  '/modules/state.js',
+  '/modules/bottom-tabs.js',
+  '/modules/swipe-gestures.js',
+  '/modules/bottom-sheet.js',
+  '/modules/skeleton-loading.js',
+  '/modules/page-transitions.js',
+  '/modules/notification-center.js',
+  '/modules/qr-checkin.js',
+  '/modules/whatsapp-deep.js',
+  '/modules/ai-assist.js',
+  '/modules/components/stat-card.js',
+  '/modules/components/status-badge.js',
+  '/modules/components/empty-state.js',
+  '/css/main.css',
+  '/views/router.js',
+  '/views/shared.js',
   '/assets/logo.png',
   '/assets/logo-132.png',
   '/assets/logo-192.png',
