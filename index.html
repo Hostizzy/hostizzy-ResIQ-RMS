@@ -23544,8 +23544,9 @@ function printPropertyView() {
                         'cancelled': 'var(--danger)'
                     };
 
-                    // Build additional guests section
-                    const bookingGuests = guestDocsByBooking[booking.booking_id] || [];
+                    // Build additional guests section (only show additional guests who completed ID verification)
+                    const bookingGuests = (guestDocsByBooking[booking.booking_id] || [])
+                        .filter(g => g.guest_type === 'primary' || g.status === 'verified');
                     let additionalGuestsHtml = '';
 
                     if (bookingGuests.length > 0) {
