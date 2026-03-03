@@ -5435,6 +5435,23 @@
             }
         };
 
+        // Map Firebase error codes to user-friendly messages
+        function getAuthErrorMessage(err) {
+            const messages = {
+                'auth/user-not-found': 'No account found with this email.',
+                'auth/wrong-password': 'Incorrect password. Please try again.',
+                'auth/invalid-email': 'Please enter a valid email address.',
+                'auth/user-disabled': 'This account has been disabled. Contact support.',
+                'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+                'auth/network-request-failed': 'Network error. Please check your internet connection.',
+                'auth/invalid-credential': 'Invalid email or password.',
+                'auth/expired-action-code': 'This link has expired. Please request a new one.',
+                'auth/invalid-action-code': 'This link is invalid or has already been used.',
+                'auth/weak-password': 'Password is too weak. Use at least 8 characters.'
+            };
+            return messages[err.code] || err.message || 'An unexpected error occurred.';
+        }
+
         // Booking Type Constants
         const BOOKING_TYPES = {
             'STAYCATION': { label: 'Staycation', icon: '🏖️' },
@@ -6973,8 +6990,9 @@
                 }
 
                 // ── Step 2b: Legacy fallback (plain-text DB comparison) ───────
-                // Used for users not yet migrated to Firebase Auth
-                console.log('[Auth] Attempting legacy DB login...');
+                // DEPRECATED: Used for users not yet migrated to Firebase Auth.
+                // Remove this fallback after running scripts/migrate-users-to-firebase.js
+                console.warn('[Auth] DEPRECATED: Attempting legacy plaintext DB login. Migrate users to Firebase Auth.');
                 const users = await db.getTeamMembers();
                 const staffUser = users.find(u => u.email === email && u.password === password);
 
@@ -7012,7 +7030,7 @@
 
             } catch (error) {
                 console.error('Login error:', error);
-                showToast('Login Error', error.message, '❌');
+                showToast('Login Error', getAuthErrorMessage(error), '❌');
             } finally {
                 if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Login'; }
             }
@@ -7075,7 +7093,7 @@
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#fee2e2';
                 msgEl.style.color = '#dc2626';
-                msgEl.textContent = err.message || 'Failed to send reset email. Please try again.';
+                msgEl.textContent = getAuthErrorMessage(err);
                 btn.disabled = false;
                 btn.textContent = 'Send Reset Link';
             }
@@ -7108,20 +7126,37 @@
             btn.textContent = 'Updating...';
 
             try {
-                await authService.updatePassword(newPassword);
+                // Check for oobCode from password reset email link
+                const urlParams = new URLSearchParams(window.location.search);
+                const oobCode = urlParams.get('oobCode');
+                if (oobCode) {
+                    await firebaseAuth.confirmPasswordReset(oobCode, newPassword);
+                } else {
+                    // User is already signed in (e.g., changing password from profile)
+                    await authService.updatePassword(newPassword);
+                }
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#dcfce7';
                 msgEl.style.color = '#16a34a';
                 msgEl.textContent = 'Password updated successfully! Redirecting to login...';
                 setTimeout(() => {
                     window.location.hash = '';
+                    window.location.search = '';
                     window.location.reload();
                 }, 2000);
             } catch (err) {
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#fee2e2';
                 msgEl.style.color = '#dc2626';
-                msgEl.textContent = err.message || 'Failed to update password. Please try again.';
+                if (err.code === 'auth/expired-action-code') {
+                    msgEl.textContent = 'This reset link has expired. Please request a new one.';
+                } else if (err.code === 'auth/invalid-action-code') {
+                    msgEl.textContent = 'This reset link is invalid or has already been used.';
+                } else if (err.code === 'auth/weak-password') {
+                    msgEl.textContent = 'Password is too weak. Please use a stronger password.';
+                } else {
+                    msgEl.textContent = err.message || 'Failed to update password. Please try again.';
+                }
                 btn.disabled = false;
                 btn.textContent = 'Update Password';
             }
@@ -20440,15 +20475,15 @@ function printPropertyView() {
                 console.log('[EmailJS] Initialized with saved public key');
             }
             
-            // ── Check Supabase Auth session first, then fall back to localStorage ──
-            // Also detect password-recovery email link (#type=recovery in URL hash)
+            // ── Detect password-recovery email link ──
+            // Firebase sends reset links with query params: ?mode=resetPassword&oobCode=...
+            const urlSearch = window.location.search;
             const urlHash = window.location.hash;
-            if (urlHash.includes('mode=resetPassword') || urlHash.includes('type=recovery')) {
+            if (urlSearch.includes('mode=resetPassword') || urlHash.includes('mode=resetPassword') || urlHash.includes('type=recovery')) {
                 // User clicked a password reset email link — show the set-new-password form
                 document.querySelector('.login-card').classList.add('hidden');
                 document.getElementById('forgotPasswordPanel').classList.add('hidden');
                 document.getElementById('resetPasswordPanel').classList.remove('hidden');
-                // Firebase handles the oobCode from the URL automatically
                 setTimeout(() => {
                     const splash = document.getElementById('splashScreen');
                     if (splash) { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 500); }
@@ -20456,8 +20491,16 @@ function printPropertyView() {
                 return; // Don't try to restore a regular session
             }
 
+            // Wait for Firebase Auth state to be ready before checking session
             try {
-                const firebaseUser = await authService.getCurrentUser();
+                const firebaseUser = await new Promise((resolve) => {
+                    const unsubscribe = authService.onAuthStateChanged((user) => {
+                        unsubscribe();
+                        resolve(user);
+                    });
+                    // Timeout after 3s to avoid blocking the app if Firebase is unreachable
+                    setTimeout(() => { resolve(null); }, 3000);
+                });
                 if (firebaseUser) {
                     const allMembers = await db.getTeamMembers();
                     const profile = allMembers.find(u => u.email === firebaseUser.email);
@@ -20717,30 +20760,38 @@ function printPropertyView() {
         async function loadGuestDocuments() {
             try {
                 showLoading('Loading guest documents...');
-        
-                // Fetch all guest documents with reservation info
+
+                // Fetch guest documents and reservations separately, then join client-side
+                // (PostgREST embedded resource joins require foreign key constraints which may not exist)
                 const { data: documents, error } = await supabase
                     .from('guest_documents')
-                    .select(`
-                        *,
-                        reservations:booking_id (
-                            booking_id,
-                            property_name,
-                            guest_name,
-                            guest_phone,
-                            guest_email,
-                            check_in,
-                            check_out
-                        )
-                    `)
+                    .select('*')
                     .order('submitted_at', { ascending: false });
-        
+
                 if (error) {
                     console.error('Error loading guest documents:', error);
-                    // Don't throw - show empty state if no table exists yet
                     currentGuestDocuments = [];
                 } else {
-                    currentGuestDocuments = documents || [];
+                    // Collect unique booking IDs and fetch matching reservations
+                    const bookingIds = [...new Set((documents || []).map(d => d.booking_id).filter(Boolean))];
+                    let reservationsMap = {};
+
+                    if (bookingIds.length > 0) {
+                        const { data: reservations } = await supabase
+                            .from('reservations')
+                            .select('booking_id, property_name, guest_name, guest_phone, guest_email, check_in, check_out')
+                            .in('booking_id', bookingIds);
+
+                        if (reservations) {
+                            reservations.forEach(r => { reservationsMap[r.booking_id] = r; });
+                        }
+                    }
+
+                    // Attach reservation data to each document
+                    currentGuestDocuments = (documents || []).map(doc => ({
+                        ...doc,
+                        reservations: reservationsMap[doc.booking_id] || null
+                    }));
                 }
         
                 renderGuestDocuments();
