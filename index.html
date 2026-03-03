@@ -22917,26 +22917,33 @@ function printPropertyView() {
                 html += `
                     <tr style="cursor: pointer;" onclick="showGuestDetail('${guest.key.replace(/'/g, "\\'")}')">
                         <td data-label="Guest Name">
-                            <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 36px; height: 36px; background: var(--gradient-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; flex-shrink: 0;">
                                     ${(guest.name || '?')[0].toUpperCase()}
                                 </div>
-                                <div>
-                                    <strong>${guest.name || 'Unknown Guest'}</strong>
+                                <div style="min-width: 0;">
+                                    <strong style="display: block; overflow: hidden; text-overflow: ellipsis;">${guest.name || 'Unknown Guest'}</strong>
                                     ${guestBadge}
                                 </div>
                             </div>
                         </td>
                         <td data-label="Contact">
-                            <div style="font-size: 13px;">
-                                ${guest.phone ? `<div>📱 ${guest.phone}</div>` : ''}
-                                ${guest.email ? `<div style="color: var(--text-secondary);">📧 ${guest.email}</div>` : ''}
-                                ${!guest.phone && !guest.email ? '<span style="color: var(--text-secondary);">No contact</span>' : ''}
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                ${guest.phone ? `<span>📱 ${guest.phone}</span>` : ''}
+                                ${guest.phone && guest.email ? ' &middot; ' : ''}
+                                ${guest.email ? `<span>📧 ${guest.email}</span>` : ''}
+                                ${!guest.phone && !guest.email ? '<span>No contact</span>' : ''}
                             </div>
                         </td>
-                        <td data-label="Last Visit">${lastVisitText}</td>
-                        <td data-label="Stays"><strong>${guest.totalBookings}</strong></td>
-                        <td data-label="Total Spent"><strong style="color: var(--success);">${formatCurrency(guest.totalSpent)}</strong></td>
+                        <td data-label="Last Visit">
+                            <span class="td-mobile-label">Last Visit: </span>${lastVisitText}
+                        </td>
+                        <td data-label="Stays">
+                            <span class="td-mobile-label">Stays: </span><strong>${guest.totalBookings}</strong>
+                        </td>
+                        <td data-label="Total Spent">
+                            <strong style="color: var(--success); font-size: inherit;">${formatCurrency(guest.totalSpent)}</strong>
+                        </td>
                         <td data-label="Actions">
                             <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); showGuestDetail('${guest.key.replace(/'/g, "\\'")}')">
                                 👁️ View
@@ -23216,28 +23223,28 @@ function printPropertyView() {
                     };
                     
                     return `
-                        <div style="padding: 16px; background: var(--background-alt); border-radius: 8px; border-left: 4px solid ${statusColors[booking.status] || 'var(--border)'};">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                                <div>
+                        <div class="booking-history-card" style="padding: 14px; background: var(--background-alt); border-radius: 10px; border-left: 4px solid ${statusColors[booking.status] || 'var(--border)'};">
+                            <div class="booking-top" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; gap: 12px; flex-wrap: wrap;">
+                                <div style="min-width: 0; flex: 1;">
                                     <div style="font-weight: 600; margin-bottom: 4px;">${booking.property_name || 'Property'}</div>
                                     <div style="font-size: 13px; color: var(--text-secondary);">
-                                        📅 ${formatDate(booking.check_in)} → ${formatDate(booking.check_out)} 
+                                        📅 ${formatDate(booking.check_in)} → ${formatDate(booking.check_out)}
                                         <span style="color: var(--text-primary); font-weight: 600;">(${booking.nights} nights)</span>
                                     </div>
-                                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                                        Booking ID: ${booking.booking_id || 'N/A'}
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                                        ID: ${booking.booking_id || 'N/A'}
                                     </div>
                                 </div>
-                                <div style="text-align: right;">
-                                    <div style="font-size: 18px; font-weight: 700; color: var(--success);">
+                                <div class="booking-amount" style="text-align: right; flex-shrink: 0;">
+                                    <div style="font-size: 17px; font-weight: 700; color: var(--success);">
                                         ${formatCurrency(booking.total_amount)}
                                     </div>
-                                    <div style="font-size: 11px; padding: 3px 8px; background: ${statusColors[booking.status] || 'var(--border)'}; color: white; border-radius: 12px; margin-top: 4px; display: inline-block;">
+                                    <span class="booking-status" style="font-size: 11px; padding: 3px 8px; background: ${statusColors[booking.status] || 'var(--border)'}; color: white; border-radius: 12px; margin-top: 4px; display: inline-block;">
                                         ${booking.status}
-                                    </div>
+                                    </span>
                                 </div>
                             </div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                            <div style="font-size: 12px; color: var(--text-secondary);">
                                 👥 ${booking.adults || 0} adults${booking.kids ? `, ${booking.kids} kids` : ''}
                             </div>
                         </div>
@@ -23651,67 +23658,69 @@ function printPropertyView() {
             </div>
             <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                 <!-- Guest Profile Card -->
-                <div style="background: var(--gradient-primary); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 16px;">
-                        <div style="flex: 1;">
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px;">
+                <div class="guest-profile-card" style="background: var(--gradient-primary); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+                    <div class="profile-top" style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 16px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="profile-avatar-section" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <div style="width: 52px; height: 52px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
                                     👤
                                 </div>
-                                <div>
-                                    <h2 style="margin: 0; font-size: 24px;" id="guestDetailNameHeader">Guest Name</h2>
-                                    <div id="guestDetailBadge" style="display: inline-block; padding: 4px 12px; background: rgba(255,255,255,0.2); border-radius: 12px; font-size: 12px; margin-top: 4px;">
+                                <div style="min-width: 0;">
+                                    <h2 style="margin: 0; font-size: 22px; overflow: hidden; text-overflow: ellipsis;" id="guestDetailNameHeader">Guest Name</h2>
+                                    <div id="guestDetailBadge" style="display: inline-block; padding: 3px 10px; background: rgba(255,255,255,0.2); border-radius: 12px; font-size: 12px; margin-top: 4px;">
                                         New Guest
                                     </div>
                                 </div>
                             </div>
-                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
+                                <div class="contact-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span>📱</span>
-                                    <span id="guestDetailPhone">+91-XXXXXXXXXX</span>
-                                    <button onclick="callGuest()" style="background: rgba(255,255,255,0.2); border: none; padding: 4px 12px; border-radius: 6px; color: white; cursor: pointer; font-size: 12px;">
-                                        Call
-                                    </button>
-                                    <button onclick="whatsappGuest()" style="background: rgba(37,211,102,0.8); border: none; padding: 4px 12px; border-radius: 6px; color: white; cursor: pointer; font-size: 12px;">
-                                        WhatsApp
-                                    </button>
+                                    <span id="guestDetailPhone" style="min-width: 0; word-break: break-all;">+91-XXXXXXXXXX</span>
+                                    <div style="display: flex; gap: 6px; margin-left: auto;">
+                                        <button class="contact-btn" onclick="callGuest()" style="background: rgba(255,255,255,0.2); border: none; padding: 6px 14px; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; white-space: nowrap;">
+                                            📞 Call
+                                        </button>
+                                        <button class="contact-btn" onclick="whatsappGuest()" style="background: rgba(37,211,102,0.8); border: none; padding: 6px 14px; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; white-space: nowrap;">
+                                            💬 WhatsApp
+                                        </button>
+                                    </div>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="contact-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span>📧</span>
-                                    <span id="guestDetailEmail">email@example.com</span>
-                                    <button onclick="emailGuest()" style="background: rgba(255,255,255,0.2); border: none; padding: 4px 12px; border-radius: 6px; color: white; cursor: pointer; font-size: 12px;">
-                                        Email
+                                    <span id="guestDetailEmail" style="min-width: 0; word-break: break-all;">email@example.com</span>
+                                    <button class="contact-btn" onclick="emailGuest()" style="background: rgba(255,255,255,0.2); border: none; padding: 6px 14px; border-radius: 8px; color: white; cursor: pointer; font-size: 12px; margin-left: auto; white-space: nowrap;">
+                                        ✉️ Email
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <button class="btn" onclick="editGuestInfo()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                        <button class="btn edit-btn" onclick="editGuestInfo()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); white-space: nowrap;">
                             ✏️ Edit Info
                         </button>
                     </div>
                 </div>
 
                 <!-- Guest Statistics -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
-                    <div style="background: var(--background-alt); padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="guestDetailTotalBookings">0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Total Bookings</div>
+                <div class="guest-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px;">
+                    <div style="background: var(--background-alt); padding: 16px; border-radius: 10px; text-align: center;">
+                        <div class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--primary);" id="guestDetailTotalBookings">0</div>
+                        <div class="stat-label" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Total Bookings</div>
                     </div>
-                    <div style="background: var(--background-alt); padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 700; color: var(--success);" id="guestDetailTotalNights">0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Total Nights</div>
+                    <div style="background: var(--background-alt); padding: 16px; border-radius: 10px; text-align: center;">
+                        <div class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--success);" id="guestDetailTotalNights">0</div>
+                        <div class="stat-label" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Total Nights</div>
                     </div>
-                    <div style="background: var(--background-alt); padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 700; color: var(--warning);" id="guestDetailTotalSpent">₹0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Total Spent</div>
+                    <div style="background: var(--background-alt); padding: 16px; border-radius: 10px; text-align: center;">
+                        <div class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--warning);" id="guestDetailTotalSpent">₹0</div>
+                        <div class="stat-label" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Total Spent</div>
                     </div>
-                    <div style="background: var(--background-alt); padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 700; color: #06b6d4;" id="guestDetailAvgValue">₹0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Avg Booking Value</div>
+                    <div style="background: var(--background-alt); padding: 16px; border-radius: 10px; text-align: center;">
+                        <div class="stat-value" style="font-size: 22px; font-weight: 700; color: #06b6d4;" id="guestDetailAvgValue">₹0</div>
+                        <div class="stat-label" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Avg Booking Value</div>
                     </div>
-                    <div style="background: var(--background-alt); padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 700; color: var(--text-secondary);" id="guestDetailLastVisit">Never</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Last Visit</div>
+                    <div style="background: var(--background-alt); padding: 16px; border-radius: 10px; text-align: center;">
+                        <div class="stat-value" style="font-size: 22px; font-weight: 700; color: var(--text-secondary);" id="guestDetailLastVisit">Never</div>
+                        <div class="stat-label" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Last Visit</div>
                     </div>
                 </div>
 
