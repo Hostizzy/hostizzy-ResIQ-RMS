@@ -2302,16 +2302,21 @@
                     </h2>
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">View and manage all guests across your properties</p>
                 </div>
-                <button class="btn btn-secondary btn-sm" onclick="exportGuestsCSV()" style="display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export CSV
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="exportGuestsCSV()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export CSV
+                    </button>
+                    <button class="btn btn-sm" onclick="exportAllGuestsCSV()" style="display: flex; align-items: center; gap: 6px; background: #8b5cf6; color: white;">
+                        <i data-lucide="users" style="width: 14px; height: 14px;"></i> Export All (+ Additional Guests)
+                    </button>
+                </div>
             </div>
 
             <div class="card">
                 <!-- Filters and Search -->
                 <div class="filters">
                     <div class="filter-item" style="flex: 1; max-width: 400px;">
-                        <input type="text" id="searchGuests" placeholder="Search by name, phone, or email..." onkeyup="searchGuests()" style="width: 100%;">
+                        <input type="text" id="searchGuests" placeholder="Search by name, phone, email, or city..." onkeyup="searchGuests()" style="width: 100%;">
                     </div>
                     
                     <!-- View Toggle -->
@@ -2368,6 +2373,10 @@
                         <div style="font-size: 28px; font-weight: 700; color: #06b6d4;" id="guestStatAvgStays">0</div>
                         <div style="font-size: 12px; color: var(--text-secondary);">Avg Stays/Guest</div>
                     </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: #8b5cf6;" id="guestStatAdditional">0</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Additional Guests</div>
+                    </div>
                 </div>
 
                 <!-- Table View Container -->
@@ -2380,7 +2389,13 @@
                                         Guest Name <span id="sortIconName"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th onclick="sortGuestsTable('phone')" style="cursor: pointer;">
-                                        Contact <span id="sortIconPhone"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
+                                        Phone <span id="sortIconPhone"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
+                                    </th>
+                                    <th onclick="sortGuestsTable('email')" style="cursor: pointer;">
+                                        Email <span id="sortIconEmail"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
+                                    </th>
+                                    <th onclick="sortGuestsTable('city')" style="cursor: pointer;">
+                                        City <span id="sortIconCity"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th onclick="sortGuestsTable('lastVisit')" style="cursor: pointer;">
                                         Last Visit <span id="sortIconLastVisit"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
@@ -2395,7 +2410,7 @@
                                 </tr>
                             </thead>
                             <tbody id="guestTableBody">
-                                <tr><td colspan="6" class="text-center">Loading guests...</td></tr>
+                                <tr><td colspan="8" class="text-center">Loading guests...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -22810,6 +22825,7 @@ function printPropertyView() {
         // ==========================================
 
         let allGuests = [];
+        let allAdditionalGuests = [];
         let filteredGuests = [];
         let displayedGuests = [];
         let currentGuestData = null;
@@ -22856,18 +22872,22 @@ function printPropertyView() {
                             name: r.guest_name,
                             phone: r.guest_phone || '',
                             email: r.guest_email || '',
+                            city: r.guest_city || '',
+                            bookingSources: new Set(),
                             bookings: [],
                             key: guestKey
                         });
                     }
-                    
+
                     guestMap.get(guestKey).bookings.push(r);
-                    
-                    // Update name/phone/email to latest non-empty values
+
+                    // Update name/phone/email/city to latest non-empty values
                     const guest = guestMap.get(guestKey);
                     if (r.guest_name && r.guest_name !== guest.name) guest.name = r.guest_name;
                     if (r.guest_phone && r.guest_phone !== guest.phone) guest.phone = r.guest_phone;
                     if (r.guest_email && r.guest_email !== guest.email) guest.email = r.guest_email;
+                    if (r.guest_city && !guest.city) guest.city = r.guest_city;
+                    if (r.booking_source) guest.bookingSources.add(r.booking_source);
                 });
                 
                 // Convert to array and calculate stats
@@ -22890,6 +22910,7 @@ function printPropertyView() {
 
                     return {
                         ...guest,
+                        bookingSources: Array.from(guest.bookingSources),
                         totalBookings: confirmedBookings.length,
                         totalSpent,
                         totalNights,
@@ -22904,7 +22925,50 @@ function printPropertyView() {
                     };
                 });
                 
+                // Load additional guests from guest_documents for remarketing
+                try {
+                    const { data: guestDocs, error: gdError } = await supabase
+                        .from('guest_documents')
+                        .select('booking_id, guest_name, guest_type, guest_sequence, guest_address, status, submitted_at')
+                        .eq('guest_type', 'additional')
+                        .order('submitted_at', { ascending: false });
+
+                    allAdditionalGuests = [];
+                    if (!gdError && guestDocs) {
+                        // Build a booking lookup from reservations
+                        const reservationMap = {};
+                        reservations.forEach(r => {
+                            reservationMap[r.booking_id] = r;
+                        });
+
+                        guestDocs.forEach(doc => {
+                            const booking = reservationMap[doc.booking_id];
+                            if (booking) {
+                                allAdditionalGuests.push({
+                                    name: doc.guest_name || 'Unknown',
+                                    phone: '',
+                                    email: '',
+                                    city: doc.guest_address || '',
+                                    bookingId: doc.booking_id,
+                                    propertyName: booking.property_name || '',
+                                    checkIn: booking.check_in,
+                                    checkOut: booking.check_out,
+                                    primaryGuestName: booking.guest_name || '',
+                                    primaryGuestPhone: booking.guest_phone || '',
+                                    status: doc.status || 'pending',
+                                    guestSequence: doc.guest_sequence,
+                                    submittedAt: doc.submitted_at
+                                });
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.warn('Could not load additional guests for directory:', err);
+                    allAdditionalGuests = [];
+                }
+
                 // Update summary statistics
+                const additionalGuestCount = allAdditionalGuests ? allAdditionalGuests.length : 0;
                 document.getElementById('guestStatTotal').textContent = allGuests.length;
                 document.getElementById('guestStatRepeat').textContent = allGuests.filter(g => g.isRepeat).length;
                 document.getElementById('guestStatVIP').textContent = allGuests.filter(g => g.isVIP).length;
@@ -22914,7 +22978,8 @@ function printPropertyView() {
                     ? (allGuests.reduce((sum, g) => sum + g.totalBookings, 0) / allGuests.length).toFixed(1)
                     : '0.0';
                 document.getElementById('guestStatAvgStays').textContent = avgStays;
-                
+                document.getElementById('guestStatAdditional').textContent = additionalGuestCount;
+
                 // Load saved view preference
                 const savedView = localStorage.getItem('guestViewPreference') || 'table';
                 currentGuestView = savedView;
@@ -22942,7 +23007,7 @@ function printPropertyView() {
                         }
                         
                         // Restore sort (only if a valid column)
-                        if (savedFilters.sortBy && ['name','phone','lastVisit','nextCheckIn','stays','spent'].includes(savedFilters.sortBy)) {
+                        if (savedFilters.sortBy && ['name','phone','email','city','lastVisit','nextCheckIn','stays','spent'].includes(savedFilters.sortBy)) {
                             currentSortColumn = savedFilters.sortBy;
                         }
                         if (savedFilters.sortDir && (savedFilters.sortDir === 'asc' || savedFilters.sortDir === 'desc')) {
@@ -22987,7 +23052,7 @@ function printPropertyView() {
                 if (tableBody) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--danger);">
+                            <td colspan="8" style="text-align: center; padding: 60px 20px; color: var(--danger);">
                                 <div style="margin-bottom: 16px;"><i data-lucide="alert-triangle" style="width: 52px; height: 52px; color: var(--warning); opacity: 0.7;"></i></div>
                                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Error Loading Guests</div>
                                 <div style="font-size: 14px; color: var(--text-secondary);">${error.message}</div>
@@ -23007,10 +23072,11 @@ function printPropertyView() {
             if (!searchTerm) {
                 filteredGuests = [...allGuests];
             } else {
-                filteredGuests = allGuests.filter(g => 
+                filteredGuests = allGuests.filter(g =>
                     (g.name || '').toLowerCase().includes(searchTerm) ||
                     (g.phone || '').toLowerCase().includes(searchTerm) ||
-                    (g.email || '').toLowerCase().includes(searchTerm)
+                    (g.email || '').toLowerCase().includes(searchTerm) ||
+                    (g.city || '').toLowerCase().includes(searchTerm)
                 );
             }
             
@@ -23083,6 +23149,14 @@ function printPropertyView() {
                     case 'phone':
                         aVal = a.phone || '';
                         bVal = b.phone || '';
+                        break;
+                    case 'email':
+                        aVal = (a.email || '').toLowerCase();
+                        bVal = (b.email || '').toLowerCase();
+                        break;
+                    case 'city':
+                        aVal = (a.city || '').toLowerCase();
+                        bVal = (b.city || '').toLowerCase();
                         break;
                     case 'nextCheckIn':
                         // Upcoming check-ins first, then by last visit
@@ -23174,7 +23248,7 @@ function printPropertyView() {
             if (displayedGuests.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <td colspan="8" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
                             <div style="margin-bottom: 16px;"><i data-lucide="users" style="width: 52px; height: 52px; opacity: 0.3;"></i></div>
                             <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No guests found</div>
                             <div style="font-size: 14px;">Try adjusting your search or filters</div>
@@ -23206,8 +23280,7 @@ function printPropertyView() {
                                    '<span style="background: var(--primary); color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 6px;">✨</span>';
                 
                 const lastVisitText = guest.lastVisit ? formatDate(guest.lastVisit) : 'Never';
-                const contactInfo = guest.phone ? `📱 ${guest.phone}` : (guest.email ? `📧 ${guest.email}` : 'No contact');
-                
+
                 html += `
                     <tr style="cursor: pointer;" onclick="showGuestDetail('${guest.key.replace(/'/g, "\\'")}')">
                         <td data-label="Guest Name">
@@ -23221,12 +23294,19 @@ function printPropertyView() {
                                 </div>
                             </div>
                         </td>
-                        <td data-label="Contact">
+                        <td data-label="Phone">
                             <div style="font-size: 13px; color: var(--text-secondary);">
-                                ${guest.phone ? `<span>📱 ${guest.phone}</span>` : ''}
-                                ${guest.phone && guest.email ? ' &middot; ' : ''}
-                                ${guest.email ? `<span>📧 ${guest.email}</span>` : ''}
-                                ${!guest.phone && !guest.email ? '<span>No contact</span>' : ''}
+                                ${guest.phone ? `<span>📱 ${guest.phone}</span>` : '<span style="opacity:0.5;">—</span>'}
+                            </div>
+                        </td>
+                        <td data-label="Email">
+                            <div style="font-size: 13px; color: var(--text-secondary); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${guest.email || ''}">
+                                ${guest.email ? `<span>📧 ${guest.email}</span>` : '<span style="opacity:0.5;">—</span>'}
+                            </div>
+                        </td>
+                        <td data-label="City">
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                ${guest.city ? `<span>📍 ${guest.city}</span>` : '<span style="opacity:0.5;">—</span>'}
                             </div>
                         </td>
                         <td data-label="Last Visit">
@@ -23389,6 +23469,8 @@ function printPropertyView() {
 
                         <div class="guest-card-meta">
                             ${guest.phone ? `<span><i data-lucide="phone" style="width:13px;height:13px;"></i>${guest.phone}</span>` : ''}
+                            ${guest.email ? `<span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${guest.email}"><i data-lucide="mail" style="width:13px;height:13px;"></i>${guest.email}</span>` : ''}
+                            ${guest.city ? `<span><i data-lucide="map-pin" style="width:13px;height:13px;"></i>${guest.city}</span>` : ''}
                             ${nextCheckinText
                                 ? `<span class="guest-checkin-highlight"><i data-lucide="calendar-check" style="width:13px;height:13px;"></i>Check-in: ${nextCheckinText}</span>`
                                 : `<span><i data-lucide="calendar" style="width:13px;height:13px;"></i>Last: ${lastVisitText}</span>`}
@@ -23487,6 +23569,7 @@ function printPropertyView() {
             document.getElementById('guestDetailNameHeader').textContent = guest.name || 'Unknown Guest';
             document.getElementById('guestDetailPhone').textContent = guest.phone || 'No phone';
             document.getElementById('guestDetailEmail').textContent = guest.email || 'No email';
+            document.getElementById('guestDetailCity').textContent = guest.city || 'No city info';
 
             // Update badge
             const badge = guest.isVIP ? '👑 VIP Guest' : guest.isRepeat ? '🌟 Repeat Guest' : '✨ New Guest';
@@ -23613,6 +23696,7 @@ function printPropertyView() {
             document.getElementById('editGuestName').value = currentGuestData.name || '';
             document.getElementById('editGuestPhone').value = currentGuestData.phone || '';
             document.getElementById('editGuestEmail').value = currentGuestData.email || '';
+            document.getElementById('editGuestCity').value = currentGuestData.city || '';
             document.getElementById('editGuestOriginalPhone').value = currentGuestData.phone || '';
             document.getElementById('editGuestOriginalEmail').value = currentGuestData.email || '';
             
@@ -23635,18 +23719,20 @@ function printPropertyView() {
             const newName = document.getElementById('editGuestName').value.trim();
             const newPhone = document.getElementById('editGuestPhone').value.trim();
             const newEmail = document.getElementById('editGuestEmail').value.trim();
-            
+            const newCity = document.getElementById('editGuestCity').value.trim();
+
             if (!newName) {
                 showToast('Validation Error', 'Guest name is required', '❌');
                 return;
             }
-            
+
             try {
                 // Update all bookings for this guest
                 const updates = {
                     guest_name: newName,
                     guest_phone: newPhone,
-                    guest_email: newEmail
+                    guest_email: newEmail,
+                    guest_city: newCity || null
                 };
                 
                 // Find all booking IDs for this guest
@@ -23740,52 +23826,115 @@ function printPropertyView() {
          */
         function exportGuestsCSV() {
             const guestsToExport = displayedGuests.length > 0 ? displayedGuests : allGuests;
-            
+
             if (guestsToExport.length === 0) {
                 showToast('No Data', 'No guests to export', '⚠️');
                 return;
             }
-            
-            // Prepare CSV data
-            const headers = ['Name', 'Phone', 'Email', 'Total Bookings', 'Total Nights', 'Total Spent', 'Avg Booking Value', 'Last Visit', 'Guest Type'];
-            
+
+            // Prepare CSV data with full details
+            const headers = ['Name', 'Phone', 'Email', 'City', 'Total Bookings', 'Total Nights', 'Total Spent', 'Avg Booking Value', 'Last Visit', 'Guest Type', 'Booking Sources'];
+
             const rows = guestsToExport.map(g => [
                 g.name || '',
                 g.phone || '',
                 g.email || '',
+                g.city || '',
                 g.totalBookings,
                 g.totalNights,
                 g.totalSpent,
                 g.avgBookingValue.toFixed(2),
                 g.lastVisit ? formatDate(g.lastVisit) : 'Never',
-                g.isVIP ? 'VIP' : g.isRepeat ? 'Repeat' : 'New'
+                g.isVIP ? 'VIP' : g.isRepeat ? 'Repeat' : 'New',
+                (g.bookingSources || []).join('; ')
             ]);
-            
-            // Create CSV
+
+            downloadCSV(headers, rows, `guests_${new Date().toISOString().split('T')[0]}.csv`);
+            showToast('Exported', `${guestsToExport.length} guests exported to CSV`, '✅');
+        }
+
+        /**
+         * Export ALL guests including additional guests for remarketing
+         */
+        function exportAllGuestsCSV() {
+            const primaryGuests = allGuests;
+            const additionalGuests = allAdditionalGuests || [];
+
+            if (primaryGuests.length === 0 && additionalGuests.length === 0) {
+                showToast('No Data', 'No guests to export', '⚠️');
+                return;
+            }
+
+            const headers = ['Name', 'Phone', 'Email', 'City', 'Guest Role', 'Primary Guest Name', 'Primary Guest Phone', 'Property', 'Check-In', 'Total Bookings', 'Total Spent', 'Guest Type', 'Booking Sources'];
+
+            const rows = [];
+
+            // Add primary guests
+            primaryGuests.forEach(g => {
+                rows.push([
+                    g.name || '',
+                    g.phone || '',
+                    g.email || '',
+                    g.city || '',
+                    'Primary',
+                    '',
+                    '',
+                    (g.bookings || []).map(b => b.property_name).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join('; '),
+                    g.lastVisit ? formatDate(g.lastVisit) : '',
+                    g.totalBookings,
+                    g.totalSpent,
+                    g.isVIP ? 'VIP' : g.isRepeat ? 'Repeat' : 'New',
+                    (g.bookingSources || []).join('; ')
+                ]);
+            });
+
+            // Add additional guests
+            additionalGuests.forEach(ag => {
+                rows.push([
+                    ag.name || '',
+                    ag.phone || '',
+                    ag.email || '',
+                    ag.city || '',
+                    'Additional Guest',
+                    ag.primaryGuestName || '',
+                    ag.primaryGuestPhone || '',
+                    ag.propertyName || '',
+                    ag.checkIn ? formatDate(new Date(ag.checkIn)) : '',
+                    1,
+                    '',
+                    'Additional',
+                    ''
+                ]);
+            });
+
+            downloadCSV(headers, rows, `all_guests_remarketing_${new Date().toISOString().split('T')[0]}.csv`);
+            showToast('Exported', `${primaryGuests.length} primary + ${additionalGuests.length} additional guests exported`, '✅');
+        }
+
+        /**
+         * Helper: download CSV from headers and rows
+         */
+        function downloadCSV(headers, rows, filename) {
             let csv = headers.join(',') + '\n';
             rows.forEach(row => {
                 csv += row.map(cell => {
-                    // Escape quotes and wrap in quotes if contains comma
                     const cellStr = String(cell);
-                    if (cellStr.includes(',') || cellStr.includes('"')) {
+                    if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
                         return '"' + cellStr.replace(/"/g, '""') + '"';
                     }
                     return cellStr;
                 }).join(',') + '\n';
             });
-            
-            // Download
+
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `guests_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
-            showToast('Exported', `${guestsToExport.length} guests exported to CSV`, '✅');
         }
 
         // ==========================================
@@ -24031,6 +24180,10 @@ function printPropertyView() {
                                         ✉️ Email
                                     </button>
                                 </div>
+                                <div class="contact-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span>📍</span>
+                                    <span id="guestDetailCity" style="min-width: 0; word-break: break-all;">—</span>
+                                </div>
                             </div>
                         </div>
                         <button class="btn edit-btn" onclick="editGuestInfo()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); white-space: nowrap;">
@@ -24102,7 +24255,12 @@ function printPropertyView() {
                     <label>Email Address</label>
                     <input type="email" id="editGuestEmail" placeholder="guest@example.com">
                 </div>
-                
+
+                <div class="form-group">
+                    <label>Travelling From</label>
+                    <input type="text" id="editGuestCity" placeholder="City / Country">
+                </div>
+
                 <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 13px; color: #92400e;">
                     ⚠️ Note: This will update guest information for all their bookings.
                 </div>
