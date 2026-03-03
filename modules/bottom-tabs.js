@@ -20,7 +20,7 @@ const BOTTOM_TABS_CSS = `
     left: 0;
     right: 0;
     z-index: 9999;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 255, 0.97);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     backdrop-filter: saturate(180%) blur(20px);
     border-top: 0.5px solid rgba(0, 0, 0, 0.08);
@@ -29,7 +29,7 @@ const BOTTOM_TABS_CSS = `
 }
 
 [data-theme="dark"] .resiq-bottom-tabs {
-    background: rgba(15, 23, 42, 0.96);
+    background: rgba(15, 23, 42, 0.97);
     border-top-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -39,12 +39,12 @@ const BOTTOM_TABS_CSS = `
 
 .resiq-bottom-tabs-inner {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     justify-content: space-around;
-    max-width: 560px;
+    max-width: 480px;
     margin: 0 auto;
-    height: 52px;
-    padding: 0;
+    height: 64px;
+    padding: 0 8px;
     position: relative;
 }
 
@@ -52,8 +52,8 @@ const BOTTOM_TABS_CSS = `
 @media (min-width: 769px) and (max-width: 1024px) {
     .resiq-bottom-tabs { display: flex !important; }
     .resiq-bottom-tabs-inner {
-        max-width: 640px;
-        height: 56px;
+        max-width: 540px;
+        height: 68px;
     }
 }
 
@@ -75,7 +75,8 @@ const BOTTOM_TABS_CSS = `
     justify-content: center;
     flex: 1;
     height: 100%;
-    padding: 6px 0 2px;
+    padding: 8px 4px 6px;
+    gap: 4px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
@@ -85,7 +86,7 @@ const BOTTOM_TABS_CSS = `
     color: #94a3b8;
     transition: color 0.25s ease;
     outline: none;
-    min-width: 0;
+    min-width: 56px;
 }
 
 [data-theme="dark"] .resiq-tab {
@@ -93,7 +94,7 @@ const BOTTOM_TABS_CSS = `
 }
 
 .resiq-tab:active {
-    transform: scale(0.88);
+    transform: scale(0.92);
     transition: transform 0.08s ease;
 }
 
@@ -108,52 +109,45 @@ const BOTTOM_TABS_CSS = `
 /* --- Icon --- */
 .resiq-tab-icon {
     position: relative;
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1px;
-    border-radius: 14px;
+    border-radius: 16px;
     transition: background 0.3s ease;
 }
 
 .resiq-tab.active .resiq-tab-icon {
-    background: rgba(8, 145, 178, 0.1);
+    background: rgba(8, 145, 178, 0.12);
 }
 
 [data-theme="dark"] .resiq-tab.active .resiq-tab-icon {
-    background: rgba(34, 211, 238, 0.12);
+    background: rgba(34, 211, 238, 0.15);
 }
 
 .resiq-tab-icon svg {
-    width: 20px;
-    height: 20px;
-    stroke-width: 1.7;
-    transition: stroke-width 0.2s ease, transform 0.2s ease;
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.8;
+    transition: stroke-width 0.2s ease;
 }
 
 .resiq-tab.active .resiq-tab-icon svg {
     stroke-width: 2.2;
-    transform: scale(1.05);
 }
 
 /* --- Label --- */
 .resiq-tab-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     line-height: 1;
     letter-spacing: 0.1px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 72px;
-    transition: all 0.2s ease;
 }
 
 .resiq-tab.active .resiq-tab-label {
     font-weight: 700;
-    font-size: 10px;
     color: var(--primary, #0891b2);
 }
 
@@ -168,23 +162,23 @@ const BOTTOM_TABS_CSS = `
     left: 50%;
     transform: translateX(-50%);
     width: 0;
-    height: 2.5px;
+    height: 3px;
     background: var(--primary, #0891b2);
-    border-radius: 0 0 4px 4px;
+    border-radius: 0 0 6px 6px;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .resiq-tab.active .resiq-tab-indicator {
-    width: 20px;
+    width: 24px;
 }
 
 /* --- Badge --- */
 .resiq-tab-badge {
     position: absolute;
-    top: 0px;
-    right: -4px;
-    min-width: 15px;
-    height: 15px;
+    top: -2px;
+    right: 0px;
+    min-width: 16px;
+    height: 16px;
     padding: 0 4px;
     border-radius: 8px;
     background: #ef4444;
@@ -195,12 +189,12 @@ const BOTTOM_TABS_CSS = `
     align-items: center;
     justify-content: center;
     line-height: 1;
-    border: 2px solid rgba(255, 255, 255, 0.96);
+    border: 2px solid rgba(255, 255, 255, 0.97);
     animation: badgePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 [data-theme="dark"] .resiq-tab-badge {
-    border-color: rgba(15, 23, 42, 0.96);
+    border-color: rgba(15, 23, 42, 0.97);
 }
 
 @keyframes badgePop {
@@ -217,18 +211,18 @@ const BOTTOM_TABS_CSS = `
 /* --- FAB in center --- */
 .resiq-tab-fab {
     position: relative;
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    background: var(--primary, #0891b2);
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #0891b2, #0e7490);
     color: white;
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35), 0 1px 3px rgba(0, 0, 0, 0.1);
-    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(8, 145, 178, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(-6px);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     outline: none;
@@ -236,13 +230,13 @@ const BOTTOM_TABS_CSS = `
 }
 
 .resiq-tab-fab:active {
-    transform: translateY(-4px) scale(0.9);
+    transform: translateY(-6px) scale(0.9);
     box-shadow: 0 2px 8px rgba(8, 145, 178, 0.25);
 }
 
 .resiq-tab-fab svg {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     stroke-width: 2.5;
 }
 
@@ -284,7 +278,7 @@ const BOTTOM_TABS_CSS = `
 /* --- Layout adjustments when tabs are visible --- */
 @media (max-width: 1024px) {
     body.has-bottom-tabs .container {
-        padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
     }
     body.has-bottom-tabs .mobile-nav {
         display: none !important;

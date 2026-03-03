@@ -15,6 +15,7 @@ import notificationCenter from './notification-center.js';
 import qrCheckin from './qr-checkin.js';
 import whatsappDeep from './whatsapp-deep.js';
 import aiAssist from './ai-assist.js';
+import router from '../views/router.js';
 
 // Import Web Components (self-registering)
 import './components/stat-card.js';
@@ -61,7 +62,21 @@ function initModules() {
     aiAssist.init();
     console.log('  ✓ AI assist / Smart suggestions');
 
-    // 4. Wire up integration hooks
+    // 5. Initialize router (History API, lazy-loading)
+    // Capture the original showView before modules patch it
+    if (typeof window.showView === 'function' && !window._originalShowView) {
+        window._originalShowView = window.showView;
+    }
+    router.init();
+
+    // Wire router to bottom tabs sync
+    router.onNavigate((view) => {
+        bottomTabs._syncActiveTab(view);
+        store.state.currentView = view;
+    });
+    console.log('  ✓ View router');
+
+    // 6. Wire up integration hooks
     wireIntegrations();
 
     console.log('🎉 ResIQ Modules: All initialized!');
@@ -258,6 +273,7 @@ if (document.readyState === 'loading') {
 // Export for manual control
 window.ResIQModules = {
     store,
+    router,
     bottomTabs,
     swipeGestures,
     bottomSheet,

@@ -11,6 +11,7 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.18.0: Monolith split phase 1 - extracted 5700 lines CSS to css/main.css, added view router with History API + lazy-loading, shared utilities module, fixed QR codes (real qrcode-generator library), mobile guest cards, bottom tabs redesign
  * - v5.17.0: ES Modules architecture - 12 new features: bottom tabs, swipe gestures, bottom sheets, skeleton loading, page transitions, notification center, QR check-in, WhatsApp deep integration, AI assist, centralized state, Web Components
  * - v5.16.0: Supabase Auth migration - signInWithPassword, signOut, getSession, resetPasswordForEmail, updateUser
  * - v5.15.0: Fix Business + Property View MoM % - previous period now reads from full history
@@ -35,7 +36,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.17.0';
+const CACHE_VERSION = 'v5.18.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -74,6 +75,9 @@ const STATIC_CACHE = [
   '/modules/components/stat-card.js',
   '/modules/components/status-badge.js',
   '/modules/components/empty-state.js',
+  '/css/main.css',
+  '/views/router.js',
+  '/views/shared.js',
   '/assets/logo.png',
   '/assets/logo-132.png',
   '/assets/logo-192.png',

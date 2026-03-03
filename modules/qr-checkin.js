@@ -322,138 +322,63 @@ const QR_CSS = `
 `;
 
 /**
- * Minimal QR Code generator
- * Generates QR code data as a 2D boolean array
- * Supports alphanumeric mode, error correction level M
+ * QR Code generator wrapper
+ * Uses qrcode-generator library (loaded via CDN in index.html)
+ * Falls back to image-based generation if library unavailable
  */
 class QRCodeGenerator {
     /**
      * Generate QR code as canvas
      * @param {string} data - The data to encode
      * @param {number} size - Canvas size in pixels
-     * @returns {HTMLCanvasElement}
+     * @returns {Promise<HTMLCanvasElement>}
      */
-    static toCanvas(data, size = 200) {
-        // Use a simple encoding approach with an API fallback
+    static toCanvas(data, size = 220) {
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
 
-        // We'll use a data URL approach to generate QR
-        // Create an image from Google Charts API (free, no API key)
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-
         return new Promise((resolve) => {
-            // Generate QR locally using a simple bit matrix
-            const modules = this._generateMatrix(data);
-            if (modules) {
-                this._drawMatrix(ctx, modules, size);
+            if (typeof qrcode !== 'undefined') {
+                // Use proper QR code library
+                const qr = qrcode(0, 'M');
+                qr.addData(data);
+                qr.make();
+
+                const moduleCount = qr.getModuleCount();
+                const cellSize = (size - 32) / moduleCount; // 16px margin each side
+                const margin = 16;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, size, size);
+
+                ctx.fillStyle = '#000000';
+                for (let row = 0; row < moduleCount; row++) {
+                    for (let col = 0; col < moduleCount; col++) {
+                        if (qr.isDark(row, col)) {
+                            ctx.fillRect(
+                                margin + col * cellSize,
+                                margin + row * cellSize,
+                                cellSize,
+                                cellSize
+                            );
+                        }
+                    }
+                }
                 resolve(canvas);
             } else {
-                // Fallback: draw a placeholder with the booking ID
+                // Fallback placeholder
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, size, size);
                 ctx.fillStyle = '#0891b2';
                 ctx.font = 'bold 14px system-ui';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(data.substring(0, 20), size / 2, size / 2);
+                ctx.fillText('QR: ' + data.substring(0, 20), size / 2, size / 2);
                 resolve(canvas);
             }
         });
-    }
-
-    /**
-     * Simple QR-like matrix generation
-     * This creates a deterministic visual pattern from the data
-     * For production, you'd use a proper QR library
-     */
-    static _generateMatrix(data) {
-        const size = 25; // QR version 2 is 25x25
-        const matrix = Array.from({ length: size }, () => Array(size).fill(false));
-
-        // Finder patterns (top-left, top-right, bottom-left)
-        const drawFinder = (row, col) => {
-            for (let r = 0; r < 7; r++) {
-                for (let c = 0; c < 7; c++) {
-                    if (r === 0 || r === 6 || c === 0 || c === 6 ||
-                        (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
-                        if (row + r < size && col + c < size) {
-                            matrix[row + r][col + c] = true;
-                        }
-                    }
-                }
-            }
-        };
-
-        drawFinder(0, 0);
-        drawFinder(0, size - 7);
-        drawFinder(size - 7, 0);
-
-        // Timing patterns
-        for (let i = 8; i < size - 8; i++) {
-            matrix[6][i] = i % 2 === 0;
-            matrix[i][6] = i % 2 === 0;
-        }
-
-        // Data encoding (simple hash-based pattern)
-        let hash = 0;
-        for (let i = 0; i < data.length; i++) {
-            hash = ((hash << 5) - hash + data.charCodeAt(i)) | 0;
-        }
-
-        // Fill data area with deterministic pattern based on hash
-        let seed = Math.abs(hash);
-        for (let r = 9; r < size - 1; r++) {
-            for (let c = 9; c < size - 1; c++) {
-                if (!matrix[r][c]) {
-                    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-                    // Mix in character data for uniqueness
-                    const charIdx = (r * size + c) % data.length;
-                    const charVal = data.charCodeAt(charIdx);
-                    matrix[r][c] = ((seed + charVal) % 3) === 0;
-                }
-            }
-        }
-
-        // Alignment pattern (for version 2+)
-        const alignPos = size - 7;
-        for (let r = alignPos - 2; r <= alignPos + 2; r++) {
-            for (let c = alignPos - 2; c <= alignPos + 2; c++) {
-                if (r >= 0 && c >= 0 && r < size && c < size) {
-                    const dr = Math.abs(r - alignPos);
-                    const dc = Math.abs(c - alignPos);
-                    matrix[r][c] = dr === 2 || dc === 2 || (dr === 0 && dc === 0);
-                }
-            }
-        }
-
-        return matrix;
-    }
-
-    static _drawMatrix(ctx, matrix, canvasSize) {
-        const size = matrix.length;
-        const cellSize = canvasSize / (size + 2); // Add quiet zone
-        const offset = cellSize;
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvasSize, canvasSize);
-
-        ctx.fillStyle = '#000000';
-        for (let r = 0; r < size; r++) {
-            for (let c = 0; c < size; c++) {
-                if (matrix[r][c]) {
-                    ctx.fillRect(
-                        offset + c * cellSize,
-                        offset + r * cellSize,
-                        cellSize,
-                        cellSize
-                    );
-                }
-            }
-        }
     }
 }
 
