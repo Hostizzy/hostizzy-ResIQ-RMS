@@ -1833,8 +1833,24 @@
             box-shadow: 0 2px 6px rgba(8,145,178,0.3);
         }
 
-        /* Dashboard filter bar: horizontal scroll on mobile */
+        /* Dashboard mobile optimizations */
         @media (max-width: 768px) {
+            /* Dashboard header: stack title and button */
+            #dashboardView > .view-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px;
+                padding-bottom: 16px !important;
+                margin-bottom: 16px !important;
+            }
+            #dashboardView > .view-header h2 {
+                font-size: 18px !important;
+            }
+            #dashboardView > .view-header p {
+                font-size: 12px !important;
+            }
+
+            /* Filter bar: horizontal scroll */
             .dash-filter-bar {
                 padding: 10px 12px !important;
                 gap: 8px !important;
@@ -1862,6 +1878,18 @@
             }
             .dash-period-label {
                 display: none !important;
+            }
+
+            /* Core metrics: 2 columns on mobile */
+            #coreMetrics {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+            }
+            #coreMetrics .stat-card {
+                padding: 14px !important;
+            }
+            #coreMetrics .stat-card [style*="font-size: 28px"] {
+                font-size: 20px !important;
             }
         }
         </style>
@@ -22497,6 +22525,18 @@ function printPropertyView() {
         let currentSortColumn = 'nextCheckIn';
         let currentSortDirection = 'asc';
 
+        // One-time migration: clear old guest sort that used 'name' default
+        (function migrateGuestSort() {
+            try {
+                const state = JSON.parse(localStorage.getItem('filterState') || '{}');
+                if (state.guests && state.guests.sortBy && state.guests.sortBy !== 'nextCheckIn') {
+                    state.guests.sortBy = 'nextCheckIn';
+                    state.guests.sortDir = 'asc';
+                    localStorage.setItem('filterState', JSON.stringify(state));
+                }
+            } catch(e) {}
+        })();
+
         /**
          * Load and display all guests
          */
@@ -22607,9 +22647,12 @@ function printPropertyView() {
                             if (typeFilter) typeFilter.value = savedFilters.typeFilter;
                         }
                         
-                        // Restore sort
-                        if (savedFilters.sortBy) {
+                        // Restore sort (only if a valid column)
+                        if (savedFilters.sortBy && ['name','phone','lastVisit','nextCheckIn','stays','spent'].includes(savedFilters.sortBy)) {
                             currentSortColumn = savedFilters.sortBy;
+                        }
+                        if (savedFilters.sortDir && (savedFilters.sortDir === 'asc' || savedFilters.sortDir === 'desc')) {
+                            currentSortDirection = savedFilters.sortDir;
                         }
                         
                         // Restore per page
@@ -23331,11 +23374,12 @@ function printPropertyView() {
         function clearGuestFilters() {
             document.getElementById('searchGuests').value = '';
             document.getElementById('guestTypeFilter').value = '';
-            document.getElementById('guestSortBy').value = 'name';
+            const sortByEl = document.getElementById('guestSortBy');
+            if (sortByEl) sortByEl.value = 'nextCheckIn';
             document.getElementById('guestsPerPage').value = '50';
             guestsPerPage = 50;
             currentGuestPage = 1;
-            currentSortColumn = 'name';
+            currentSortColumn = 'nextCheckIn';
             currentSortDirection = 'asc';
             filteredGuests = [...allGuests];
             
