@@ -23425,35 +23425,63 @@ function printPropertyView() {
         /**
          * Show guest detail modal
          */
-        function showGuestDetail(guestKey) {
+        async function showGuestDetail(guestKey) {
             const guest = allGuests.find(g => g.key === guestKey);
             if (!guest) return;
-            
+
             currentGuestData = guest;
-            
+
             // Update profile section
             document.getElementById('guestDetailName').textContent = guest.name || 'Unknown Guest';
             document.getElementById('guestDetailNameHeader').textContent = guest.name || 'Unknown Guest';
             document.getElementById('guestDetailPhone').textContent = guest.phone || 'No phone';
             document.getElementById('guestDetailEmail').textContent = guest.email || 'No email';
-            
+
             // Update badge
             const badge = guest.isVIP ? '👑 VIP Guest' : guest.isRepeat ? '🌟 Repeat Guest' : '✨ New Guest';
             document.getElementById('guestDetailBadge').textContent = badge;
-            
+
             // Update statistics
             document.getElementById('guestDetailTotalBookings').textContent = guest.totalBookings;
             document.getElementById('guestDetailTotalNights').textContent = guest.totalNights;
             document.getElementById('guestDetailTotalSpent').textContent = formatCurrency(guest.totalSpent);
             document.getElementById('guestDetailAvgValue').textContent = formatCurrency(guest.avgBookingValue);
-            document.getElementById('guestDetailLastVisit').textContent = guest.lastVisit 
+            document.getElementById('guestDetailLastVisit').textContent = guest.lastVisit
                 ? formatDate(guest.lastVisit)
                 : 'Never';
-            
+
             // Update booking count
             document.getElementById('guestDetailBookingCount').textContent = guest.totalBookings;
-            
-            // Render booking history
+
+            // Show modal immediately with booking history (additional guests load async)
+            document.getElementById('guestDetailModal').classList.add('active');
+
+            // Fetch additional guest names from guest_documents for all bookings
+            const bookingIds = guest.bookings.map(b => b.booking_id).filter(Boolean);
+            let guestDocsByBooking = {};
+
+            if (bookingIds.length > 0) {
+                try {
+                    const { data: guestDocs, error } = await supabase
+                        .from('guest_documents')
+                        .select('booking_id, guest_name, guest_type, guest_sequence, status')
+                        .in('booking_id', bookingIds)
+                        .order('guest_sequence', { ascending: true });
+
+                    if (!error && guestDocs) {
+                        guestDocs.forEach(doc => {
+                            if (!guestDocsByBooking[doc.booking_id]) {
+                                guestDocsByBooking[doc.booking_id] = [];
+                            }
+                            guestDocsByBooking[doc.booking_id].push(doc);
+                        });
+                    }
+                } catch (err) {
+                    console.warn('Could not load additional guest info:', err);
+                }
+            }
+
+            // Render booking history with additional guests
             const historyHtml = guest.bookings
                 .sort((a, b) => new Date(b.check_in) - new Date(a.check_in))
                 .map(booking => {
@@ -23464,7 +23492,25 @@ function printPropertyView() {
                         'checked-out': 'var(--text-secondary)',
                         'cancelled': 'var(--danger)'
                     };
-                    
+
+                    // Build additional guests section
+                    const bookingGuests = guestDocsByBooking[booking.booking_id] || [];
+                    let additionalGuestsHtml = '';
+
+                    if (bookingGuests.length > 0) {
+                        const guestTags = bookingGuests.map(g => {
+                            const isPrimary = g.guest_type === 'primary';
+                            const docIcon = g.status === 'verified' ? '✓' : g.status === 'pending' ? '⏳' : '';
+                            return `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: ${isPrimary ? 'var(--primary)' : '#e2e8f0'}; color: ${isPrimary ? 'white' : 'var(--text-primary)'}; border-radius: 12px; font-size: 11px; font-weight: 500;">${isPrimary ? '👤 ' : ''}${g.guest_name}${docIcon ? ` ${docIcon}` : ''}</span>`;
+                        }).join(' ');
+                        additionalGuestsHtml = `
+                            <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Guests:</span>
+                                ${guestTags}
+                            </div>
+                        `;
+                    }
+
                     return `
                         <div class="booking-history-card" style="padding: 14px; background: var(--background-alt); border-radius: 10px; border-left: 4px solid ${statusColors[booking.status] || 'var(--border)'};">
                             <div class="booking-top" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; gap: 12px; flex-wrap: wrap;">
@@ -23490,14 +23536,12 @@ function printPropertyView() {
                             <div style="font-size: 12px; color: var(--text-secondary);">
                                 👥 ${booking.adults || 0} adults${booking.kids ? `, ${booking.kids} kids` : ''}
                             </div>
+                            ${additionalGuestsHtml}
                         </div>
                     `;
                 }).join('');
-            
+
             document.getElementById('guestDetailBookingHistory').innerHTML = historyHtml;
-            
-            // Show modal
-            document.getElementById('guestDetailModal').classList.add('active');
         }
 
         /**
