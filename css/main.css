@@ -3351,7 +3351,7 @@ left: 0;
 right: 0;
 bottom: 0;
 background: rgba(0,0,0,0.5);
-z-index: 1000;
+z-index: 10000;
 }
 
 .mobile-overlay.active {
@@ -3662,10 +3662,11 @@ body {
     width: 280px;
     left: -290px;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1001;
+    z-index: 10001;
     top: 0;
     height: 100vh;
     padding-top: 60px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
 }
 
