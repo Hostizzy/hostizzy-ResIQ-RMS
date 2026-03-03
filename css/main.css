@@ -1651,7 +1651,7 @@ transition: margin-left 0.3s ease;
 
 @media (min-width: 769px) and (max-width: 1024px) {
 .container {
-    margin-left: 80px;
+    margin-left: 220px;
     padding-bottom: 24px;
 }
 }
@@ -3867,6 +3867,8 @@ body {
     filter: brightness(0) invert(1);
 }
 
+/* Mobile-only overrides (scoped to mobile breakpoint) */
+@media (max-width: 768px){
 .mobile-header {
     display: block;
 }
@@ -3875,11 +3877,8 @@ body {
     display: block;
 }
 
-.container { padding-bottom: 100px; } /* Increased padding for mobile nav */
-
-@media (max-width: 768px){
-.container{
-    padding-bottom: calc(140px + env(safe-area-inset-bottom)); /* More padding for mobile */
+.container {
+    padding-bottom: calc(140px + env(safe-area-inset-bottom)); /* Extra padding for mobile nav */
 }
 .mobile-nav{
     padding-bottom: env(safe-area-inset-bottom);
