@@ -2302,16 +2302,21 @@
                     </h2>
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">View and manage all guests across your properties</p>
                 </div>
-                <button class="btn btn-secondary btn-sm" onclick="exportGuestsCSV()" style="display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export CSV
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="exportGuestsCSV()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export CSV
+                    </button>
+                    <button class="btn btn-sm" onclick="exportAllGuestsCSV()" style="display: flex; align-items: center; gap: 6px; background: #8b5cf6; color: white;">
+                        <i data-lucide="users" style="width: 14px; height: 14px;"></i> Export All (+ Additional Guests)
+                    </button>
+                </div>
             </div>
 
             <div class="card">
                 <!-- Filters and Search -->
                 <div class="filters">
                     <div class="filter-item" style="flex: 1; max-width: 400px;">
-                        <input type="text" id="searchGuests" placeholder="Search by name, phone, or email..." onkeyup="searchGuests()" style="width: 100%;">
+                        <input type="text" id="searchGuests" placeholder="Search by name, phone, email, or city..." onkeyup="searchGuests()" style="width: 100%;">
                     </div>
                     
                     <!-- View Toggle -->
@@ -2368,6 +2373,10 @@
                         <div style="font-size: 28px; font-weight: 700; color: #06b6d4;" id="guestStatAvgStays">0</div>
                         <div style="font-size: 12px; color: var(--text-secondary);">Avg Stays/Guest</div>
                     </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: #8b5cf6;" id="guestStatAdditional">0</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Additional Guests</div>
+                    </div>
                 </div>
 
                 <!-- Table View Container -->
@@ -2380,7 +2389,13 @@
                                         Guest Name <span id="sortIconName"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th onclick="sortGuestsTable('phone')" style="cursor: pointer;">
-                                        Contact <span id="sortIconPhone"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
+                                        Phone <span id="sortIconPhone"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
+                                    </th>
+                                    <th onclick="sortGuestsTable('email')" style="cursor: pointer;">
+                                        Email <span id="sortIconEmail"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
+                                    </th>
+                                    <th onclick="sortGuestsTable('city')" style="cursor: pointer;">
+                                        City <span id="sortIconCity"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
                                     </th>
                                     <th onclick="sortGuestsTable('lastVisit')" style="cursor: pointer;">
                                         Last Visit <span id="sortIconLastVisit"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span>
@@ -2395,7 +2410,7 @@
                                 </tr>
                             </thead>
                             <tbody id="guestTableBody">
-                                <tr><td colspan="6" class="text-center">Loading guests...</td></tr>
+                                <tr><td colspan="8" class="text-center">Loading guests...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -4919,27 +4934,59 @@
                         </div>
                     </div>
 
-                    <!-- Collapsible Format Guide -->
+                    <!-- Download Sample CSV -->
                     <div style="margin-top: 20px;">
-                        <button onclick="toggleFormatGuide()" 
+                        <button onclick="downloadSampleCSV()"
+                                style="width: 100%; padding: 12px 16px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600;">
+                            <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                            Download Sample CSV Template
+                        </button>
+                    </div>
+
+                    <!-- Collapsible Format Guide -->
+                    <div style="margin-top: 12px;">
+                        <button onclick="toggleFormatGuide()"
                                 style="width: 100%; padding: 12px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600;">
-                            <span><i data-lucide="file-text" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>CSV Format Requirements</span>
+                            <span><i data-lucide="file-text" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>CSV Format Guide</span>
                             <span id="formatGuideIcon">▼</span>
                         </button>
                         <div id="formatGuide" style="display: none; margin-top: 12px; padding: 16px; background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; font-size: 13px; line-height: 1.7;">
-                            <div style="margin-bottom: 12px;"><strong>Required columns:</strong></div>
+                            <div style="margin-bottom: 8px;"><strong>Required columns:</strong></div>
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-bottom: 12px;">
-                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">booking_id</code>
                                 <code style="background: white; padding: 2px 6px; border-radius: 4px;">property_name</code>
                                 <code style="background: white; padding: 2px 6px; border-radius: 4px;">check_in</code>
                                 <code style="background: white; padding: 2px 6px; border-radius: 4px;">check_out</code>
                                 <code style="background: white; padding: 2px 6px; border-radius: 4px;">guest_name</code>
                                 <code style="background: white; padding: 2px 6px; border-radius: 4px;">guest_phone</code>
                                 <code style="background: white; padding: 2px 6px; border-radius: 4px;">status</code>
-                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">total_amount</code>
                             </div>
-                            <div style="font-size: 12px; color: #92400e;">
-                                <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Dates must be YYYY-MM-DD format • Amounts must be numbers only
+                            <div style="margin-bottom: 8px;"><strong>Optional columns:</strong></div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-bottom: 12px;">
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">booking_id</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">booking_type</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">booking_source</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">guest_email</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">guest_city</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">adults</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">kids</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">number_of_rooms</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">stay_amount</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">extra_guest_charges</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">meals_chef</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">bonfire_other</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">taxes</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">damages</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">ota_service_fee</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">hostizzy_revenue</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">gst_status</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">payment_status</code>
+                                <code style="background: white; padding: 2px 6px; border-radius: 4px;">paid_amount</code>
+                            </div>
+                            <div style="font-size: 12px; color: #92400e; line-height: 1.8;">
+                                <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Dates: YYYY-MM-DD format &bull; Amounts: numbers only<br>
+                                <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Status: confirmed, checked-in, checked-out, cancelled<br>
+                                <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Source: DIRECT, AIRBNB, AGODA/BOOKING.COM, MMT/GOIBIBO<br>
+                                <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>If booking_id is empty, one will be auto-generated
                             </div>
                         </div>
                     </div>
@@ -4983,7 +5030,9 @@
                                     <th style="padding: 10px 8px; border-bottom: 2px solid var(--border); text-align: left; font-weight: 600;">Property</th>
                                     <th style="padding: 10px 8px; border-bottom: 2px solid var(--border); text-align: left; font-weight: 600;">Guest</th>
                                     <th style="padding: 10px 8px; border-bottom: 2px solid var(--border); text-align: left; font-weight: 600;">Check-in</th>
-                                    <th style="padding: 10px 8px; border-bottom: 2px solid var(--border); text-align: left; font-weight: 600;">Status</th>
+                                    <th style="padding: 10px 8px; border-bottom: 2px solid var(--border); text-align: left; font-weight: 600;">Check-out</th>
+                                    <th style="padding: 10px 8px; border-bottom: 2px solid var(--border); text-align: right; font-weight: 600;">Amount</th>
+                                    <th style="padding: 10px 8px; border-bottom: 2px solid var(--border); text-align: left; font-weight: 600;">Result</th>
                                 </tr>
                             </thead>
                             <tbody id="previewTableBody"></tbody>
@@ -5020,6 +5069,11 @@
                         <div style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Import Complete!</div>
                         <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">
                             Successfully imported <span id="importedCount" style="color: var(--success); font-weight: 700;">0</span> reservations
+                        </div>
+                        <!-- Error details (shown only if errors occurred) -->
+                        <div id="importErrors" style="display: none; text-align: left; margin-bottom: 20px; padding: 16px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px;">
+                            <div style="font-weight: 600; color: var(--danger); margin-bottom: 8px; font-size: 14px;">Some rows had errors:</div>
+                            <ul id="errorList" style="margin: 0; padding-left: 20px; font-size: 13px; color: #991b1b; line-height: 1.6;"></ul>
                         </div>
                         <button class="btn btn-primary" onclick="closeImportModal()">Done</button>
                     </div>
@@ -5395,6 +5449,23 @@
                 return firebaseAuth.onAuthStateChanged(callback);
             }
         };
+
+        // Map Firebase error codes to user-friendly messages
+        function getAuthErrorMessage(err) {
+            const messages = {
+                'auth/user-not-found': 'No account found with this email.',
+                'auth/wrong-password': 'Incorrect password. Please try again.',
+                'auth/invalid-email': 'Please enter a valid email address.',
+                'auth/user-disabled': 'This account has been disabled. Contact support.',
+                'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+                'auth/network-request-failed': 'Network error. Please check your internet connection.',
+                'auth/invalid-credential': 'Invalid email or password.',
+                'auth/expired-action-code': 'This link has expired. Please request a new one.',
+                'auth/invalid-action-code': 'This link is invalid or has already been used.',
+                'auth/weak-password': 'Password is too weak. Use at least 8 characters.'
+            };
+            return messages[err.code] || err.message || 'An unexpected error occurred.';
+        }
 
         // Booking Type Constants
         const BOOKING_TYPES = {
@@ -6934,8 +7005,9 @@
                 }
 
                 // ── Step 2b: Legacy fallback (plain-text DB comparison) ───────
-                // Used for users not yet migrated to Firebase Auth
-                console.log('[Auth] Attempting legacy DB login...');
+                // DEPRECATED: Used for users not yet migrated to Firebase Auth.
+                // Remove this fallback after running scripts/migrate-users-to-firebase.js
+                console.warn('[Auth] DEPRECATED: Attempting legacy plaintext DB login. Migrate users to Firebase Auth.');
                 const users = await db.getTeamMembers();
                 const staffUser = users.find(u => u.email === email && u.password === password);
 
@@ -6973,7 +7045,7 @@
 
             } catch (error) {
                 console.error('Login error:', error);
-                showToast('Login Error', error.message, '❌');
+                showToast('Login Error', getAuthErrorMessage(error), '❌');
             } finally {
                 if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Login'; }
             }
@@ -7036,7 +7108,7 @@
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#fee2e2';
                 msgEl.style.color = '#dc2626';
-                msgEl.textContent = err.message || 'Failed to send reset email. Please try again.';
+                msgEl.textContent = getAuthErrorMessage(err);
                 btn.disabled = false;
                 btn.textContent = 'Send Reset Link';
             }
@@ -7069,20 +7141,37 @@
             btn.textContent = 'Updating...';
 
             try {
-                await authService.updatePassword(newPassword);
+                // Check for oobCode from password reset email link
+                const urlParams = new URLSearchParams(window.location.search);
+                const oobCode = urlParams.get('oobCode');
+                if (oobCode) {
+                    await firebaseAuth.confirmPasswordReset(oobCode, newPassword);
+                } else {
+                    // User is already signed in (e.g., changing password from profile)
+                    await authService.updatePassword(newPassword);
+                }
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#dcfce7';
                 msgEl.style.color = '#16a34a';
                 msgEl.textContent = 'Password updated successfully! Redirecting to login...';
                 setTimeout(() => {
                     window.location.hash = '';
+                    window.location.search = '';
                     window.location.reload();
                 }, 2000);
             } catch (err) {
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#fee2e2';
                 msgEl.style.color = '#dc2626';
-                msgEl.textContent = err.message || 'Failed to update password. Please try again.';
+                if (err.code === 'auth/expired-action-code') {
+                    msgEl.textContent = 'This reset link has expired. Please request a new one.';
+                } else if (err.code === 'auth/invalid-action-code') {
+                    msgEl.textContent = 'This reset link is invalid or has already been used.';
+                } else if (err.code === 'auth/weak-password') {
+                    msgEl.textContent = 'Password is too weak. Please use a stronger password.';
+                } else {
+                    msgEl.textContent = err.message || 'Failed to update password. Please try again.';
+                }
                 btn.disabled = false;
                 btn.textContent = 'Update Password';
             }
@@ -20401,15 +20490,15 @@ function printPropertyView() {
                 console.log('[EmailJS] Initialized with saved public key');
             }
             
-            // ── Check Supabase Auth session first, then fall back to localStorage ──
-            // Also detect password-recovery email link (#type=recovery in URL hash)
+            // ── Detect password-recovery email link ──
+            // Firebase sends reset links with query params: ?mode=resetPassword&oobCode=...
+            const urlSearch = window.location.search;
             const urlHash = window.location.hash;
-            if (urlHash.includes('mode=resetPassword') || urlHash.includes('type=recovery')) {
+            if (urlSearch.includes('mode=resetPassword') || urlHash.includes('mode=resetPassword') || urlHash.includes('type=recovery')) {
                 // User clicked a password reset email link — show the set-new-password form
                 document.querySelector('.login-card').classList.add('hidden');
                 document.getElementById('forgotPasswordPanel').classList.add('hidden');
                 document.getElementById('resetPasswordPanel').classList.remove('hidden');
-                // Firebase handles the oobCode from the URL automatically
                 setTimeout(() => {
                     const splash = document.getElementById('splashScreen');
                     if (splash) { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 500); }
@@ -20417,8 +20506,16 @@ function printPropertyView() {
                 return; // Don't try to restore a regular session
             }
 
+            // Wait for Firebase Auth state to be ready before checking session
             try {
-                const firebaseUser = await authService.getCurrentUser();
+                const firebaseUser = await new Promise((resolve) => {
+                    const unsubscribe = authService.onAuthStateChanged((user) => {
+                        unsubscribe();
+                        resolve(user);
+                    });
+                    // Timeout after 3s to avoid blocking the app if Firebase is unreachable
+                    setTimeout(() => { resolve(null); }, 3000);
+                });
                 if (firebaseUser) {
                     const allMembers = await db.getTeamMembers();
                     const profile = allMembers.find(u => u.email === firebaseUser.email);
@@ -20678,30 +20775,38 @@ function printPropertyView() {
         async function loadGuestDocuments() {
             try {
                 showLoading('Loading guest documents...');
-        
-                // Fetch all guest documents with reservation info
+
+                // Fetch guest documents and reservations separately, then join client-side
+                // (PostgREST embedded resource joins require foreign key constraints which may not exist)
                 const { data: documents, error } = await supabase
                     .from('guest_documents')
-                    .select(`
-                        *,
-                        reservations:booking_id (
-                            booking_id,
-                            property_name,
-                            guest_name,
-                            guest_phone,
-                            guest_email,
-                            check_in,
-                            check_out
-                        )
-                    `)
+                    .select('*')
                     .order('submitted_at', { ascending: false });
-        
+
                 if (error) {
                     console.error('Error loading guest documents:', error);
-                    // Don't throw - show empty state if no table exists yet
                     currentGuestDocuments = [];
                 } else {
-                    currentGuestDocuments = documents || [];
+                    // Collect unique booking IDs and fetch matching reservations
+                    const bookingIds = [...new Set((documents || []).map(d => d.booking_id).filter(Boolean))];
+                    let reservationsMap = {};
+
+                    if (bookingIds.length > 0) {
+                        const { data: reservations } = await supabase
+                            .from('reservations')
+                            .select('booking_id, property_name, guest_name, guest_phone, guest_email, check_in, check_out')
+                            .in('booking_id', bookingIds);
+
+                        if (reservations) {
+                            reservations.forEach(r => { reservationsMap[r.booking_id] = r; });
+                        }
+                    }
+
+                    // Attach reservation data to each document
+                    currentGuestDocuments = (documents || []).map(doc => ({
+                        ...doc,
+                        reservations: reservationsMap[doc.booking_id] || null
+                    }));
                 }
         
                 renderGuestDocuments();
@@ -22191,10 +22296,65 @@ function printPropertyView() {
     // ============================================
     // CSV IMPORT FUNCTIONS
     // ============================================
-    
+
     let csvData = [];
     let validRows = [];
     let skippedRows = [];
+
+    /**
+     * Download a sample CSV template with all supported reservation fields
+     */
+    function downloadSampleCSV() {
+        const headers = [
+            'booking_id', 'property_name', 'booking_type', 'booking_source',
+            'check_in', 'check_out', 'guest_name', 'guest_phone', 'guest_email',
+            'guest_city', 'adults', 'kids', 'number_of_rooms', 'stay_amount',
+            'extra_guest_charges', 'meals_chef', 'bonfire_other', 'taxes',
+            'damages', 'ota_service_fee', 'hostizzy_revenue', 'gst_status',
+            'status', 'payment_status', 'paid_amount'
+        ];
+
+        const sampleRows = [
+            [
+                'HST25ABC123', 'Mountain View Villa', 'STAYCATION', 'DIRECT',
+                '2025-04-15', '2025-04-18', 'Rahul Sharma', '9876543210', 'rahul@email.com',
+                'Mumbai', '2', '1', '1', '15000',
+                '2000', '3000', '500', '1025',
+                '0', '0', '2500', 'gst',
+                'confirmed', 'pending', '0'
+            ],
+            [
+                'HMAPQ123456', 'Lakeside Cottage', 'STAYCATION', 'AIRBNB',
+                '2025-04-20', '2025-04-22', 'Priya Patel', '9123456789', 'priya@email.com',
+                'Delhi', '2', '0', '1', '12000',
+                '0', '0', '0', '600',
+                '0', '1800', '1500', 'gst',
+                'confirmed', 'paid', '12600'
+            ],
+            [
+                '', 'Garden Estate', 'WEDDING', 'DIRECT',
+                '2025-05-10', '2025-05-12', 'Amit Kumar', '9988776655', '',
+                'Bangalore', '10', '5', '3', '75000',
+                '5000', '15000', '2000', '0',
+                '0', '0', '12000', 'non_gst',
+                'confirmed', 'partial', '50000'
+            ]
+        ];
+
+        let csv = headers.join(',') + '\n';
+        sampleRows.forEach(row => {
+            csv += row.map(v => `"${v}"`).join(',') + '\n';
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'hostizzy-reservation-import-template.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Sample CSV downloaded. Fill in your data and upload.', 'success');
+    }
 
     function openImportModal() {
         document.getElementById('importModal').classList.add('active');
@@ -22279,14 +22439,18 @@ function printPropertyView() {
         document.getElementById('importStep2').style.display = 'none';
         document.getElementById('importStep3').style.display = 'none';
         document.getElementById('importStep4').style.display = 'none';
-        
+
         // Clear data
         csvData = [];
         validRows = [];
         skippedRows = [];
-        
+
         // Reset file input
         document.getElementById('csvFileInput').value = '';
+
+        // Reset error display
+        const errEl = document.getElementById('importErrors');
+        if (errEl) errEl.style.display = 'none';
     }
 
     function handleCSVUpload(event) {
@@ -22361,48 +22525,82 @@ function printPropertyView() {
     function validateAndPreview() {
         const excludeFY2526 = document.getElementById('excludeFY2526').checked;
         const skipDuplicates = document.getElementById('skipDuplicates').checked;
-        
+
         validRows = [];
         skippedRows = [];
-        
+
         // Get existing booking IDs for duplicate check
         const existingBookingIds = new Set(allReservations.map(r => r.booking_id));
-        
+
+        // Date format validation helper (YYYY-MM-DD)
+        const isValidDate = (dateStr) => {
+            if (!dateStr) return false;
+            const match = dateStr.match(/^\d{4}-\d{2}-\d{2}$/);
+            if (!match) return false;
+            const d = new Date(dateStr);
+            return d instanceof Date && !isNaN(d);
+        };
+
         csvData.forEach((row, index) => {
             const rowNum = index + 2; // +2 because index starts at 0 and row 1 is header
             let skipReason = null;
-            
+
             // Check FY filter
             if (excludeFY2526 && row.FY === 'FY 2025-26') {
                 skipReason = 'FY 2025-26 excluded';
             }
-            
-            // Check duplicates
-            if (skipDuplicates && existingBookingIds.has(row.booking_id)) {
+
+            // Check duplicates (only for rows that have a booking_id)
+            if (!skipReason && skipDuplicates && row.booking_id && existingBookingIds.has(row.booking_id)) {
                 skipReason = 'Duplicate booking ID';
             }
-            
-            // Check required fields
-            if (!row.property_name || !row.booking_id || !row.guest_name) {
-                skipReason = 'Missing required fields';
+
+            // Check required fields (booking_id is now optional - auto-generated)
+            if (!skipReason && (!row.property_name || !row.guest_name || !row.guest_phone)) {
+                const missing = [];
+                if (!row.property_name) missing.push('property_name');
+                if (!row.guest_name) missing.push('guest_name');
+                if (!row.guest_phone) missing.push('guest_phone');
+                skipReason = `Missing: ${missing.join(', ')}`;
             }
-            
+
+            // Validate dates
+            if (!skipReason && !isValidDate(row.check_in)) {
+                skipReason = 'Invalid check_in date (use YYYY-MM-DD)';
+            }
+
+            if (!skipReason && !isValidDate(row.check_out)) {
+                skipReason = 'Invalid check_out date (use YYYY-MM-DD)';
+            }
+
+            if (!skipReason && new Date(row.check_out) <= new Date(row.check_in)) {
+                skipReason = 'check_out must be after check_in';
+            }
+
+            // Validate status if provided
+            if (!skipReason && row.status) {
+                const validStatuses = ['confirmed', 'checked-in', 'checked-out', 'cancelled'];
+                if (!validStatuses.includes(row.status.toLowerCase())) {
+                    skipReason = `Invalid status "${row.status}"`;
+                }
+            }
+
             if (skipReason) {
                 skippedRows.push({ row, reason: skipReason, rowNum });
             } else {
                 validRows.push(row);
             }
         });
-        
+
         // Update stats
         document.getElementById('totalRows').textContent = csvData.length;
         document.getElementById('validRows').textContent = validRows.length;
         document.getElementById('skippedRows').textContent = skippedRows.length;
         document.getElementById('importCount').textContent = validRows.length;
-        
+
         // Render preview
         renderPreview();
-        
+
         // Show step 2
         document.getElementById('importStep1').style.display = 'none';
         document.getElementById('importStep2').style.display = 'block';
@@ -22411,93 +22609,204 @@ function printPropertyView() {
     function renderPreview() {
         const tbody = document.getElementById('previewTableBody');
         const previewLimit = 50; // Show first 50 rows
-        
+
         let html = '';
-        
+
+        // Helper to format amount
+        const fmtAmt = (val) => {
+            const n = parseFloat(val);
+            return isNaN(n) || n === 0 ? '-' : n.toLocaleString('en-IN');
+        };
+
         validRows.slice(0, previewLimit).forEach(row => {
             html += `
                 <tr style="background: #f0fdf4;">
                     <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;">${row.property_name || '-'}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;">${row.guest_name || '-'}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;">${row.check_in || '-'}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;">${row.check_out || '-'}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: right;">${fmtAmt(row.total_amount || row.stay_amount)}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;"><span style="color: var(--success); font-size: 11px;">✓ Valid</span></td>
                 </tr>
             `;
         });
-        
+
         skippedRows.slice(0, 10).forEach(item => {
             html += `
                 <tr style="background: #fef2f2;">
                     <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;">${item.row.property_name || '-'}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;">${item.row.guest_name || '-'}</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;">${item.row.check_in || '-'}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;">${item.row.check_out || '-'}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: right;">-</td>
                     <td style="padding: 8px; border-bottom: 1px solid var(--border); text-align: left;"><span style="color: var(--danger); font-size: 11px;">✗ ${item.reason}</span></td>
                 </tr>
             `;
         });
-        
+
+        if (validRows.length > previewLimit) {
+            html += `
+                <tr style="background: #f8fafc;">
+                    <td colspan="6" style="padding: 10px; border-bottom: 1px solid var(--border); text-align: center; color: var(--text-secondary); font-style: italic;">
+                        ...and ${validRows.length - previewLimit} more valid rows
+                    </td>
+                </tr>
+            `;
+        }
+
         tbody.innerHTML = html;
+    }
+
+    /**
+     * Transform a raw CSV row into a proper reservation object for the database
+     */
+    function transformCSVRow(row) {
+        const stayAmount = parseFloat(row.stay_amount) || 0;
+        const extraGuestCharges = parseFloat(row.extra_guest_charges) || 0;
+        const mealsChef = parseFloat(row.meals_chef) || 0;
+        const bonfireOther = parseFloat(row.bonfire_other) || 0;
+        const taxes = parseFloat(row.taxes) || 0;
+        const damages = parseFloat(row.damages) || 0;
+        const otaServiceFee = parseFloat(row.ota_service_fee) || 0;
+
+        const mealsRevenue = mealsChef + bonfireOther;
+        const totalAmountPreTax = stayAmount + extraGuestCharges + mealsRevenue;
+        const totalAmountIncTax = totalAmountPreTax + taxes;
+        // Use explicitly provided total_amount if present, otherwise calculate
+        const totalAmount = row.total_amount ? parseFloat(row.total_amount) : (totalAmountIncTax + damages);
+
+        const checkIn = row.check_in;
+        const checkOut = row.check_out;
+        const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+        const adults = parseInt(row.adults) || 1;
+        const kids = parseInt(row.kids) || 0;
+
+        const monthDate = new Date(checkIn);
+        const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+        const avgRoomRate = nights > 0 ? stayAmount / nights : 0;
+        const avgNightlyRate = nights > 0 ? totalAmount / nights : 0;
+
+        // Generate booking_id if not provided
+        let bookingId = row.booking_id;
+        if (!bookingId) {
+            const year = new Date().getFullYear().toString().slice(-2);
+            const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            const bytes = crypto.getRandomValues(new Uint8Array(6));
+            let rand = "";
+            for (const b of bytes) {
+                rand += alphabet[b % alphabet.length];
+            }
+            bookingId = `HST${year}${rand}`;
+        }
+
+        return {
+            booking_id: bookingId,
+            property_name: row.property_name,
+            booking_type: row.booking_type || 'STAYCATION',
+            booking_date: new Date().toISOString().split('T')[0],
+            booking_source: row.booking_source || 'DIRECT',
+            check_in: checkIn,
+            check_out: checkOut,
+            month: month,
+            nights: nights,
+            guest_name: row.guest_name,
+            guest_phone: row.guest_phone,
+            guest_email: row.guest_email || null,
+            guest_city: row.guest_city || null,
+            status: (row.status || 'confirmed').toLowerCase(),
+            gst_status: row.gst_status || 'non_gst',
+            number_of_rooms: parseInt(row.number_of_rooms) || 1,
+            adults: adults,
+            kids: kids,
+            number_of_guests: adults + kids,
+            stay_amount: stayAmount,
+            extra_guest_charges: extraGuestCharges,
+            meals_chef: mealsChef,
+            bonfire_other: bonfireOther,
+            taxes: taxes,
+            damages: damages,
+            ota_service_fee: otaServiceFee,
+            total_amount_pre_tax: totalAmountPreTax,
+            total_amount_inc_tax: totalAmountIncTax,
+            total_amount: totalAmount,
+            hostizzy_revenue: parseFloat(row.hostizzy_revenue) || 0,
+            avg_room_rate: avgRoomRate,
+            avg_nightly_rate: avgNightlyRate,
+            paid_amount: parseFloat(row.paid_amount) || 0,
+            payment_status: row.payment_status || 'pending'
+        };
     }
 
     async function startImport() {
         if (validRows.length === 0) {
-            showToast('No Data', 'No valid rows to import', '⚠️');
+            showToast('No valid rows to import', 'warning');
             return;
         }
-        
+
         // Show step 3 (progress)
         document.getElementById('importStep2').style.display = 'none';
         document.getElementById('importStep3').style.display = 'block';
         document.getElementById('importTotal').textContent = validRows.length;
-        
+
         let imported = 0;
         let errors = [];
-        
+
+        // Transform all rows before import
+        const transformedRows = validRows.map((row, idx) => {
+            try {
+                return transformCSVRow(row);
+            } catch (err) {
+                errors.push(`Row ${idx + 2}: Transform error - ${err.message}`);
+                return null;
+            }
+        }).filter(Boolean);
+
         // Import in batches of 50
         const batchSize = 50;
-        
-        for (let i = 0; i < validRows.length; i += batchSize) {
-            const batch = validRows.slice(i, i + batchSize);
-            
+
+        for (let i = 0; i < transformedRows.length; i += batchSize) {
+            const batch = transformedRows.slice(i, i + batchSize);
+
             try {
                 const { data, error } = await supabase
                     .from('reservations')
                     .insert(batch)
                     .select();
-                
+
                 if (error) throw error;
-                
+
                 imported += batch.length;
-                
+
             } catch (error) {
                 console.error('Import batch error:', error);
                 errors.push(`Rows ${i + 1}-${i + batch.length}: ${error.message}`);
             }
-            
+
             // Update progress
-            document.getElementById('importProgress').textContent = Math.min(imported, validRows.length);
-            const progress = (Math.min(imported, validRows.length) / validRows.length) * 100;
+            document.getElementById('importProgress').textContent = Math.min(imported, transformedRows.length);
+            const progress = (Math.min(imported, transformedRows.length) / transformedRows.length) * 100;
             document.getElementById('importProgressBar').style.width = progress + '%';
-            
+
             // Small delay between batches
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        
+
         // Show step 4 (complete)
         document.getElementById('importStep3').style.display = 'none';
         document.getElementById('importStep4').style.display = 'block';
         document.getElementById('importedCount').textContent = imported;
-        
+
         // Show errors if any
         if (errors.length > 0) {
             document.getElementById('importErrors').style.display = 'block';
             document.getElementById('errorList').innerHTML = errors.map(e => `<li>${e}</li>`).join('');
         }
-        
+
         // Reload reservations
         await loadReservations();
-        
-        showToast('Import Complete', `Successfully imported ${imported} reservations!`, '✅');
+
+        showToast(`Successfully imported ${imported} reservations!`, 'success');
     }
         function toggleFormatGuide() {
         const guide = document.getElementById('formatGuide');
@@ -22516,6 +22825,7 @@ function printPropertyView() {
         // ==========================================
 
         let allGuests = [];
+        let allAdditionalGuests = [];
         let filteredGuests = [];
         let displayedGuests = [];
         let currentGuestData = null;
@@ -22562,18 +22872,22 @@ function printPropertyView() {
                             name: r.guest_name,
                             phone: r.guest_phone || '',
                             email: r.guest_email || '',
+                            city: r.guest_city || '',
+                            bookingSources: new Set(),
                             bookings: [],
                             key: guestKey
                         });
                     }
-                    
+
                     guestMap.get(guestKey).bookings.push(r);
-                    
-                    // Update name/phone/email to latest non-empty values
+
+                    // Update name/phone/email/city to latest non-empty values
                     const guest = guestMap.get(guestKey);
                     if (r.guest_name && r.guest_name !== guest.name) guest.name = r.guest_name;
                     if (r.guest_phone && r.guest_phone !== guest.phone) guest.phone = r.guest_phone;
                     if (r.guest_email && r.guest_email !== guest.email) guest.email = r.guest_email;
+                    if (r.guest_city && !guest.city) guest.city = r.guest_city;
+                    if (r.booking_source) guest.bookingSources.add(r.booking_source);
                 });
                 
                 // Convert to array and calculate stats
@@ -22596,6 +22910,7 @@ function printPropertyView() {
 
                     return {
                         ...guest,
+                        bookingSources: Array.from(guest.bookingSources),
                         totalBookings: confirmedBookings.length,
                         totalSpent,
                         totalNights,
@@ -22610,7 +22925,50 @@ function printPropertyView() {
                     };
                 });
                 
+                // Load additional guests from guest_documents for remarketing
+                try {
+                    const { data: guestDocs, error: gdError } = await supabase
+                        .from('guest_documents')
+                        .select('booking_id, guest_name, guest_type, guest_sequence, guest_address, status, submitted_at')
+                        .eq('guest_type', 'additional')
+                        .order('submitted_at', { ascending: false });
+
+                    allAdditionalGuests = [];
+                    if (!gdError && guestDocs) {
+                        // Build a booking lookup from reservations
+                        const reservationMap = {};
+                        reservations.forEach(r => {
+                            reservationMap[r.booking_id] = r;
+                        });
+
+                        guestDocs.forEach(doc => {
+                            const booking = reservationMap[doc.booking_id];
+                            if (booking) {
+                                allAdditionalGuests.push({
+                                    name: doc.guest_name || 'Unknown',
+                                    phone: '',
+                                    email: '',
+                                    city: doc.guest_address || '',
+                                    bookingId: doc.booking_id,
+                                    propertyName: booking.property_name || '',
+                                    checkIn: booking.check_in,
+                                    checkOut: booking.check_out,
+                                    primaryGuestName: booking.guest_name || '',
+                                    primaryGuestPhone: booking.guest_phone || '',
+                                    status: doc.status || 'pending',
+                                    guestSequence: doc.guest_sequence,
+                                    submittedAt: doc.submitted_at
+                                });
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.warn('Could not load additional guests for directory:', err);
+                    allAdditionalGuests = [];
+                }
+
                 // Update summary statistics
+                const additionalGuestCount = allAdditionalGuests ? allAdditionalGuests.length : 0;
                 document.getElementById('guestStatTotal').textContent = allGuests.length;
                 document.getElementById('guestStatRepeat').textContent = allGuests.filter(g => g.isRepeat).length;
                 document.getElementById('guestStatVIP').textContent = allGuests.filter(g => g.isVIP).length;
@@ -22620,7 +22978,8 @@ function printPropertyView() {
                     ? (allGuests.reduce((sum, g) => sum + g.totalBookings, 0) / allGuests.length).toFixed(1)
                     : '0.0';
                 document.getElementById('guestStatAvgStays').textContent = avgStays;
-                
+                document.getElementById('guestStatAdditional').textContent = additionalGuestCount;
+
                 // Load saved view preference
                 const savedView = localStorage.getItem('guestViewPreference') || 'table';
                 currentGuestView = savedView;
@@ -22648,7 +23007,7 @@ function printPropertyView() {
                         }
                         
                         // Restore sort (only if a valid column)
-                        if (savedFilters.sortBy && ['name','phone','lastVisit','nextCheckIn','stays','spent'].includes(savedFilters.sortBy)) {
+                        if (savedFilters.sortBy && ['name','phone','email','city','lastVisit','nextCheckIn','stays','spent'].includes(savedFilters.sortBy)) {
                             currentSortColumn = savedFilters.sortBy;
                         }
                         if (savedFilters.sortDir && (savedFilters.sortDir === 'asc' || savedFilters.sortDir === 'desc')) {
@@ -22693,7 +23052,7 @@ function printPropertyView() {
                 if (tableBody) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--danger);">
+                            <td colspan="8" style="text-align: center; padding: 60px 20px; color: var(--danger);">
                                 <div style="margin-bottom: 16px;"><i data-lucide="alert-triangle" style="width: 52px; height: 52px; color: var(--warning); opacity: 0.7;"></i></div>
                                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Error Loading Guests</div>
                                 <div style="font-size: 14px; color: var(--text-secondary);">${error.message}</div>
@@ -22713,10 +23072,11 @@ function printPropertyView() {
             if (!searchTerm) {
                 filteredGuests = [...allGuests];
             } else {
-                filteredGuests = allGuests.filter(g => 
+                filteredGuests = allGuests.filter(g =>
                     (g.name || '').toLowerCase().includes(searchTerm) ||
                     (g.phone || '').toLowerCase().includes(searchTerm) ||
-                    (g.email || '').toLowerCase().includes(searchTerm)
+                    (g.email || '').toLowerCase().includes(searchTerm) ||
+                    (g.city || '').toLowerCase().includes(searchTerm)
                 );
             }
             
@@ -22789,6 +23149,14 @@ function printPropertyView() {
                     case 'phone':
                         aVal = a.phone || '';
                         bVal = b.phone || '';
+                        break;
+                    case 'email':
+                        aVal = (a.email || '').toLowerCase();
+                        bVal = (b.email || '').toLowerCase();
+                        break;
+                    case 'city':
+                        aVal = (a.city || '').toLowerCase();
+                        bVal = (b.city || '').toLowerCase();
                         break;
                     case 'nextCheckIn':
                         // Upcoming check-ins first, then by last visit
@@ -22880,7 +23248,7 @@ function printPropertyView() {
             if (displayedGuests.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <td colspan="8" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
                             <div style="margin-bottom: 16px;"><i data-lucide="users" style="width: 52px; height: 52px; opacity: 0.3;"></i></div>
                             <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No guests found</div>
                             <div style="font-size: 14px;">Try adjusting your search or filters</div>
@@ -22912,8 +23280,7 @@ function printPropertyView() {
                                    '<span style="background: var(--primary); color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 6px;">✨</span>';
                 
                 const lastVisitText = guest.lastVisit ? formatDate(guest.lastVisit) : 'Never';
-                const contactInfo = guest.phone ? `📱 ${guest.phone}` : (guest.email ? `📧 ${guest.email}` : 'No contact');
-                
+
                 html += `
                     <tr style="cursor: pointer;" onclick="showGuestDetail('${guest.key.replace(/'/g, "\\'")}')">
                         <td data-label="Guest Name">
@@ -22927,12 +23294,19 @@ function printPropertyView() {
                                 </div>
                             </div>
                         </td>
-                        <td data-label="Contact">
+                        <td data-label="Phone">
                             <div style="font-size: 13px; color: var(--text-secondary);">
-                                ${guest.phone ? `<span>📱 ${guest.phone}</span>` : ''}
-                                ${guest.phone && guest.email ? ' &middot; ' : ''}
-                                ${guest.email ? `<span>📧 ${guest.email}</span>` : ''}
-                                ${!guest.phone && !guest.email ? '<span>No contact</span>' : ''}
+                                ${guest.phone ? `<span>📱 ${guest.phone}</span>` : '<span style="opacity:0.5;">—</span>'}
+                            </div>
+                        </td>
+                        <td data-label="Email">
+                            <div style="font-size: 13px; color: var(--text-secondary); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${guest.email || ''}">
+                                ${guest.email ? `<span>📧 ${guest.email}</span>` : '<span style="opacity:0.5;">—</span>'}
+                            </div>
+                        </td>
+                        <td data-label="City">
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                ${guest.city ? `<span>📍 ${guest.city}</span>` : '<span style="opacity:0.5;">—</span>'}
                             </div>
                         </td>
                         <td data-label="Last Visit">
@@ -23095,6 +23469,8 @@ function printPropertyView() {
 
                         <div class="guest-card-meta">
                             ${guest.phone ? `<span><i data-lucide="phone" style="width:13px;height:13px;"></i>${guest.phone}</span>` : ''}
+                            ${guest.email ? `<span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${guest.email}"><i data-lucide="mail" style="width:13px;height:13px;"></i>${guest.email}</span>` : ''}
+                            ${guest.city ? `<span><i data-lucide="map-pin" style="width:13px;height:13px;"></i>${guest.city}</span>` : ''}
                             ${nextCheckinText
                                 ? `<span class="guest-checkin-highlight"><i data-lucide="calendar-check" style="width:13px;height:13px;"></i>Check-in: ${nextCheckinText}</span>`
                                 : `<span><i data-lucide="calendar" style="width:13px;height:13px;"></i>Last: ${lastVisitText}</span>`}
@@ -23182,35 +23558,64 @@ function printPropertyView() {
         /**
          * Show guest detail modal
          */
-        function showGuestDetail(guestKey) {
+        async function showGuestDetail(guestKey) {
             const guest = allGuests.find(g => g.key === guestKey);
             if (!guest) return;
-            
+
             currentGuestData = guest;
-            
+
             // Update profile section
             document.getElementById('guestDetailName').textContent = guest.name || 'Unknown Guest';
             document.getElementById('guestDetailNameHeader').textContent = guest.name || 'Unknown Guest';
             document.getElementById('guestDetailPhone').textContent = guest.phone || 'No phone';
             document.getElementById('guestDetailEmail').textContent = guest.email || 'No email';
-            
+            document.getElementById('guestDetailCity').textContent = guest.city || 'No city info';
+
             // Update badge
             const badge = guest.isVIP ? '👑 VIP Guest' : guest.isRepeat ? '🌟 Repeat Guest' : '✨ New Guest';
             document.getElementById('guestDetailBadge').textContent = badge;
-            
+
             // Update statistics
             document.getElementById('guestDetailTotalBookings').textContent = guest.totalBookings;
             document.getElementById('guestDetailTotalNights').textContent = guest.totalNights;
             document.getElementById('guestDetailTotalSpent').textContent = formatCurrency(guest.totalSpent);
             document.getElementById('guestDetailAvgValue').textContent = formatCurrency(guest.avgBookingValue);
-            document.getElementById('guestDetailLastVisit').textContent = guest.lastVisit 
+            document.getElementById('guestDetailLastVisit').textContent = guest.lastVisit
                 ? formatDate(guest.lastVisit)
                 : 'Never';
-            
+
             // Update booking count
             document.getElementById('guestDetailBookingCount').textContent = guest.totalBookings;
-            
-            // Render booking history
+
+            // Show modal immediately with booking history (additional guests load async)
+            document.getElementById('guestDetailModal').classList.add('active');
+
+            // Fetch additional guest names from guest_documents for all bookings
+            const bookingIds = guest.bookings.map(b => b.booking_id).filter(Boolean);
+            let guestDocsByBooking = {};
+
+            if (bookingIds.length > 0) {
+                try {
+                    const { data: guestDocs, error } = await supabase
+                        .from('guest_documents')
+                        .select('booking_id, guest_name, guest_type, guest_sequence, status')
+                        .in('booking_id', bookingIds)
+                        .order('guest_sequence', { ascending: true });
+
+                    if (!error && guestDocs) {
+                        guestDocs.forEach(doc => {
+                            if (!guestDocsByBooking[doc.booking_id]) {
+                                guestDocsByBooking[doc.booking_id] = [];
+                            }
+                            guestDocsByBooking[doc.booking_id].push(doc);
+                        });
+                    }
+                } catch (err) {
+                    console.warn('Could not load additional guest info:', err);
+                }
+            }
+
+            // Render booking history with additional guests
             const historyHtml = guest.bookings
                 .sort((a, b) => new Date(b.check_in) - new Date(a.check_in))
                 .map(booking => {
@@ -23221,7 +23626,26 @@ function printPropertyView() {
                         'checked-out': 'var(--text-secondary)',
                         'cancelled': 'var(--danger)'
                     };
-                    
+
+                    // Build additional guests section (only show additional guests who completed ID verification)
+                    const bookingGuests = (guestDocsByBooking[booking.booking_id] || [])
+                        .filter(g => g.guest_type === 'primary' || g.status === 'verified');
+                    let additionalGuestsHtml = '';
+
+                    if (bookingGuests.length > 0) {
+                        const guestTags = bookingGuests.map(g => {
+                            const isPrimary = g.guest_type === 'primary';
+                            const docIcon = g.status === 'verified' ? '✓' : g.status === 'pending' ? '⏳' : '';
+                            return `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: ${isPrimary ? 'var(--primary)' : '#e2e8f0'}; color: ${isPrimary ? 'white' : 'var(--text-primary)'}; border-radius: 12px; font-size: 11px; font-weight: 500;">${isPrimary ? '👤 ' : ''}${g.guest_name}${docIcon ? ` ${docIcon}` : ''}</span>`;
+                        }).join(' ');
+                        additionalGuestsHtml = `
+                            <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Guests:</span>
+                                ${guestTags}
+                            </div>
+                        `;
+                    }
+
                     return `
                         <div class="booking-history-card" style="padding: 14px; background: var(--background-alt); border-radius: 10px; border-left: 4px solid ${statusColors[booking.status] || 'var(--border)'};">
                             <div class="booking-top" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; gap: 12px; flex-wrap: wrap;">
@@ -23247,14 +23671,12 @@ function printPropertyView() {
                             <div style="font-size: 12px; color: var(--text-secondary);">
                                 👥 ${booking.adults || 0} adults${booking.kids ? `, ${booking.kids} kids` : ''}
                             </div>
+                            ${additionalGuestsHtml}
                         </div>
                     `;
                 }).join('');
-            
+
             document.getElementById('guestDetailBookingHistory').innerHTML = historyHtml;
-            
-            // Show modal
-            document.getElementById('guestDetailModal').classList.add('active');
         }
 
         /**
@@ -23274,6 +23696,7 @@ function printPropertyView() {
             document.getElementById('editGuestName').value = currentGuestData.name || '';
             document.getElementById('editGuestPhone').value = currentGuestData.phone || '';
             document.getElementById('editGuestEmail').value = currentGuestData.email || '';
+            document.getElementById('editGuestCity').value = currentGuestData.city || '';
             document.getElementById('editGuestOriginalPhone').value = currentGuestData.phone || '';
             document.getElementById('editGuestOriginalEmail').value = currentGuestData.email || '';
             
@@ -23296,18 +23719,20 @@ function printPropertyView() {
             const newName = document.getElementById('editGuestName').value.trim();
             const newPhone = document.getElementById('editGuestPhone').value.trim();
             const newEmail = document.getElementById('editGuestEmail').value.trim();
-            
+            const newCity = document.getElementById('editGuestCity').value.trim();
+
             if (!newName) {
                 showToast('Validation Error', 'Guest name is required', '❌');
                 return;
             }
-            
+
             try {
                 // Update all bookings for this guest
                 const updates = {
                     guest_name: newName,
                     guest_phone: newPhone,
-                    guest_email: newEmail
+                    guest_email: newEmail,
+                    guest_city: newCity || null
                 };
                 
                 // Find all booking IDs for this guest
@@ -23401,52 +23826,115 @@ function printPropertyView() {
          */
         function exportGuestsCSV() {
             const guestsToExport = displayedGuests.length > 0 ? displayedGuests : allGuests;
-            
+
             if (guestsToExport.length === 0) {
                 showToast('No Data', 'No guests to export', '⚠️');
                 return;
             }
-            
-            // Prepare CSV data
-            const headers = ['Name', 'Phone', 'Email', 'Total Bookings', 'Total Nights', 'Total Spent', 'Avg Booking Value', 'Last Visit', 'Guest Type'];
-            
+
+            // Prepare CSV data with full details
+            const headers = ['Name', 'Phone', 'Email', 'City', 'Total Bookings', 'Total Nights', 'Total Spent', 'Avg Booking Value', 'Last Visit', 'Guest Type', 'Booking Sources'];
+
             const rows = guestsToExport.map(g => [
                 g.name || '',
                 g.phone || '',
                 g.email || '',
+                g.city || '',
                 g.totalBookings,
                 g.totalNights,
                 g.totalSpent,
                 g.avgBookingValue.toFixed(2),
                 g.lastVisit ? formatDate(g.lastVisit) : 'Never',
-                g.isVIP ? 'VIP' : g.isRepeat ? 'Repeat' : 'New'
+                g.isVIP ? 'VIP' : g.isRepeat ? 'Repeat' : 'New',
+                (g.bookingSources || []).join('; ')
             ]);
-            
-            // Create CSV
+
+            downloadCSV(headers, rows, `guests_${new Date().toISOString().split('T')[0]}.csv`);
+            showToast('Exported', `${guestsToExport.length} guests exported to CSV`, '✅');
+        }
+
+        /**
+         * Export ALL guests including additional guests for remarketing
+         */
+        function exportAllGuestsCSV() {
+            const primaryGuests = allGuests;
+            const additionalGuests = allAdditionalGuests || [];
+
+            if (primaryGuests.length === 0 && additionalGuests.length === 0) {
+                showToast('No Data', 'No guests to export', '⚠️');
+                return;
+            }
+
+            const headers = ['Name', 'Phone', 'Email', 'City', 'Guest Role', 'Primary Guest Name', 'Primary Guest Phone', 'Property', 'Check-In', 'Total Bookings', 'Total Spent', 'Guest Type', 'Booking Sources'];
+
+            const rows = [];
+
+            // Add primary guests
+            primaryGuests.forEach(g => {
+                rows.push([
+                    g.name || '',
+                    g.phone || '',
+                    g.email || '',
+                    g.city || '',
+                    'Primary',
+                    '',
+                    '',
+                    (g.bookings || []).map(b => b.property_name).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join('; '),
+                    g.lastVisit ? formatDate(g.lastVisit) : '',
+                    g.totalBookings,
+                    g.totalSpent,
+                    g.isVIP ? 'VIP' : g.isRepeat ? 'Repeat' : 'New',
+                    (g.bookingSources || []).join('; ')
+                ]);
+            });
+
+            // Add additional guests
+            additionalGuests.forEach(ag => {
+                rows.push([
+                    ag.name || '',
+                    ag.phone || '',
+                    ag.email || '',
+                    ag.city || '',
+                    'Additional Guest',
+                    ag.primaryGuestName || '',
+                    ag.primaryGuestPhone || '',
+                    ag.propertyName || '',
+                    ag.checkIn ? formatDate(new Date(ag.checkIn)) : '',
+                    1,
+                    '',
+                    'Additional',
+                    ''
+                ]);
+            });
+
+            downloadCSV(headers, rows, `all_guests_remarketing_${new Date().toISOString().split('T')[0]}.csv`);
+            showToast('Exported', `${primaryGuests.length} primary + ${additionalGuests.length} additional guests exported`, '✅');
+        }
+
+        /**
+         * Helper: download CSV from headers and rows
+         */
+        function downloadCSV(headers, rows, filename) {
             let csv = headers.join(',') + '\n';
             rows.forEach(row => {
                 csv += row.map(cell => {
-                    // Escape quotes and wrap in quotes if contains comma
                     const cellStr = String(cell);
-                    if (cellStr.includes(',') || cellStr.includes('"')) {
+                    if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
                         return '"' + cellStr.replace(/"/g, '""') + '"';
                     }
                     return cellStr;
                 }).join(',') + '\n';
             });
-            
-            // Download
+
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `guests_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
-            showToast('Exported', `${guestsToExport.length} guests exported to CSV`, '✅');
         }
 
         // ==========================================
@@ -23692,6 +24180,10 @@ function printPropertyView() {
                                         ✉️ Email
                                     </button>
                                 </div>
+                                <div class="contact-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span>📍</span>
+                                    <span id="guestDetailCity" style="min-width: 0; word-break: break-all;">—</span>
+                                </div>
                             </div>
                         </div>
                         <button class="btn edit-btn" onclick="editGuestInfo()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); white-space: nowrap;">
@@ -23763,7 +24255,12 @@ function printPropertyView() {
                     <label>Email Address</label>
                     <input type="email" id="editGuestEmail" placeholder="guest@example.com">
                 </div>
-                
+
+                <div class="form-group">
+                    <label>Travelling From</label>
+                    <input type="text" id="editGuestCity" placeholder="City / Country">
+                </div>
+
                 <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 13px; color: #92400e;">
                     ⚠️ Note: This will update guest information for all their bookings.
                 </div>

@@ -1911,6 +1911,23 @@
         }
         const firebaseAuth = firebase.auth();
 
+        // Map Firebase error codes to user-friendly messages
+        function getAuthErrorMessage(err) {
+            const messages = {
+                'auth/user-not-found': 'No account found with this email.',
+                'auth/wrong-password': 'Incorrect password. Please try again.',
+                'auth/invalid-email': 'Please enter a valid email address.',
+                'auth/user-disabled': 'This account has been disabled. Contact support.',
+                'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+                'auth/network-request-failed': 'Network error. Please check your internet connection.',
+                'auth/invalid-credential': 'Invalid email or password.',
+                'auth/expired-action-code': 'This link has expired. Please request a new one.',
+                'auth/invalid-action-code': 'This link is invalid or has already been used.',
+                'auth/weak-password': 'Password is too weak. Use at least 8 characters.'
+            };
+            return messages[err.code] || err.message || 'An unexpected error occurred.';
+        }
+
         // Current user
         let currentUser = null;
 
@@ -2277,7 +2294,9 @@
                     // Firebase Auth succeeded — find owner by email
                     owner = owners.find(o => o.email === email);
                 } else {
-                    // Legacy fallback — plain-text password comparison
+                    // DEPRECATED: Legacy fallback — plain-text password comparison
+                    // Remove after running scripts/migrate-users-to-firebase.js
+                    console.warn('[Auth] DEPRECATED: Using plaintext DB login. Migrate users to Firebase Auth.');
                     owner = owners.find(o => o.email === email && o.password === password);
                 }
 
@@ -2313,7 +2332,7 @@
                 }
 
             } catch (error) {
-                showToast('Login Error', error.message, '❌');
+                showToast('Login Error', getAuthErrorMessage(error), '❌');
             }
         }
 
@@ -2379,13 +2398,7 @@
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#fee2e2';
                 msgEl.style.color = '#dc2626';
-                if (err.code === 'auth/user-not-found') {
-                    msgEl.textContent = 'No account found with this email.';
-                } else if (err.code === 'auth/too-many-requests') {
-                    msgEl.textContent = 'Too many attempts. Please try again later.';
-                } else {
-                    msgEl.textContent = 'Error: ' + err.message;
-                }
+                msgEl.textContent = getAuthErrorMessage(err);
                 btn.disabled = false;
                 btn.textContent = 'Send Reset Link';
             }
@@ -2440,15 +2453,7 @@
                 msgEl.style.display = 'block';
                 msgEl.style.background = '#fee2e2';
                 msgEl.style.color = '#dc2626';
-                if (err.code === 'auth/expired-action-code') {
-                    msgEl.textContent = 'This reset link has expired. Please request a new one.';
-                } else if (err.code === 'auth/invalid-action-code') {
-                    msgEl.textContent = 'This reset link is invalid or has already been used.';
-                } else if (err.code === 'auth/weak-password') {
-                    msgEl.textContent = 'Password is too weak. Please use a stronger password.';
-                } else {
-                    msgEl.textContent = 'Error: ' + err.message;
-                }
+                msgEl.textContent = getAuthErrorMessage(err);
                 btn.disabled = false;
                 btn.textContent = 'Update Password';
             }
@@ -2506,9 +2511,15 @@
                 });
             }
 
-            // ── Try Firebase session restore ──────────────────────────
+            // ── Try Firebase session restore (wait for auth state to be ready) ──
             try {
-                const firebaseUser = firebaseAuth.currentUser;
+                const firebaseUser = await new Promise((resolve) => {
+                    const unsubscribe = firebaseAuth.onAuthStateChanged((user) => {
+                        unsubscribe();
+                        resolve(user);
+                    });
+                    setTimeout(() => { resolve(null); }, 3000);
+                });
                 if (firebaseUser) {
                     const { data: owners } = await supabase.from('property_owners').select('*');
                     const profile = owners ? owners.find(o => o.email === firebaseUser.email) : null;
