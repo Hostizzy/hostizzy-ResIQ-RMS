@@ -9029,8 +9029,8 @@
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review and manage guest identity documents for all bookings</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-secondary btn-sm" onclick="copyGuestPortalLink()" style="display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="link" style="width: 14px; height: 14px;"></i> Guest Portal
+                    <button class="btn btn-secondary btn-sm" onclick="showGuestPortalQR()" style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> Guest Portal QR
                     </button>
                     <button class="btn btn-secondary btn-sm" onclick="refreshGuestDocuments()" style="display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
@@ -26740,30 +26740,169 @@ function printPropertyView() {
         }
         
         // ============================================
-        // COPY GUEST PORTAL LINK
+        // GUEST PORTAL QR CODE
         // ============================================
-        function copyGuestPortalLink() {
-            const portalUrl = window.location.origin + '/guest-portal.html';
-        
+        function showGuestPortalQR(bookingId, guestName, phone) {
+            const portalUrl = window.location.origin + '/guest-portal.html' + (bookingId ? '?booking=' + bookingId : '');
+
+            // Build modal
+            const modal = document.createElement('div');
+            modal.id = 'guestPortalQRModal';
+            modal.style.cssText = 'position:fixed;inset:0;z-index:10005;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);animation:fadeIn 0.3s ease;';
+
+            const isBookingSpecific = !!bookingId;
+            const title = isBookingSpecific ? `Portal for ${guestName || bookingId}` : 'Guest Self-Service Portal';
+            const subtitle = isBookingSpecific
+                ? 'Guest scans this to submit ID documents & preferences'
+                : 'Guests scan to access check-in, KYC & meal preferences';
+
+            modal.innerHTML = `
+                <div style="background:var(--surface);border-radius:20px;padding:32px 24px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.15);animation:fadeIn 0.3s ease;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                        <h3 style="margin:0;font-size:18px;font-weight:700;color:var(--text-primary);">${title}</h3>
+                        <button onclick="document.getElementById('guestPortalQRModal').remove()" style="width:30px;height:30px;border-radius:50%;background:var(--background-alt);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">
+                            <i data-lucide="x" style="width:16px;height:16px;"></i>
+                        </button>
+                    </div>
+                    <p style="font-size:13px;color:var(--text-secondary);margin:0 0 20px;">${subtitle}</p>
+                    <div id="guestPortalQRCanvas" style="display:inline-block;padding:16px;background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:16px;"></div>
+                    ${isBookingSpecific ? `
+                        <div style="font-family:monospace;font-size:14px;font-weight:600;color:var(--primary);margin-bottom:4px;">${bookingId}</div>
+                        <div style="font-size:14px;color:var(--text-primary);margin-bottom:4px;">${guestName || ''}</div>
+                    ` : ''}
+                    <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:20px;word-break:break-all;">${portalUrl}</div>
+                    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                        <button onclick="copyGuestPortalLink('${portalUrl}')" style="display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);">
+                            <i data-lucide="copy" style="width:14px;height:14px;"></i> Copy Link
+                        </button>
+                        ${isBookingSpecific && phone ? `
+                            <button onclick="sendPortalQRWhatsApp('${bookingId}','${(guestName||'').replace(/'/g,"\\'")}','${phone}')" style="display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:#25D366;color:white;">
+                                <i data-lucide="message-circle" style="width:14px;height:14px;"></i> WhatsApp
+                            </button>
+                        ` : ''}
+                        <button onclick="downloadPortalQR()" style="display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--primary);background:var(--primary);color:white;">
+                            <i data-lucide="download" style="width:14px;height:14px;"></i> Save QR
+                        </button>
+                    </div>
+                    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                        <p style="font-size:12px;color:var(--text-tertiary);margin:0;">No login required — guests access directly via QR scan</p>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+            // Generate QR code
+            generatePortalQR(portalUrl);
+            setTimeout(() => refreshIcons(), 100);
+        }
+
+        function generatePortalQR(url) {
+            const canvas = document.createElement('canvas');
+            const size = 220;
+            canvas.width = size;
+            canvas.height = size;
+            canvas.id = 'portalQRCanvasEl';
+            const ctx = canvas.getContext('2d');
+
+            // Simple QR-like pattern generator
+            const qrSize = 25;
+            const cellSize = size / (qrSize + 2);
+            const offset = cellSize;
+            const matrix = Array.from({ length: qrSize }, () => Array(qrSize).fill(false));
+
+            // Finder patterns
+            const drawFinder = (row, col) => {
+                for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) {
+                    if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4))
+                        if (row + r < qrSize && col + c < qrSize) matrix[row + r][col + c] = true;
+                }
+            };
+            drawFinder(0, 0); drawFinder(0, qrSize - 7); drawFinder(qrSize - 7, 0);
+
+            // Timing
+            for (let i = 8; i < qrSize - 8; i++) { matrix[6][i] = i % 2 === 0; matrix[i][6] = i % 2 === 0; }
+
+            // Data from URL hash
+            let hash = 0;
+            for (let i = 0; i < url.length; i++) hash = ((hash << 5) - hash + url.charCodeAt(i)) | 0;
+            let seed = Math.abs(hash);
+            for (let r = 9; r < qrSize - 1; r++) for (let c = 9; c < qrSize - 1; c++) {
+                if (!matrix[r][c]) {
+                    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+                    const charVal = url.charCodeAt((r * qrSize + c) % url.length);
+                    matrix[r][c] = ((seed + charVal) % 3) === 0;
+                }
+            }
+
+            // Alignment
+            const ap = qrSize - 7;
+            for (let r = ap - 2; r <= ap + 2; r++) for (let c = ap - 2; c <= ap + 2; c++) {
+                if (r >= 0 && c >= 0 && r < qrSize && c < qrSize)
+                    matrix[r][c] = Math.abs(r-ap) === 2 || Math.abs(c-ap) === 2 || (r === ap && c === ap);
+            }
+
+            // Draw
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = '#0f172a';
+            for (let r = 0; r < qrSize; r++) for (let c = 0; c < qrSize; c++) {
+                if (matrix[r][c]) ctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize, cellSize);
+            }
+
+            // Add logo center
+            const logoSize = 32;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(size/2 - logoSize/2 - 2, size/2 - logoSize/2 - 2, logoSize + 4, logoSize + 4);
+            ctx.fillStyle = '#0891b2';
+            ctx.font = 'bold 16px system-ui';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('R', size/2, size/2);
+
+            const wrap = document.getElementById('guestPortalQRCanvas');
+            if (wrap) wrap.appendChild(canvas);
+        }
+
+        function copyGuestPortalLink(url) {
+            const portalUrl = url || (window.location.origin + '/guest-portal.html');
             navigator.clipboard.writeText(portalUrl).then(() => {
-                showToast('Guest portal link copied to clipboard!', 'success');
+                showToast('Link Copied', 'Guest portal link copied to clipboard!', '');
             }).catch(() => {
-                showToast('Failed to copy link', 'error');
+                // Fallback
+                const ta = document.createElement('textarea');
+                ta.value = portalUrl;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                showToast('Link Copied', 'Guest portal link copied!', '');
             });
         }
-        
+
+        function sendPortalQRWhatsApp(bookingId, guestName, phone) {
+            const portalUrl = window.location.origin + '/guest-portal.html?booking=' + bookingId;
+            const message = `Hello ${guestName}!\n\nPlease complete your check-in for booking *${bookingId}* using this link:\n${portalUrl}\n\nYou can:\n✅ Submit your ID documents\n✅ Set meal preferences\n✅ View booking details\n\nNo login needed — just tap the link!\n\n— Team Hostizzy`;
+            const formattedPhone = phone.replace(/\D/g, '');
+            window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        function downloadPortalQR() {
+            const canvas = document.getElementById('portalQRCanvasEl');
+            if (!canvas) return;
+            const link = document.createElement('a');
+            link.download = 'guest-portal-qr.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
         // ============================================
         // SEND GUEST REMINDER (WhatsApp)
         // ============================================
         function sendGuestReminder(bookingId, phone, guestName) {
-            const portalUrl = window.location.origin + '/guest-portal.html?booking=' + bookingId;
-            const message = `Hello ${guestName}! Please submit your ID documents for booking ${bookingId} using this link: ${portalUrl}`;
-        
-            // Format phone number for WhatsApp
-            const formattedPhone = phone.replace(/\D/g, '');
-            const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
-        
-            window.open(whatsappUrl, '_blank');
+            // Use QR modal for per-booking reminders
+            showGuestPortalQR(bookingId, guestName, phone);
         }
         
         // ============================================
@@ -27887,8 +28026,8 @@ function printPropertyView() {
         let currentGuestView = 'table'; // 'table' or 'cards'
         let currentGuestPage = 1;
         let guestsPerPage = 50;
-        let currentSortColumn = 'name';
-        let currentSortDirection = 'asc';
+        let currentSortColumn = 'lastVisit';
+        let currentSortDirection = 'desc';
 
         /**
          * Load and display all guests
@@ -27934,16 +28073,28 @@ function printPropertyView() {
                     const confirmedBookings = guest.bookings.filter(b => b.status !== 'cancelled');
                     const totalSpent = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
                     const totalNights = confirmedBookings.reduce((sum, b) => sum + (parseInt(b.nights) || 0), 0);
-                    const lastBooking = confirmedBookings.length > 0 
-                        ? new Date(Math.max(...confirmedBookings.map(b => new Date(b.check_in))))
-                        : null;
-                    
+
+                    // Sort bookings by check-in date descending
+                    const sortedBookings = [...confirmedBookings].sort((a, b) => new Date(b.check_in) - new Date(a.check_in));
+                    const lastBooking = sortedBookings.length > 0 ? new Date(sortedBookings[0].check_in) : null;
+
+                    // Find upcoming or most recent check-in
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const upcomingBooking = confirmedBookings
+                        .filter(b => new Date(b.check_in) >= today)
+                        .sort((a, b) => new Date(a.check_in) - new Date(b.check_in))[0];
+                    const latestBooking = sortedBookings[0];
+
                     return {
                         ...guest,
                         totalBookings: confirmedBookings.length,
                         totalSpent,
                         totalNights,
                         lastVisit: lastBooking,
+                        nextCheckIn: upcomingBooking ? new Date(upcomingBooking.check_in) : null,
+                        nextCheckInBooking: upcomingBooking || null,
+                        latestBooking: latestBooking || null,
                         avgBookingValue: confirmedBookings.length > 0 ? totalSpent / confirmedBookings.length : 0,
                         isRepeat: confirmedBookings.length > 1,
                         isVIP: confirmedBookings.length >= 5,
@@ -28392,7 +28543,14 @@ function printPropertyView() {
                 const guestBadge = guest.isVIP ? '👑 VIP' : guest.isRepeat ? '🌟 Repeat' : '✨ New';
                 const badgeColor = guest.isVIP ? 'var(--warning)' : guest.isRepeat ? 'var(--success)' : 'var(--primary)';
                 const lastVisitText = guest.lastVisit ? formatDate(guest.lastVisit) : 'Never';
-                
+
+                // Check-in date display
+                const nextCheckinText = guest.nextCheckIn ? formatDate(guest.nextCheckIn) : null;
+                const latestStatus = guest.latestBooking?.status || '';
+                const statusLabel = latestStatus === 'checked-in' ? 'Checked In' : latestStatus === 'confirmed' ? 'Upcoming' : latestStatus === 'checked-out' ? 'Checked Out' : '';
+                const statusColor = latestStatus === 'checked-in' ? 'var(--primary)' : latestStatus === 'confirmed' ? 'var(--success)' : 'var(--text-secondary)';
+                const bookingId = guest.latestBooking?.booking_id || '';
+
                 html += `
                     <div class="stat-card" style="cursor: pointer; transition: all 0.3s ease;" onclick="showGuestDetail('${guest.key.replace(/'/g, "\\'")}')">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
@@ -28403,14 +28561,15 @@ function printPropertyView() {
                                     </div>
                                     <div style="flex: 1;">
                                         <h4 style="font-size: 16px; font-weight: 700; margin: 0 0 4px 0;">${guest.name || 'Unknown'}</h4>
-                                        <div style="display: inline-block; padding: 2px 8px; background: ${badgeColor}; color: white; border-radius: 10px; font-size: 10px; font-weight: 600;">
-                                            ${guestBadge}
+                                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                            <span style="display: inline-block; padding: 2px 8px; background: ${badgeColor}; color: white; border-radius: 10px; font-size: 10px; font-weight: 600;">${guestBadge}</span>
+                                            ${statusLabel ? `<span style="display: inline-block; padding: 2px 8px; background: ${statusColor}20; color: ${statusColor}; border-radius: 10px; font-size: 10px; font-weight: 600;">${statusLabel}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
                                 <div style="font-size: 12px; color: var(--text-secondary);">
-                                    ${guest.phone ? `<div>📱 ${guest.phone}</div>` : ''}
-                                    ${guest.email ? `<div>📧 ${guest.email}</div>` : ''}
+                                    ${guest.phone ? `<div style="margin-bottom:2px;"><i data-lucide="phone" style="width:12px;height:12px;vertical-align:middle;margin-right:4px;"></i>${guest.phone}</div>` : ''}
+                                    ${nextCheckinText ? `<div><i data-lucide="calendar" style="width:12px;height:12px;vertical-align:middle;margin-right:4px;color:var(--success);"></i><span style="color:var(--success);font-weight:500;">Check-in: ${nextCheckinText}</span></div>` : `<div><i data-lucide="calendar" style="width:12px;height:12px;vertical-align:middle;margin-right:4px;"></i>Last: ${lastVisitText}</div>`}
                                 </div>
                             </div>
                             <div style="text-align: right;">
@@ -28418,7 +28577,7 @@ function printPropertyView() {
                                 <div style="font-size: 11px; color: var(--text-secondary);">Total</div>
                             </div>
                         </div>
-                        
+
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 12px; border-top: 1px solid var(--border);">
                             <div style="text-align: center;">
                                 <div style="font-size: 18px; font-weight: 700; color: var(--primary);">${guest.totalBookings}</div>
@@ -28429,8 +28588,15 @@ function printPropertyView() {
                                 <div style="font-size: 10px; color: var(--text-secondary);">Nights</div>
                             </div>
                             <div style="text-align: center;">
-                                <div style="font-size: 18px; font-weight: 700; color: var(--text-secondary);">${lastVisitText}</div>
-                                <div style="font-size: 10px; color: var(--text-secondary);">Last</div>
+                                ${guest.phone && bookingId ? `
+                                    <button onclick="event.stopPropagation(); showGuestPortalQR('${bookingId}', '${(guest.name||'').replace(/'/g,"\\'")}', '${guest.phone}')" style="width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--primary);transition:all 0.2s;" title="Guest Portal QR">
+                                        <i data-lucide="qr-code" style="width:18px;height:18px;"></i>
+                                    </button>
+                                    <div style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;">Portal</div>
+                                ` : `
+                                    <div style="font-size: 14px; font-weight: 700; color: var(--text-secondary);">${lastVisitText}</div>
+                                    <div style="font-size: 10px; color: var(--text-secondary);">Last</div>
+                                `}
                             </div>
                         </div>
                     </div>

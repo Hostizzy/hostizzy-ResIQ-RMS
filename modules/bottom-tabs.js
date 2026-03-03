@@ -10,6 +10,9 @@
  */
 
 const BOTTOM_TABS_CSS = `
+/* =============================================
+   BOTTOM TAB BAR — Premium Native Design
+   ============================================= */
 .resiq-bottom-tabs {
     display: none;
     position: fixed;
@@ -17,20 +20,17 @@ const BOTTOM_TABS_CSS = `
     left: 0;
     right: 0;
     z-index: 9999;
-    background: var(--surface, #ffffff);
-    border-top: 1px solid var(--border, #e2e8f0);
+    background: rgba(255, 255, 255, 0.96);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-top: 0.5px solid rgba(0, 0, 0, 0.08);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.92);
 }
 
 [data-theme="dark"] .resiq-bottom-tabs {
-    background: rgba(30, 41, 59, 0.95);
-    border-top-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    background: rgba(15, 23, 42, 0.96);
+    border-top-color: rgba(255, 255, 255, 0.06);
 }
 
 .resiq-bottom-tabs.hidden-tabs {
@@ -39,24 +39,25 @@ const BOTTOM_TABS_CSS = `
 
 .resiq-bottom-tabs-inner {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-around;
-    max-width: 600px;
+    max-width: 560px;
     margin: 0 auto;
-    height: 56px;
-    padding: 0 4px;
+    height: 52px;
+    padding: 0;
     position: relative;
 }
 
-/* Tablet: wider layout */
+/* Show on tablet */
 @media (min-width: 769px) and (max-width: 1024px) {
     .resiq-bottom-tabs { display: flex !important; }
     .resiq-bottom-tabs-inner {
-        max-width: 700px;
-        height: 60px;
+        max-width: 640px;
+        height: 56px;
     }
 }
 
+/* Show on mobile */
 @media (max-width: 768px) {
     .resiq-bottom-tabs { display: flex !important; }
 }
@@ -66,6 +67,7 @@ const BOTTOM_TABS_CSS = `
     .resiq-bottom-tabs { display: none !important; }
 }
 
+/* --- Tab Button --- */
 .resiq-tab {
     display: flex;
     flex-direction: column;
@@ -73,92 +75,119 @@ const BOTTOM_TABS_CSS = `
     justify-content: center;
     flex: 1;
     height: 100%;
-    padding: 4px 2px;
+    padding: 6px 0 2px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     position: relative;
     border: none;
     background: none;
-    color: var(--text-tertiary, #94a3b8);
-    transition: color 0.2s ease;
+    color: #94a3b8;
+    transition: color 0.25s ease;
     outline: none;
     min-width: 0;
 }
 
+[data-theme="dark"] .resiq-tab {
+    color: #64748b;
+}
+
 .resiq-tab:active {
-    transform: scale(0.92);
-    transition: transform 0.1s ease;
+    transform: scale(0.88);
+    transition: transform 0.08s ease;
 }
 
 .resiq-tab.active {
     color: var(--primary, #0891b2);
 }
 
+[data-theme="dark"] .resiq-tab.active {
+    color: #22d3ee;
+}
+
+/* --- Icon --- */
 .resiq-tab-icon {
     position: relative;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
+    border-radius: 14px;
+    transition: background 0.3s ease;
+}
+
+.resiq-tab.active .resiq-tab-icon {
+    background: rgba(8, 145, 178, 0.1);
+}
+
+[data-theme="dark"] .resiq-tab.active .resiq-tab-icon {
+    background: rgba(34, 211, 238, 0.12);
 }
 
 .resiq-tab-icon svg {
-    width: 22px;
-    height: 22px;
-    stroke-width: 1.8;
-    transition: stroke-width 0.2s ease;
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.7;
+    transition: stroke-width 0.2s ease, transform 0.2s ease;
 }
 
 .resiq-tab.active .resiq-tab-icon svg {
     stroke-width: 2.2;
+    transform: scale(1.05);
 }
 
+/* --- Label --- */
 .resiq-tab-label {
     font-size: 10px;
     font-weight: 500;
     line-height: 1;
+    letter-spacing: 0.1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 64px;
-    transition: font-weight 0.2s ease;
+    max-width: 72px;
+    transition: all 0.2s ease;
 }
 
 .resiq-tab.active .resiq-tab-label {
-    font-weight: 600;
-    font-size: 10.5px;
+    font-weight: 700;
+    font-size: 10px;
+    color: var(--primary, #0891b2);
 }
 
-/* Active indicator pill */
+[data-theme="dark"] .resiq-tab.active .resiq-tab-label {
+    color: #22d3ee;
+}
+
+/* --- Active indicator pill --- */
 .resiq-tab-indicator {
     position: absolute;
-    top: -1px;
+    top: 0;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
-    height: 2px;
+    height: 2.5px;
     background: var(--primary, #0891b2);
-    border-radius: 0 0 2px 2px;
-    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0 0 4px 4px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .resiq-tab.active .resiq-tab-indicator {
-    width: 32px;
+    width: 20px;
 }
 
-/* Badge */
+/* --- Badge --- */
 .resiq-tab-badge {
     position: absolute;
-    top: -2px;
-    right: -6px;
-    min-width: 16px;
-    height: 16px;
+    top: 0px;
+    right: -4px;
+    min-width: 15px;
+    height: 15px;
     padding: 0 4px;
     border-radius: 8px;
-    background: var(--danger, #dc2626);
+    background: #ef4444;
     color: white;
     font-size: 9px;
     font-weight: 700;
@@ -166,12 +195,17 @@ const BOTTOM_TABS_CSS = `
     align-items: center;
     justify-content: center;
     line-height: 1;
-    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.96);
     animation: badgePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+[data-theme="dark"] .resiq-tab-badge {
+    border-color: rgba(15, 23, 42, 0.96);
 }
 
 @keyframes badgePop {
     0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
     100% { transform: scale(1); }
 }
 
@@ -180,21 +214,21 @@ const BOTTOM_TABS_CSS = `
     display: none;
 }
 
-/* FAB in center */
+/* --- FAB in center --- */
 .resiq-tab-fab {
     position: relative;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #06b6d4 100%));
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: var(--primary, #0891b2);
     color: white;
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(8, 145, 178, 0.4);
-    transform: translateY(-8px);
+    box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35), 0 1px 3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     outline: none;
@@ -202,33 +236,34 @@ const BOTTOM_TABS_CSS = `
 }
 
 .resiq-tab-fab:active {
-    transform: translateY(-8px) scale(0.9);
-    box-shadow: 0 2px 8px rgba(8, 145, 178, 0.3);
+    transform: translateY(-4px) scale(0.9);
+    box-shadow: 0 2px 8px rgba(8, 145, 178, 0.25);
 }
 
 .resiq-tab-fab svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     stroke-width: 2.5;
 }
 
-/* Long-press tooltip */
+/* --- Long-press tooltip --- */
 .resiq-tab-tooltip {
     position: absolute;
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%) scale(0.8);
-    background: var(--text-primary, #0f172a);
+    background: #0f172a;
     color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
     z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .resiq-tab-tooltip.visible {
@@ -243,13 +278,13 @@ const BOTTOM_TABS_CSS = `
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: var(--text-primary, #0f172a);
+    border-top-color: #0f172a;
 }
 
-/* Adjust main content padding when tabs are visible */
+/* --- Layout adjustments when tabs are visible --- */
 @media (max-width: 1024px) {
     body.has-bottom-tabs .container {
-        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
     }
     body.has-bottom-tabs .mobile-nav {
         display: none !important;
