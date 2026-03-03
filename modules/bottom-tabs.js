@@ -41,8 +41,7 @@ const BOTTOM_TABS_CSS = `
     display: flex;
     align-items: center;
     justify-content: space-around;
-    max-width: 480px;
-    margin: 0 auto;
+    width: 100%;
     height: 64px;
     padding: 0 8px;
     position: relative;
@@ -52,7 +51,7 @@ const BOTTOM_TABS_CSS = `
 @media (min-width: 769px) and (max-width: 1024px) {
     .resiq-bottom-tabs { display: flex !important; }
     .resiq-bottom-tabs-inner {
-        max-width: 540px;
+        width: 100%;
         height: 68px;
     }
 }
