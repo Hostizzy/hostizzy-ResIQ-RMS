@@ -79,6 +79,7 @@ const STATIC_CACHE = [
   '/views/router.js',
   '/views/shared.js',
   '/assets/logo.png',
+  '/assets/logo-96.png',
   '/assets/logo-132.png',
   '/assets/logo-192.png',
   '/assets/logo-192-maskable.png',
