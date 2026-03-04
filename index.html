@@ -80,7 +80,7 @@
                 border: 3px solid rgba(255, 255, 255, 0.2);
             ">
                 <!-- Replace with your actual logo -->
-                <img src="assets/logo.png" alt="ResIQ Logo" style="width: 140px; height: 140px; object-fit: contain; border-radius: 28px;"
+                <img src="assets/logo-192.png" alt="ResIQ Logo" style="width: 140px; height: 140px; object-fit: contain; border-radius: 28px;"
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <!-- Fallback if logo doesn't load -->
                <div style="display: none; font-size: 80px; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">R</div>
@@ -415,7 +415,7 @@
     <div id="loginScreen" class="login-container">
         <div class="login-card">
             <div class="logo">
-                <img src="assets/logo.png" alt="ResIQ" class="logo-img">
+                <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
                 <p>Property Management System</p>
             </div>
             <div class="form-group">
@@ -462,7 +462,7 @@
         <!-- Forgot Password Panel -->
         <div id="forgotPasswordPanel" class="login-card hidden" style="margin-top: 0;">
             <div class="logo">
-                <img src="assets/logo.png" alt="ResIQ" class="logo-img">
+                <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
                 <p>Reset Your Password</p>
             </div>
             <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Enter your email address and we'll send you a link to reset your password.</p>
@@ -480,7 +480,7 @@
         <!-- Reset Password Panel (shown when user clicks email recovery link) -->
         <div id="resetPasswordPanel" class="login-card hidden" style="margin-top: 0;">
             <div class="logo">
-                <img src="assets/logo.png" alt="ResIQ" class="logo-img">
+                <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
                 <p>Set New Password</p>
             </div>
             <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Choose a strong new password for your account.</p>
@@ -20704,8 +20704,8 @@ function printPropertyView() {
             if (Notification.permission === 'granted') {
                 const notification = new Notification(title, {
                     body: body,
-                    icon: 'assets/logo.png',
-                    badge: 'assets/logo.png',
+                    icon: 'assets/logo-192.png',
+                    badge: 'assets/logo-96.png',
                     tag: data.tag || 'resiq-notification',
                     requireInteraction: data.requireInteraction || false,
                     data: data
