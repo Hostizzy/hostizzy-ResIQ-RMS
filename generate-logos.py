@@ -27,10 +27,15 @@ def main():
         print(f"❌ Error: {input_logo} not found!")
         return
     
-    # Generate missing sizes
+    # Generate all required sizes (square logos)
     sizes = {
         'logo-96.png': 96,
+        'logo-120.png': 120,
         'logo-128.png': 128,
+        'logo-132.png': 132,
+        'logo-152.png': 152,
+        'logo-167.png': 167,
+        'logo-180.png': 180,
         'logo-256.png': 256,
         'logo-384.png': 384
     }

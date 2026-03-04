@@ -16,12 +16,12 @@ const onboardingSlides = [
     {
         id: 'welcome',
         type: 'welcome',
-        icon: 'assets/logo-192.png',
+        icon: 'assets/logo-384.png',
         title: 'Welcome to ResIQ',
         description: 'Your all-in-one property management system',
         content: `
             <div class="onboarding-welcome">
-                <img src="assets/logo-192.png" alt="ResIQ Logo" class="onboarding-logo">
+                <img src="assets/logo-384.png" alt="ResIQ Logo" class="onboarding-logo">
                 <h1 class="onboarding-welcome-title">Welcome to ResIQ</h1>
                 <p class="onboarding-welcome-subtitle">Property Management Made Simple</p>
             </div>

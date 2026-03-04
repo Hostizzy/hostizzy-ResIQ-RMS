@@ -5,8 +5,13 @@ const STATIC_ASSETS = [
   '/guest-portal.html',
   '/guest-manifest.json',
   '/menu-template-standard.json',
+  '/assets/logo-96.png',
+  '/assets/logo-128.png',
+  '/assets/logo-132.png',
+  '/assets/logo-152.png',
   '/assets/logo-192.png',
   '/assets/logo-192-maskable.png',
+  '/assets/logo-256.png',
   '/assets/logo-512-maskable.png',
   '/assets/logo.png'
 ];
