@@ -3334,9 +3334,9 @@ transform: scale(0.95);
 }
 
 .mobile-header-logo {
-font-size: 18px;
-font-weight: 700;
-color: var(--primary);
+display: flex;
+align-items: center;
+justify-content: center;
 }
 
 .mobile-header-spacer {

@@ -253,11 +253,11 @@
 }
 
 .onboarding-logo {
-    width: 160px;
-    height: 160px;
+    width: 200px;
+    height: 200px;
     background: white;
     border-radius: 40px;
-    padding: 20px;
+    padding: 8px;
     object-fit: contain;
     margin: 0 auto 40px;
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
@@ -428,9 +428,9 @@
     }
 
     .onboarding-logo {
-        width: 140px;
-        height: 140px;
-        padding: 16px;
+        width: 170px;
+        height: 170px;
+        padding: 6px;
     }
 
     .onboarding-footer {
