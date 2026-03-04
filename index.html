@@ -7573,63 +7573,73 @@
                 return;
             }
 
-            // Search across reservations, guests, and properties
+            // Search across reservations, guests, and properties using actual data sources
             const results = [];
+            const seenGuests = new Set();
 
-            // Search reservations
-            if (window.reservations) {
-                window.reservations.forEach(reservation => {
+            // Search reservations (use allReservations local var or state)
+            const reservationsData = allReservations.length > 0 ? allReservations : (state.reservations || []);
+            reservationsData.forEach(reservation => {
+                if (reservation.guest_name?.toLowerCase().includes(query) ||
+                    reservation.property_name?.toLowerCase().includes(query) ||
+                    reservation.booking_id?.toLowerCase().includes(query) ||
+                    reservation.guest_phone?.toLowerCase().includes(query)) {
+                    results.push({
+                        type: 'reservation',
+                        title: `${reservation.guest_name} - ${reservation.property_name}`,
+                        meta: `Booking #${reservation.booking_id} | ${reservation.status}`,
+                        view: 'reservations',
+                        bookingId: reservation.booking_id
+                    });
+                }
+
+                // Build guest results from reservations (deduplicated)
+                const guestKey = (reservation.guest_phone || reservation.guest_email || reservation.guest_name || '').toLowerCase().trim();
+                if (guestKey && !seenGuests.has(guestKey)) {
                     if (reservation.guest_name?.toLowerCase().includes(query) ||
-                        reservation.property_name?.toLowerCase().includes(query) ||
-                        reservation.booking_id?.toLowerCase().includes(query)) {
-                        results.push({
-                            type: 'reservation',
-                            title: `${reservation.guest_name} - ${reservation.property_name}`,
-                            meta: `Booking #${reservation.booking_id} | ${reservation.status}`,
-                            view: 'reservations'
-                        });
-                    }
-                });
-            }
-
-            // Search guests
-            if (window.guests) {
-                window.guests.forEach(guest => {
-                    if (guest.name?.toLowerCase().includes(query) ||
-                        guest.email?.toLowerCase().includes(query) ||
-                        guest.phone?.toLowerCase().includes(query)) {
+                        reservation.guest_email?.toLowerCase().includes(query) ||
+                        reservation.guest_phone?.toLowerCase().includes(query)) {
+                        seenGuests.add(guestKey);
                         results.push({
                             type: 'guest',
-                            title: guest.name,
-                            meta: `${guest.email || ''} ${guest.phone || ''}`,
-                            view: 'guests'
+                            title: reservation.guest_name,
+                            meta: `${reservation.guest_email || ''} ${reservation.guest_phone || ''}`.trim(),
+                            view: 'guests',
+                            guestKey: guestKey
                         });
                     }
-                });
-            }
+                }
+            });
 
             // Search properties
-            if (window.properties) {
-                window.properties.forEach(property => {
-                    if (property.name?.toLowerCase().includes(query) ||
-                        property.location?.toLowerCase().includes(query)) {
-                        results.push({
-                            type: 'property',
-                            title: property.name,
-                            meta: `${property.location || ''} | ${property.property_type || ''}`,
-                            view: 'properties'
-                        });
-                    }
-                });
-            }
+            const propertiesData = state.properties || [];
+            propertiesData.forEach(property => {
+                if (property.name?.toLowerCase().includes(query) ||
+                    property.location?.toLowerCase().includes(query)) {
+                    results.push({
+                        type: 'property',
+                        title: property.name,
+                        meta: `${property.location || ''} | ${property.property_type || ''}`,
+                        view: 'properties'
+                    });
+                }
+            });
 
             // Store results globally
             globalSearchResults = results;
 
             // Display results
             if (results.length > 0) {
-                searchResults.innerHTML = results.slice(0, 8).map((result, index) => `
+                // Deduplicate: show guests first, then reservations, then properties (limit 8 total)
+                const grouped = { guest: [], reservation: [], property: [] };
+                results.forEach(r => grouped[r.type]?.push(r));
+                const ordered = [...grouped.guest.slice(0, 3), ...grouped.reservation.slice(0, 4), ...grouped.property.slice(0, 3)].slice(0, 8);
+                // Update globalSearchResults to match displayed order
+                globalSearchResults = ordered;
+
+                searchResults.innerHTML = ordered.map((result, index) => `
                     <div class="search-result-item" onclick="handleSearchResultClick(${index})">
+                        <div class="search-result-type" style="font-size: 10px; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 2px;">${result.type}</div>
                         <div class="search-result-title">${result.title}</div>
                         <div class="search-result-meta">${result.meta}</div>
                     </div>
@@ -7643,10 +7653,26 @@
 
         function handleSearchResultClick(index) {
             const result = globalSearchResults[index];
-            if (result && result.view) {
-                showView(result.view);
-                clearGlobalSearch();
+            if (!result || !result.view) return;
+
+            showView(result.view);
+
+            // Navigate to the specific item after view loads
+            if (result.type === 'reservation' && result.bookingId) {
+                setTimeout(() => {
+                    const searchInput = document.getElementById('searchReservations');
+                    if (searchInput) {
+                        searchInput.value = result.bookingId;
+                        if (typeof filterReservations === 'function') filterReservations();
+                    }
+                }, 300);
+            } else if (result.type === 'guest' && result.guestKey) {
+                setTimeout(() => {
+                    if (typeof showGuestDetail === 'function') showGuestDetail(result.guestKey);
+                }, 300);
             }
+
+            clearGlobalSearch();
         }
 
         function clearGlobalSearch() {
@@ -7658,6 +7684,15 @@
             searchResults.style.display = 'none';
             searchClear.style.display = 'none';
         }
+
+        // Close search results when clicking outside
+        document.addEventListener('click', function(e) {
+            const searchContainer = document.querySelector('.navbar-search');
+            const searchResults = document.getElementById('searchResults');
+            if (searchContainer && searchResults && !searchContainer.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
 
         // View Management
         async function showView(viewName) {
@@ -7897,11 +7932,10 @@
         function exportAllData() {
             try {
                 const data = {
-                    reservations: window.reservations || [],
-                    guests: window.guests || [],
-                    properties: window.properties || [],
-                    payments: window.payments || [],
-                    meals: window.meals || [],
+                    reservations: allReservations.length > 0 ? allReservations : (state.reservations || []),
+                    guests: allGuests || [],
+                    properties: state.properties || [],
+                    payments: allPayments || [],
                     exportDate: new Date().toISOString()
                 };
 
