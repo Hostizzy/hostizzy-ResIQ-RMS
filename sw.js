@@ -36,7 +36,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.18.0';
+const CACHE_VERSION = 'v5.19.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -80,9 +80,16 @@ const STATIC_CACHE = [
   '/views/shared.js',
   '/assets/logo.png',
   '/assets/logo-96.png',
+  '/assets/logo-120.png',
+  '/assets/logo-128.png',
   '/assets/logo-132.png',
+  '/assets/logo-152.png',
+  '/assets/logo-167.png',
+  '/assets/logo-180.png',
   '/assets/logo-192.png',
   '/assets/logo-192-maskable.png',
+  '/assets/logo-256.png',
+  '/assets/logo-384.png',
   '/assets/logo-512-maskable.png'
 ];
 
