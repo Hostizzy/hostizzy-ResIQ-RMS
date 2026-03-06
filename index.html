@@ -252,6 +252,12 @@
                 box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
                 z-index: 9999;
                 animation: slideUp 0.4s ease-out;
+                transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            }
+
+            .pwa-install-banner.hiding {
+                transform: translateY(100%);
+                opacity: 0;
             }
 
             .pwa-install-banner.show {
@@ -330,6 +336,8 @@
                 .pwa-install-banner {
                     flex-direction: column;
                     gap: 16px;
+                    bottom: 70px; /* Clear the mobile bottom nav bar */
+                    border-radius: 12px 12px 0 0;
                 }
 
                 .pwa-banner-actions {
@@ -4308,11 +4316,23 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Taxes (&#8377;) &mdash; Auto-calculated</label>
-                        <input type="number" id="taxes" min="0" step="0.01" value="0" readonly style="background: #f1f5f9;">
-                        <small style="font-size: 11px; color: var(--text-secondary); display: block; margin-top: 4px;">
-                            5% for &le;&#8377;7500/night, 18% for &gt;&#8377;7500/night
+                        <label>GST Rate</label>
+                        <select id="gstRateMode" onchange="handleGstRateChange()">
+                            <option value="auto">Auto (based on per-night rate)</option>
+                            <option value="5">5% GST</option>
+                            <option value="12">12% GST</option>
+                            <option value="18">18% GST</option>
+                            <option value="custom">Custom Amount</option>
+                        </select>
+                        <small id="gstRateHint" style="font-size: 11px; color: var(--text-secondary); display: block; margin-top: 4px;">
+                            Auto: 5% for &le;&#8377;7500/night, 18% for &gt;&#8377;7500/night
                         </small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Taxes (&#8377;)</label>
+                        <input type="number" id="taxes" min="0" step="0.01" value="0" readonly style="background: #f1f5f9;" oninput="onManualTaxInput()">
                     </div>
                     <div class="form-group">
                         <label>Damages (&#8377;)</label>
@@ -11864,6 +11884,8 @@
                     calculateHostizzyRevenue(parseFloat(r.stay_amount) || 0, parseFloat(r.extra_guest_charges) || 0);
                 }, 100);
                 document.getElementById('gstStatus').value = r.gst_status || 'gst';
+                document.getElementById('gstRateMode').value = r.gst_rate_mode || 'auto';
+                handleGstRateChange();
             } else {
                 document.getElementById('reservationModalTitle').textContent = 'New Reservation';
                 document.getElementById('editReservationId').value = '';
@@ -11887,46 +11909,95 @@
             _wizardStep = 1;
         }
 
-        // Auto-calculate taxes based on per night rate
+        // Handle GST rate mode change
+        function handleGstRateChange() {
+            const mode = document.getElementById('gstRateMode').value;
+            const taxesInput = document.getElementById('taxes');
+            const hintEl = document.getElementById('gstRateHint');
+
+            if (mode === 'custom') {
+                // Allow manual input
+                taxesInput.readOnly = false;
+                taxesInput.style.background = '#ffffff';
+                hintEl.textContent = 'Enter tax amount manually';
+            } else {
+                taxesInput.readOnly = true;
+                taxesInput.style.background = '#f1f5f9';
+                if (mode === 'auto') {
+                    hintEl.textContent = 'Auto: 5% for \u2264\u20B97500/night, 18% for >\u20B97500/night';
+                } else {
+                    hintEl.textContent = mode + '% GST applied on stay + extra guest charges';
+                }
+                calculateTaxes();
+            }
+        }
+
+        // Called when user types in tax field (custom mode)
+        function onManualTaxInput() {
+            const stayAmount = parseFloat(document.getElementById('stayAmount').value) || 0;
+            const extraGuestCharges = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
+            calculateHostizzyRevenue(stayAmount, extraGuestCharges);
+        }
+
+        // Auto-calculate taxes based on per night rate or manual GST rate
         function calculateTaxes() {
             const gstStatus = document.getElementById('gstStatus').value;
             const taxesInput = document.getElementById('taxes');
-            
+            const gstRateMode = document.getElementById('gstRateMode').value;
+
             // If Non-GST, clear taxes and disable field
             if (gstStatus === 'non_gst') {
                 taxesInput.value = '0';
+                taxesInput.readOnly = true;
                 taxesInput.style.background = '#e2e8f0';
                 return;
             }
-            
+
+            // If custom mode, don't overwrite manual input
+            if (gstRateMode === 'custom') {
+                taxesInput.readOnly = false;
+                taxesInput.style.background = '#ffffff';
+                // Still calculate Hostizzy Revenue
+                const stayAmount = parseFloat(document.getElementById('stayAmount').value) || 0;
+                const extraGuestCharges = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
+                calculateHostizzyRevenue(stayAmount, extraGuestCharges);
+                return;
+            }
+
             // Re-enable and calculate for GST
+            taxesInput.readOnly = true;
             taxesInput.style.background = '#f1f5f9';
-            
+
             const checkIn = document.getElementById('checkInDate').value;
             const checkOut = document.getElementById('checkOutDate').value;
-            
+
             if (!checkIn || !checkOut) return;
-            
+
             const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
             if (nights <= 0) return;
-            
+
             const stayAmount = parseFloat(document.getElementById('stayAmount').value) || 0;
             const extraGuestCharges = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
-            
+
             const totalAmountPreTax = stayAmount + extraGuestCharges;
-            const perNightRate = totalAmountPreTax / nights;
-            
-            // Tax calculation: 5% if ≤7500/night, 18% if >7500/night
+
             let taxRate = 0;
-            if (perNightRate <= 7500) {
-                taxRate = 0.05; // 5%
+            if (gstRateMode === 'auto') {
+                // Auto: 5% if ≤7500/night, 18% if >7500/night
+                const perNightRate = totalAmountPreTax / nights;
+                if (perNightRate <= 7500) {
+                    taxRate = 0.05;
+                } else {
+                    taxRate = 0.18;
+                }
             } else {
-                taxRate = 0.18; // 18%
+                // Manual rate: 5, 12, or 18
+                taxRate = parseFloat(gstRateMode) / 100;
             }
-            
+
             const taxes = totalAmountPreTax * taxRate;
             taxesInput.value = taxes.toFixed(2);
-        
+
             // Auto-calculate Hostizzy Revenue
             calculateHostizzyRevenue(stayAmount, extraGuestCharges);
         }
@@ -12036,6 +12107,7 @@
                     month: month,
                     nights: nights,
                     gst_status: document.getElementById('gstStatus').value,
+                    gst_rate_mode: document.getElementById('gstRateMode').value,
                     taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 :
                            parseFloat(document.getElementById('taxes').value) || 0,
                     guest_name: document.getElementById('guestName').value,
@@ -12074,6 +12146,7 @@
                     reservation.month = null;
                     reservation.nights = null;
                     reservation.gst_status = null;
+                    reservation.gst_rate_mode = null;
                     reservation.guest_city = null;
                     reservation.booking_source = null;
                     reservation.number_of_rooms = null;
@@ -24604,17 +24677,14 @@ function printPropertyView() {
             }
         });
 
-        // Show install banner
+        // Show install banner (delegates to showPWABanner which handles localStorage checks)
         function showInstallBanner() {
-            const banner = document.getElementById('pwaInstallBanner');
-            if (banner && !isInstalled) {
-                banner.style.display = 'block';
-            }
+            showPWABanner();
         }
 
-        // Dismiss install banner
+        // Dismiss install banner (delegates to dismissPWABanner)
         function dismissInstallBanner() {
-            document.getElementById('pwaInstallBanner').style.display = 'none';
+            dismissPWABanner();
             localStorage.setItem('pwa_install_dismissed', 'true');
             localStorage.setItem('pwa_install_dismissed_time', Date.now().toString());
             console.log('ℹ️ Install banner dismissed');
@@ -24624,7 +24694,7 @@ function printPropertyView() {
         window.addEventListener('appinstalled', () => {
             console.log('✅ PWA was installed');
             isInstalled = true;
-            document.getElementById('pwaInstallBanner').style.display = 'none';
+            dismissPWABanner();
             localStorage.removeItem('pwa_install_dismissed');
         });
 
@@ -25183,7 +25253,11 @@ function printPropertyView() {
         function dismissPWABanner() {
             const banner = document.getElementById('pwaInstallBanner');
             if (banner) {
-                banner.classList.remove('show');
+                banner.classList.add('hiding');
+                setTimeout(() => {
+                    banner.classList.remove('show');
+                    banner.classList.remove('hiding');
+                }, 300);
                 localStorage.setItem('pwa_banner_dismissed', Date.now().toString());
             }
         }
