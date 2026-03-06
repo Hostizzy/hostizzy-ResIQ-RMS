@@ -129,6 +129,10 @@ ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES property_owners(id) ON DELETE 
 ALTER TABLE reservations
 ADD COLUMN IF NOT EXISTS hostizzy_revenue NUMERIC DEFAULT 0;
 
+-- Add GST rate mode column for tax calculation preferences
+ALTER TABLE reservations
+ADD COLUMN IF NOT EXISTS gst_rate_mode TEXT DEFAULT 'auto';
+
 -- =====================================================
 -- INDEXES
 -- =====================================================
