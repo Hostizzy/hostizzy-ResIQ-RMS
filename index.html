@@ -22870,10 +22870,25 @@ function printPropertyView() {
         let imported = 0;
         let errors = [];
 
+        // Build property name → id lookup map
+        const properties = state.properties || await db.getProperties();
+        const propertyMap = {};
+        properties.forEach(p => {
+            propertyMap[p.name.toLowerCase().trim()] = p.id;
+        });
+
         // Transform all rows before import
         const transformedRows = validRows.map((row, idx) => {
             try {
-                return transformCSVRow(row);
+                const transformed = transformCSVRow(row);
+                // Look up property_id from property_name
+                if (transformed.property_name) {
+                    const pid = propertyMap[transformed.property_name.toLowerCase().trim()];
+                    if (pid) {
+                        transformed.property_id = pid;
+                    }
+                }
+                return transformed;
             } catch (err) {
                 errors.push(`Row ${idx + 2}: Transform error - ${err.message}`);
                 return null;
