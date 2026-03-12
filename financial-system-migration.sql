@@ -171,6 +171,8 @@ CREATE TRIGGER update_property_expenses_updated_at
 -- STEP 8: Update get_owner_revenue function
 -- =====================================================
 
+DROP FUNCTION IF EXISTS get_owner_revenue(UUID, DATE, DATE);
+
 CREATE OR REPLACE FUNCTION get_owner_revenue(
     p_owner_id UUID,
     p_start_date DATE DEFAULT NULL,
