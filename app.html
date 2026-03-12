@@ -51,6 +51,19 @@
 
     <link rel="stylesheet" href="css/main.css">
 
+    <!-- Login Responsive: desktop vs mobile content -->
+    <style>
+        .login-mobile-only,
+        .login-mobile-only-inline { display: none !important; }
+
+        @media (max-width: 1024px) {
+            .login-desktop-only,
+            .login-desktop-only-inline { display: none !important; }
+            .login-mobile-only { display: block !important; }
+            .login-mobile-only-inline { display: inline !important; }
+        }
+    </style>
+
     <!-- Splash Screen -->
     <div id="splashScreen" style="
         position: fixed;
