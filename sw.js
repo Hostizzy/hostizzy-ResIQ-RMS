@@ -36,7 +36,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.19.0';
+const CACHE_VERSION = 'v5.20.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -76,6 +76,8 @@ const STATIC_CACHE = [
   '/modules/components/status-badge.js',
   '/modules/components/empty-state.js',
   '/css/main.css',
+  '/css/landing.css',
+  '/landing.html',
   '/views/router.js',
   '/views/shared.js',
   '/assets/logo.png',

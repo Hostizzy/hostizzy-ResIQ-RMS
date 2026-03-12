@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0891b2" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="ResIQ by Hostizzy - The smartest property management system for vacation rentals, farmhouses, homestays & villas. Manage reservations, guests, payments & analytics.">
+    <meta name="keywords" content="property management, vacation rental, PMS, hospitality, hotel management, ResIQ, Hostizzy">
+
+    <meta property="og:title" content="ResIQ by Hostizzy - Smart Property Management">
+    <meta property="og:description" content="The smartest way to manage your vacation rental properties. All-in-one PMS for modern hospitality.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://resiq.hostizzy.com/landing.html">
+    <meta property="og:image" content="https://resiq.hostizzy.com/assets/logo.png">
+
+    <title>ResIQ by Hostizzy - Smart Property Management for Vacation Rentals</title>
+
+    <link rel="icon" type="image/png" href="/assets/logo-96.png">
+    <link rel="apple-touch-icon" href="/assets/logo-180.png">
+    <link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+
+    <!-- ============================================
+         NAVBAR
+         ============================================ -->
+    <nav class="landing-nav" id="navbar">
+        <div class="nav-inner">
+            <a href="#" class="nav-brand">
+                <img src="assets/logo-128.png" alt="ResIQ">
+                <span class="nav-brand-text">ResIQ</span>
+            </a>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#portals">Portals</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="index.html" class="nav-cta">Login</a></li>
+            </ul>
+
+            <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ============================================
+         HERO
+         ============================================ -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    Built for Indian Hospitality
+                </div>
+                <h1>
+                    <span>The Smartest Way</span>
+                    <span>to Manage Your</span>
+                    <span>Properties</span>
+                </h1>
+                <p class="hero-subtitle">
+                    All-in-one property management for vacation rentals, farmhouses, homestays & villas.
+                    Reservations, payments, guest KYC, analytics &mdash; everything in one powerful app.
+                </p>
+                <div class="hero-buttons">
+                    <a href="index.html" class="btn-hero-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                        Open Web App
+                    </a>
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" class="btn-hero-secondary" target="_blank" rel="noopener">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                        Download for Android
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-mockup">
+                    <div class="mockup-header">
+                        <img src="assets/logo-96.png" alt="ResIQ" class="mockup-logo">
+                        <span class="mockup-title">ResIQ Dashboard</span>
+                    </div>
+                    <div class="mockup-stats">
+                        <div class="mockup-stat">
+                            <div class="mockup-stat-value">24</div>
+                            <div class="mockup-stat-label">Bookings</div>
+                        </div>
+                        <div class="mockup-stat">
+                            <div class="mockup-stat-value">89%</div>
+                            <div class="mockup-stat-label">Occupancy</div>
+                        </div>
+                        <div class="mockup-stat">
+                            <div class="mockup-stat-value">4.8</div>
+                            <div class="mockup-stat-label">Rating</div>
+                        </div>
+                        <div class="mockup-stat">
+                            <div class="mockup-stat-value">12</div>
+                            <div class="mockup-stat-label">Properties</div>
+                        </div>
+                    </div>
+                    <div class="mockup-chart">
+                        <div class="mockup-bar" style="height: 40%"></div>
+                        <div class="mockup-bar" style="height: 65%"></div>
+                        <div class="mockup-bar" style="height: 45%"></div>
+                        <div class="mockup-bar" style="height: 80%"></div>
+                        <div class="mockup-bar" style="height: 55%"></div>
+                        <div class="mockup-bar" style="height: 90%"></div>
+                        <div class="mockup-bar" style="height: 70%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         STATS BAR
+         ============================================ -->
+    <section class="stats-bar">
+        <div class="stats-bar-inner">
+            <div class="stat-item-landing reveal">
+                <div class="stat-number" data-count="500">0+</div>
+                <div class="stat-label">Properties Managed</div>
+            </div>
+            <div class="stat-item-landing reveal reveal-delay-1">
+                <div class="stat-number" data-count="10000">0+</div>
+                <div class="stat-label">Bookings Processed</div>
+            </div>
+            <div class="stat-item-landing reveal reveal-delay-2">
+                <div class="stat-number" data-count="50">0+</div>
+                <div class="stat-label">Cities Across India</div>
+            </div>
+            <div class="stat-item-landing reveal reveal-delay-3">
+                <div class="stat-number">99.9%</div>
+                <div class="stat-label">Uptime Guarantee</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         FEATURES
+         ============================================ -->
+    <section class="section-landing" id="features">
+        <div class="section-inner">
+            <div class="section-header reveal">
+                <span class="section-tag">Features</span>
+                <h2 class="section-title">Everything You Need to Run<br>Your Properties</h2>
+                <p class="section-subtitle">From bookings to payouts, ResIQ handles the entire lifecycle of vacation rental management.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card reveal">
+                    <div class="feature-icon-box">&#128197;</div>
+                    <h3>Smart Reservations</h3>
+                    <p>Kanban board and table views. Drag-and-drop status management. Multi-property calendar with availability tracking.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-1">
+                    <div class="feature-icon-box">&#128179;</div>
+                    <h3>Payment Tracking</h3>
+                    <p>Track payments by method (Cash, UPI, Gateway, Bank Transfer). Smart collection reminders and financial health scoring.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-2">
+                    <div class="feature-icon-box">&#128100;</div>
+                    <h3>Guest KYC Portal</h3>
+                    <p>Self-service guest portal for ID verification and document upload. QR code check-in for a contactless experience.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-3">
+                    <div class="feature-icon-box">&#128200;</div>
+                    <h3>Business Analytics</h3>
+                    <p>Revenue trends, occupancy heatmaps, channel performance, and ADR/RevPAN analysis across all your properties.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-4">
+                    <div class="feature-icon-box">&#128176;</div>
+                    <h3>Owner Settlements</h3>
+                    <p>Dedicated owner portal with revenue tracking, expense management, and automated payout calculations.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon-box">&#128172;</div>
+                    <h3>WhatsApp Integration</h3>
+                    <p>Send booking confirmations, payment reminders, and check-in details directly via WhatsApp with smart templates.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-1">
+                    <div class="feature-icon-box">&#129302;</div>
+                    <h3>AI-Powered Insights</h3>
+                    <p>Smart suggestions for pricing, guest follow-ups, and anomaly detection. Rule-based intelligence with zero API costs.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-2">
+                    <div class="feature-icon-box">&#128246;</div>
+                    <h3>Works Offline</h3>
+                    <p>Full PWA with offline support. Install on any device. Background sync ensures no data is ever lost.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-3">
+                    <div class="feature-icon-box">&#128197;</div>
+                    <h3>OTA Calendar Sync</h3>
+                    <p>Sync availability with Airbnb, Booking.com and other OTAs via iCal. Prevent double bookings automatically.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         THREE PORTALS
+         ============================================ -->
+    <section class="section-landing alt" id="portals">
+        <div class="section-inner">
+            <div class="section-header reveal">
+                <span class="section-tag">Portals</span>
+                <h2 class="section-title">Three Powerful Portals,<br>One Platform</h2>
+                <p class="section-subtitle">Separate interfaces for staff, property owners, and guests &mdash; each tailored for their needs.</p>
+            </div>
+
+            <div class="portals-grid">
+                <div class="portal-card reveal">
+                    <div class="portal-icon">&#127970;</div>
+                    <h3>Staff RMS Portal</h3>
+                    <p>Complete property management dashboard for your team. Reservations, payments, guests, analytics, and team management.</p>
+                    <a href="index.html" class="portal-link">Open Staff Portal &rarr;</a>
+                </div>
+                <div class="portal-card reveal reveal-delay-1">
+                    <div class="portal-icon">&#128100;</div>
+                    <h3>Owner Portal</h3>
+                    <p>Property owners can track revenue, view settlements, manage expenses, and request payouts &mdash; all independently.</p>
+                    <a href="owner-portal.html" class="portal-link">Open Owner Portal &rarr;</a>
+                </div>
+                <div class="portal-card reveal reveal-delay-2">
+                    <div class="portal-icon">&#127919;</div>
+                    <h3>Guest Portal</h3>
+                    <p>Guests complete KYC, upload documents, select meal preferences, and manage their stay details with ease.</p>
+                    <a href="guest-portal.html" class="portal-link">Open Guest Portal &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         HOW IT WORKS
+         ============================================ -->
+    <section class="section-landing" id="how-it-works">
+        <div class="section-inner">
+            <div class="section-header reveal">
+                <span class="section-tag">Getting Started</span>
+                <h2 class="section-title">Up and Running in Minutes</h2>
+                <p class="section-subtitle">No complex setup, no installation required. Just open and start managing.</p>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card reveal">
+                    <div class="step-number">1</div>
+                    <h3>Sign Up</h3>
+                    <p>Create your account and get instant access to the platform. No credit card required.</p>
+                </div>
+                <div class="step-card reveal reveal-delay-1">
+                    <div class="step-number">2</div>
+                    <h3>Add Properties</h3>
+                    <p>Add your properties, set commission rates, and configure booking sources and payment methods.</p>
+                </div>
+                <div class="step-card reveal reveal-delay-2">
+                    <div class="step-number">3</div>
+                    <h3>Start Managing</h3>
+                    <p>Create reservations, track payments, generate reports, and grow your business with data-driven insights.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         DOWNLOAD / INSTALL
+         ============================================ -->
+    <section class="section-landing alt" id="download">
+        <div class="section-inner">
+            <div class="section-header reveal">
+                <span class="section-tag">Download</span>
+                <h2 class="section-title">Available Everywhere</h2>
+                <p class="section-subtitle">Use ResIQ on any device. Install as a native app or use it directly in your browser.</p>
+            </div>
+
+            <div class="portals-grid" style="max-width: 800px; margin: 0 auto; grid-template-columns: repeat(2, 1fr);">
+                <div class="portal-card reveal">
+                    <div class="portal-icon">&#128241;</div>
+                    <h3>Android App</h3>
+                    <p>Download from the Google Play Store for the best native Android experience.</p>
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="portal-link">Get on Play Store &rarr;</a>
+                </div>
+                <div class="portal-card reveal reveal-delay-1">
+                    <div class="portal-icon">&#127760;</div>
+                    <h3>Web App (PWA)</h3>
+                    <p>Works on any browser. Install as a PWA on iOS, Android, Windows, Mac, or Chrome OS.</p>
+                    <a href="index.html" class="portal-link">Open Web App &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         CTA BANNER
+         ============================================ -->
+    <section class="cta-banner">
+        <div class="cta-inner reveal">
+            <h2>Ready to Transform Your Property Management?</h2>
+            <p>Join hundreds of property managers across India who trust ResIQ to run their hospitality business.</p>
+            <div class="cta-buttons">
+                <a href="index.html" class="btn-hero-primary">
+                    Get Started Free
+                </a>
+                <a href="mailto:support@hostizzy.com" class="btn-hero-secondary">
+                    Contact Sales
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <footer class="landing-footer">
+        <div class="footer-inner">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">
+                        <img src="assets/logo-128.png" alt="ResIQ">
+                        <span class="footer-brand-name">ResIQ</span>
+                    </div>
+                    <p class="footer-desc">
+                        The smartest property management system for vacation rentals, built by Hostizzy. Made with care in India.
+                    </p>
+                    <div class="footer-social">
+                        <a href="https://instagram.com/hostizzy" target="_blank" rel="noopener" title="Instagram">&#128247;</a>
+                        <a href="https://facebook.com/hostizzy" target="_blank" rel="noopener" title="Facebook">&#128077;</a>
+                        <a href="https://www.youtube.com/@hostizzy" target="_blank" rel="noopener" title="YouTube">&#9654;</a>
+                        <a href="https://wa.me/919876543210" target="_blank" rel="noopener" title="WhatsApp">&#128172;</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <a href="#features">Features</a>
+                    <a href="#portals">Portals</a>
+                    <a href="#download">Download</a>
+                    <a href="about.html">About</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Portals</h4>
+                    <a href="index.html">Staff RMS</a>
+                    <a href="owner-portal.html">Owner Portal</a>
+                    <a href="guest-portal.html">Guest Portal</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="mailto:support@hostizzy.com">Contact Support</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Hostizzy. All rights reserved.</p>
+                <a href="mailto:support@hostizzy.com">support@hostizzy.com</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================
+         SCRIPTS
+         ============================================ -->
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Mobile menu toggle
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('open');
+        }
+
+        // Close menu on link click
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('open');
+            });
+        });
+
+        // Scroll reveal animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Animate stat numbers
+        function animateCounters() {
+            document.querySelectorAll('.stat-number[data-count]').forEach(el => {
+                const target = parseInt(el.dataset.count);
+                const duration = 2000;
+                const start = performance.now();
+
+                function update(now) {
+                    const elapsed = now - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(eased * target);
+                    el.textContent = current.toLocaleString() + '+';
+                    if (progress < 1) requestAnimationFrame(update);
+                }
+                requestAnimationFrame(update);
+            });
+        }
+
+        // Trigger counters when stats section is visible
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    statsObserver.disconnect();
+                }
+            });
+        }, { threshold: 0.3 });
+
+        const statsBar = document.querySelector('.stats-bar');
+        if (statsBar) statsObserver.observe(statsBar);
+
+        // Dark mode: match system preference
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        });
+    </script>
+</body>
+</html>
