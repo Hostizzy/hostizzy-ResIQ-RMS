@@ -49,6 +49,8 @@ const FORCE_UPDATE = false;
 const STATIC_CACHE = [
   '/',
   '/index.html',
+  '/app',
+  '/app.html',
   '/owner-portal.html',
   '/guest-portal.html',
   '/privacy.html',
@@ -79,7 +81,7 @@ const STATIC_CACHE = [
   '/modules/components/empty-state.js',
   '/css/main.css',
   '/css/landing.css',
-  '/landing.html',
+  '/app.html',
   '/views/router.js',
   '/views/shared.js',
   '/assets/logo.png',
@@ -222,8 +224,8 @@ self.addEventListener('fetch', (event) => {
           return caches.match(request)
             .then((cachedResponse) => {
               if (cachedResponse) return cachedResponse;
-              // If no cached version, try index.html, then offline page
-              return caches.match('/index.html')
+              // If no cached version, try app.html, then offline page
+              return caches.match('/app.html')
                 .then((indexResponse) => {
                   if (indexResponse) return indexResponse;
                   return caches.match(OFFLINE_URL);
