@@ -421,113 +421,145 @@
 
     <!-- Login Screen -->
     <div id="loginScreen" class="login-container">
-        <div class="login-card">
-            <div class="logo">
-                <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
-                <p>Property Management System</p>
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="Email Address" autocomplete="email">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <div style="position: relative;">
-                    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" style="padding-right: 48px;">
-                    <button type="button" onclick="toggleLoginPassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; font-size: 18px; opacity: 0.6; transition: opacity 0.2s;" title="Show/Hide Password">
-                        <span id="loginPasswordToggleIcon"><i data-lucide="eye" style="width: 16px; height: 16px;"></i></span>
-                    </button>
+        <!-- Brand Showcase (visible on desktop) -->
+        <div class="login-brand">
+            <div class="login-brand-inner">
+                <img src="assets/logo-192.png" alt="ResIQ" class="login-brand-logo">
+                <h1 class="login-brand-title">ResIQ</h1>
+                <p class="login-brand-tagline">The smartest way to manage your vacation rental properties</p>
+                <div class="login-brand-features">
+                    <div class="login-brand-feature">
+                        <i data-lucide="calendar-check" style="width: 20px; height: 20px;"></i>
+                        <span>Smart Reservations & Kanban Board</span>
+                    </div>
+                    <div class="login-brand-feature">
+                        <i data-lucide="bar-chart-3" style="width: 20px; height: 20px;"></i>
+                        <span>Revenue Analytics & Business Intelligence</span>
+                    </div>
+                    <div class="login-brand-feature">
+                        <i data-lucide="users" style="width: 20px; height: 20px;"></i>
+                        <span>Guest KYC Portal & Document Management</span>
+                    </div>
+                    <div class="login-brand-feature">
+                        <i data-lucide="smartphone" style="width: 20px; height: 20px;"></i>
+                        <span>Works Offline — Install on Any Device</span>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Remember Me + Forgot Password -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
-                    <input type="checkbox" id="rememberMe" style="width: auto; min-height: auto; cursor: pointer;">
-                    <span style="font-size: 14px; font-weight: 500; color: var(--text-secondary);">Remember me</span>
-                </label>
-                <a href="#" onclick="showForgotPassword(); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 500;">
-                    Forgot password?
-                </a>
-            </div>
-
-            <button class="btn btn-primary" style="width: 100%;" onclick="login()">Login</button>
-
-            <!-- Owner Portal Link -->
-            <div style="margin-top: 24px; text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
-                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Property Owner?</p>
-                <a href="owner-portal.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);"
-                   onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(8, 145, 178, 0.4)';"
-                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(8, 145, 178, 0.3)';">
-                    <i data-lucide="building-2" style="width: 22px; height: 22px;"></i>
-                    <span>Access Owner Portal</span>
-                    <span style="font-size: 16px;">→</span>
-                </a>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-top: 12px;">View bookings, revenue, and manage your properties</p>
+                <p class="login-brand-trust">Trusted by property managers across India</p>
             </div>
         </div>
 
-        <!-- Forgot Password Panel -->
-        <div id="forgotPasswordPanel" class="login-card hidden" style="margin-top: 0;">
-            <div class="logo">
-                <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
-                <p>Reset Your Password</p>
-            </div>
-            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Enter your email address and we'll send you a link to reset your password.</p>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="forgotPasswordEmail" placeholder="Email Address" autocomplete="email">
-            </div>
-            <div id="forgotPasswordMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="submitForgotPassword()">Send Reset Link</button>
-            <div style="margin-top: 16px; text-align: center;">
-                <a href="#" onclick="showLoginPanel(); return false;" style="font-size: 14px; color: var(--primary); text-decoration: none;">← Back to Login</a>
-            </div>
-        </div>
-
-        <!-- Reset Password Panel (shown when user clicks email recovery link) -->
-        <div id="resetPasswordPanel" class="login-card hidden" style="margin-top: 0;">
-            <div class="logo">
-                <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
-                <p>Set New Password</p>
-            </div>
-            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; text-align: center;">Choose a strong new password for your account.</p>
-            <div class="form-group">
-                <label>New Password</label>
-                <div style="position: relative;">
-                    <input type="password" id="resetNewPassword" placeholder="New Password" style="padding-right: 48px;">
-                    <button type="button" onclick="this.previousElementSibling.type = this.previousElementSibling.type === 'password' ? 'text' : 'password';" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; font-size: 18px; opacity: 0.6;">
-                        <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
-                    </button>
+        <!-- Login Form Side -->
+        <div class="login-form-side">
+            <div class="login-card">
+                <div class="logo">
+                    <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 12px 0 4px;">Welcome back</h2>
+                    <p>Sign in to your account</p>
                 </div>
-            </div>
-            <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="resetConfirmPassword" placeholder="Confirm New Password">
-            </div>
-            <div id="resetPasswordMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="submitResetPassword()">Update Password</button>
-        </div>
-
-        <!-- Login Page Footer with Legal Links -->
-        <div style="position: fixed; bottom: 0; left: 0; right: 0; padding: 20px; background: var(--surface); backdrop-filter: blur(10px); border-top: 1px solid var(--border); z-index: 1000;">
-            <div style="max-width: 600px; margin: 0 auto; text-align: center;">
-                <!-- Links -->
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-bottom: 12px;">
-                    <a href="about.html" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">About & Help</a>
-                    <span style="color: var(--text-tertiary);">•</span>
-                    <a href="privacy.html" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">Privacy Policy</a>
-                    <span style="color: var(--text-tertiary);">•</span>
-                    <a href="terms.html" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">Terms of Service</a>
-                    <span style="color: var(--text-tertiary);">•</span>
-                    <a href="mailto:support@hostizzy.com" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">Contact Support</a>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="Email Address" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" style="padding-right: 48px;">
+                        <button type="button" onclick="toggleLoginPassword()" class="login-password-toggle" title="Show/Hide Password">
+                            <span id="loginPasswordToggleIcon"><i data-lucide="eye" style="width: 16px; height: 16px;"></i></span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Version & Copyright -->
-                <div style="font-size: 12px; color: var(--text-tertiary);">
-                    <p style="margin-bottom: 4px;">ResIQ by Hostizzy • Version 1.0.0 (Build 2026.01)</p>
-                    <p>© 2026 Hostizzy. All rights reserved.</p>
+                <!-- Remember Me + Forgot Password -->
+                <div class="login-options">
+                    <label class="login-remember">
+                        <input type="checkbox" id="rememberMe">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" onclick="showForgotPassword(); return false;" class="login-forgot">Forgot password?</a>
                 </div>
+
+                <button class="btn btn-primary login-btn" onclick="login()" id="loginButton">
+                    <span id="loginBtnText">Sign In</span>
+                    <span id="loginBtnSpinner" class="hidden" style="display: none;">
+                        <span class="login-spinner"></span>
+                        Signing in...
+                    </span>
+                </button>
+
+                <!-- Portal Links -->
+                <div class="login-portal-links">
+                    <a href="owner-portal.html" class="login-portal-link">
+                        <i data-lucide="building-2" style="width: 18px; height: 18px;"></i>
+                        <span>Owner Portal</span>
+                    </a>
+                    <a href="guest-portal.html" class="login-portal-link">
+                        <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
+                        <span>Guest Portal</span>
+                    </a>
+                </div>
+
+                <p class="login-secure-text">
+                    <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                    Secure login powered by Firebase
+                </p>
+            </div>
+
+            <!-- Forgot Password Panel -->
+            <div id="forgotPasswordPanel" class="login-card hidden">
+                <div class="logo">
+                    <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 12px 0 4px;">Reset Password</h2>
+                    <p>We'll send you a link to reset your password</p>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="forgotPasswordEmail" placeholder="Email Address" autocomplete="email">
+                </div>
+                <div id="forgotPasswordMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
+                <button class="btn btn-primary login-btn" onclick="submitForgotPassword()">Send Reset Link</button>
+                <div style="margin-top: 16px; text-align: center;">
+                    <a href="#" onclick="showLoginPanel(); return false;" class="login-forgot">&larr; Back to Login</a>
+                </div>
+            </div>
+
+            <!-- Reset Password Panel -->
+            <div id="resetPasswordPanel" class="login-card hidden">
+                <div class="logo">
+                    <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 12px 0 4px;">New Password</h2>
+                    <p>Choose a strong new password</p>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="resetNewPassword" placeholder="New Password" style="padding-right: 48px;">
+                        <button type="button" onclick="this.previousElementSibling.type = this.previousElementSibling.type === 'password' ? 'text' : 'password';" class="login-password-toggle">
+                            <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="resetConfirmPassword" placeholder="Confirm New Password">
+                </div>
+                <div id="resetPasswordMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
+                <button class="btn btn-primary login-btn" onclick="submitResetPassword()">Update Password</button>
+            </div>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <div class="login-footer-links">
+                    <a href="about.html">About</a>
+                    <span>&middot;</span>
+                    <a href="privacy.html">Privacy</a>
+                    <span>&middot;</span>
+                    <a href="terms.html">Terms</a>
+                    <span>&middot;</span>
+                    <a href="mailto:support@hostizzy.com">Support</a>
+                </div>
+                <p class="login-footer-copy">&copy; 2026 Hostizzy. All rights reserved.</p>
             </div>
         </div>
     </div>
