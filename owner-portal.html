@@ -7,6 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#2563eb">
     <title>Owner Portal - ResIQ by Hostizzy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
 
     <!-- Native App Styles -->
@@ -80,11 +83,13 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: var(--background);
             color: var(--text);
             height: 100vh;
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .hidden {
@@ -101,7 +106,7 @@
         /* Sidebar Styles */
         .sidebar {
             width: 280px;
-            background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
             color: white;
             display: flex;
             flex-direction: column;
@@ -1244,11 +1249,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <!-- Owner Login Screen -->
-    <div id="ownerLoginScreen" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--background); padding: 20px; padding-bottom: 140px;">
-        <div style="width: 100%; max-width: 400px; background: var(--surface); border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
-            <div style="text-align: center; margin-bottom: 32px;">
-                <h1 style="font-size: 28px; margin: 0 0 8px 0; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🏠 Owner Portal</h1>
-                <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Login to manage your properties</p>
+    <div id="ownerLoginScreen" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%); padding: 20px; padding-bottom: 140px;">
+        <div style="width: 100%; max-width: 420px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 24px; padding: 48px 40px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);">
+            <div style="text-align: center; margin-bottom: 36px;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);">🏠</div>
+                <h1 style="font-size: 26px; margin: 0 0 6px 0; color: #1e1b4b; font-weight: 800; letter-spacing: -0.5px;">Owner Portal</h1>
+                <p style="color: #64748b; font-size: 14px; margin: 0;">ResIQ by Hostizzy</p>
             </div>
 
             <div class="form-group" style="margin-bottom: 16px;">
@@ -1366,8 +1372,20 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="ownerSidebar">
             <div class="sidebar-header">
-                <h2>🏠 Owner Portal</h2>
-                <p id="ownerUserName">Owner Name</p>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #818cf8, #c084fc); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">🏠</div>
+                    <div>
+                        <h2 style="font-size: 18px; margin: 0;">ResIQ</h2>
+                        <p style="font-size: 11px; opacity: 0.7; margin: 0; letter-spacing: 1px; text-transform: uppercase;">Owner Portal</p>
+                    </div>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;" id="sidebarAvatar">O</div>
+                    <div style="overflow: hidden;">
+                        <div style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="ownerUserName">Owner Name</div>
+                        <div style="font-size: 11px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="sidebarEmail">owner@email.com</div>
+                    </div>
+                </div>
             </div>
             <nav class="sidebar-nav">
                 <button class="sidebar-nav-item active" onclick="showOwnerView('ownerHome')">
@@ -1398,8 +1416,8 @@
                     <span class="icon">🏘️</span> Properties
                 </button>
             </nav>
-            <div style="padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                <button onclick="logout()" style="width: 100%; background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            <div style="padding: 16px 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <button onclick="logout()" style="width: 100%; background: rgba(255, 255, 255, 0.1); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.15); padding: 10px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.2)';this.style.borderColor='rgba(239,68,68,0.4)';this.style.color='#fca5a5'" onmouseout="this.style.background='rgba(255,255,255,0.1)';this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='rgba(255,255,255,0.8)'">
                     🚪 Logout
                 </button>
             </div>
@@ -1410,19 +1428,19 @@
             <!-- Top Bar -->
             <div class="top-bar">
                 <div class="top-bar-left">
-                    <h1 class="page-title" id="pageTitle">Home</h1>
+                    <h1 class="page-title" id="pageTitle" style="font-weight: 800; letter-spacing: -0.3px;">Home</h1>
                 </div>
-                <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
                     <div class="quick-actions">
                         <button class="quick-action-btn primary" onclick="openPayoutRequestModal()">
-                            💰 Request Payout
+                            💸 Request Payout
                         </button>
                         <button class="quick-action-btn" onclick="showOwnerView('ownerCalendar')">
                             🗓️ Calendar
                         </button>
                     </div>
                     <!-- Theme Toggle -->
-                    <button onclick="toggleOwnerTheme()" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.3s;" title="Toggle Dark Mode">
+                    <button onclick="toggleOwnerTheme()" style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.3s;" title="Toggle Dark Mode">
                         <span class="theme-icon-light" style="display: block;">🌙</span>
                         <span class="theme-icon-dark" style="display: none;">☀️</span>
                     </button>
@@ -1430,7 +1448,7 @@
                         <div class="user-avatar" id="userAvatar">O</div>
                         <div style="text-align: left;">
                             <div style="font-size: 13px; font-weight: 600; color: var(--text);" id="topBarUserName">Owner Name</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);" id="ownerUserEmail">owner@email.com</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);" id="ownerUserEmail">owner@email.com</div>
                         </div>
                     </div>
                 </div>
@@ -1438,86 +1456,91 @@
 
             <!-- Content Area -->
             <div class="content-area">
-                <!-- Home View (NEW) -->
+                <!-- Home View -->
                 <div id="ownerHomeView" class="owner-view">
                     <div style="max-width: 1200px; margin: 0 auto;">
-                        <div style="margin-bottom: 32px; text-align: center;">
-                            <h2 style="font-size: 32px; margin-bottom: 8px;">Welcome back, <span id="welcomeUserName">Owner</span>! 👋</h2>
-                            <p style="color: var(--text-secondary); font-size: 16px;">Manage your properties and track your earnings</p>
+                        <div style="margin-bottom: 32px;">
+                            <h2 style="font-size: 28px; margin-bottom: 6px; font-weight: 800; letter-spacing: -0.5px;">Welcome back, <span id="welcomeUserName">Owner</span> 👋</h2>
+                            <p style="color: var(--text-secondary); font-size: 15px;">Here's how your properties are performing</p>
                         </div>
 
                         <!-- Quick Stats Row -->
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;">
-                            <div class="stat-card">
-                                <div class="stat-value" style="color: #10b981;" id="homeQuickTotalRevenue">₹0</div>
-                                <div class="stat-label">Total Revenue</div>
-                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">From all bookings</small>
+                            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 24px; border-radius: 16px; color: white; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: -10px; right: -10px; font-size: 64px; opacity: 0.15;">💰</div>
+                                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">Total Revenue</div>
+                                <div style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;" id="homeQuickTotalRevenue">₹0</div>
+                                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">From all bookings</div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-value" style="color: #6366f1;" id="homeQuickTotalGuests">0</div>
-                                <div class="stat-label">Total Guests</div>
-                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Across all properties</small>
+                            <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 24px; border-radius: 16px; color: white; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: -10px; right: -10px; font-size: 64px; opacity: 0.15;">👥</div>
+                                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">Total Guests</div>
+                                <div style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;" id="homeQuickTotalGuests">0</div>
+                                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Across all properties</div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-value" style="color: #8b5cf6;" id="homeQuickNetEarnings">₹0</div>
-                                <div class="stat-label">Your Earnings</div>
-                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">After commission</small>
+                            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 24px; border-radius: 16px; color: white; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: -10px; right: -10px; font-size: 64px; opacity: 0.15;">✨</div>
+                                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">Your Earnings</div>
+                                <div style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;" id="homeQuickNetEarnings">₹0</div>
+                                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">After commission</div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-value" style="color: #f59e0b;" id="homeQuickPendingPayout">₹0</div>
-                                <div class="stat-label">Pending Payout</div>
-                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Available to withdraw</small>
+                            <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 24px; border-radius: 16px; color: white; position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: -10px; right: -10px; font-size: 64px; opacity: 0.15;">💸</div>
+                                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">Pending Payout</div>
+                                <div style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;" id="homeQuickPendingPayout">₹0</div>
+                                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Available to withdraw</div>
                             </div>
                         </div>
 
                         <!-- Navigation Grid -->
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Quick Access</h3>
                         <div class="home-grid">
                             <div class="home-card primary" onclick="showOwnerView('ownerDashboard')">
                                 <div class="home-card-icon">📊</div>
                                 <div class="home-card-title">Analytics Dashboard</div>
-                                <div class="home-card-description">View detailed revenue analytics, charts, and monthly breakdowns</div>
+                                <div class="home-card-description">Revenue analytics, charts, and monthly breakdowns</div>
                             </div>
 
                             <div class="home-card success" onclick="showOwnerView('ownerBookings')">
                                 <div class="home-card-icon">📅</div>
                                 <div class="home-card-title">Bookings</div>
-                                <div class="home-card-description">View all your property bookings and reservations</div>
+                                <div class="home-card-description">All your property bookings and reservations</div>
                             </div>
 
                             <div class="home-card warning" onclick="showOwnerView('ownerPayments')">
                                 <div class="home-card-icon">💵</div>
                                 <div class="home-card-title">Payment Collections</div>
-                                <div class="home-card-description">Track all payments received for your properties</div>
+                                <div class="home-card-description">Track payments received for your properties</div>
                             </div>
 
                             <div class="home-card" onclick="showOwnerView('ownerCalendar')">
                                 <div class="home-card-icon">🗓️</div>
                                 <div class="home-card-title">Calendar</div>
-                                <div class="home-card-description">Check availability and booking schedules</div>
+                                <div class="home-card-description">Availability and booking schedules</div>
                             </div>
 
                             <div class="home-card" onclick="showOwnerView('ownerPayouts')">
                                 <div class="home-card-icon">💰</div>
-                                <div class="home-card-title">Payout History</div>
-                                <div class="home-card-description">View your payout requests and payment history</div>
+                                <div class="home-card-title">Settlements</div>
+                                <div class="home-card-description">Monthly settlements and payout history</div>
                             </div>
 
-                            <div class="home-card" onclick="showOwnerView('ownerBankDetails')">
-                                <div class="home-card-icon">🏦</div>
-                                <div class="home-card-title">Bank Details</div>
-                                <div class="home-card-description">Manage your bank account and UPI information</div>
+                            <div class="home-card" onclick="showOwnerView('ownerExpenses')">
+                                <div class="home-card-icon">🔧</div>
+                                <div class="home-card-title">Expenses</div>
+                                <div class="home-card-description">Track property maintenance and expenses</div>
                             </div>
 
                             <div class="home-card" onclick="showOwnerView('ownerProperties')">
                                 <div class="home-card-icon">🏘️</div>
                                 <div class="home-card-title">My Properties</div>
-                                <div class="home-card-description">View all properties linked to your account</div>
+                                <div class="home-card-description">Properties linked to your account</div>
                             </div>
 
                             <div class="home-card primary" onclick="openPayoutRequestModal()">
                                 <div class="home-card-icon">💸</div>
                                 <div class="home-card-title">Request Payout</div>
-                                <div class="home-card-description">Withdraw your earned amount to your bank account</div>
+                                <div class="home-card-description">Withdraw earnings to your bank account</div>
                             </div>
                         </div>
                     </div>
@@ -1525,41 +1548,44 @@
 
             <!-- Dashboard View -->
             <div id="ownerDashboardView" class="owner-view">
-                <h3 style="margin: 0 0 24px 0;">Revenue Dashboard</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Revenue Dashboard</h3>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Track your property earnings and performance</p>
+                    </div>
+                    <button onclick="openPayoutRequestModal()" class="btn btn-primary" style="box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
+                        💸 Request Payout
+                    </button>
+                </div>
 
                 <!-- Revenue Cards -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
-                    <div class="stat-card">
-                        <div class="stat-value" style="color: #10b981;" id="ownerTotalRevenue">₹0</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div class="stat-card" style="border-left: 4px solid #10b981;">
+                        <div class="stat-value" style="color: #10b981; font-size: 28px;" id="ownerTotalRevenue">₹0</div>
                         <div class="stat-label">Total Revenue</div>
                         <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerTotalRevenueChange">From all bookings</small>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" style="color: #6366f1;" id="ownerTotalGuests">0</div>
+                    <div class="stat-card" style="border-left: 4px solid #6366f1;">
+                        <div class="stat-value" style="color: #6366f1; font-size: 28px;" id="ownerTotalGuests">0</div>
                         <div class="stat-label">Total Guests</div>
                         <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Across all properties</small>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" style="color: #f59e0b;" id="ownerHostizzyShare">₹0</div>
+                    <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+                        <div class="stat-value" style="color: #f59e0b; font-size: 28px;" id="ownerHostizzyShare">₹0</div>
                         <div class="stat-label">Hostizzy Share</div>
                         <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerHostizzyPercent">Average commission</small>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" style="color: #8b5cf6;" id="ownerNetEarnings">₹0</div>
+                    <div class="stat-card" style="border-left: 4px solid #8b5cf6;">
+                        <div class="stat-value" style="color: #8b5cf6; font-size: 28px;" id="ownerNetEarnings">₹0</div>
                         <div class="stat-label">Your Earnings</div>
                         <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerEarningsPercent">After commission</small>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" style="color: #ec4899;" id="ownerPendingPayout">₹0</div>
+                    <div class="stat-card" style="border-left: 4px solid #ec4899;">
+                        <div class="stat-value" style="color: #ec4899; font-size: 28px;" id="ownerPendingPayout">₹0</div>
                         <div class="stat-label">Pending Payout</div>
                         <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Available to withdraw</small>
                     </div>
                 </div>
-
-                <!-- Request Payout Button -->
-                <button onclick="openPayoutRequestModal()" class="btn btn-primary" style="margin-bottom: 24px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
-                    💰 Request Payout
-                </button>
 
                 <!-- Revenue Charts -->
                 <div class="charts-grid" style="margin-bottom: 24px;">
@@ -1603,7 +1629,10 @@
 
             <!-- Bookings View -->
             <div id="ownerBookingsView" class="owner-view hidden">
-                <h3 style="margin: 0 0 24px 0;">My Bookings</h3>
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">My Bookings</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">All reservations across your properties</p>
+                </div>
 
                 <!-- Filters & Search -->
                 <div class="card" style="margin-bottom: 24px;">
@@ -1675,7 +1704,10 @@
 
             <!-- Payments View -->
             <div id="ownerPaymentsView" class="owner-view hidden">
-                <h3 style="margin: 0 0 24px 0;">Payment Collections</h3>
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Payment Collections</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Track all payments received for your properties</p>
+                </div>
 
                 <!-- Filters -->
                 <div class="card" style="margin-bottom: 24px;">
@@ -1725,7 +1757,10 @@
 
             <!-- Calendar View -->
             <div id="ownerCalendarView" class="owner-view hidden">
-                <h3 style="margin: 0 0 24px 0;">Availability Calendar</h3>
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Availability Calendar</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Check property availability and booking schedules</p>
+                </div>
 
                 <!-- Calendar Controls -->
                 <div class="card" style="margin-bottom: 24px;">
@@ -1774,15 +1809,21 @@
 
             <!-- Payouts View -->
             <div id="ownerPayoutsView" class="owner-view hidden">
-                <h3 style="margin: 0 0 24px 0;">Payout History</h3>
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Settlements & Payouts</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Monthly settlement tracking and payout request history</p>
+                </div>
                 <div id="ownerPayoutsList"></div>
             </div>
 
             <!-- Expenses View -->
             <div id="ownerExpensesView" class="owner-view hidden">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
-                    <h3 style="margin: 0;">Property Expenses</h3>
-                    <button onclick="openExpenseModal()" class="btn btn-primary" style="padding: 10px 20px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Property Expenses</h3>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Track maintenance, utilities, and other property costs</p>
+                    </div>
+                    <button onclick="openExpenseModal()" class="btn btn-primary" style="padding: 12px 20px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
                         + Add Expense
                     </button>
                 </div>
@@ -1790,9 +1831,12 @@
             </div>
 
             <!-- Expense Modal -->
-            <div id="expenseModal" class="modal-overlay hidden" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-                <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; margin: auto; position: relative; top: 50%; transform: translateY(-50%);">
-                    <h3 style="margin: 0 0 24px 0;" id="expenseModalTitle">Add Expense</h3>
+            <div id="expenseModal" class="modal-overlay hidden" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
+                <div style="background: var(--surface); border-radius: 20px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; margin: auto; position: relative; top: 50%; transform: translateY(-50%); box-shadow: 0 25px 50px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3 style="margin: 0; font-size: 20px; font-weight: 700;" id="expenseModalTitle">Add Expense</h3>
+                        <button onclick="closeExpenseModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); line-height: 1;">&times;</button>
+                    </div>
                     <input type="hidden" id="editExpenseId">
                     <div style="display: grid; gap: 16px;">
                         <div>
@@ -1834,7 +1878,10 @@
 
             <!-- Bank Details View -->
             <div id="ownerBankDetailsView" class="owner-view hidden">
-                <h3 style="margin: 0 0 24px 0;">Bank Account Details</h3>
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Bank Account Details</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Manage your payout bank account and UPI information</p>
+                </div>
                 <div class="form-container" style="max-width: 600px;">
                     <div class="form-group">
                         <label>Account Holder Name</label>
@@ -1866,7 +1913,10 @@
 
             <!-- Properties View -->
             <div id="ownerPropertiesView" class="owner-view hidden">
-                <h3 style="margin: 0 0 24px 0;">My Properties</h3>
+                <div style="margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">My Properties</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Properties linked to your owner account</p>
+                </div>
                 <div id="ownerPropertiesList"></div>
             </div>
 
@@ -1879,7 +1929,7 @@
         <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
 
         <!-- Mobile Bottom Navigation -->
-        <nav class="mobile-bottom-nav">
+        <nav class="mobile-bottom-nav" style="background: var(--surface); border-top: 1px solid var(--border);">
             <button class="bottom-nav-item active" onclick="showOwnerViewMobile('ownerHome')" data-view="ownerHome">
                 <span class="icon">🏠</span>
                 <span class="label">Home</span>
@@ -1892,13 +1942,13 @@
                 <span class="icon">📅</span>
                 <span class="label">Bookings</span>
             </button>
-            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerPayments')" data-view="ownerPayments">
-                <span class="icon">💵</span>
-                <span class="label">Payments</span>
-            </button>
             <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerPayouts')" data-view="ownerPayouts">
                 <span class="icon">💰</span>
                 <span class="label">Payouts</span>
+            </button>
+            <button class="bottom-nav-item" onclick="showOwnerViewMobile('ownerExpenses')" data-view="ownerExpenses">
+                <span class="icon">🔧</span>
+                <span class="label">Expenses</span>
             </button>
         </nav>
 
@@ -2381,6 +2431,11 @@
                     document.getElementById('topBarUserName').textContent = currentUser.name;
                     document.getElementById('welcomeUserName').textContent = currentUser.name.split(' ')[0];
                     document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+                    // Sidebar elements
+                    const sidebarAvatar = document.getElementById('sidebarAvatar');
+                    if (sidebarAvatar) sidebarAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+                    const sidebarEmail = document.getElementById('sidebarEmail');
+                    if (sidebarEmail) sidebarEmail.textContent = currentUser.email;
 
                     // Load home view
                     await loadOwnerHome();
@@ -2622,6 +2677,11 @@
             document.getElementById('topBarUserName').textContent = currentUser.name;
             document.getElementById('welcomeUserName').textContent = currentUser.name.split(' ')[0];
             document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            // Sidebar elements
+            const sidebarAvatar2 = document.getElementById('sidebarAvatar');
+            if (sidebarAvatar2) sidebarAvatar2.textContent = currentUser.name.charAt(0).toUpperCase();
+            const sidebarEmail2 = document.getElementById('sidebarEmail');
+            if (sidebarEmail2) sidebarEmail2.textContent = currentUser.email;
 
             // Load home view
             await loadOwnerHome();
