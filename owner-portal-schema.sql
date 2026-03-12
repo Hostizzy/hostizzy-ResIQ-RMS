@@ -114,6 +114,45 @@ CREATE TABLE IF NOT EXISTS settlement_status (
 );
 
 -- =====================================================
+-- TABLE: property_expenses
+-- Purpose: Track property-level expenses for settlement calculations
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS property_expenses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- Property Reference
+    property_id INT NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+
+    -- Expense Details
+    amount NUMERIC NOT NULL CHECK (amount > 0),
+    category TEXT NOT NULL CHECK (category IN (
+        'maintenance',
+        'utilities',
+        'housekeeping',
+        'supplies',
+        'staff',
+        'other'
+    )),
+    description TEXT,
+    expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+
+    -- Receipt/proof
+    receipt_url TEXT,
+
+    -- Who entered it
+    entered_by TEXT,
+    entered_by_type TEXT CHECK (entered_by_type IN ('staff', 'owner')),
+
+    -- Settlement period (format: "YYYY-M", e.g., "2026-3")
+    settlement_month TEXT,
+
+    -- Timestamps
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================================================
 -- MODIFY EXISTING TABLES
 -- =====================================================
 
@@ -128,6 +167,18 @@ ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES property_owners(id) ON DELETE 
 -- Add Hostizzy revenue/commission column
 ALTER TABLE reservations
 ADD COLUMN IF NOT EXISTS hostizzy_revenue NUMERIC DEFAULT 0;
+
+-- Add host_payout: total_amount - ota_service_fee
+ALTER TABLE reservations
+ADD COLUMN IF NOT EXISTS host_payout NUMERIC DEFAULT 0;
+
+-- Add payout_eligible: same as host_payout, stored for settlement tracking
+ALTER TABLE reservations
+ADD COLUMN IF NOT EXISTS payout_eligible NUMERIC DEFAULT 0;
+
+-- Add is_legacy flag for backward-compatible balance logic
+ALTER TABLE reservations
+ADD COLUMN IF NOT EXISTS is_legacy BOOLEAN DEFAULT false;
 
 -- Add GST rate mode column for tax calculation preferences
 ALTER TABLE reservations
@@ -147,6 +198,10 @@ CREATE INDEX IF NOT EXISTS idx_reservations_owner ON reservations(owner_id);
 CREATE INDEX IF NOT EXISTS idx_settlement_status_owner ON settlement_status(owner_id);
 CREATE INDEX IF NOT EXISTS idx_settlement_status_month ON settlement_status(settlement_month);
 CREATE INDEX IF NOT EXISTS idx_settlement_status_owner_month ON settlement_status(owner_id, settlement_month);
+CREATE INDEX IF NOT EXISTS idx_property_expenses_property ON property_expenses(property_id);
+CREATE INDEX IF NOT EXISTS idx_property_expenses_date ON property_expenses(expense_date DESC);
+CREATE INDEX IF NOT EXISTS idx_property_expenses_category ON property_expenses(category);
+CREATE INDEX IF NOT EXISTS idx_property_expenses_month ON property_expenses(settlement_month);
 
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -285,6 +340,56 @@ CREATE POLICY "Staff can view all settlements"
         )
     );
 
+-- Enable RLS on property_expenses
+ALTER TABLE property_expenses ENABLE ROW LEVEL SECURITY;
+
+-- Staff can view and manage all expenses
+CREATE POLICY "Staff can view all expenses"
+    ON property_expenses
+    FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM team_members
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
+CREATE POLICY "Staff can manage expenses"
+    ON property_expenses
+    FOR ALL
+    USING (
+        EXISTS (
+            SELECT 1 FROM team_members
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
+-- Owners can view expenses for their properties
+CREATE POLICY "Owners can view own property expenses"
+    ON property_expenses
+    FOR SELECT
+    USING (
+        property_id IN (
+            SELECT p.id FROM properties p
+            JOIN property_owners po ON p.owner_id = po.id
+            WHERE po.email = current_setting('app.user_email', true)
+        )
+    );
+
+-- Owners can create expenses for their properties
+CREATE POLICY "Owners can create expenses"
+    ON property_expenses
+    FOR INSERT
+    WITH CHECK (
+        property_id IN (
+            SELECT p.id FROM properties p
+            JOIN property_owners po ON p.owner_id = po.id
+            WHERE po.email = current_setting('app.user_email', true)
+        )
+    );
+
 -- =====================================================
 -- TRIGGERS
 -- =====================================================
@@ -310,6 +415,11 @@ CREATE TRIGGER update_payout_requests_updated_at
 
 CREATE TRIGGER update_settlement_status_updated_at
     BEFORE UPDATE ON settlement_status
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_property_expenses_updated_at
+    BEFORE UPDATE ON property_expenses
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 

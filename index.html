@@ -4279,7 +4279,7 @@
                 <p style="margin: 0 0 20px 0; font-size: 13px; color: var(--text-secondary);">Enter rates and charges. Taxes are calculated automatically.</p>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Stay Amount (&#8377;)</label>
+                        <label>Stay Amount (&#8377;) <span id="stayAmountHint" style="font-size: 11px; color: var(--text-secondary); font-weight: 400;"></span></label>
                         <input type="number" id="stayAmount" min="0" step="0.01" value="0" oninput="calculateTaxes()">
                     </div>
                     <div class="form-group">
@@ -4302,9 +4302,10 @@
                         <span><i data-lucide="building" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>OTA Service Fee / Commission (&#8377;)</span>
                         <span style="font-size: 11px; color: var(--text-secondary); font-weight: 400;">(e.g., Airbnb 15%, MMT 20%)</span>
                     </label>
-                    <input type="number" id="otaServiceFee" min="0" step="0.01" value="0" placeholder="Enter OTA commission amount">
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; padding: 8px; background: #fef3c7; border-radius: 6px;">
-                        <i data-lucide="lightbulb" style="width: 13px; height: 13px; margin-right: 3px; vertical-align: middle;"></i><strong>Tip:</strong> Calculate based on OTA's commission rate. Amount deducted from gross revenue.
+                    <input type="number" id="otaServiceFee" min="0" step="0.01" value="0" placeholder="Enter OTA commission amount" oninput="calculateTaxes()">
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; padding: 8px; background: #eff6ff; border-radius: 6px; border: 1px solid #bfdbfe;">
+                        <i data-lucide="info" style="width: 13px; height: 13px; margin-right: 3px; vertical-align: middle;"></i>
+                        <strong>Enter the gross/full stay amount above.</strong> The OTA fee here is what the OTA keeps (e.g., Airbnb commission). Host Payout = Total - OTA Fee. Hostizzy revenue is calculated on the base after deducting OTA's cut.
                     </div>
                 </div>
                 <div class="form-row">
@@ -6286,6 +6287,50 @@
             return total;
         }
         // ============================================
+        // FINANCIAL UTILITY FUNCTIONS
+        // ============================================
+
+        /**
+         * Calculate balance for a reservation.
+         * New system (is_legacy = false): balance = total_amount - paid_amount
+         * Legacy system (is_legacy = true, OTA): balance = (total_amount - ota_service_fee) - paid_amount
+         * Legacy system (is_legacy = true, Direct): balance = total_amount - paid_amount
+         */
+        function getBalance(reservation) {
+            const total = parseFloat(reservation.total_amount) || 0;
+            const paid = parseFloat(reservation.paid_amount) || 0;
+            const otaFee = parseFloat(reservation.ota_service_fee) || 0;
+            const isOTA = reservation.booking_source && reservation.booking_source !== 'DIRECT';
+            const isLegacy = reservation.is_legacy === true;
+
+            if (isLegacy && isOTA) {
+                return (total - otaFee) - paid;
+            }
+            return total - paid;
+        }
+
+        /**
+         * Calculate host payout (what property receives after OTA takes their cut).
+         * For OTA bookings: total_amount - ota_service_fee
+         * For Direct bookings: total_amount
+         */
+        function getHostPayout(reservation) {
+            const total = parseFloat(reservation.total_amount) || 0;
+            const otaFee = parseFloat(reservation.ota_service_fee) || 0;
+            return total - otaFee;
+        }
+
+        /**
+         * Calculate Hostizzy revenue (commission) for a reservation.
+         * Base = (stay_amount - ota_service_fee + extra_guest_charges) * revenue_share%
+         * Revenue share is on pre-tax base, excluding OTA's cut.
+         */
+        function calculateHostizzyRevenueAmount(stayAmount, extraGuestCharges, otaServiceFee, revenueSharePercent) {
+            const base = (stayAmount - otaServiceFee + extraGuestCharges);
+            return (base * revenueSharePercent) / 100;
+        }
+
+        // ============================================
         // SMART NUMBER FORMATTING
         // ============================================
         
@@ -6760,6 +6805,38 @@
                 if (error) throw error;
             },
 
+            // Property Expenses Functions
+            async getPropertyExpenses(propertyId, settlementMonth = null) {
+                let query = supabase.from('property_expenses').select('*').eq('property_id', propertyId).order('expense_date', { ascending: false });
+                if (settlementMonth) query = query.eq('settlement_month', settlementMonth);
+                const { data, error } = await query;
+                if (error) throw error;
+                return data || [];
+            },
+            async getAllExpenses(propertyIds = null) {
+                let query = supabase.from('property_expenses').select('*').order('expense_date', { ascending: false });
+                if (propertyIds && propertyIds.length > 0) query = query.in('property_id', propertyIds);
+                const { data, error } = await query;
+                if (error) throw error;
+                return data || [];
+            },
+            async saveExpense(expense) {
+                if (expense.id) {
+                    const { data, error } = await supabase.from('property_expenses').update(expense).eq('id', expense.id).select();
+                    if (error) throw error;
+                    return data?.[0];
+                } else {
+                    const { id, ...cleanExpense } = expense;
+                    const { data, error } = await supabase.from('property_expenses').insert([cleanExpense]).select();
+                    if (error) throw error;
+                    return data?.[0];
+                }
+            },
+            async deleteExpense(expenseId) {
+                const { error } = await supabase.from('property_expenses').delete().eq('id', expenseId);
+                if (error) throw error;
+            },
+
             // Owner Portal Functions
             async getOwners() {
                 const { data, error } = await supabase
@@ -6854,13 +6931,14 @@
             async getOwnerPendingPayout(ownerId) {
                 const { data: reservations } = await supabase
                     .from('reservations')
-                    .select('total_amount, hostizzy_revenue')
+                    .select('total_amount, hostizzy_revenue, ota_service_fee, payout_eligible')
                     .eq('owner_id', ownerId)
                     .eq('payment_status', 'paid')
                     .in('status', ['confirmed', 'checked_in', 'completed']);
-                const totalEarned = reservations.reduce((sum, r) =>
-                    sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.hostizzy_revenue) || 0)), 0
-                );
+                const totalEarned = reservations.reduce((sum, r) => {
+                    const payoutEligible = parseFloat(r.payout_eligible) || ((parseFloat(r.total_amount) || 0) - (parseFloat(r.ota_service_fee) || 0));
+                    return sum + (payoutEligible - (parseFloat(r.hostizzy_revenue) || 0));
+                }, 0);
                 const { data: payouts } = await supabase
                     .from('payout_requests')
                     .select('amount')
@@ -8762,10 +8840,9 @@
             const pendingBookings = [];
 
             activeReservations.forEach(reservation => {
-                const totalAmount = parseFloat(reservation.total_amount) || 0;
                 const bookingPayments = payments.filter(p => p.booking_id === reservation.booking_id);
                 const paidAmount = bookingPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-                const balance = totalAmount - paidAmount;
+                const balance = getBalance(reservation);
 
                 if (balance > 0) {
                     totalPending += balance;
@@ -9085,11 +9162,7 @@
                 case 'payment-due':
                     filteredReservations = filteredReservations.filter(r => {
                         if (r.status === 'cancelled') return false;
-                        const total = parseFloat(r.total_amount) || 0;
-                        const paid = parseFloat(r.paid_amount) || 0;
-                        const otaFee = parseFloat(r.ota_service_fee) || 0;
-                        const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                        const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
+                        const balance = getBalance(r);
                         return balance > 0;
                     });
                     updateFilterInfo(`Payment Due (${filteredReservations.length} with outstanding balance)`);
@@ -9109,12 +9182,8 @@
                         
                         const checkInDate = new Date(r.check_in);
                         checkInDate.setHours(0, 0, 0, 0);
-                        const total = parseFloat(r.total_amount) || 0;
-                        const paid = parseFloat(r.paid_amount) || 0;
-                        const otaFee = parseFloat(r.ota_service_fee) || 0;
-                        const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                        const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
-                        
+                        const balance = getBalance(r);
+
                         // Needs attention if:
                         // 1. Overdue payment
                         // 2. Check-in today/tomorrow with pending payment
@@ -9773,13 +9842,14 @@
             const hostizzyRevenue = reservations.reduce((sum, r) =>
                 sum + (parseFloat(r.hostizzy_revenue) || 0), 0
             );
+            const totalHostPayout = reservations.reduce((sum, r) => sum + getHostPayout(r), 0);
             const totalRevenue = reservations.reduce((sum, r) =>
                 sum + (parseFloat(r.total_amount) || 0), 0
             );
-            const ownerRevenue = totalRevenue - hostizzyRevenue;
+            const ownerRevenue = totalHostPayout - hostizzyRevenue;
 
-            const hostizzyPercentage = totalRevenue > 0 ? ((hostizzyRevenue / totalRevenue) * 100).toFixed(1) : 0;
-            const ownerPercentage = totalRevenue > 0 ? ((ownerRevenue / totalRevenue) * 100).toFixed(1) : 0;
+            const hostizzyPercentage = totalHostPayout > 0 ? ((hostizzyRevenue / totalHostPayout) * 100).toFixed(1) : 0;
+            const ownerPercentage = totalHostPayout > 0 ? ((ownerRevenue / totalHostPayout) * 100).toFixed(1) : 0;
 
             // Calculate Collection Status
             const totalPaid = reservations.reduce((sum, r) =>
@@ -10464,13 +10534,8 @@
             const pendingPayments = reservations.filter(r => {
                 const checkInDate = new Date(r.check_in);
                 checkInDate.setHours(0, 0, 0, 0);
-                // Calculate balance based on booking source
-                const total = parseFloat(r.total_amount) || 0;
-                const paid = parseFloat(r.paid_amount) || 0;
-                const otaFee = parseFloat(r.ota_service_fee) || 0;
-                const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
-                
+                const balance = getBalance(r);
+
                 return balance > 1 && // More than ₹1 balance (tolerance)
                     r.status !== 'cancelled' &&
                     checkInDate >= today; // Only upcoming or today
@@ -10516,11 +10581,7 @@
                     ${pendingPayments.map(r => {
                         const checkInDate = new Date(r.check_in);
                         const daysUntilCheckIn = Math.ceil((checkInDate - today) / (1000 * 60 * 60 * 24));
-                        const total = parseFloat(r.total_amount) || 0;
-                        const paid = parseFloat(r.paid_amount) || 0;
-                        const otaFee = parseFloat(r.ota_service_fee) || 0;
-                        const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                        const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
+                        const balance = getBalance(r);
                         const isUrgent = daysUntilCheckIn <= 3;
                         
                         return `
@@ -10639,13 +10700,9 @@
                 const checkOutDate = new Date(r.check_out);
                 checkOutDate.setHours(0, 0, 0, 0);
                 
-                // Calculate balance based on booking source
-                const total = parseFloat(r.total_amount) || 0;
-                const paid = parseFloat(r.paid_amount) || 0;
-                const otaFee = parseFloat(r.ota_service_fee) || 0;
+                const balance = getBalance(r);
                 const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
-                
+
                 // Skip reservations older than 1 month ONLY if "Show all" is NOT enabled
                 if (!showAll && checkInDate < oneMonthAgo) return;
                 
@@ -10808,11 +10865,7 @@
                     return;
                 }
                 
-                const total = parseFloat(reservation.total_amount) || 0;
-                const paid = parseFloat(reservation.paid_amount) || 0;
-                const otaFee = parseFloat(reservation.ota_service_fee) || 0;
-                const isOTA = reservation.booking_source && reservation.booking_source !== 'DIRECT';
-                const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
+                const balance = getBalance(reservation);
                 const phone = reservation.guest_phone.replace(/[^0-9]/g, '');
                 
                 let message = `Hello ${reservation.guest_name}!\n\n`;
@@ -10882,11 +10935,7 @@
             
             let totalDue = 0;
             const listHTML = selectedBookings.map(r => {
-                const total = parseFloat(r.total_amount) || 0;
-                const paid = parseFloat(r.paid_amount) || 0;
-                const otaFee = parseFloat(r.ota_service_fee) || 0;
-                const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
+                const balance = getBalance(r);
                 totalDue += balance;
                 return `
                     <div style="padding: 12px; background: var(--background); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
@@ -10963,8 +11012,8 @@
             try {
                 let successCount = 0;
                 for (const booking of window.bulkPaymentBookings) {
-                    const balance = (parseFloat(booking.total_amount) || 0) - (parseFloat(booking.paid_amount) || 0);
-                    
+                    const balance = getBalance(booking);
+
                     if (balance <= 0) continue;
 
                     const payment = {
@@ -11447,14 +11496,17 @@
             const bookingSource = document.getElementById('bookingSource').value;
             const otaServiceFeeGroup = document.getElementById('otaServiceFeeGroup');
             const otaServiceFeeInput = document.getElementById('otaServiceFee');
-            
+            const stayAmountHint = document.getElementById('stayAmountHint');
+
             const otaSources = ['AIRBNB', 'AGODA/BOOKING.COM', 'MMT/GOIBIBO'];
-            
+
             if (otaSources.includes(bookingSource)) {
                 otaServiceFeeGroup.style.display = 'block';
+                if (stayAmountHint) stayAmountHint.textContent = '(Enter gross/full amount)';
             } else {
                 otaServiceFeeGroup.style.display = 'none';
                 otaServiceFeeInput.value = '0';
+                if (stayAmountHint) stayAmountHint.textContent = '';
             }
         }
     // ============================================
@@ -12009,11 +12061,13 @@
                     document.getElementById('hostizzyRevenue').value = '0';
                     return;
                 }
-                
+
                 const revenueSharePercent = await db.getRevenueSharePercent(propertyId);
-                const applicableAmount = stayAmount + extraGuestCharges;
-                const hostizzyRevenue = (applicableAmount * revenueSharePercent) / 100;
-                
+                const otaServiceFee = parseFloat(document.getElementById('otaServiceFee').value) || 0;
+                // Revenue base: (stay - OTA fee + extra guest charges) * rev%
+                // Don't earn commission on OTA's cut
+                const hostizzyRevenue = calculateHostizzyRevenueAmount(stayAmount, extraGuestCharges, otaServiceFee, revenueSharePercent);
+
                 document.getElementById('hostizzyRevenue').value = hostizzyRevenue.toFixed(2);
             } catch (error) {
                 console.error('Error calculating Hostizzy Revenue:', error);
@@ -12131,6 +12185,9 @@
                     total_amount: totalAmount,
                     damages: damages,
                     hostizzy_revenue: parseFloat(document.getElementById('hostizzyRevenue').value) || 0,
+                    host_payout: totalAmount - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
+                    payout_eligible: totalAmount - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
+                    is_legacy: false,
                     avg_room_rate: avgRoomRate,
                     avg_nightly_rate: avgNightlyRate,
                     paid_amount: 0,
@@ -12164,6 +12221,8 @@
                     reservation.total_amount = null;
                     reservation.damages = null;
                     reservation.hostizzy_revenue = null;
+                    reservation.host_payout = null;
+                    reservation.payout_eligible = null;
                     reservation.avg_room_rate = null;
                     reservation.avg_nightly_rate = null;
                     reservation.paid_amount = null;
@@ -12406,15 +12465,14 @@
             tbody.innerHTML = reservations.map(r => {
                 const total = parseFloat(r.total_amount) || 0;
                 const otaFee = parseFloat(r.ota_service_fee) || 0;
-                const netAmount = total - otaFee;
+                const hostPayout = getHostPayout(r);
                 const paid = parseFloat(r.paid_amount) || 0;
                 const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                const balance = isOTA ? (netAmount - paid) : (total - paid);
+                const balance = getBalance(r);
                 const status = r.payment_status || 'pending';
 
                 // Calculate payment progress %
-                const baseAmount = isOTA ? netAmount : total;
-                const progressPercent = baseAmount > 0 ? Math.min((paid / baseAmount) * 100, 100) : 0;
+                const progressPercent = total > 0 ? Math.min((paid / total) * 100, 100) : 0;
                 const progressClass = status === 'paid' ? 'full' : status === 'partial' ? 'partial' : 'pending';
 
                 // Status icon
@@ -12450,7 +12508,7 @@
                                     <i data-lucide="building" style="width: 10px; height: 10px; margin-right: 2px;"></i>OTA Fee: ${formatCurrency(otaFee, {compact: false})}
                                 </div>
                                 <div style="font-size: 11px; color: var(--success); margin-top: 2px; font-weight: 600;">
-                                    <i data-lucide="coins" style="width: 10px; height: 10px; margin-right: 2px;"></i>Net: ${formatCurrency(netAmount, {compact: false})}
+                                    <i data-lucide="coins" style="width: 10px; height: 10px; margin-right: 2px;"></i>Host Payout: ${formatCurrency(hostPayout, {compact: false})}
                                 </div>
                             ` : ''}
                         </td>
@@ -12529,15 +12587,14 @@
             
             const total = parseFloat(reservation.total_amount) || 0;
             const otaFee = parseFloat(reservation.ota_service_fee) || 0;
-            const netAmount = total - otaFee;
+            const hostPayout = getHostPayout(reservation);
             const paid = parseFloat(reservation.paid_amount) || 0;
-            const isOTA = reservation.booking_source && reservation.booking_source !== 'DIRECT';
-            const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
-            
+            const balance = getBalance(reservation);
+
             let amountDisplay = formatCurrency(total, {compact: false});
             if (otaFee > 0) {
                 amountDisplay += `<div style="font-size: 12px; color: var(--danger); margin-top: 4px;">OTA Fee: ${formatCurrency(otaFee, {compact: false})}</div>`;
-                amountDisplay += `<div style="font-size: 12px; color: var(--success); margin-top: 4px; font-weight: 600;">Net: ${formatCurrency(netAmount, {compact: false})}</div>`;
+                amountDisplay += `<div style="font-size: 12px; color: var(--success); margin-top: 4px; font-weight: 600;">Host Payout: ${formatCurrency(hostPayout, {compact: false})}</div>`;
             }
             
             document.getElementById('paymentTotalAmount').innerHTML = amountDisplay;
@@ -12974,12 +13031,8 @@
                 document.getElementById(`guestName_${rowId}`).value = reservation.guest_name;
                 
                 // Auto-fill amount with balance if available
-                const total = parseFloat(reservation.total_amount) || 0;
-                const paid = parseFloat(reservation.paid_amount) || 0;
-                const otaFee = parseFloat(reservation.ota_service_fee) || 0;
-                const isOTA = reservation.booking_source && reservation.booking_source !== 'DIRECT';
-                const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
-                
+                const balance = getBalance(reservation);
+
                 if (balance > 0 && !document.getElementById(`amount_${rowId}`).value) {
                     document.getElementById(`amount_${rowId}`).value = Math.round(balance);
                 }
@@ -13023,10 +13076,8 @@
                 document.getElementById(`guestName_mobile_${rowId}`).value = reservation.guest_name;
                 
                 // Auto-fill amount with balance if available
-                const total = parseFloat(reservation.total_amount) || 0;
-                const paid = parseFloat(reservation.paid_amount) || 0;
-                const balance = total - paid;
-                
+                const balance = getBalance(reservation);
+
                 if (balance > 0 && !document.getElementById(`amount_mobile_${rowId}`).value) {
                     document.getElementById(`amount_mobile_${rowId}`).value = Math.round(balance);
                 }
@@ -13237,10 +13288,8 @@
                 
                 const total = parseFloat(reservation.total_amount) || 0;
                 const paid = parseFloat(reservation.paid_amount) || 0;
-                const otaFee = parseFloat(reservation.ota_service_fee) || 0;
-                const isOTA = reservation.booking_source && reservation.booking_source !== 'DIRECT';
-                const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
-                
+                const balance = getBalance(reservation);
+
                 document.getElementById('historyTotalAmount').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
                 document.getElementById('historyPaidAmount').textContent = '₹' + Math.round(paid).toLocaleString('en-IN');
                 document.getElementById('historyBalance').textContent = '₹' + Math.round(balance).toLocaleString('en-IN');
@@ -14335,6 +14384,8 @@
                         total_amount: null,
                         damages: null,
                         hostizzy_revenue: null,
+                        host_payout: null,
+                        payout_eligible: null,
                         avg_room_rate: null,
                         avg_nightly_rate: null,
                         paid_amount: null,
@@ -15172,6 +15223,8 @@
                 total_amount_inc_tax: null,
                 damages: null,
                 hostizzy_revenue: null,
+                host_payout: null,
+                payout_eligible: null,
                 avg_room_rate: null,
                 avg_nightly_rate: null,
                 paid_amount: null,
@@ -17112,11 +17165,11 @@ function printPropertyView() {
             // Calculate Hostizzy Revenue and OTA fees
             const hostizzyRevenue = activeRes.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
             const otaFees = activeRes.reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
-            const netRevenue = totalRevenue - otaFees;
-            const ownerRevenue = netRevenue - hostizzyRevenue;
+            const totalHostPayout = activeRes.reduce((sum, r) => sum + getHostPayout(r), 0);
+            const ownerRevenue = totalHostPayout - hostizzyRevenue;
 
             // Average Hostizzy share percentage
-            const avgHostizzyShare = netRevenue > 0 ? (hostizzyRevenue / netRevenue) * 100 : 0;
+            const avgHostizzyShare = totalHostPayout > 0 ? (hostizzyRevenue / totalHostPayout) * 100 : 0;
 
             // Portfolio occupancy
             const targetNightsPerProperty = 200;
@@ -19087,14 +19140,14 @@ function printPropertyView() {
             const totalCollected = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
             const totalPending = totalRevenue - totalCollected;
             const otaFees = reservations.reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
-            const netRevenue = totalRevenue - otaFees;
+            const totalHostPayout = reservations.reduce((sum, r) => sum + getHostPayout(r), 0);
             const hostizzyRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.hostizzy_revenue) || 0), 0);
-            const ownerRevenue = netRevenue - hostizzyRevenue;
+            const ownerRevenue = totalHostPayout - hostizzyRevenue;
 
             const metrics = [
                 { label: 'Gross Revenue', value: totalRevenue, color: '#0891b2', icon: '💰' },
                 { label: 'OTA Fees', value: otaFees, color: '#ef4444', icon: '💸' },
-                { label: 'Net Revenue', value: netRevenue, color: '#10b981', icon: '💵' },
+                { label: 'Host Payout', value: totalHostPayout, color: '#10b981', icon: '💵' },
                 { label: 'Collected', value: totalCollected, color: '#10b981', icon: '✅' },
                 { label: 'Pending', value: totalPending, color: '#f59e0b', icon: '⏳' },
                 { label: 'Hostizzy Share', value: hostizzyRevenue, color: 'var(--primary)', icon: '🏢' },
@@ -20487,8 +20540,8 @@ function printPropertyView() {
             let csv = 'Booking ID,Property,Status,Booking Type,Booking Date,Check-in,Check-out,Nights,Guest,Phone,Email,City,Source,Rooms,Adults,Kids,Stay Amount,Extra Guest Charges,Meals/Chef Charges,Bonfire/Other Charges,Taxes,Damages,Total Amount,Hostizzy Revenue,GST Status,Payment Status,Paid Amount,Balance,Created Date\n';
             
             reservations.forEach(r => {
-                const balance = (parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0);
-                
+                const balance = getBalance(r);
+
                 // Format GST status
                 const gstStatus = r.gst_status === 'gst' ? 'GST' : 'Non-GST';
                 
@@ -20545,16 +20598,15 @@ function printPropertyView() {
                 return;
             }
             
-            let csv = 'Booking ID,Guest,Property,Check-in,Total Amount,OTA Fee,Net Amount,Paid Amount,Balance,Payment Status,Source\n';
-            
+            let csv = 'Booking ID,Guest,Property,Check-in,Total Amount,OTA Fee,Host Payout,Paid Amount,Balance,Payment Status,Source\n';
+
             for (const r of reservationsToExport) {
                 const total = parseFloat(r.total_amount) || 0;
                 const otaFee = parseFloat(r.ota_service_fee) || 0;
-                const netAmount = total - otaFee;
+                const hostPayout = getHostPayout(r);
                 const paid = parseFloat(r.paid_amount) || 0;
-                const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
-                const balance = isOTA ? ((total - otaFee) - paid) : (total - paid);
-                
+                const balance = getBalance(r);
+
                 csv += [
                     r.booking_id || '',
                     r.guest_name || '',
@@ -20562,7 +20614,7 @@ function printPropertyView() {
                     r.check_in || '',
                     total.toFixed(2),
                     otaFee.toFixed(2),
-                    netAmount.toFixed(2),
+                    hostPayout.toFixed(2),
                     paid.toFixed(2),
                     balance.toFixed(2),
                     r.payment_status || 'pending',
@@ -20842,7 +20894,7 @@ function printPropertyView() {
                 if (r.status === 'cancelled') return false;
                 const checkIn = new Date(r.check_in);
                 checkIn.setHours(0, 0, 0, 0);
-                const balance = (parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0);
+                const balance = getBalance(r);
                 return balance > 0 && checkIn < today;
             });
             
@@ -22849,6 +22901,9 @@ function printPropertyView() {
             total_amount_inc_tax: totalAmountIncTax,
             total_amount: totalAmount,
             hostizzy_revenue: parseFloat(row.hostizzy_revenue) || 0,
+            host_payout: totalAmount - otaServiceFee,
+            payout_eligible: totalAmount - otaServiceFee,
+            is_legacy: false,
             avg_room_rate: avgRoomRate,
             avg_nightly_rate: avgNightlyRate,
             paid_amount: parseFloat(row.paid_amount) || 0,
