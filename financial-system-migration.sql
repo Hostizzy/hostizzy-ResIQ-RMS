@@ -32,7 +32,7 @@ ADD COLUMN IF NOT EXISTS payout_eligible NUMERIC DEFAULT 0;
 -- =====================================================
 
 -- Run this ONCE after deploying. Adjust the cutoff date as needed.
--- UPDATE reservations SET is_legacy = true WHERE created_at < '2026-03-15';
+-- UPDATE reservations SET is_legacy = true WHERE created_at < '2026-03-01';
 
 -- =====================================================
 -- STEP 3: Backfill host_payout and payout_eligible for existing data
@@ -255,7 +255,7 @@ ORDER BY ordinal_position;
 /*
 1. Run this SQL in Supabase SQL Editor
 2. Mark legacy reservations:
-   UPDATE reservations SET is_legacy = true WHERE created_at < '2026-03-15';
+   UPDATE reservations SET is_legacy = true WHERE created_at < '2026-03-01';
 3. Verify backfill of host_payout and payout_eligible
 4. Test new reservation creation (is_legacy = false)
 5. Test balance calculation for both legacy and new
