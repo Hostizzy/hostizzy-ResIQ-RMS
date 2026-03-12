@@ -743,10 +743,11 @@ color: var(--text-tertiary);
 }
 
 /* Login Responsive Show/Hide */
-.login-desktop-only { display: block; }
-.login-mobile-only { display: none; }
-.login-desktop-only-inline { display: inline; }
-.login-mobile-only-inline { display: none; }
+/* Desktop: hide mobile-only, let desktop-only keep natural display */
+.login-mobile-only,
+.login-mobile-only-inline {
+    display: none !important;
+}
 
 .login-owner-portal-btn {
 display: inline-flex;
@@ -769,9 +770,9 @@ box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
 }
 
 @media (max-width: 1024px) {
-.login-desktop-only { display: none !important; }
-.login-mobile-only { display: block !important; }
+.login-desktop-only,
 .login-desktop-only-inline { display: none !important; }
+.login-mobile-only { display: block !important; }
 .login-mobile-only-inline { display: inline !important; }
 
 .login-brand {
