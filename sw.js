@@ -11,6 +11,8 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.21.0: Dashboard visual upgrade - dynamic greeting, quick actions, count-up animations, scroll-to-top, micro-interactions, accessibility, preconnect hints
+ * - v5.20.0: Landing page, login redesign, brand color fixes (teal consistency)
  * - v5.18.0: Monolith split phase 1 - extracted 5700 lines CSS to css/main.css, added view router with History API + lazy-loading, shared utilities module, fixed QR codes (real qrcode-generator library), mobile guest cards, bottom tabs redesign
  * - v5.17.0: ES Modules architecture - 12 new features: bottom tabs, swipe gestures, bottom sheets, skeleton loading, page transitions, notification center, QR check-in, WhatsApp deep integration, AI assist, centralized state, Web Components
  * - v5.16.0: Supabase Auth migration - signInWithPassword, signOut, getSession, resetPasswordForEmail, updateUser
@@ -36,7 +38,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.20.0';
+const CACHE_VERSION = 'v5.21.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 

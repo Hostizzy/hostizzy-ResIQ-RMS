@@ -35,6 +35,13 @@
     <link rel="apple-touch-startup-image" href="/assets/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
 
     <title>ResIQ by Hostizzy - Reservation Management System</title>
+
+    <!-- Preconnect to CDN domains for faster loading -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+
     <link rel="manifest" href="manifest.json">
 
     <!-- Native App Styles -->
@@ -660,7 +667,7 @@
         </nav>
 
         <!-- Desktop Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" role="navigation" aria-label="Main navigation">
             <!-- Main Navigation Menu -->
             <div class="sidebar-menu">
                 <!-- Home -->
@@ -801,7 +808,7 @@
 
         <!-- Mobile Bottom Navigation -->
         <!-- Native-Feeling Mobile Bottom Navigation -->
-        <div class="mobile-nav">
+        <div class="mobile-nav" role="navigation" aria-label="Mobile navigation">
             <div class="mobile-nav-items">
                 <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('home');">
                     <div class="mobile-nav-icon"><i data-lucide="home" style="width: 22px; height: 22px;"></i></div>
@@ -1951,13 +1958,29 @@
 
         <!-- Dashboard View -->
         <div id="dashboardView" class="container">
-            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
-                <div>
-                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary);">Reservations Dashboard</h2>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Real-time overview of bookings, revenue, and performance</p>
+            <div class="dash-header">
+                <div class="dash-header-left">
+                    <h2 class="dash-greeting" id="dashGreeting">Good Morning</h2>
+                    <p class="dash-date" id="dashDate"></p>
                 </div>
                 <button class="btn btn-secondary btn-sm" onclick="exportDashboardPDF()" style="display: flex; align-items: center; gap: 6px;">
                     <i data-lucide="file-down" style="width: 16px; height: 16px;"></i> Export PDF
+                </button>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="dash-quick-actions">
+                <button class="dash-quick-btn" onclick="showView('reservations'); setTimeout(() => document.getElementById('addReservationBtn')?.click(), 300);">
+                    <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> New Booking
+                </button>
+                <button class="dash-quick-btn" onclick="showView('payments'); setTimeout(() => document.getElementById('addPaymentBtn')?.click(), 300);">
+                    <i data-lucide="indian-rupee" style="width: 16px; height: 16px;"></i> Record Payment
+                </button>
+                <button class="dash-quick-btn" onclick="showView('guests');">
+                    <i data-lucide="user-check" style="width: 16px; height: 16px;"></i> Check-in Guest
+                </button>
+                <button class="dash-quick-btn" onclick="showView('availability');">
+                    <i data-lucide="calendar-search" style="width: 16px; height: 16px;"></i> View Calendar
                 </button>
             </div>
 
@@ -1979,7 +2002,7 @@
             <!-- Core Metrics - Essential KPIs -->
             <div id="coreMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px;">
                 <!-- 1. Total Revenue -->
-                <div class="stat-card" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; border: none; position: relative; overflow: hidden;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: white; border: none; position: relative; overflow: hidden;">
                     <div style="position: absolute; top: 10px; right: 10px; opacity: 0.15;">
                         <i data-lucide="dollar-sign" style="width: 60px; height: 60px;"></i>
                     </div>
@@ -2043,7 +2066,7 @@
                 </div>
 
                 <!-- 5. Collection Rate -->
-                <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; position: relative; overflow: hidden;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; position: relative; overflow: hidden;">
                     <div style="position: absolute; top: 10px; right: 10px; opacity: 0.15;">
                         <i data-lucide="credit-card" style="width: 60px; height: 60px;"></i>
                     </div>
@@ -8996,9 +9019,57 @@
             }, 100);
         }
 
+        // Animate a number counting up
+        function animateValue(el, end, duration = 800, prefix = '', suffix = '') {
+            if (!el) return;
+            const start = 0;
+            const startTime = performance.now();
+            const isDecimal = String(end).includes('.') || suffix === '%';
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+                const current = start + (end - start) * eased;
+                if (isDecimal) {
+                    el.textContent = prefix + current.toFixed(1) + suffix;
+                } else {
+                    el.textContent = prefix + Math.round(current).toLocaleString('en-IN') + suffix;
+                }
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        // Update dashboard greeting
+        function updateDashGreeting() {
+            const hour = new Date().getHours();
+            let greeting = 'Good Evening';
+            if (hour < 12) greeting = 'Good Morning';
+            else if (hour < 17) greeting = 'Good Afternoon';
+
+            const el = document.getElementById('dashGreeting');
+            const dateEl = document.getElementById('dashDate');
+            if (el) {
+                let name = '';
+                if (currentUser && currentUser.email) {
+                    name = currentUser.email.split('@')[0];
+                    name = name.charAt(0).toUpperCase() + name.slice(1);
+                }
+                el.textContent = name ? `${greeting}, ${name}` : greeting;
+            }
+            if (dateEl) {
+                dateEl.textContent = new Date().toLocaleDateString('en-IN', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                });
+            }
+        }
+
         // Dashboard
         async function loadDashboard() {
             try {
+                // Update greeting
+                updateDashGreeting();
+
                 allReservations = await db.getReservations();
                 allPayments = await db.getAllPayments();
                 const properties = await db.getProperties();
@@ -9007,7 +9078,7 @@
                 state.reservations = allReservations;
                 state.properties = properties;
                 state.payments = allPayments;
-                
+
                 // Apply default "This Month" filter — this populates Core Metrics,
                 // Activity Widgets, Revenue Split, and Action Center
                 await applyDashboardDateFilter('this-month');
@@ -9140,17 +9211,17 @@
                 return `<span style="color:${color};font-weight:700">${arrow} ${Math.abs(n).toFixed(1)}%</span> <span style="opacity:0.7">vs prev. period</span>`;
             };
 
-            // Update DOM
-            document.getElementById('coreRevenue').textContent          = formatCurrency(totalRevenue);
-            document.getElementById('coreOccupancy').textContent        = occupancy.toFixed(1) + '%';
+            // Update DOM with count-up animations
+            animateValue(document.getElementById('coreRevenue'), totalRevenue, 900, '₹');
+            animateValue(document.getElementById('coreOccupancy'), occupancy, 700, '', '%');
             document.getElementById('coreActive').textContent           = activeBookings;
             document.getElementById('coreUpcoming').textContent         = upcoming;
-            document.getElementById('coreCollectionRate').textContent   = collectionRate.toFixed(1) + '%';
+            animateValue(document.getElementById('coreCollectionRate'), collectionRate, 700, '', '%');
             document.getElementById('coreCollectionAmount').textContent = formatCurrency(collected) + ' collected';
-            document.getElementById('coreHostizzyRevenue').textContent  = formatCurrency(hostizzyRev);
-            document.getElementById('coreAvgBooking').textContent       = formatCurrency(avgBooking);
+            animateValue(document.getElementById('coreHostizzyRevenue'), hostizzyRev, 900, '₹');
+            animateValue(document.getElementById('coreAvgBooking'), avgBooking, 800, '₹');
             document.getElementById('coreBookingCount').textContent     = `From ${cur.length} bookings`;
-            document.getElementById('coreTotalNights').textContent      = totalNights;
+            animateValue(document.getElementById('coreTotalNights'), totalNights, 700);
 
             document.getElementById('coreRevenueTrend').innerHTML    = formatTrend(pct(totalRevenue, prevRevenue));
             document.getElementById('coreOccupancyTrend').innerHTML  = formatTrend(pct(occupancy, prevOccupancy));
@@ -25813,6 +25884,27 @@ function printPropertyView() {
                 lucide.createIcons();
             }
         }
+    </script>
+
+    <!-- Scroll-to-top button -->
+    <button class="scroll-to-top" id="scrollToTop" aria-label="Scroll to top" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </button>
+    <script>
+    (function() {
+        const btn = document.getElementById('scrollToTop');
+        if (!btn) return;
+        let ticking = false;
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                requestAnimationFrame(function() {
+                    btn.classList.toggle('visible', window.scrollY > 300);
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+    })();
     </script>
 
     <!-- ResIQ Enhanced Modules (ES Modules) -->
