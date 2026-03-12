@@ -2,6 +2,7 @@
 -- OWNER PORTAL - DATABASE SCHEMA
 -- Property Owner Management System
 -- Date: 2025-12-04
+-- Updated: 2026-03-12 (idempotent guards, missing policy)
 -- =====================================================
 
 -- =====================================================
@@ -114,6 +115,45 @@ CREATE TABLE IF NOT EXISTS settlement_status (
 );
 
 -- =====================================================
+-- TABLE: property_expenses
+-- Purpose: Track property-level expenses for settlement calculations
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS property_expenses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
+    -- Property Reference
+    property_id INT NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+
+    -- Expense Details
+    amount NUMERIC NOT NULL CHECK (amount > 0),
+    category TEXT NOT NULL CHECK (category IN (
+        'maintenance',
+        'utilities',
+        'housekeeping',
+        'supplies',
+        'staff',
+        'other'
+    )),
+    description TEXT,
+    expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+
+    -- Receipt/proof
+    receipt_url TEXT,
+
+    -- Who entered it
+    entered_by TEXT,
+    entered_by_type TEXT CHECK (entered_by_type IN ('staff', 'owner')),
+
+    -- Settlement period (format: "YYYY-M", e.g., "2026-3")
+    settlement_month TEXT,
+
+    -- Timestamps
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================================================
 -- MODIFY EXISTING TABLES
 -- =====================================================
 
@@ -128,6 +168,18 @@ ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES property_owners(id) ON DELETE 
 -- Add Hostizzy revenue/commission column
 ALTER TABLE reservations
 ADD COLUMN IF NOT EXISTS hostizzy_revenue NUMERIC DEFAULT 0;
+
+-- Add host_payout: total_amount - ota_service_fee
+ALTER TABLE reservations
+ADD COLUMN IF NOT EXISTS host_payout NUMERIC DEFAULT 0;
+
+-- Add payout_eligible: same as host_payout, stored for settlement tracking
+ALTER TABLE reservations
+ADD COLUMN IF NOT EXISTS payout_eligible NUMERIC DEFAULT 0;
+
+-- Add is_legacy flag for backward-compatible balance logic
+ALTER TABLE reservations
+ADD COLUMN IF NOT EXISTS is_legacy BOOLEAN DEFAULT false;
 
 -- Add GST rate mode column for tax calculation preferences
 ALTER TABLE reservations
@@ -147,6 +199,10 @@ CREATE INDEX IF NOT EXISTS idx_reservations_owner ON reservations(owner_id);
 CREATE INDEX IF NOT EXISTS idx_settlement_status_owner ON settlement_status(owner_id);
 CREATE INDEX IF NOT EXISTS idx_settlement_status_month ON settlement_status(settlement_month);
 CREATE INDEX IF NOT EXISTS idx_settlement_status_owner_month ON settlement_status(owner_id, settlement_month);
+CREATE INDEX IF NOT EXISTS idx_property_expenses_property ON property_expenses(property_id);
+CREATE INDEX IF NOT EXISTS idx_property_expenses_date ON property_expenses(expense_date DESC);
+CREATE INDEX IF NOT EXISTS idx_property_expenses_category ON property_expenses(category);
+CREATE INDEX IF NOT EXISTS idx_property_expenses_month ON property_expenses(settlement_month);
 
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -156,18 +212,21 @@ CREATE INDEX IF NOT EXISTS idx_settlement_status_owner_month ON settlement_statu
 ALTER TABLE property_owners ENABLE ROW LEVEL SECURITY;
 
 -- Policy 1: Owners can view their own profile
+DROP POLICY IF EXISTS "Owners can view own profile" ON property_owners;
 CREATE POLICY "Owners can view own profile"
     ON property_owners
     FOR SELECT
     USING (email = current_setting('app.user_email', true));
 
 -- Policy 2: Owners can update their own profile
+DROP POLICY IF EXISTS "Owners can update own profile" ON property_owners;
 CREATE POLICY "Owners can update own profile"
     ON property_owners
     FOR UPDATE
     USING (email = current_setting('app.user_email', true));
 
 -- Policy 3: Staff can view all owners
+DROP POLICY IF EXISTS "Staff can view all owners" ON property_owners;
 CREATE POLICY "Staff can view all owners"
     ON property_owners
     FOR SELECT
@@ -180,6 +239,7 @@ CREATE POLICY "Staff can view all owners"
     );
 
 -- Policy 4: Admin can insert/update owners
+DROP POLICY IF EXISTS "Admin can manage owners" ON property_owners;
 CREATE POLICY "Admin can manage owners"
     ON property_owners
     FOR ALL
@@ -196,6 +256,7 @@ CREATE POLICY "Admin can manage owners"
 ALTER TABLE payout_requests ENABLE ROW LEVEL SECURITY;
 
 -- Policy 5: Owners can view their own payout requests
+DROP POLICY IF EXISTS "Owners can view own payouts" ON payout_requests;
 CREATE POLICY "Owners can view own payouts"
     ON payout_requests
     FOR SELECT
@@ -207,6 +268,7 @@ CREATE POLICY "Owners can view own payouts"
     );
 
 -- Policy 6: Owners can create payout requests
+DROP POLICY IF EXISTS "Owners can create payouts" ON payout_requests;
 CREATE POLICY "Owners can create payouts"
     ON payout_requests
     FOR INSERT
@@ -218,6 +280,7 @@ CREATE POLICY "Owners can create payouts"
     );
 
 -- Policy 7: Staff can view all payout requests
+DROP POLICY IF EXISTS "Staff can view all payouts" ON payout_requests;
 CREATE POLICY "Staff can view all payouts"
     ON payout_requests
     FOR SELECT
@@ -230,6 +293,7 @@ CREATE POLICY "Staff can view all payouts"
     );
 
 -- Policy 8: Admin can manage payout requests
+DROP POLICY IF EXISTS "Admin can manage payouts" ON payout_requests;
 CREATE POLICY "Admin can manage payouts"
     ON payout_requests
     FOR ALL
@@ -246,6 +310,7 @@ CREATE POLICY "Admin can manage payouts"
 ALTER TABLE settlement_status ENABLE ROW LEVEL SECURITY;
 
 -- Policy 9: Owners can view their own settlement status
+DROP POLICY IF EXISTS "Owners can view own settlements" ON settlement_status;
 CREATE POLICY "Owners can view own settlements"
     ON settlement_status
     FOR SELECT
@@ -257,6 +322,7 @@ CREATE POLICY "Owners can view own settlements"
     );
 
 -- Policy 10: Owners can create/update their own settlement status
+DROP POLICY IF EXISTS "Owners can manage own settlements" ON settlement_status;
 CREATE POLICY "Owners can manage own settlements"
     ON settlement_status
     FOR ALL
@@ -274,6 +340,7 @@ CREATE POLICY "Owners can manage own settlements"
     );
 
 -- Policy 11: Staff can view all settlement statuses
+DROP POLICY IF EXISTS "Staff can view all settlements" ON settlement_status;
 CREATE POLICY "Staff can view all settlements"
     ON settlement_status
     FOR SELECT
@@ -282,6 +349,75 @@ CREATE POLICY "Staff can view all settlements"
             SELECT 1 FROM team_members
             WHERE email = current_setting('app.user_email', true)
             AND is_active = true
+        )
+    );
+
+-- Enable RLS on property_expenses
+ALTER TABLE property_expenses ENABLE ROW LEVEL SECURITY;
+
+-- Staff can view all expenses
+DROP POLICY IF EXISTS "Staff can view all expenses" ON property_expenses;
+CREATE POLICY "Staff can view all expenses"
+    ON property_expenses
+    FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM team_members
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
+-- Staff can manage all expenses
+DROP POLICY IF EXISTS "Staff can manage expenses" ON property_expenses;
+CREATE POLICY "Staff can manage expenses"
+    ON property_expenses
+    FOR ALL
+    USING (
+        EXISTS (
+            SELECT 1 FROM team_members
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
+-- Owners can view expenses for their properties
+DROP POLICY IF EXISTS "Owners can view own property expenses" ON property_expenses;
+CREATE POLICY "Owners can view own property expenses"
+    ON property_expenses
+    FOR SELECT
+    USING (
+        property_id IN (
+            SELECT p.id FROM properties p
+            JOIN property_owners po ON p.owner_id = po.id
+            WHERE po.email = current_setting('app.user_email', true)
+        )
+    );
+
+-- Owners can create expenses for their properties
+DROP POLICY IF EXISTS "Owners can create expenses" ON property_expenses;
+CREATE POLICY "Owners can create expenses"
+    ON property_expenses
+    FOR INSERT
+    WITH CHECK (
+        property_id IN (
+            SELECT p.id FROM properties p
+            JOIN property_owners po ON p.owner_id = po.id
+            WHERE po.email = current_setting('app.user_email', true)
+        )
+    );
+
+-- Owners can update their own expenses
+DROP POLICY IF EXISTS "Owners can update own expenses" ON property_expenses;
+CREATE POLICY "Owners can update own expenses"
+    ON property_expenses
+    FOR UPDATE
+    USING (
+        entered_by_type = 'owner'
+        AND property_id IN (
+            SELECT p.id FROM properties p
+            JOIN property_owners po ON p.owner_id = po.id
+            WHERE po.email = current_setting('app.user_email', true)
         )
     );
 
@@ -298,18 +434,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_property_owners_updated_at ON property_owners;
 CREATE TRIGGER update_property_owners_updated_at
     BEFORE UPDATE ON property_owners
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_payout_requests_updated_at ON payout_requests;
 CREATE TRIGGER update_payout_requests_updated_at
     BEFORE UPDATE ON payout_requests
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_settlement_status_updated_at ON settlement_status;
 CREATE TRIGGER update_settlement_status_updated_at
     BEFORE UPDATE ON settlement_status
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_property_expenses_updated_at ON property_expenses;
+CREATE TRIGGER update_property_expenses_updated_at
+    BEFORE UPDATE ON property_expenses
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -318,6 +463,7 @@ CREATE TRIGGER update_settlement_status_updated_at
 -- =====================================================
 
 -- Function to calculate owner's total revenue
+DROP FUNCTION IF EXISTS get_owner_revenue(UUID, DATE, DATE);
 CREATE OR REPLACE FUNCTION get_owner_revenue(
     p_owner_id UUID,
     p_start_date DATE DEFAULT NULL,
@@ -327,15 +473,17 @@ RETURNS TABLE (
     total_revenue NUMERIC,
     hostizzy_commission NUMERIC,
     net_earnings NUMERIC,
-    total_bookings BIGINT
+    total_bookings BIGINT,
+    total_host_payout NUMERIC
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT
         COALESCE(SUM(r.total_amount), 0) as total_revenue,
         COALESCE(SUM(r.hostizzy_revenue), 0) as hostizzy_commission,
-        COALESCE(SUM(r.total_amount - r.hostizzy_revenue), 0) as net_earnings,
-        COUNT(*)::BIGINT as total_bookings
+        COALESCE(SUM(r.payout_eligible - r.hostizzy_revenue), 0) as net_earnings,
+        COUNT(*)::BIGINT as total_bookings,
+        COALESCE(SUM(r.payout_eligible), 0) as total_host_payout
     FROM reservations r
     WHERE r.owner_id = p_owner_id
         AND r.status IN ('confirmed', 'checked_in', 'completed')
@@ -352,8 +500,8 @@ DECLARE
     total_paid_out NUMERIC;
     pending_amount NUMERIC;
 BEGIN
-    -- Calculate total earnings (paid bookings)
-    SELECT COALESCE(SUM(r.total_amount - r.hostizzy_revenue), 0)
+    -- Calculate total earnings using payout_eligible (host_payout) minus commission
+    SELECT COALESCE(SUM(r.payout_eligible - r.hostizzy_revenue), 0)
     INTO total_earned
     FROM reservations r
     WHERE r.owner_id = p_owner_id
@@ -374,44 +522,13 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- =====================================================
--- SAMPLE DATA (Optional - for testing)
--- =====================================================
-
-/*
--- Create a sample owner
-INSERT INTO property_owners (name, email, phone, password, pan_number, bank_account_number, bank_ifsc, upi_id)
-VALUES (
-    'Rajesh Kumar',
-    'owner@example.com',
-    '+91-9876543210',
-    'owner123', -- Change this password!
-    'ABCDE1234F',
-    '1234567890',
-    'SBIN0001234',
-    'owner@upi'
-);
-
--- Link a property to this owner
-UPDATE properties
-SET owner_id = (SELECT id FROM property_owners WHERE email = 'owner@example.com')
-WHERE name = 'Test Property';
-
--- Update existing reservations to link with owner
-UPDATE reservations r
-SET owner_id = p.owner_id
-FROM properties p
-WHERE r.property_id = p.id
-    AND p.owner_id IS NOT NULL;
-*/
-
--- =====================================================
 -- VERIFICATION QUERIES
 -- =====================================================
 
 -- Check if tables were created
 SELECT table_name
 FROM information_schema.tables
-WHERE table_name IN ('property_owners', 'payout_requests', 'settlement_status')
+WHERE table_name IN ('property_owners', 'payout_requests', 'settlement_status', 'property_expenses')
     AND table_schema = 'public';
 
 -- Check if columns were added

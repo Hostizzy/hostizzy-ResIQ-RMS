@@ -135,10 +135,15 @@ async function loadOwnerDashboard() {
             return sum + adults + children;
         }, 0);
 
-        // Calculate Hostizzy commission
+        // Calculate Hostizzy commission and host payout
         const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
+        const totalPayoutEligible = confirmedBookings.reduce((sum, b) => {
+            const total = parseFloat(b.total_amount) || 0;
+            const otaFee = parseFloat(b.ota_service_fee) || 0;
+            return sum + (total - otaFee);
+        }, 0);
 
-        const netEarnings = totalRevenue - totalHostizzyShare;
+        const netEarnings = totalPayoutEligible - totalHostizzyShare;
 
         // Get pending payout
         const pendingPayout = await db.getOwnerPendingPayout(ownerId);
@@ -208,7 +213,8 @@ function loadMonthlyBreakdown() {
         const stayAmount = parseFloat(booking.stay_amount) || 0;
         const mealAmount = parseFloat(booking.meals_chef) || parseFloat(booking.meal_amount) || 0;
         const hostizzyCommission = parseFloat(booking.hostizzy_revenue) || 0;
-        const ownerEarnings = totalRevenue - hostizzyCommission;
+        const payoutEligible = totalRevenue - (parseFloat(booking.ota_service_fee) || 0);
+        const ownerEarnings = payoutEligible - hostizzyCommission;
 
         monthlyData[monthKey].stayRevenue += stayAmount;
         monthlyData[monthKey].mealRevenue += mealAmount;
@@ -396,9 +402,13 @@ function loadRevenueCharts() {
         if (revenuePieChart) revenuePieChart.destroy();
 
         const confirmedBookings = ownerData.bookings.filter(b => b.status !== 'cancelled');
-        const totalRevenue = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.total_amount) || 0), 0);
+        const totalPayoutEligible = confirmedBookings.reduce((sum, b) => {
+            const total = parseFloat(b.total_amount) || 0;
+            const otaFee = parseFloat(b.ota_service_fee) || 0;
+            return sum + (total - otaFee);
+        }, 0);
         const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
-        const ownerEarnings = totalRevenue - totalHostizzyShare;
+        const ownerEarnings = totalPayoutEligible - totalHostizzyShare;
 
         revenuePieChart = new Chart(pieCtx, {
             type: 'doughnut',
@@ -1072,9 +1082,10 @@ function renderOwnerBookingsList(bookings) {
             // Mobile card layout
             let html = '<div class="mobile-card-list">';
             bookings.forEach(booking => {
-                // Use hostizzy_revenue field from booking (same as main app)
+                // Use payout_eligible (host_payout) minus commission
                 const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
-                const yourEarnings = (parseFloat(booking.total_amount) || 0) - hostizzyShare;
+                const payoutEligible = (parseFloat(booking.total_amount) || 0) - (parseFloat(booking.ota_service_fee) || 0);
+                const yourEarnings = payoutEligible - hostizzyShare;
                 const stayAmount = parseFloat(booking.stay_amount) || 0;
                 const mealsChef = parseFloat(booking.meals_chef) || 0;
                 const bonfireOther = parseFloat(booking.bonfire_other) || 0;
@@ -1157,10 +1168,11 @@ function renderOwnerBookingsList(bookings) {
             html += '</tr></thead><tbody>';
 
             bookings.forEach(booking => {
-                // Use hostizzy_revenue field from booking (same as main app)
+                // Use payout_eligible (host_payout) minus commission
                 const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 const totalAmount = parseFloat(booking.total_amount) || 0;
-                const yourEarnings = totalAmount - hostizzyShare;
+                const payoutEligible = totalAmount - (parseFloat(booking.ota_service_fee) || 0);
+                const yourEarnings = payoutEligible - hostizzyShare;
                 const stayAmount = parseFloat(booking.stay_amount) || 0;
                 const mealsChef = parseFloat(booking.meals_chef) || 0;
                 const bonfireOther = parseFloat(booking.bonfire_other) || 0;
@@ -1247,10 +1259,16 @@ async function loadOwnerPayouts() {
                     return checkInYear === year && checkInMonth === month && booking.status !== 'cancelled';
                 });
 
-                // Calculate total commission from bookings (from reservation table)
+                // Calculate total commission and payout eligible from bookings
                 const totalCommission = monthBookings.reduce((sum, booking) => {
                     return sum + (parseFloat(booking.hostizzy_revenue) || 0);
                 }, 0);
+                const totalPayoutEligible = monthBookings.reduce((sum, booking) => {
+                    const total = parseFloat(booking.total_amount) || 0;
+                    const otaFee = parseFloat(booking.ota_service_fee) || 0;
+                    return sum + (total - otaFee);
+                }, 0);
+                const propertyShare = totalPayoutEligible - totalCommission;
 
                 // Get ALL payments for these bookings (regardless of payment date)
                 // Example: Oct payment for Nov reservation counts in Nov settlement
@@ -1290,16 +1308,42 @@ async function loadOwnerPayouts() {
                     .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('hostizzy'))
                     .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
-                // Simple calculation: Net Settlement = Hostizzy Payment - Total Commission
-                const netSettlement = totalToHostizzy - totalCommission;
+                // Fetch property expenses for this month
+                let monthExpenses = 0;
+                try {
+                    const propertyIds = ownerData.properties.map(p => p.id);
+                    if (propertyIds.length > 0) {
+                        const { data: expenses } = await supabase
+                            .from('property_expenses')
+                            .select('amount')
+                            .in('property_id', propertyIds)
+                            .eq('settlement_month', settlementKey);
+                        monthExpenses = (expenses || []).reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+                    }
+                } catch (e) {
+                    // property_expenses table may not exist yet
+                    console.log('Property expenses not available:', e.message);
+                }
+
+                // Settlement calculation:
+                // Property Share = payout_eligible - commission
+                // Hostizzy owes Property = Property Share - Received by Property - Expenses
+                // Property owes Hostizzy = Commission - Received by Hostizzy
+                // Net Settlement = what Hostizzy owes Property (positive) or Property owes Hostizzy (negative)
+                const hostizzyOwesProperty = propertyShare - totalToOwner - monthExpenses;
+                const propertyOwesHostizzy = totalCommission - totalToHostizzy;
+                const netSettlement = hostizzyOwesProperty - propertyOwesHostizzy;
 
                 monthlySettlements.push({
                     year,
                     month,
                     monthLabel: getMonthLabel(year, month),
                     totalCommission,
+                    totalPayoutEligible,
+                    propertyShare,
                     paymentsToOwner: totalToOwner,
                     paymentsToHostizzy: totalToHostizzy,
+                    monthExpenses,
                     netSettlement,
                     isCurrent: year === currentYear && month === currentMonth,
                     isCompleted: isSettlementCompleted,
@@ -1366,24 +1410,44 @@ async function loadOwnerPayouts() {
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">📋 Payout Eligible</div>
+                                <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.totalPayoutEligible.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Total - OTA fees</div>
+                            </div>
+
                             <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
                                 <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">💳 Commission</div>
-                                <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.totalCommission.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">From bookings</div>
+                                <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.totalCommission.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Hostizzy share</div>
                             </div>
 
                             <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
-                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🏢 Hostizzy</div>
-                                <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.paymentsToHostizzy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Received</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🏠 Property Share</div>
+                                <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.propertyShare.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Eligible - Commission</div>
                             </div>
 
                             <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
-                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">💰 Owner</div>
-                                <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
-                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Received</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🏢 To Hostizzy</div>
+                                <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.paymentsToHostizzy.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Payments received</div>
                             </div>
+
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">💰 To Owner</div>
+                                <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Payments received</div>
+                            </div>
+
+                            ${settlement.monthExpenses > 0 ? `
+                            <div style="background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#fff7ed')}; padding: 16px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : '#fed7aa')};">
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🔧 Expenses</div>
+                                <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">₹${settlement.monthExpenses.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                                <div style="font-size: 11px; color: ${secondaryColor}; margin-top: 4px; opacity: 0.8;">Property expenses</div>
+                            </div>
+                            ` : ''}
                         </div>
 
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: ${settlement.isCurrent ? 'rgba(255,255,255,0.2)' : (settlement.isCompleted ? 'rgba(22, 163, 74, 0.1)' : '#f8fafc')}; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid ${settlement.isCurrent ? 'rgba(255,255,255,0.3)' : (settlement.isCompleted ? '#86efac' : 'var(--border)')};">
@@ -1688,6 +1752,186 @@ async function submitPayoutRequest() {
 
     } catch (error) {
         showToast('Error', 'Failed to submit payout request: ' + error.message, '❌');
+    }
+}
+
+// =====================================================
+// PROPERTY EXPENSES MANAGEMENT
+// =====================================================
+
+function openExpenseModal(expenseId = null) {
+    const modal = document.getElementById('expenseModal');
+    modal.style.display = 'flex';
+
+    // Populate property dropdown
+    const select = document.getElementById('expensePropertySelect');
+    select.innerHTML = '<option value="">Select property</option>';
+    (ownerData.properties || []).forEach(p => {
+        select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+    });
+
+    if (expenseId) {
+        document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
+        // Load expense data (would need to fetch)
+    } else {
+        document.getElementById('expenseModalTitle').textContent = 'Add Expense';
+        document.getElementById('editExpenseId').value = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('expenseCategory').value = 'maintenance';
+        document.getElementById('expenseDescription').value = '';
+    }
+}
+
+function closeExpenseModal() {
+    document.getElementById('expenseModal').style.display = 'none';
+}
+
+async function saveExpense() {
+    try {
+        const propertyId = parseInt(document.getElementById('expensePropertySelect').value);
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const category = document.getElementById('expenseCategory').value;
+        const expenseDate = document.getElementById('expenseDate').value;
+        const description = document.getElementById('expenseDescription').value.trim();
+
+        if (!propertyId || !amount || amount <= 0 || !expenseDate) {
+            showToast('Error', 'Please fill in all required fields', '❌');
+            return;
+        }
+
+        // Calculate settlement month from expense date
+        const date = new Date(expenseDate);
+        const settlementMonth = `${date.getFullYear()}-${date.getMonth()}`;
+
+        const expense = {
+            property_id: propertyId,
+            amount: amount,
+            category: category,
+            expense_date: expenseDate,
+            description: description || null,
+            entered_by: currentUser?.email || 'unknown',
+            entered_by_type: 'owner',
+            settlement_month: settlementMonth
+        };
+
+        const editId = document.getElementById('editExpenseId').value;
+        if (editId) {
+            expense.id = editId;
+        }
+
+        const { data, error } = await supabase
+            .from('property_expenses')
+            .upsert([expense])
+            .select();
+
+        if (error) throw error;
+
+        closeExpenseModal();
+        loadOwnerExpenses();
+        showToast('Success', editId ? 'Expense updated!' : 'Expense added!', '✅');
+    } catch (error) {
+        console.error('Error saving expense:', error);
+        showToast('Error', 'Failed to save expense: ' + error.message, '❌');
+    }
+}
+
+async function deleteExpense(expenseId) {
+    if (!confirm('Delete this expense?')) return;
+    try {
+        const { error } = await supabase
+            .from('property_expenses')
+            .delete()
+            .eq('id', expenseId);
+        if (error) throw error;
+        loadOwnerExpenses();
+        showToast('Deleted', 'Expense deleted', '✅');
+    } catch (error) {
+        showToast('Error', 'Failed to delete expense: ' + error.message, '❌');
+    }
+}
+
+async function loadOwnerExpenses() {
+    const container = document.getElementById('ownerExpensesList');
+    if (!container) return;
+
+    try {
+        const propertyIds = (ownerData.properties || []).map(p => p.id);
+        if (propertyIds.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No properties found</p>';
+            return;
+        }
+
+        const { data: expenses, error } = await supabase
+            .from('property_expenses')
+            .select('*')
+            .in('property_id', propertyIds)
+            .order('expense_date', { ascending: false });
+
+        if (error) throw error;
+
+        if (!expenses || expenses.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);"><div style="font-size: 48px; margin-bottom: 16px;">🔧</div><h4 style="margin: 0 0 8px 0;">No expenses recorded</h4><p style="font-size: 14px;">Add property expenses to track them in monthly settlements.</p></div>';
+            return;
+        }
+
+        const categoryLabels = {
+            maintenance: 'Maintenance / Repairs',
+            utilities: 'Utilities',
+            housekeeping: 'Housekeeping',
+            supplies: 'Supplies / Amenities',
+            staff: 'Staff Costs',
+            other: 'Other'
+        };
+        const categoryIcons = {
+            maintenance: '🔧', utilities: '💡', housekeeping: '🧹',
+            supplies: '📦', staff: '👷', other: '📋'
+        };
+
+        // Group by month
+        const totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+        const propertyMap = {};
+        (ownerData.properties || []).forEach(p => { propertyMap[p.id] = p.name; });
+
+        let html = `
+            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                <div style="font-size: 14px; color: #92400e; font-weight: 600;">Total Expenses</div>
+                <div style="font-size: 28px; font-weight: 800; color: #78350f;">₹${totalExpenses.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                <div style="font-size: 12px; color: #92400e;">${expenses.length} expense${expenses.length !== 1 ? 's' : ''} recorded</div>
+            </div>
+        `;
+
+        html += '<div style="display: grid; gap: 12px;">';
+        expenses.forEach(expense => {
+            const date = new Date(expense.expense_date);
+            const formattedDate = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            const icon = categoryIcons[expense.category] || '📋';
+            const label = categoryLabels[expense.category] || expense.category;
+
+            html += `
+                <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px;">
+                        <div style="font-size: 24px;">${icon}</div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 15px;">₹${parseFloat(expense.amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">${label}</div>
+                            ${expense.description ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">${expense.description}</div>` : ''}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 13px; color: var(--text-secondary);">${formattedDate}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">${propertyMap[expense.property_id] || 'Unknown'}</div>
+                        ${expense.entered_by_type === 'owner' ? `<button onclick="deleteExpense('${expense.id}')" style="margin-top: 6px; padding: 4px 10px; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Delete</button>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading expenses:', error);
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Failed to load expenses. The expenses feature may not be set up yet.</p>';
     }
 }
 
