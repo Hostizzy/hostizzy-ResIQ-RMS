@@ -7256,20 +7256,16 @@
             if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Logging in...'; }
 
             try {
-                // ── Step 1: Try Firebase Auth (primary) ──────────────────────
-                let firebaseAuthUser = null;
-                try {
-                    const { user } = await authService.signIn(email, password);
-                    if (user) {
-                        firebaseAuthUser = user;
-                        console.log('[Auth] Firebase Auth login successful');
-                    }
-                } catch (e) {
-                    console.warn('[Auth] Firebase Auth failed, using legacy fallback:', e.message);
+                // ── Step 1: Authenticate with Firebase ──────────────────────
+                const { user: firebaseAuthUser } = await authService.signIn(email, password);
+                if (!firebaseAuthUser) {
+                    showToast('Login Failed', 'Invalid email or password', '❌');
+                    return;
                 }
+                console.log('[Auth] Firebase Auth login successful');
 
-                // ── Step 2a: Firebase Auth succeeded — find staff profile ─────
-                if (firebaseAuthUser) {
+                // ── Step 2: Find user profile in database ─────────────────
+                {
                     const users = await db.getTeamMembers();
                     const profile = users.find(u => u.email === email);
 
@@ -7306,44 +7302,9 @@
                     }
                 }
 
-                // ── Step 2b: Legacy fallback (plain-text DB comparison) ───────
-                // DEPRECATED: Used for users not yet migrated to Firebase Auth.
-                // Remove this fallback after running scripts/migrate-users-to-firebase.js
-                console.warn('[Auth] DEPRECATED: Attempting legacy plaintext DB login. Migrate users to Firebase Auth.');
-                const users = await db.getTeamMembers();
-                const staffUser = users.find(u => u.email === email && u.password === password);
-
-                if (staffUser) {
-                    if (!staffUser.is_active) {
-                        showToast('Account Inactive', 'Your account has been deactivated', '❌');
-                        return;
-                    }
-                    currentUser = { ...staffUser, userType: 'staff' };
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    showMainApp(currentUser);
-                    await loadDashboard();
-                    showToast('Welcome!', `Logged in as ${staffUser.name}`, '👋');
-                    const lastView = localStorage.getItem('lastView') || 'home';
-                    showView(lastView);
-                    if (lastView === 'home') setTimeout(() => updateHomeScreenStats(), 500);
-                    return;
-                }
-
-                const owners = await db.getOwners();
-                const ownerUser = owners.find(o => o.email === email && o.password === password);
-
-                if (ownerUser) {
-                    if (!ownerUser.is_active) {
-                        showToast('Account Inactive', 'Your account has been deactivated', '❌');
-                        return;
-                    }
-                    currentUser = { ...ownerUser, userType: 'owner' };
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    window.location.href = 'owner-portal.html';
-                    return;
-                }
-
-                showToast('Login Failed', 'Invalid email or password', '❌');
+                // Firebase Auth succeeded but no staff/owner profile found
+                await authService.signOut();
+                showToast('Login Failed', 'No account profile found for this email', '❌');
 
             } catch (error) {
                 console.error('Login error:', error);

@@ -28,8 +28,8 @@ export default function handler(req, res) {
   // All values here are public-safe (anon key with RLS, Firebase web config)
   const config = {
     // Supabase (Database — public anon key, secured via Row Level Security)
-    supabaseUrl: process.env.SUPABASE_URL || 'https://dxthxsguqrxpurorpokq.supabase.co',
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+    supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '',
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '',
     // Firebase (Authentication — web config keys are public by design)
     firebaseApiKey: process.env.FIREBASE_API_KEY || '',
     firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || 'resiq-by-hostizzy.firebaseapp.com',
