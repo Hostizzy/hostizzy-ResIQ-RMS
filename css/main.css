@@ -3943,7 +3943,7 @@ body {
 }
 }
 
-/* Tablet (769px - 1024px) — No sidebar, uses bottom tabs + more sheet */
+/* Tablet Sidebar (769px - 1024px) — Compact sidebar (JS adds .compact class) */
 @media (min-width: 769px) and (max-width: 1024px) {
 body {
     padding-top: 60px;
@@ -3954,11 +3954,41 @@ body {
 }
 
 .sidebar {
-    display: none !important;
+    display: flex;
+    width: 220px;
+}
+
+.sidebar-item-label {
+    display: block;
+    font-size: 13px;
+}
+
+.sidebar-item {
+    justify-content: flex-start;
+    padding: 10px 14px;
+    gap: 10px;
+}
+
+.sidebar-item-icon {
+    font-size: 20px;
+}
+
+.sidebar-item-icon i {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+.sidebar-category-header {
+    display: flex;
+    padding: 8px 10px;
+}
+
+.sidebar-category-title {
+    font-size: 12px;
 }
 
 .container {
-    margin-left: 0;
+    margin-left: 80px;
     padding-top: 0;
 }
 
@@ -3993,9 +4023,23 @@ body {
     display: none;
 }
 
-/* Sidebar hidden on mobile — uses bottom tabs + more sheet */
+/* Sidebar as full-width drawer on mobile */
 .sidebar {
-    display: none !important;
+    display: flex;
+    width: 280px;
+    left: -290px;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10001;
+    top: 0;
+    height: 100vh;
+    padding-top: 60px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar.active,
+.sidebar.mobile-open {
+    left: 0;
 }
 
 /* Full sidebar with labels and large icons */
