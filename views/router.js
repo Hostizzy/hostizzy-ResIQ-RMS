@@ -1,5 +1,6 @@
 /**
  * ResIQ Lightweight View Router
+ * - Clean URL routing: /app/dashboard, /app/reservations, etc.
  * - History API integration for browser back/forward
  * - Lazy-load view modules on demand
  * - Route guards and middleware
@@ -25,6 +26,17 @@ const VIEW_CONFIG = {
     intelligence:  { title: 'Intelligence',  icon: 'brain',          loader: null },
 };
 
+/** Extract view name from pathname like /app/dashboard → dashboard */
+function getViewFromPath() {
+    const path = window.location.pathname;
+    // Match /app/viewName or /app
+    const match = path.match(/^\/app(?:\/([^/]+))?$/);
+    if (match && match[1]) {
+        return match[1];
+    }
+    return null;
+}
+
 class ResIQRouter {
     constructor() {
         this._currentView = null;
@@ -45,13 +57,16 @@ class ResIQRouter {
             }
         });
 
-        // Capture the initial view from URL hash or localStorage
+        // Capture initial view from: URL path > URL hash (legacy) > localStorage
+        const pathView = getViewFromPath();
         const hashView = window.location.hash.replace('#', '');
         const savedView = localStorage.getItem('lastView');
-        const initialView = hashView && VIEW_CONFIG[hashView] ? hashView : (savedView || 'home');
+        const initialView = (pathView && VIEW_CONFIG[pathView]) ? pathView
+            : (hashView && VIEW_CONFIG[hashView]) ? hashView
+            : (savedView || 'home');
 
-        // Set initial state
-        window.history.replaceState({ view: initialView }, '', `#${initialView}`);
+        // Set initial state with clean URL
+        window.history.replaceState({ view: initialView }, '', `/app/${initialView}`);
         this._currentView = initialView;
 
         this._initialized = true;
@@ -74,11 +89,11 @@ class ResIQRouter {
             if (!allowed) return;
         }
 
-        // Push to browser history
+        // Push to browser history with clean URL
         if (options.replace) {
-            window.history.replaceState({ view: viewName }, '', `#${viewName}`);
+            window.history.replaceState({ view: viewName }, '', `/app/${viewName}`);
         } else {
-            window.history.pushState({ view: viewName }, '', `#${viewName}`);
+            window.history.pushState({ view: viewName }, '', `/app/${viewName}`);
         }
 
         await this._navigateInternal(viewName, true);

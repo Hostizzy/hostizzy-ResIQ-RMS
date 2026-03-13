@@ -511,24 +511,27 @@
 
                 <!-- Portal Links (Desktop) -->
                 <div class="login-portal-links login-desktop-only">
-                    <a href="owner-portal.html" class="login-portal-link">
+                    <a href="/owner-portal" class="login-portal-link">
                         <i data-lucide="building-2" style="width: 18px; height: 18px;"></i>
                         <span>Owner Portal</span>
                     </a>
-                    <a href="guest-portal.html" class="login-portal-link">
+                    <a href="/guest-portal" class="login-portal-link">
                         <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
                         <span>Guest Portal</span>
                     </a>
                 </div>
 
-                <!-- Owner Portal (Mobile) -->
+                <!-- Portal Links (Mobile) -->
                 <div class="login-mobile-only" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center;">
-                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Property Owner?</p>
-                    <a href="owner-portal.html" class="login-owner-portal-btn">
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Access Portals</p>
+                    <a href="/owner-portal" class="login-owner-portal-btn">
                         <i data-lucide="building-2" style="width: 18px; height: 18px;"></i>
-                        Access Owner Portal &rarr;
+                        Owner Portal &rarr;
                     </a>
-                    <p style="font-size: 13px; color: var(--text-tertiary); margin-top: 10px;">View bookings, revenue, and manage your properties</p>
+                    <a href="/guest-portal" class="login-owner-portal-btn" style="margin-top: 10px; background: rgba(232, 148, 58, 0.08); color: var(--brand-orange, #E8943A); border-color: var(--brand-orange, #E8943A);">
+                        <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
+                        Guest Portal &rarr;
+                    </a>
                 </div>
 
                 <p class="login-secure-text login-desktop-only">
@@ -7238,7 +7241,7 @@
                         }
                         currentUser = { ...ownerProfile, userType: 'owner' };
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                        window.location.href = 'owner-portal.html';
+                        window.location.href = '/owner-portal';
                         return;
                     }
                 }
@@ -20348,7 +20351,7 @@ function printPropertyView() {
 
                 const checkInDate = checkIn ? new Date(checkIn).toLocaleDateString('en-IN') : 'TBD';
                 const checkOutDate = checkOut ? new Date(checkOut).toLocaleDateString('en-IN') : 'TBD';
-                const guestPortalLink = `${window.location.origin}/guest-portal.html`;
+                const guestPortalLink = `${window.location.origin}/guest-portal`;
 
                 let message = `⚠️ *Meal Preferences - Action Needed* ⚠️\n\n` +
                     `Hi ${guestName}!\n\n` +
@@ -21985,7 +21988,7 @@ function printPropertyView() {
         // GUEST PORTAL QR CODE
         // ============================================
         function showGuestPortalQR(bookingId, guestName, phone) {
-            const portalUrl = window.location.origin + '/guest-portal.html' + (bookingId ? '?booking=' + bookingId : '');
+            const portalUrl = window.location.origin + '/guest-portal' + (bookingId ? '?booking=' + bookingId : '');
 
             // Build modal
             const modal = document.createElement('div');
@@ -22083,7 +22086,7 @@ function printPropertyView() {
         }
 
         function copyGuestPortalLink(url) {
-            const portalUrl = url || (window.location.origin + '/guest-portal.html');
+            const portalUrl = url || (window.location.origin + '/guest-portal');
             navigator.clipboard.writeText(portalUrl).then(() => {
                 showToast('Link Copied', 'Guest portal link copied to clipboard!', '');
             }).catch(() => {
@@ -22099,7 +22102,7 @@ function printPropertyView() {
         }
 
         function sendPortalQRWhatsApp(bookingId, guestName, phone) {
-            const portalUrl = window.location.origin + '/guest-portal.html?booking=' + bookingId;
+            const portalUrl = window.location.origin + '/guest-portal?booking=' + bookingId;
             const message = `Hello ${guestName}!\n\nPlease complete your check-in for booking *${bookingId}* using this link:\n${portalUrl}\n\nYou can:\n✅ Submit your ID documents\n✅ Set meal preferences\n✅ View booking details\n\nNo login needed — just tap the link!\n\n— Team Hostizzy`;
             const formattedPhone = phone.replace(/\D/g, '');
             window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');

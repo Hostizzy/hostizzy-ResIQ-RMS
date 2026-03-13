@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/owner-portal",
+      "destination": "/owner-portal.html"
+    },
+    {
+      "source": "/guest-portal",
+      "destination": "/guest-portal.html"
+    },
+    {
       "source": "/app",
       "destination": "/app.html"
     },
