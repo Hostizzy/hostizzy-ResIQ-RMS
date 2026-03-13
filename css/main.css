@@ -3710,7 +3710,7 @@ justify-content: center;
 background: none;
 border: none;
 cursor: pointer;
-padding: 6px;
+padding: 4px;
 display: flex;
 align-items: center;
 justify-content: center;
@@ -3723,23 +3723,10 @@ transform: scale(0.93);
 }
 
 .mobile-logo-icon {
-width: 36px;
-height: 36px;
+width: 40px;
+height: 40px;
 border-radius: 8px;
 object-fit: contain;
-}
-
-.mobile-header-title {
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-.mobile-header-brand {
-font-size: 18px;
-font-weight: 700;
-color: var(--brand-navy, #1B3A5C);
-letter-spacing: 0.5px;
 }
 
 .mobile-header-spacer {
