@@ -365,8 +365,11 @@
          SCRIPTS
          ============================================ -->
     <script>
-        // Redirect to app — landing page is only for direct /index.html access
-        if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+        // If running as installed PWA (standalone mode), skip landing page and go straight to login
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches
+                   || window.matchMedia('(display-mode: window-controls-overlay)').matches
+                   || window.navigator.standalone === true;
+        if (isPWA) {
             window.location.replace('/app');
         }
 
