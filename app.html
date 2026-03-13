@@ -7131,7 +7131,6 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             updateUserEmailDisplay(user.email);
-            document.querySelector('.mobile-nav').classList.remove('hidden');
             document.getElementById('mobileHeader').classList.remove('hidden');
             document.getElementById('mobileUserEmail').textContent = user.email;
             if (user.role === 'staff') hidePerformanceForStaff();
@@ -7276,13 +7275,6 @@
                 }
             });
             
-            // Hide from mobile navigation
-            document.querySelectorAll('.mobile-nav-item').forEach(link => {
-                if (link.textContent.includes('Performance') || link.onclick?.toString().includes('performance')) {
-                    link.style.display = 'none';
-                }
-            });
-            
         }
 
         async function logout() {
@@ -7291,7 +7283,6 @@
             currentUser = null;
             document.getElementById('mainApp').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
-            document.querySelector('.mobile-nav')?.classList.add('hidden');
             document.getElementById('mobileHeader')?.classList.add('hidden');
             showToast('Logged Out', 'See you soon!', '👋');
         }
@@ -7394,15 +7385,10 @@
             }
         }
 
-        // Mobile Navigation
+        // Mobile Navigation (used by sidebar mobile items)
         function showViewMobile(viewName) {
             showView(viewName);
             toggleSidebar();
-
-            document.querySelectorAll('.mobile-nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            if (event && event.target) event.target.classList.add('active');
         }
 
         function navigateToReservation(booking_id) {
@@ -7906,13 +7892,13 @@
             document.getElementById(`${viewName}View`).classList.remove('hidden');
 
             // Remove active state from all navigation items
-            document.querySelectorAll('.nav-link, .mobile-nav-item, .sidebar-item').forEach(link => {
+            document.querySelectorAll('.nav-link, .sidebar-item').forEach(link => {
                 link.classList.remove('active');
             });
 
             // Add active state to matching navigation items
             document.querySelectorAll(`[onclick*="showView('${viewName}')"]`).forEach(link => {
-                if (link.classList.contains('sidebar-item') || link.classList.contains('mobile-nav-item')) {
+                if (link.classList.contains('sidebar-item')) {
                     link.classList.add('active');
                 }
             });
@@ -25047,19 +25033,11 @@ function printPropertyView() {
                 item.classList.remove('active');
             });
 
-            document.querySelectorAll('.mobile-nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
 
             // Set active based on view name
             const sidebarSelector = `.sidebar-item[onclick*="'${viewName}'"]`;
-            const mobileNavSelector = `.mobile-nav-item[onclick*="'${viewName}'"]`;
-
             const sidebarItem = document.querySelector(sidebarSelector);
-            const mobileNavItem = document.querySelector(mobileNavSelector);
-
             if (sidebarItem) sidebarItem.classList.add('active');
-            if (mobileNavItem) mobileNavItem.classList.add('active');
         }
 
         // Toggle Sidebar Compact Mode (Tablet)
