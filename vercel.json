@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/app",
+      "statusCode": 302
+    }
+  ],
   "rewrites": [
     {
       "source": "/owner-portal",

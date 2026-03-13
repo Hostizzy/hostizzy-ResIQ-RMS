@@ -8,6 +8,13 @@
       "*.md"
     ],
     "cleanUrls": true,
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/app",
+        "type": 302
+      }
+    ],
     "rewrites": [
       {
         "source": "/app",
