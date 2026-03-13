@@ -11,6 +11,8 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.21.0: Dashboard visual upgrade - dynamic greeting, quick actions, count-up animations, scroll-to-top, micro-interactions, accessibility, preconnect hints
+ * - v5.20.0: Landing page, login redesign, brand color fixes (teal consistency)
  * - v5.18.0: Monolith split phase 1 - extracted 5700 lines CSS to css/main.css, added view router with History API + lazy-loading, shared utilities module, fixed QR codes (real qrcode-generator library), mobile guest cards, bottom tabs redesign
  * - v5.17.0: ES Modules architecture - 12 new features: bottom tabs, swipe gestures, bottom sheets, skeleton loading, page transitions, notification center, QR check-in, WhatsApp deep integration, AI assist, centralized state, Web Components
  * - v5.16.0: Supabase Auth migration - signInWithPassword, signOut, getSession, resetPasswordForEmail, updateUser
@@ -36,17 +38,19 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.19.0';
+const CACHE_VERSION = 'v5.25.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 // Set to true for critical updates that require clearing all caches
-const FORCE_UPDATE = false;
+const FORCE_UPDATE = true;
 
 // Files to cache for offline support
 const STATIC_CACHE = [
   '/',
   '/index.html',
+  '/app',
+  '/app.html',
   '/owner-portal.html',
   '/guest-portal.html',
   '/privacy.html',
@@ -76,6 +80,8 @@ const STATIC_CACHE = [
   '/modules/components/status-badge.js',
   '/modules/components/empty-state.js',
   '/css/main.css',
+  '/css/landing.css',
+  '/app.html',
   '/views/router.js',
   '/views/shared.js',
   '/assets/logo.png',
@@ -218,8 +224,8 @@ self.addEventListener('fetch', (event) => {
           return caches.match(request)
             .then((cachedResponse) => {
               if (cachedResponse) return cachedResponse;
-              // If no cached version, try index.html, then offline page
-              return caches.match('/index.html')
+              // If no cached version, try app.html, then offline page
+              return caches.match('/app.html')
                 .then((indexResponse) => {
                   if (indexResponse) return indexResponse;
                   return caches.match(OFFLINE_URL);
