@@ -301,7 +301,7 @@ const DEFAULT_TABS = [
     { id: 'bookings', label: 'Bookings', icon: 'calendar', view: 'reservations' },
     { id: 'fab', label: '', icon: 'plus', isFab: true, action: 'newBooking' },
     { id: 'payments', label: 'Payments', icon: 'creditCard', view: 'payments' },
-    { id: 'more', label: 'More', icon: 'menu', action: 'toggleSidebar' },
+    { id: 'more', label: 'More', icon: 'menu', action: 'openMoreMenu' },
 ];
 
 class BottomTabs {
@@ -427,8 +427,10 @@ class BottomTabs {
             return;
         }
 
-        if (tab.action === 'toggleSidebar') {
-            if (typeof window.toggleSidebar === 'function') {
+        if (tab.action === 'openMoreMenu') {
+            if (window.ResIQBottomSheet) {
+                window.ResIQBottomSheet.openMoreMenu();
+            } else if (typeof window.toggleSidebar === 'function') {
                 window.toggleSidebar();
             }
             return;

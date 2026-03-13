@@ -365,6 +365,11 @@
          SCRIPTS
          ============================================ -->
     <script>
+        // Redirect to app — landing page is only for direct /index.html access
+        if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+            window.location.replace('/app');
+        }
+
         // Navbar scroll effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {

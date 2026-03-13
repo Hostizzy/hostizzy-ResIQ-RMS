@@ -105,7 +105,7 @@
       "name": "New Reservation",
       "short_name": "New Booking",
       "description": "Create a new reservation",
-      "url": "/?action=new-reservation",
+      "url": "/app?action=new-reservation",
       "icons": [
         {
           "src": "/assets/logo-192.png",
@@ -118,7 +118,7 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "View dashboard and analytics",
-      "url": "/?view=dashboard",
+      "url": "/app?view=dashboard",
       "icons": [
         {
           "src": "/assets/logo-192.png",
@@ -131,7 +131,7 @@
       "name": "Guest Documents",
       "short_name": "KYC",
       "description": "Review guest documents",
-      "url": "/?view=guest-documents",
+      "url": "/app?view=guest-documents",
       "icons": [
         {
           "src": "/assets/logo-192.png",
