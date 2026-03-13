@@ -11,6 +11,11 @@
     --primary-dark: #0e7490;
     --primary-light: #06b6d4;
     --primary-lighter: #22d3ee;
+    --brand-navy: #1B3A5C;
+    --brand-navy-light: #2A5080;
+    --brand-orange: #E8943A;
+    --brand-orange-light: #F0A85C;
+    --brand-coral: #FE5858;
     --bg: #ffffff;
     --bg-alt: #f8fafc;
     --bg-dark: #0f172a;
@@ -171,8 +176,8 @@ img {
 }
 
 .landing-nav.scrolled .nav-cta {
-    background: var(--primary) !important;
-    border-color: var(--primary) !important;
+    background: var(--brand-orange) !important;
+    border-color: var(--brand-orange) !important;
     color: white !important;
 }
 
@@ -211,7 +216,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0e7490 0%, #0891b2 20%, #22d3ee 55%, #67e8f9 85%, #a5f3fc 100%);
+    background: linear-gradient(135deg, #1B3A5C 0%, #0e7490 20%, #0891b2 40%, #67e8f9 65%, #e0f7fa 85%, #f0fdff 100%);
     position: relative;
     overflow: hidden;
     padding: 120px 24px 80px;
@@ -317,19 +322,19 @@ img {
     align-items: center;
     gap: 10px;
     padding: 16px 32px;
-    background: white;
-    color: var(--primary-dark);
+    background: linear-gradient(135deg, #E8943A 0%, #F0A85C 100%);
+    color: white;
     border-radius: var(--radius);
     font-weight: 700;
     font-size: 16px;
     transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(232, 148, 58, 0.4);
 }
 
 .btn-hero-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    color: var(--primary-dark);
+    box-shadow: 0 8px 25px rgba(232, 148, 58, 0.5);
+    color: white;
 }
 
 .btn-hero-secondary {
@@ -472,7 +477,7 @@ img {
 .stat-number {
     font-size: 36px;
     font-weight: 900;
-    color: var(--primary);
+    color: var(--brand-navy);
     line-height: 1;
     margin-bottom: 8px;
 }
@@ -565,7 +570,7 @@ img {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--primary), var(--primary-lighter));
+    background: linear-gradient(90deg, var(--brand-navy), var(--primary));
     transform: scaleX(0);
     transition: transform 0.3s;
     transform-origin: left;
@@ -626,14 +631,14 @@ img {
 .portal-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    background: linear-gradient(135deg, var(--brand-navy), var(--primary));
     border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 40px;
     margin: 0 auto 24px;
-    box-shadow: 0 8px 24px rgba(8, 145, 178, 0.3);
+    box-shadow: 0 8px 24px rgba(27, 58, 92, 0.3);
 }
 
 .portal-card h3 {
@@ -692,7 +697,7 @@ img {
 .step-number {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    background: linear-gradient(135deg, var(--brand-navy), var(--primary));
     color: white;
     border-radius: 50%;
     display: flex;
@@ -701,7 +706,7 @@ img {
     font-size: 32px;
     font-weight: 900;
     margin: 0 auto 24px;
-    box-shadow: 0 8px 24px rgba(8, 145, 178, 0.3);
+    box-shadow: 0 8px 24px rgba(27, 58, 92, 0.3);
 }
 
 .step-card h3 {
@@ -721,7 +726,7 @@ img {
    CTA BANNER
    ============================================ */
 .cta-banner {
-    background: linear-gradient(135deg, #0e7490 0%, #0891b2 30%, #22d3ee 70%, #67e8f9 100%);
+    background: linear-gradient(135deg, #1B3A5C 0%, #0891b2 40%, #67e8f9 75%, #e0f7fa 100%);
     padding: 80px 24px;
     text-align: center;
     position: relative;
@@ -834,7 +839,7 @@ img {
 }
 
 .footer-social a:hover {
-    background: var(--primary);
+    background: var(--brand-orange);
     color: white;
 }
 
@@ -856,7 +861,7 @@ img {
 }
 
 .footer-col a:hover {
-    color: var(--primary-lighter);
+    color: var(--brand-coral);
 }
 
 .footer-bottom {

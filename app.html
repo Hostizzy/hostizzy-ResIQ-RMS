@@ -847,32 +847,7 @@
         <!-- Mobile Overlay (for sidebar backdrop) -->
         <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
 
-        <!-- Mobile Bottom Navigation -->
-        <!-- Native-Feeling Mobile Bottom Navigation -->
-        <div class="mobile-nav" role="navigation" aria-label="Mobile navigation">
-            <div class="mobile-nav-items">
-                <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('home');">
-                    <div class="mobile-nav-icon"><i data-lucide="home" style="width: 22px; height: 22px;"></i></div>
-                    <div class="mobile-nav-label">Home</div>
-                </a>
-                <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('reservations');">
-                    <div class="mobile-nav-icon"><i data-lucide="calendar" style="width: 22px; height: 22px;"></i></div>
-                    <div class="mobile-nav-label">Bookings</div>
-                </a>
-                <!-- Floating Action Button (FAB) -->
-                <button class="mobile-nav-fab" onclick="triggerHaptic('medium'); openReservationModal();" title="New Booking">
-                    <div class="mobile-nav-fab-icon"><i data-lucide="plus" style="width: 24px; height: 24px;"></i></div>
-                </button>
-                <a class="mobile-nav-item" onclick="triggerHaptic('light'); showView('payments');">
-                    <div class="mobile-nav-icon"><i data-lucide="credit-card" style="width: 22px; height: 22px;"></i></div>
-                    <div class="mobile-nav-label">Payments</div>
-                </a>
-                <a class="mobile-nav-item" onclick="triggerHaptic('light'); toggleSidebar();">
-                    <div class="mobile-nav-icon"><i data-lucide="menu" style="width: 22px; height: 22px;"></i></div>
-                    <div class="mobile-nav-label">More</div>
-                </a>
-            </div>
-        </div>
+        <!-- Bottom navigation handled by modules/bottom-tabs.js (injected after login) -->
 
         <!-- Home Screen / Icon Dashboard -->
         <div id="homeView" class="container hidden" style="animation: fadeIn 0.6s ease-out;">
