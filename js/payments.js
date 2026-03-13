@@ -359,8 +359,6 @@ function switchToMultiPayment() {
 }
 
 async function savePayment() {
-
-async function savePayment() {
     try {
         const bookingId = document.getElementById('paymentBookingId').value;
         const amount = parseFloat(document.getElementById('paymentAmount').value);
@@ -458,7 +456,6 @@ async function recalculatePaymentStatus(bookingId) {
         })
         .eq('booking_id', bookingId);
 }
-
 
 // ==========================================
 // MULTI-PAYMENT ENTRY FUNCTIONS
@@ -1088,3 +1085,4 @@ async function editPayment(paymentId) {
         showToast('Failed to load payment details', 'error');
     }
 }
+// Properties

@@ -824,6 +824,7 @@ function clearFilterState(viewName) {
     }
 }
 
+// Dashboard Quick Activity Widgets
 
 function populateFiltersAndDisplay(properties, reservations) {
     const propertySelect = document.getElementById('propertySelect');
@@ -1277,6 +1278,8 @@ function toggleOtaServiceFeeField() {
         if (stayAmountHint) stayAmountHint.textContent = '';
     }
 }
+    // ============================================
+
 // ============================================
 // BOOKING WIZARD NAVIGATION
 // ============================================
@@ -1861,6 +1864,7 @@ async function cleanupCancelledReservationData(booking_id) {
     }
 }
 
+// Payment Functions
 
 function toggleRowSelection(checkbox, bookingId) {
     if (checkbox.checked) {
@@ -2109,5 +2113,3 @@ async function exportPaymentsCSV() {
 }
 
 // Utilities
-function formatDate(dateString) {
-    if (!dateString) return '';

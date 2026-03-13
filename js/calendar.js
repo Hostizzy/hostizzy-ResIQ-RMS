@@ -354,5 +354,3 @@ function toggleCollapse(elementId, iconId) {
 }
 
 // Bulk Edit Functions
-function toggleRowSelection(checkbox, bookingId) {
-

@@ -220,6 +220,7 @@ if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
 return d.toLocaleDateString('en-IN');
 }
 
+
 function openPropertyModal() {
     document.getElementById('propertyModal').classList.add('active');
 }
@@ -232,205 +233,192 @@ function closePropertyModal() {
 
 // Integration Info Modal Functions
 function showIntegrationInfo(integrationType) {
+    const integrationData = {
+        email: {
+            title: '📧 Email Integration',
+            icon: '📧',
+            description: 'Connect your email service to send automated booking confirmations, payment reminders, and guest communications.',
+            features: [
+                'Automated booking confirmations',
+                'Payment reminder emails',
+                'Check-in/check-out notifications',
+                'Custom email templates',
+                'Bulk email campaigns'
+            ],
+            providers: ['Gmail', 'Outlook', 'SendGrid', 'Mailgun'],
+            status: 'Available in Version 2.0'
+        },
+        whatsapp: {
+            title: '<i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp Business API',
+            icon: '💬',
+            description: 'Send automated WhatsApp messages to guests for instant communication and better engagement.',
+            features: [
+                'Instant booking confirmations',
+                'Payment reminders via WhatsApp',
+                'Real-time guest support',
+                'Automated check-in instructions',
+                'Review request messages'
+            ],
+            providers: ['WhatsApp Business API', 'Twilio', 'MessageBird'],
+            status: 'Available in Version 2.0'
+        },
+        payment: {
+            title: '💳 Payment Gateway',
+            icon: '💳',
+            description: 'Accept online payments directly from guests using secure payment gateways.',
+            features: [
+                'Online payment collection',
+                'Multiple payment methods (UPI, Cards, Wallets)',
+                'Automatic payment reconciliation',
+                'Refund management',
+                'Payment analytics'
+            ],
+            providers: ['Razorpay', 'Stripe', 'PayU', 'Paytm'],
+            status: 'Available in Version 2.0'
+        },
+        calendar: {
+            title: '📆 Calendar Sync',
+            icon: '📆',
+            description: 'Sync your bookings with Google Calendar, Airbnb, Booking.com and other platforms to prevent double bookings.',
+            features: [
+                'Two-way calendar synchronization',
+                'Prevent double bookings',
+                'Import bookings from OTAs',
+                'Real-time availability updates',
+                'Multi-platform integration'
+            ],
+            providers: ['Google Calendar', 'Airbnb', 'Booking.com', 'iCal'],
+            status: 'Available in Version 2.0'
+        }
+    };
 
-    function openPropertyModal() {
-        document.getElementById('propertyModal').classList.add('active');
-    }
+    const data = integrationData[integrationType];
 
-    function closePropertyModal() {
-        document.getElementById('propertyModal').classList.remove('active');
-        document.getElementById('propertyName').value = '';
-        document.getElementById('propertyLocation').value = '';
-    }
+    if (!data) return;
 
-    // Integration Info Modal Functions
-    function showIntegrationInfo(integrationType) {
-        const integrationData = {
-            email: {
-                title: '📧 Email Integration',
-                icon: '📧',
-                description: 'Connect your email service to send automated booking confirmations, payment reminders, and guest communications.',
-                features: [
-                    'Automated booking confirmations',
-                    'Payment reminder emails',
-                    'Check-in/check-out notifications',
-                    'Custom email templates',
-                    'Bulk email campaigns'
-                ],
-                providers: ['Gmail', 'Outlook', 'SendGrid', 'Mailgun'],
-                status: 'Available in Version 2.0'
-            },
-            whatsapp: {
-                title: '<i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp Business API',
-                icon: '💬',
-                description: 'Send automated WhatsApp messages to guests for instant communication and better engagement.',
-                features: [
-                    'Instant booking confirmations',
-                    'Payment reminders via WhatsApp',
-                    'Real-time guest support',
-                    'Automated check-in instructions',
-                    'Review request messages'
-                ],
-                providers: ['WhatsApp Business API', 'Twilio', 'MessageBird'],
-                status: 'Available in Version 2.0'
-            },
-            payment: {
-                title: '💳 Payment Gateway',
-                icon: '💳',
-                description: 'Accept online payments directly from guests using secure payment gateways.',
-                features: [
-                    'Online payment collection',
-                    'Multiple payment methods (UPI, Cards, Wallets)',
-                    'Automatic payment reconciliation',
-                    'Refund management',
-                    'Payment analytics'
-                ],
-                providers: ['Razorpay', 'Stripe', 'PayU', 'Paytm'],
-                status: 'Available in Version 2.0'
-            },
-            calendar: {
-                title: '📆 Calendar Sync',
-                icon: '📆',
-                description: 'Sync your bookings with Google Calendar, Airbnb, Booking.com and other platforms to prevent double bookings.',
-                features: [
-                    'Two-way calendar synchronization',
-                    'Prevent double bookings',
-                    'Import bookings from OTAs',
-                    'Real-time availability updates',
-                    'Multi-platform integration'
-                ],
-                providers: ['Google Calendar', 'Airbnb', 'Booking.com', 'iCal'],
-                status: 'Available in Version 2.0'
-            }
+    document.getElementById('integrationModalTitle').textContent = data.title;
+
+    const featuresHTML = data.features.map(feature =>
+        `<div style="display: flex; align-items: start; gap: 12px; padding: 8px 0;">
+            <span style="color: var(--success); font-size: 20px; flex-shrink: 0;">✓</span>
+            <span style="color: var(--text-primary);">${feature}</span>
+        </div>`
+    ).join('');
+
+    const providersHTML = data.providers.map(provider =>
+        `<span style="background: var(--background); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: var(--text-primary);">${provider}</span>`
+    ).join('');
+
+    document.getElementById('integrationModalBody').innerHTML = `
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 64px; margin-bottom: 16px;">${data.icon}</div>
+            <p style="color: var(--text-secondary); font-size: 15px; line-height: 1.6;">${data.description}</p>
+        </div>
+
+        <div style="background: var(--background); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 16px;">Key Features:</h4>
+            ${featuresHTML}
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">Supported Providers:</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                ${providersHTML}
+            </div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(8, 145, 178, 0.1) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">⏰</span>
+                <div>
+                    <strong style="color: var(--text-primary);">${data.status}</strong>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
+                        Contact support@hostizzy.com to request early access or get notified when this integration is available.
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('integrationInfoModal').style.display = 'flex';
+    document.getElementById('integrationInfoModal').classList.add('active');
+
+    // Update email subject
+    const emailSubject = `Integration Request - ${data.title}`;
+    document.querySelector('#integrationInfoModal .btn-primary').href =
+        `mailto:support@hostizzy.com?subject=${encodeURIComponent(emailSubject)}`;
+}
+
+function closeIntegrationModal() {
+    document.getElementById('integrationInfoModal').style.display = 'none';
+    document.getElementById('integrationInfoModal').classList.remove('active');
+}
+
+async function saveProperty() {
+    try {
+        const commissionRate = parseFloat(document.getElementById('propertyCommissionRate').value);
+
+        const property = {
+            name: document.getElementById('propertyName').value,
+            location: document.getElementById('propertyLocation').value,
+            type: document.getElementById('propertyType').value,
+            capacity: parseInt(document.getElementById('propertyCapacity').value),
+            revenue_share_percent: commissionRate || 15
         };
 
-        const data = integrationData[integrationType];
-
-        if (!data) return;
-
-        document.getElementById('integrationModalTitle').textContent = data.title;
-
-        const featuresHTML = data.features.map(feature =>
-            `<div style="display: flex; align-items: start; gap: 12px; padding: 8px 0;">
-                <span style="color: var(--success); font-size: 20px; flex-shrink: 0;">✓</span>
-                <span style="color: var(--text-primary);">${feature}</span>
-            </div>`
-        ).join('');
-
-        const providersHTML = data.providers.map(provider =>
-            `<span style="background: var(--background); padding: 6px 12px; border-radius: 6px; font-size: 13px; color: var(--text-primary);">${provider}</span>`
-        ).join('');
-
-        document.getElementById('integrationModalBody').innerHTML = `
-            <div style="text-align: center; margin-bottom: 24px;">
-                <div style="font-size: 64px; margin-bottom: 16px;">${data.icon}</div>
-                <p style="color: var(--text-secondary); font-size: 15px; line-height: 1.6;">${data.description}</p>
-            </div>
-
-            <div style="background: var(--background); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 16px;">Key Features:</h4>
-                ${featuresHTML}
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 16px;">Supported Providers:</h4>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                    ${providersHTML}
-                </div>
-            </div>
-
-            <div style="background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(8, 145, 178, 0.1) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 24px;">⏰</span>
-                    <div>
-                        <strong style="color: var(--text-primary);">${data.status}</strong>
-                        <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary);">
-                            Contact support@hostizzy.com to request early access or get notified when this integration is available.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.getElementById('integrationInfoModal').style.display = 'flex';
-        document.getElementById('integrationInfoModal').classList.add('active');
-
-        // Update email subject
-        const emailSubject = `Integration Request - ${data.title}`;
-        document.querySelector('#integrationInfoModal .btn-primary').href =
-            `mailto:support@hostizzy.com?subject=${encodeURIComponent(emailSubject)}`;
-    }
-
-    function closeIntegrationModal() {
-        document.getElementById('integrationInfoModal').style.display = 'none';
-        document.getElementById('integrationInfoModal').classList.remove('active');
-    }
-
-    async function saveProperty() {
-        try {
-            const commissionRate = parseFloat(document.getElementById('propertyCommissionRate').value);
-
-            const property = {
-                name: document.getElementById('propertyName').value,
-                location: document.getElementById('propertyLocation').value,
-                type: document.getElementById('propertyType').value,
-                capacity: parseInt(document.getElementById('propertyCapacity').value),
-                revenue_share_percent: commissionRate || 15
-            };
-
-            if (!property.name || !property.location) {
-                showToast('Validation Error', 'Please fill in all required fields', '❌');
-                return;
-            }
-
-            if (commissionRate < 0 || commissionRate > 100) {
-                showToast('Validation Error', 'Commission rate must be between 0 and 100%', '❌');
-                return;
-            }
-
-            // Get all existing properties to determine next ID
-            const { data: existingProperties, error: fetchError } = await supabase
-                .from('properties')
-                .select('id')
-                .order('id', { ascending: false })
-                .limit(1);
-
-            if (fetchError) throw fetchError;
-
-            // Calculate next available ID
-            const nextId = existingProperties?.length > 0 ?
-                (existingProperties[0].id + 1) : 1;
-
-            // Add the ID to property object
-            property.id = nextId;
-
-            // Insert the new property
-            const { data, error } = await supabase
-                .from('properties')
-                .insert([property])
-                .select();
-
-            if (error) throw error;
-
-            closePropertyModal();
-            await loadProperties(); // Refresh the properties list
-            showToast('Success', 'Property saved!', '✅');
-        } catch (error) {
-            showToast('Error', 'Failed to save property: ' + error.message, '❌');
+        if (!property.name || !property.location) {
+            showToast('Validation Error', 'Please fill in all required fields', '❌');
+            return;
         }
-    }
-    async function deleteProperty(id) {
-        if (!confirm('Delete this property?')) return;
-        
-        try {
-            await db.deleteProperty(id);
-            await loadProperties();
-            showToast('Deleted', 'Property deleted successfully', '✅');
-        } catch (error) {
-            console.error('Delete property error:', error);
-            showToast('Error', 'Failed to delete property', '❌');
+
+        if (commissionRate < 0 || commissionRate > 100) {
+            showToast('Validation Error', 'Commission rate must be between 0 and 100%', '❌');
+            return;
         }
+
+        // Get all existing properties to determine next ID
+        const { data: existingProperties, error: fetchError } = await supabase
+            .from('properties')
+            .select('id')
+            .order('id', { ascending: false })
+            .limit(1);
+
+        if (fetchError) throw fetchError;
+
+        // Calculate next available ID
+        const nextId = existingProperties?.length > 0 ?
+            (existingProperties[0].id + 1) : 1;
+
+        // Add the ID to property object
+        property.id = nextId;
+
+        // Insert the new property
+        const { data, error } = await supabase
+            .from('properties')
+            .insert([property])
+            .select();
+
+        if (error) throw error;
+
+        closePropertyModal();
+        await loadProperties(); // Refresh the properties list
+        showToast('Success', 'Property saved!', '✅');
+    } catch (error) {
+        showToast('Error', 'Failed to save property: ' + error.message, '❌');
     }
+}
+async function deleteProperty(id) {
+    if (!confirm('Delete this property?')) return;
+    
+    try {
+        await db.deleteProperty(id);
+        await loadProperties();
+        showToast('Deleted', 'Property deleted successfully', '✅');
+    } catch (error) {
+        console.error('Delete property error:', error);
+        showToast('Error', 'Failed to delete property', '❌');
+    }
+}
 
 
 // ==========================================

@@ -1,5 +1,168 @@
 // ResIQ Navigation — Quick actions, keyboard shortcuts, sidebar, mobile nav, user menu
 
+// Log PWA installation criteria
+console.log('PWA Check:', {
+    isHTTPS: window.location.protocol === 'https:' || window.location.hostname === 'localhost',
+    hasServiceWorker: 'serviceWorker' in navigator,
+    hasManifest: document.querySelector('link[rel="manifest"]') !== null
+});
+
+// Quick Actions System
+let selectedActionIndex = 0;
+let filteredActions = [];
+
+const quickActions = [
+    {
+        id: 'new-booking',
+        icon: '📅',
+        title: 'New Reservation',
+        desc: 'Add a new booking',
+        keywords: ['new', 'booking', 'reservation', 'add'],
+        action: () => {
+            closeQuickActions();
+            openReservationModal();
+        }
+    },
+    {
+        id: 'new-payment',
+        icon: '💰',
+        title: 'Add Payment',
+        desc: 'Record a new payment',
+        keywords: ['payment', 'pay', 'money', 'collect'],
+        action: () => {
+            closeQuickActions();
+            const lastBooking = allReservations[0];
+            if (lastBooking) {
+                openPaymentModal(lastBooking.booking_id);
+            } else {
+                showToast('No Bookings', 'Create a reservation first', '⚠️');
+            }
+        }
+    },
+    {
+        id: 'search',
+        icon: '🔍',
+        title: 'Search Reservations',
+        desc: 'Find a booking by ID or guest name',
+        keywords: ['search', 'find', 'lookup'],
+        action: () => {
+            closeQuickActions();
+            showView('reservations');
+            document.getElementById('searchReservations').focus();
+        }
+    },
+    {
+        id: 'checkins-today',
+        icon: '🏨',
+        title: 'Check-ins Today',
+        desc: 'View all arrivals for today',
+        keywords: ['checkin', 'arrival', 'today'],
+        action: () => {
+            closeQuickActions();
+            showView('reservations');
+            const today = new Date().toISOString().split('T')[0];
+            const todayCheckIns = allReservations.filter(r => r.check_in === today);
+            displayReservations(todayCheckIns);
+            showToast('Today\'s Check-ins', `${todayCheckIns.length} arrivals`, 'ℹ️');
+        }
+    },
+    {
+        id: 'checkouts-today',
+        icon: '🚪',
+        title: 'Check-outs Today',
+        desc: 'View all departures for today',
+        keywords: ['checkout', 'departure', 'today'],
+        action: () => {
+            closeQuickActions();
+            showView('reservations');
+            const today = new Date().toISOString().split('T')[0];
+            const todayCheckOuts = allReservations.filter(r => r.check_out === today);
+            displayReservations(todayCheckOuts);
+            showToast('Today\'s Check-outs', `${todayCheckOuts.length} departures`, 'ℹ️');
+        }
+    },
+    {
+        id: 'pending-payments',
+        icon: '⚠️',
+        title: 'Pending Payments',
+        desc: 'Show all unpaid bookings',
+        keywords: ['pending', 'unpaid', 'due', 'payment'],
+        action: () => {
+            closeQuickActions();
+            showView('payments');
+            document.getElementById('paymentStatusFilter').value = 'pending';
+            filterPayments();
+        }
+    },
+    {
+        id: 'dashboard',
+        icon: '📊',
+        title: 'Dashboard',
+        desc: 'View analytics and overview',
+        keywords: ['dashboard', 'home', 'overview', 'stats'],
+        action: () => {
+            closeQuickActions();
+            showView('dashboard');
+        }
+    },
+    {
+        id: 'export-csv',
+        icon: '📥',
+        title: 'Export Reservations',
+        desc: 'Download CSV file',
+        keywords: ['export', 'download', 'csv', 'backup'],
+        action: () => {
+            closeQuickActions();
+            exportCSV();
+        }
+    },
+    {
+        id: 'export-payments',
+        icon: '💳',
+        title: 'Export Payments',
+        desc: 'Download payment records',
+        keywords: ['export', 'payment', 'download'],
+        action: () => {
+            closeQuickActions();
+            exportPaymentsCSV();
+        }
+    },
+    {
+        id: 'add-property',
+        icon: '🏠',
+        title: 'Add Property',
+        desc: 'Register a new property',
+        keywords: ['property', 'add', 'new', 'villa'],
+        action: () => {
+            closeQuickActions();
+            showView('properties');
+            openPropertyModal();
+        }
+    },
+    {
+        id: 'sync-data',
+        icon: '🔄',
+        title: 'Sync Offline Data',
+        desc: 'Upload pending changes',
+        keywords: ['sync', 'upload', 'offline'],
+        action: () => {
+            closeQuickActions();
+            manualSync();
+        }
+    },
+    {
+        id: 'calendar',
+        icon: '🗓️',
+        title: 'Availability Calendar',
+        desc: 'View property calendar',
+        keywords: ['calendar', 'availability', 'schedule'],
+        action: () => {
+            closeQuickActions();
+            showView('availability');
+        }
+    }
+];
+
 function openQuickActions() {
     const overlay = document.getElementById('quickActionsOverlay');
     overlay.classList.add('active');
@@ -344,7 +507,6 @@ async function refreshCurrentView() {
     }
 } 
 
-// ============================================
 
 // ============================================
 // HAPTIC FEEDBACK
@@ -545,8 +707,6 @@ function processVoiceCommand(command) {
 // ============================================
 
 // ==========================================
-// MORE DROPDOWN & USER MENU
-// ==========================================
 
 /**
  * Toggle More dropdown menu
@@ -635,7 +795,7 @@ function updateUserEmailDisplay(email) {
     if (emailDropdown) emailDropdown.textContent = email;
 }
 
-</script>
+
 
 // ==========================================
 // NEW NAVIGATION FUNCTIONS
@@ -879,8 +1039,6 @@ if (originalShowView) {
     };
 }
 // ==========================================
-// PWA SERVICE WORKER & INSTALL PROMPT
-
 // PWA SERVICE WORKER & INSTALL PROMPT
 // ==========================================
 
@@ -1621,14 +1779,3 @@ if (originalLoadDashboard) {
 // =================================================================
 // END OF ENHANCED UX FEATURES
 // =================================================================
-    </script>
-
-    <!-- Native App Utilities -->
-    <script src="native-app-utils.js"></script>
-
-    <!-- Onboarding Flow -->
-    <script src="onboarding.js"></script>
-
-    <!-- Initialize Lucide Icons -->
-    <script>
-// Initialize Lucide icons after DOM load

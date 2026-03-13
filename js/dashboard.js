@@ -1,5 +1,99 @@
 // ResIQ Dashboard — KPIs, charts, metrics, filters, action center
 
+function renderBookingTypeBreakdown(reservations, targetId) {
+const bookingTypes = {};
+
+reservations.forEach(r => {
+    const type = r.booking_type || 'STAYCATION';
+    if (!bookingTypes[type]) bookingTypes[type] = { count: 0, revenue: 0, nights: 0 };
+    bookingTypes[type].count++;
+    bookingTypes[type].revenue += parseFloat(r.total_amount) || 0;
+    bookingTypes[type].nights += r.nights || 0;
+});
+
+const sortedTypes = Object.entries(bookingTypes).sort((a, b) => b[1].revenue - a[1].revenue);
+const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+const totalCount = reservations.length;
+
+const target = document.getElementById(targetId);
+if (!target) return;
+
+if (sortedTypes.length === 0) {
+    target.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">No booking data available</div>';
+    return;
+}
+
+const html = sortedTypes.map(([type, data]) => {
+    const percentage = totalRevenue > 0 ? ((data.revenue / totalRevenue) * 100).toFixed(1) : 0;
+    const countPercentage = totalCount > 0 ? ((data.count / totalCount) * 100).toFixed(1) : 0;
+    const typeInfo = (typeof BOOKING_TYPES !== 'undefined' && BOOKING_TYPES[type]) ? BOOKING_TYPES[type] : { label: type, icon: '📋' };
+    const avgBookingValue = data.count > 0 ? data.revenue / data.count : 0;
+
+    return `
+    <div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:24px;">${typeInfo.icon}</span>
+            <div>
+            <div style="font-weight:600;font-size:15px;">${typeInfo.label}</div>
+            <div style="font-size:12px;color:var(--text-secondary);">
+                ${data.count} bookings (${countPercentage}%) • ${data.nights} nights • Avg: ₹${Math.round(avgBookingValue).toLocaleString('en-IN')}
+            </div>
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-weight:700;font-size:18px;color:var(--success);">₹${(data.revenue/100000).toFixed(1)}L</div>
+            <div style="font-size:12px;color:var(--text-secondary);">${percentage}% of revenue</div>
+        </div>
+        </div>
+        <div style="background:var(--background);height:12px;border-radius:6px;overflow:hidden;">
+        <div style="width:${percentage}%;height:100%;background:linear-gradient(90deg,#10b981,#059669);transition:width .5s;"></div>
+        </div>
+    </div>`;
+}).join('');
+
+target.innerHTML = html;
+}
+
+/**
+ * Calculate total guests from reservations
+ */
+function calculateTotalGuests(reservations) {
+    return reservations.reduce((sum, r) => {
+        const adults = parseInt(r.adults) || 0;
+        const kids = parseInt(r.kids) || 0;
+        return sum + adults + kids;
+    }, 0);
+}
+
+/**
+ * Calculate unique guests (by phone/email)
+ */
+function calculateUniqueGuests(reservations) {
+    const uniqueGuests = new Set();
+    reservations.forEach(r => {
+        const identifier = r.guest_phone || r.guest_email || r.guest_name;
+        if (identifier) {
+            uniqueGuests.add(identifier.toLowerCase().trim());
+        }
+    });
+    return uniqueGuests.size;
+}
+
+/**
+ * Calculate average group size
+ */
+function calculateAvgGroupSize(reservations) {
+    if (reservations.length === 0) return '0.0';
+    const totalGuests = calculateTotalGuests(reservations);
+    return (totalGuests / reservations.length).toFixed(1);
+}
+
+/**
+ * Auto-update reservation statuses based on dates
+ * Runs silently in background
+ */
+
 function populateDashboardWidgets(reservations, payments) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -361,8 +455,6 @@ function resetDashboardFilter() {
 }
 
 // Quick Filter State
-let currentQuickFilter = 'all';
-
 let currentQuickFilter = 'all';
 
 async function applyQuickFilter(filter) {
@@ -853,7 +945,6 @@ async function clearAllFilters() {
 /**
  * Update dashboard with filtered data (extracted for reuse)
  */
-async function updateDashboardWithFilteredData(filteredReservations) {
 
 async function updateDashboardWithFilteredData(filteredReservations) {
     const confirmedReservations = filteredReservations.filter(r => r.status !== 'cancelled');
@@ -1090,8 +1181,6 @@ function updateTrendDisplay(elementId, changePercent) {
 
 // Payment Analytics - Revenue Split
 function renderRevenueSplit(payments, reservations) {
-    // Calculate Hostizzy vs Owner Revenue (from reservations, not payments)
-
     // Calculate Hostizzy vs Owner Revenue (from reservations, not payments)
     const hostizzyRevenue = reservations.reduce((sum, r) =>
         sum + (parseFloat(r.hostizzy_revenue) || 0), 0
@@ -1588,8 +1677,6 @@ function renderTopProperties(reservations, properties, targetElementId = 'topPro
     
     reservations.forEach(r => {
         const propId = r.property_id;
-
-        const propId = r.property_id;
         if (!propertyRevenue[propId]) {
             propertyRevenue[propId] = {
                 name: r.property_name,
@@ -1925,11 +2012,6 @@ function switchActionTab(tab) {
     document.getElementById('upcomingActions').style.display = tab === 'upcoming' ? 'block' : 'none';
 }
 
-function renderActionCenter(reservations) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const tomorrow = new Date(today);
 
 function renderActionCenter(reservations) {
     const today = new Date();
@@ -2319,97 +2401,3 @@ async function saveBulkPayments() {
 }
 
  // Helper function to populate filters and display reservations
-
-function renderBookingTypeBreakdown(reservations, targetId) {
-const bookingTypes = {};
-
-reservations.forEach(r => {
-    const type = r.booking_type || 'STAYCATION';
-    if (!bookingTypes[type]) bookingTypes[type] = { count: 0, revenue: 0, nights: 0 };
-    bookingTypes[type].count++;
-    bookingTypes[type].revenue += parseFloat(r.total_amount) || 0;
-    bookingTypes[type].nights += r.nights || 0;
-});
-
-const sortedTypes = Object.entries(bookingTypes).sort((a, b) => b[1].revenue - a[1].revenue);
-const totalRevenue = reservations.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-const totalCount = reservations.length;
-
-const target = document.getElementById(targetId);
-if (!target) return;
-
-if (sortedTypes.length === 0) {
-    target.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">No booking data available</div>';
-    return;
-}
-
-const html = sortedTypes.map(([type, data]) => {
-    const percentage = totalRevenue > 0 ? ((data.revenue / totalRevenue) * 100).toFixed(1) : 0;
-    const countPercentage = totalCount > 0 ? ((data.count / totalCount) * 100).toFixed(1) : 0;
-    const typeInfo = (typeof BOOKING_TYPES !== 'undefined' && BOOKING_TYPES[type]) ? BOOKING_TYPES[type] : { label: type, icon: '📋' };
-    const avgBookingValue = data.count > 0 ? data.revenue / data.count : 0;
-
-    return `
-    <div style="margin-bottom:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:12px;">
-            <span style="font-size:24px;">${typeInfo.icon}</span>
-            <div>
-            <div style="font-weight:600;font-size:15px;">${typeInfo.label}</div>
-            <div style="font-size:12px;color:var(--text-secondary);">
-                ${data.count} bookings (${countPercentage}%) • ${data.nights} nights • Avg: ₹${Math.round(avgBookingValue).toLocaleString('en-IN')}
-            </div>
-            </div>
-        </div>
-        <div style="text-align:right;">
-            <div style="font-weight:700;font-size:18px;color:var(--success);">₹${(data.revenue/100000).toFixed(1)}L</div>
-            <div style="font-size:12px;color:var(--text-secondary);">${percentage}% of revenue</div>
-        </div>
-        </div>
-        <div style="background:var(--background);height:12px;border-radius:6px;overflow:hidden;">
-        <div style="width:${percentage}%;height:100%;background:linear-gradient(90deg,#10b981,#059669);transition:width .5s;"></div>
-        </div>
-    </div>`;
-}).join('');
-
-target.innerHTML = html;
-}
-
-/**
- * Calculate total guests from reservations
- */
-function calculateTotalGuests(reservations) {
-    return reservations.reduce((sum, r) => {
-        const adults = parseInt(r.adults) || 0;
-        const kids = parseInt(r.kids) || 0;
-        return sum + adults + kids;
-    }, 0);
-}
-
-/**
- * Calculate unique guests (by phone/email)
- */
-function calculateUniqueGuests(reservations) {
-    const uniqueGuests = new Set();
-    reservations.forEach(r => {
-        const identifier = r.guest_phone || r.guest_email || r.guest_name;
-        if (identifier) {
-            uniqueGuests.add(identifier.toLowerCase().trim());
-        }
-    });
-    return uniqueGuests.size;
-}
-
-/**
- * Calculate average group size
- */
-function calculateAvgGroupSize(reservations) {
-    if (reservations.length === 0) return '0.0';
-    const totalGuests = calculateTotalGuests(reservations);
-    return (totalGuests / reservations.length).toFixed(1);
-}
-
-/**
- * Auto-update reservation statuses based on dates
- * Runs silently in background
- */

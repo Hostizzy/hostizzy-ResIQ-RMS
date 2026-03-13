@@ -511,4 +511,3 @@ let currentCalendarDate = new Date();
 /**
  * Show property calendar - switches to availability view and filters by property
  */
-async function showPropertyCalendar(propertyId) {
