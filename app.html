@@ -828,154 +828,38 @@
         <!-- Mobile Top Header -->
         <div class="mobile-header">
             <div class="mobile-header-content">
-                <!-- Hamburger Menu (Left) - Opens App Drawer -->
-                <button class="mobile-menu-btn" onclick="openMobileDrawer()" aria-label="Open menu">
-                    <i data-lucide="menu" style="width: 22px; height: 22px;"></i>
-                </button>
-
-                <!-- Logo (Center) -->
+                <!-- Logo (Left) -->
                 <div class="mobile-header-logo" onclick="showView('home')" style="cursor: pointer;">
                     <img src="assets/logo-48.png" alt="ResIQ" class="mobile-logo-icon">
                 </div>
 
+                <!-- Current View Title (Center) -->
+                <div class="mobile-header-title" id="mobileViewTitle">Home</div>
+
                 <!-- Right Actions -->
                 <div class="mobile-header-actions">
+                    <!-- Search -->
+                    <button class="mobile-action-btn" onclick="toggleMobileSearch()" aria-label="Search">
+                        <i data-lucide="search" style="width: 20px; height: 20px;"></i>
+                    </button>
                     <!-- Notification Bell -->
                     <button class="mobile-action-btn" onclick="toggleNotificationCenter()" aria-label="Notifications">
                         <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
                         <span class="mobile-notif-badge" id="mobileNotifBadge" style="display: none;">0</span>
                     </button>
-                    <!-- Profile -->
-                    <button class="mobile-action-btn" onclick="toggleUserMenuMobile()" aria-label="Profile">
-                        <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                </div>
+            </div>
+            <!-- Mobile Search Bar (hidden by default, toggles on search tap) -->
+            <div class="mobile-search-bar" id="mobileSearchBar" style="display: none;">
+                <div class="mobile-search-wrapper">
+                    <i data-lucide="search" style="width: 16px; height: 16px; color: var(--text-tertiary); flex-shrink: 0;"></i>
+                    <input type="text" class="mobile-search-input" id="mobileSearchInput" placeholder="Search bookings, guests, properties..." onkeyup="handleGlobalSearch(event)">
+                    <button class="mobile-search-close" onclick="toggleMobileSearch()">
+                        <i data-lucide="x" style="width: 16px; height: 16px;"></i>
                     </button>
                 </div>
             </div>
         </div>
-
-        <!-- Mobile App Drawer (Slide-in from left) -->
-        <div class="mobile-drawer-overlay" id="mobileDrawerOverlay" onclick="closeMobileDrawer()"></div>
-        <aside class="mobile-drawer" id="mobileDrawer" role="navigation" aria-label="Mobile navigation">
-            <!-- Drawer Header -->
-            <div class="mobile-drawer-header">
-                <div class="mobile-drawer-brand">
-                    <img src="assets/logo-48.png" alt="ResIQ" style="width: 36px; height: 36px; border-radius: 8px;">
-                    <div>
-                        <div class="mobile-drawer-title">ResIQ</div>
-                        <div class="mobile-drawer-email" id="drawerUserEmail">user@hostizzy.com</div>
-                    </div>
-                </div>
-                <button class="mobile-drawer-close" onclick="closeMobileDrawer()" aria-label="Close menu">
-                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-                </button>
-            </div>
-
-            <!-- Drawer Search -->
-            <div class="mobile-drawer-search">
-                <div class="mobile-drawer-search-wrapper">
-                    <i data-lucide="search" style="width: 16px; height: 16px; color: var(--text-tertiary);"></i>
-                    <input type="text" class="mobile-drawer-search-input" placeholder="Search..." onkeyup="handleGlobalSearch(event)" id="mobileDrawerSearch">
-                </div>
-            </div>
-
-            <!-- Drawer Menu Items -->
-            <div class="mobile-drawer-body">
-                <!-- Primary Nav -->
-                <div class="mobile-drawer-item active" onclick="mobileDrawerNav('home')">
-                    <span class="mobile-drawer-icon"><i data-lucide="home" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Home</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('dashboard')">
-                    <span class="mobile-drawer-icon"><i data-lucide="bar-chart-2" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Dashboard</span>
-                </div>
-
-                <!-- Analytics Section -->
-                <div class="mobile-drawer-section">Analytics</div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('property')">
-                    <span class="mobile-drawer-icon"><i data-lucide="building" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Property</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('business')">
-                    <span class="mobile-drawer-icon"><i data-lucide="briefcase" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Business</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('financials')">
-                    <span class="mobile-drawer-icon"><i data-lucide="dollar-sign" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Financials</span>
-                </div>
-
-                <!-- Operations Section -->
-                <div class="mobile-drawer-section">Operations</div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('reservations')">
-                    <span class="mobile-drawer-icon"><i data-lucide="calendar" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Reservations</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('payments')">
-                    <span class="mobile-drawer-icon"><i data-lucide="credit-card" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Payments</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('guests')">
-                    <span class="mobile-drawer-icon"><i data-lucide="users" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Guests</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('guestDocuments')">
-                    <span class="mobile-drawer-icon"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Documents</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('meals')">
-                    <span class="mobile-drawer-icon"><i data-lucide="utensils" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Meals</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('expenses')">
-                    <span class="mobile-drawer-icon"><i data-lucide="receipt" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Expenses</span>
-                </div>
-
-                <!-- Management Section -->
-                <div class="mobile-drawer-section">Management</div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('properties')">
-                    <span class="mobile-drawer-icon"><i data-lucide="building-2" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Properties</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('team')">
-                    <span class="mobile-drawer-icon"><i data-lucide="user-check" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Team</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('owners')">
-                    <span class="mobile-drawer-icon"><i data-lucide="shield" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Owners</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('availability')">
-                    <span class="mobile-drawer-icon"><i data-lucide="calendar-days" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Availability</span>
-                </div>
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('communication')">
-                    <span class="mobile-drawer-icon"><i data-lucide="message-circle" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Communication</span>
-                </div>
-            </div>
-
-            <!-- Drawer Footer -->
-            <div class="mobile-drawer-footer">
-                <div class="mobile-drawer-item" onclick="mobileDrawerNav('settings')">
-                    <span class="mobile-drawer-icon"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></span>
-                    <span class="mobile-drawer-label">Settings</span>
-                </div>
-                <div class="mobile-drawer-footer-actions">
-                    <button class="mobile-drawer-footer-btn" onclick="toggleTheme(); closeMobileDrawer();" aria-label="Toggle dark mode">
-                        <i data-lucide="sun" style="width: 18px; height: 18px;"></i>
-                    </button>
-                    <button class="mobile-drawer-footer-btn mobile-drawer-logout" onclick="logout()" aria-label="Logout">
-                        <i data-lucide="log-out" style="width: 18px; height: 18px;"></i>
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Mobile Overlay (for sidebar backdrop) -->
-        <div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
 
         <!-- Bottom navigation handled by modules/bottom-tabs.js (injected after login) -->
 
@@ -25092,67 +24976,47 @@ function printPropertyView() {
         }
 
         // ==========================================
-        // MOBILE APP DRAWER
+        // MOBILE HEADER HELPERS
         // ==========================================
 
-        function openMobileDrawer() {
-            const drawer = document.getElementById('mobileDrawer');
-            const overlay = document.getElementById('mobileDrawerOverlay');
-            if (drawer) {
-                drawer.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-            if (overlay) {
-                overlay.classList.add('active');
-            }
-            // Sync user email
-            const emailEl = document.getElementById('drawerUserEmail');
-            const srcEmail = document.getElementById('userEmail');
-            if (emailEl && srcEmail) {
-                emailEl.textContent = srcEmail.textContent || 'Account';
-            }
-            // Re-init lucide icons in drawer
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
+        // Toggle mobile search bar
+        function toggleMobileSearch() {
+            const bar = document.getElementById('mobileSearchBar');
+            const input = document.getElementById('mobileSearchInput');
+            if (!bar) return;
+            if (bar.style.display === 'none' || !bar.style.display) {
+                bar.style.display = 'block';
+                if (input) input.focus();
+            } else {
+                bar.style.display = 'none';
+                if (input) input.value = '';
             }
         }
 
-        function closeMobileDrawer() {
-            const drawer = document.getElementById('mobileDrawer');
-            const overlay = document.getElementById('mobileDrawerOverlay');
-            if (drawer) {
-                drawer.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-            if (overlay) {
-                overlay.classList.remove('active');
-            }
-        }
-
-        function mobileDrawerNav(viewName) {
-            // Update active state
-            document.querySelectorAll('.mobile-drawer-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            const clicked = event.currentTarget;
-            if (clicked) clicked.classList.add('active');
-
-            closeMobileDrawer();
-            if (typeof showView === 'function') {
-                showView(viewName);
-            }
-        }
-
-        // Sync mobile drawer active state when view changes
-        function syncMobileDrawerActive(viewName) {
-            document.querySelectorAll('.mobile-drawer-item').forEach(item => {
-                const onclick = item.getAttribute('onclick');
-                if (onclick && onclick.includes("'" + viewName + "'")) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
+        // Update mobile header title based on current view
+        function updateMobileViewTitle(viewName) {
+            const titleEl = document.getElementById('mobileViewTitle');
+            if (!titleEl) return;
+            const titles = {
+                home: 'Home',
+                dashboard: 'Dashboard',
+                property: 'Property',
+                business: 'Business',
+                financials: 'Financials',
+                reservations: 'Reservations',
+                payments: 'Payments',
+                guests: 'Guests',
+                guestDocuments: 'Documents',
+                meals: 'Meals',
+                expenses: 'Expenses',
+                properties: 'Properties',
+                team: 'Team',
+                owners: 'Owners',
+                availability: 'Availability',
+                communication: 'Communication',
+                settings: 'Settings'
+            };
+            titleEl.textContent = titles[viewName] || viewName.charAt(0).toUpperCase() + viewName.slice(1);
         }
 
         // Sync notification badge to mobile header
@@ -25307,8 +25171,8 @@ function printPropertyView() {
             window.showView = function(viewName) {
                 originalShowView(viewName);
                 setActiveNavItem(viewName);
-                if (typeof syncMobileDrawerActive === 'function') {
-                    syncMobileDrawerActive(viewName);
+                if (typeof updateMobileViewTitle === 'function') {
+                    updateMobileViewTitle(viewName);
                 }
                 closeAllMenus();
                 window.scrollTo(0, 0);
