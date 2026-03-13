@@ -828,14 +828,14 @@
         <!-- Mobile Top Header -->
         <div class="mobile-header">
             <div class="mobile-header-content">
-                <!-- Hamburger Menu Button -->
-                <button class="mobile-menu-btn" onclick="toggleSidebar()">
-                    <span id="hamburgerIcon"><i data-lucide="menu" style="width: 22px; height: 22px;"></i></span>
-                </button>
+                <!-- Logo (Left) -->
+                <div class="mobile-logo-btn" onclick="showView('home')" style="cursor: pointer;">
+                    <img src="assets/logo-96.png" alt="ResIQ" class="mobile-logo-icon">
+                </div>
 
-                <!-- Logo (Center) -->
-                <div class="mobile-header-logo" onclick="showView('home')" style="cursor: pointer;">
-                    <img src="assets/logo-96.png" alt="ResIQ" class="mobile-logo">
+                <!-- App Name (Center) -->
+                <div class="mobile-header-title" onclick="showView('home')" style="cursor: pointer;">
+                    <span class="mobile-header-brand">ResIQ</span>
                 </div>
 
                 <!-- Profile Button -->
@@ -24938,7 +24938,6 @@ function printPropertyView() {
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const overlay = document.getElementById('mobileOverlay');
-            const hamburger = document.getElementById('hamburgerIcon');
 
             if (sidebar) {
                 sidebar.classList.toggle('active');
@@ -24946,27 +24945,18 @@ function printPropertyView() {
             if (overlay) {
                 overlay.classList.toggle('active');
             }
-
-            // Animate hamburger icon
-            if (hamburger) {
-                hamburger.textContent = sidebar?.classList.contains('active') ? '✕' : '☰';
-            }
         }
 
         // Close Sidebar
         function closeSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const overlay = document.getElementById('mobileOverlay');
-            const hamburger = document.getElementById('hamburgerIcon');
 
             if (sidebar) {
                 sidebar.classList.remove('active');
             }
             if (overlay) {
                 overlay.classList.remove('active');
-            }
-            if (hamburger) {
-                hamburger.textContent = '☰';
             }
         }
 

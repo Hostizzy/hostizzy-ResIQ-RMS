@@ -3706,6 +3706,42 @@ align-items: center;
 justify-content: center;
 }
 
+.mobile-logo-btn {
+background: none;
+border: none;
+cursor: pointer;
+padding: 6px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 10px;
+transition: all 0.2s ease;
+}
+
+.mobile-logo-btn:active {
+transform: scale(0.93);
+}
+
+.mobile-logo-icon {
+width: 36px;
+height: 36px;
+border-radius: 8px;
+object-fit: contain;
+}
+
+.mobile-header-title {
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.mobile-header-brand {
+font-size: 18px;
+font-weight: 700;
+color: var(--brand-navy, #1B3A5C);
+letter-spacing: 0.5px;
+}
+
 .mobile-header-spacer {
 flex: 1;
 }
