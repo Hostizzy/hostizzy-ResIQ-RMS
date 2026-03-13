@@ -168,6 +168,53 @@ function openComposeModal() {
     loadGuestsForCompose();
 }
 
+async function loadGuestsForCompose() {
+    const select = document.getElementById('composeRecipient');
+    if (!select) return;
+
+    try {
+        select.innerHTML = '<option value="">Loading guests...</option>';
+        select.disabled = true;
+
+        const reservations = await db.getReservations();
+        const uniqueGuests = {};
+
+        reservations.forEach(r => {
+            if (r.guest_name && r.guest_phone) {
+                const key = r.guest_phone;
+                if (!uniqueGuests[key]) {
+                    uniqueGuests[key] = {
+                        name: r.guest_name,
+                        phone: r.guest_phone,
+                        email: r.guest_email && r.guest_email !== 'placeholder@ical.import' ? r.guest_email : ''
+                    };
+                }
+            }
+        });
+
+        const guestEntries = Object.values(uniqueGuests);
+
+        if (guestEntries.length === 0) {
+            select.innerHTML = '<option value="">No guests found</option>';
+        } else {
+            select.innerHTML = '<option value="">Select Guest...</option>' +
+                guestEntries.map(g => {
+                    const label = g.email
+                        ? `${g.name} — ${g.email}`
+                        : `${g.name} (${g.phone}) — no email`;
+                    return `<option value="${g.phone}" data-email="${g.email || ''}" data-name="${g.name}">${label}</option>`;
+                }).join('');
+        }
+
+        select.disabled = false;
+    } catch (error) {
+        console.error('Error loading guests:', error);
+        select.innerHTML = '<option value="">Error loading guests</option>';
+        select.disabled = false;
+        showToast('Error', 'Failed to load guests. Please try again.', '❌');
+    }
+}
+
 function updateComposeChannelHint(channel) {
     const hint = document.getElementById('composeChannelHint');
     if (!hint) return;
