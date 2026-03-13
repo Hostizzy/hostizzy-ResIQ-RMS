@@ -4115,122 +4115,694 @@
 
         <!-- Communication View -->
         <div id="communicationView" class="container hidden">
-            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
-                <div>
-                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
-                        <i data-lucide="message-circle" style="width: 24px; height: 24px; color: var(--primary);"></i>
-                        Communication Center
-                    </h2>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Email guests directly or log WhatsApp / SMS messages</p>
-                </div>
-                <button class="btn btn-primary" onclick="openComposeModal()" style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="send" style="width: 16px; height: 16px;"></i> Compose
-                </button>
-            </div>
-
-            <!-- Email Status Banner -->
-            <div id="emailStatusBanner" style="margin-bottom: 20px;"></div>
-
-            <!-- Quick Templates -->
-            <div class="card" style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Quick Templates</h3>
-                    <span style="font-size: 12px; color: var(--text-secondary);">Click to pre-fill compose window</span>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
-                    <button class="comm-template-btn" onclick="sendTemplate('booking-confirmation')">
-                        <span class="comm-template-icon"><i data-lucide="check-circle" style="width: 18px; height: 18px;"></i></span>
-                        <span>Booking Confirmation</span>
-                    </button>
-                    <button class="comm-template-btn" onclick="sendTemplate('payment-reminder')">
-                        <span class="comm-template-icon"><i data-lucide="banknote" style="width: 18px; height: 18px;"></i></span>
-                        <span>Payment Reminder</span>
-                    </button>
-                    <button class="comm-template-btn" onclick="sendTemplate('check-in')">
-                        <span class="comm-template-icon">🔑</span>
-                        <span>Check-in Details</span>
-                    </button>
-                    <button class="comm-template-btn" onclick="sendTemplate('check-out')">
-                        <span class="comm-template-icon"><i data-lucide="smile" style="width: 18px; height: 18px;"></i></span>
-                        <span>Check-out Thanks</span>
-                    </button>
-                    <button class="comm-template-btn" onclick="sendTemplate('review-request')">
-                        <span class="comm-template-icon"><i data-lucide="star" style="width: 18px; height: 18px;"></i></span>
-                        <span>Review Request</span>
-                    </button>
-                    <button class="comm-template-btn" onclick="sendTemplate('custom')">
-                        <span class="comm-template-icon">✏️</span>
-                        <span>Custom Message</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Message History -->
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Message History</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="filter-chip active" onclick="filterCommunications('all', this)" style="font-size: 12px; padding: 4px 12px;">All</button>
-                        <button class="filter-chip" onclick="filterCommunications('email', this)" style="font-size: 12px; padding: 4px 12px;">📧 Email</button>
-                        <button class="filter-chip" onclick="filterCommunications('whatsapp', this)" style="font-size: 12px; padding: 4px 12px;"><i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp</button>
-                        <button class="filter-chip" onclick="filterCommunications('sms', this)" style="font-size: 12px; padding: 4px 12px;"><i data-lucide="smartphone" style="width: 12px; height: 12px; margin-right: 3px;"></i>SMS</button>
-                    </div>
-                </div>
-                <div id="messageHistory">
-                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="margin-bottom: 16px; opacity: 0.4;"><i data-lucide="mail" style="width: 56px; height: 56px;"></i></div>
-                        <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-weight: 600;">No messages yet</h3>
-                        <p style="font-size: 14px;">Use the quick templates above or compose a message to get started</p>
-                    </div>
-                </div>
-            </div>
-
             <style>
-            .comm-template-btn {
+            /* WhatsApp-style Chat Layout */
+            .wa-chat-container {
+                display: flex;
+                height: calc(100vh - 140px);
+                background: var(--surface);
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid var(--border);
+                box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            }
+            @media (max-width: 768px) {
+                .wa-chat-container {
+                    height: calc(100vh - 180px);
+                    border-radius: 0;
+                    border: none;
+                    margin: -20px;
+                    box-shadow: none;
+                }
+            }
+            @media (min-width: 769px) and (max-width: 1024px) {
+                .wa-chat-container {
+                    height: calc(100vh - 160px);
+                }
+            }
+
+            /* Chat Sidebar (contact list) */
+            .wa-sidebar {
+                width: 360px;
+                min-width: 300px;
+                border-right: 1px solid var(--border);
                 display: flex;
                 flex-direction: column;
-                align-items: center;
-                gap: 8px;
-                padding: 16px 12px;
                 background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: var(--radius-md);
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 500;
-                color: var(--text-primary);
-                transition: all 0.2s ease;
-                text-align: center;
             }
-            .comm-template-btn:hover {
-                background: #e0f2f7;
-                border-color: var(--primary);
-                color: var(--primary-dark);
+            @media (max-width: 768px) {
+                .wa-sidebar {
+                    width: 100%;
+                    min-width: unset;
+                }
+                .wa-sidebar.wa-hidden { display: none; }
+                .wa-chat-main.wa-hidden { display: none; }
             }
-            .comm-template-icon {
-                font-size: 20px;
+            @media (min-width: 769px) {
+                .wa-sidebar { display: flex !important; }
+                .wa-chat-main { display: flex !important; }
             }
-            .comm-msg-item {
+
+            .wa-sidebar-header {
                 display: flex;
-                align-items: flex-start;
-                gap: 12px;
-                padding: 14px 0;
-                border-bottom: 1px solid var(--border);
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 16px;
+                background: #075E54;
+                color: white;
             }
-            .comm-msg-item:last-child { border-bottom: none; }
-            .comm-msg-avatar {
+            [data-theme="dark"] .wa-sidebar-header {
+                background: #1f2c34;
+            }
+            .wa-sidebar-header h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+            }
+            .wa-sidebar-actions {
+                display: flex;
+                gap: 8px;
+            }
+            .wa-sidebar-actions button {
                 width: 36px;
                 height: 36px;
                 border-radius: 50%;
-                background: var(--gradient-primary);
+                border: none;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s;
+            }
+            .wa-sidebar-actions button:hover {
+                background: rgba(255,255,255,0.25);
+            }
+
+            .wa-search-box {
+                padding: 8px 12px;
+                background: var(--background-alt, #f0f2f5);
+                border-bottom: 1px solid var(--border);
+            }
+            [data-theme="dark"] .wa-search-box {
+                background: #111b21;
+            }
+            .wa-search-input {
+                width: 100%;
+                padding: 8px 14px 8px 36px;
+                border-radius: 8px;
+                border: none;
+                background: var(--surface);
+                font-size: 14px;
+                color: var(--text-primary);
+                outline: none;
+            }
+            [data-theme="dark"] .wa-search-input {
+                background: #202c33;
+                color: #e9edef;
+            }
+            .wa-search-wrap {
+                position: relative;
+            }
+            .wa-search-wrap svg {
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 16px;
+                height: 16px;
+                color: var(--text-tertiary, #94a3b8);
+            }
+
+            /* Contact List */
+            .wa-contact-list {
+                flex: 1;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+            }
+            .wa-contact-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 16px;
+                cursor: pointer;
+                transition: background 0.15s;
+                border-bottom: 1px solid var(--border-light, #f1f5f9);
+            }
+            .wa-contact-item:hover {
+                background: var(--background-alt, #f0f2f5);
+            }
+            [data-theme="dark"] .wa-contact-item:hover {
+                background: rgba(255,255,255,0.05);
+            }
+            .wa-contact-item.active {
+                background: rgba(8, 145, 178, 0.08);
+            }
+            [data-theme="dark"] .wa-contact-item.active {
+                background: rgba(34, 211, 238, 0.1);
+            }
+            .wa-contact-avatar {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #075E54, #25D366);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 18px;
+                font-weight: 600;
+                flex-shrink: 0;
+            }
+            .wa-contact-info {
+                flex: 1;
+                min-width: 0;
+            }
+            .wa-contact-name {
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 2px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .wa-contact-preview {
+                font-size: 13px;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .wa-contact-meta {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 4px;
+                flex-shrink: 0;
+            }
+            .wa-contact-time {
+                font-size: 11px;
+                color: var(--text-tertiary, #94a3b8);
+            }
+            .wa-contact-badge {
+                min-width: 18px;
+                height: 18px;
+                padding: 0 5px;
+                border-radius: 9px;
+                background: #25D366;
+                color: white;
+                font-size: 10px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .wa-contact-badge:empty { display: none; }
+
+            /* Chat Main Area */
+            .wa-chat-main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+            }
+
+            .wa-chat-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 16px;
+                background: #075E54;
+                color: white;
+                flex-shrink: 0;
+            }
+            [data-theme="dark"] .wa-chat-header {
+                background: #1f2c34;
+            }
+            .wa-chat-header-back {
+                display: none;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: none;
+                background: rgba(255,255,255,0.1);
+                color: white;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            @media (max-width: 768px) {
+                .wa-chat-header-back { display: flex; }
+            }
+            .wa-chat-header-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.15);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 16px;
+                font-weight: 600;
                 flex-shrink: 0;
+            }
+            .wa-chat-header-info {
+                flex: 1;
+                min-width: 0;
+            }
+            .wa-chat-header-name {
+                font-size: 16px;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .wa-chat-header-status {
+                font-size: 12px;
+                opacity: 0.8;
+            }
+            .wa-chat-header-actions {
+                display: flex;
+                gap: 6px;
+            }
+            .wa-chat-header-actions button {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                border: none;
+                background: rgba(255,255,255,0.1);
                 color: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s;
+            }
+            .wa-chat-header-actions button:hover {
+                background: rgba(255,255,255,0.2);
+            }
+            .wa-chat-header-actions button svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            /* Chat Body (messages) */
+            .wa-chat-body {
+                flex: 1;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding: 16px;
+                background: #e5ddd5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' opacity='0.03'%3E%3Cpath d='M150 0L300 150L150 300L0 150Z' fill='%23000'/%3E%3C/svg%3E");
+            }
+            [data-theme="dark"] .wa-chat-body {
+                background: #0b141a;
+            }
+
+            /* Date separator */
+            .wa-date-sep {
+                text-align: center;
+                margin: 16px 0;
+            }
+            .wa-date-sep span {
+                display: inline-block;
+                padding: 4px 14px;
+                background: rgba(255,255,255,0.85);
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 500;
+                color: var(--text-secondary);
+                box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+            }
+            [data-theme="dark"] .wa-date-sep span {
+                background: rgba(30,41,59,0.85);
+                color: #8696a0;
+            }
+
+            /* Message bubbles */
+            .wa-msg {
+                max-width: 65%;
+                margin-bottom: 4px;
+                position: relative;
+                clear: both;
+            }
+            @media (max-width: 768px) {
+                .wa-msg { max-width: 85%; }
+            }
+            .wa-msg-sent {
+                margin-left: auto;
+            }
+            .wa-msg-received {
+                margin-right: auto;
+            }
+            .wa-msg-bubble {
+                padding: 6px 10px 4px;
+                border-radius: 8px;
+                position: relative;
+                box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+                word-break: break-word;
+            }
+            .wa-msg-sent .wa-msg-bubble {
+                background: #dcf8c6;
+                border-radius: 8px 0 8px 8px;
+            }
+            [data-theme="dark"] .wa-msg-sent .wa-msg-bubble {
+                background: #005c4b;
+            }
+            .wa-msg-received .wa-msg-bubble {
+                background: white;
+                border-radius: 0 8px 8px 8px;
+            }
+            [data-theme="dark"] .wa-msg-received .wa-msg-bubble {
+                background: #202c33;
+            }
+            .wa-msg-text {
+                font-size: 14px;
+                line-height: 1.45;
+                color: var(--text-primary, #111b21);
+                white-space: pre-wrap;
+            }
+            [data-theme="dark"] .wa-msg-text {
+                color: #e9edef;
+            }
+            .wa-msg-footer {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 4px;
+                margin-top: 2px;
+            }
+            .wa-msg-time {
+                font-size: 11px;
+                color: rgba(0,0,0,0.4);
+            }
+            [data-theme="dark"] .wa-msg-time {
+                color: rgba(255,255,255,0.4);
+            }
+            .wa-msg-status {
+                display: flex;
+                align-items: center;
+            }
+            .wa-msg-status svg {
+                width: 16px;
+                height: 12px;
+                color: #53bdeb;
+            }
+            .wa-msg-channel {
+                display: inline-block;
+                padding: 1px 6px;
+                border-radius: 4px;
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                margin-right: 4px;
+            }
+            .wa-msg-channel-whatsapp { background: rgba(37,211,102,0.15); color: #25D366; }
+            .wa-msg-channel-email { background: rgba(14,165,233,0.15); color: #0ea5e9; }
+            .wa-msg-channel-sms { background: rgba(168,85,247,0.15); color: #a855f7; }
+
+            /* Quick templates row */
+            .wa-templates-row {
+                display: flex;
+                gap: 8px;
+                padding: 10px 16px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                background: var(--surface);
+                border-top: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+            .wa-template-chip {
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 500;
+                white-space: nowrap;
+                cursor: pointer;
+                border: 1px solid var(--border);
+                background: var(--surface);
+                color: var(--text-secondary);
+                transition: all 0.2s;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .wa-template-chip:hover {
+                border-color: #25D366;
+                color: #25D366;
+            }
+            .wa-template-chip:active {
+                transform: scale(0.95);
+                background: #25D366;
+                color: white;
+                border-color: #25D366;
+            }
+
+            /* Composer (input area) */
+            .wa-composer {
+                display: flex;
+                align-items: flex-end;
+                gap: 8px;
+                padding: 8px 12px;
+                background: var(--background-alt, #f0f2f5);
+                border-top: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+            [data-theme="dark"] .wa-composer {
+                background: #1b2b34;
+            }
+            .wa-composer-channel {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 8px;
+                border-radius: 50%;
+                border: none;
+                background: none;
+                color: var(--text-secondary);
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+            .wa-composer-channel svg { width: 22px; height: 22px; }
+            .wa-composer-textarea {
+                flex: 1;
+                min-height: 40px;
+                max-height: 120px;
+                padding: 10px 14px;
+                border-radius: 20px;
+                border: 1px solid var(--border);
+                background: var(--surface);
+                font-size: 14px;
+                resize: none;
+                outline: none;
+                font-family: inherit;
+                line-height: 1.4;
+                color: var(--text-primary);
+            }
+            [data-theme="dark"] .wa-composer-textarea {
+                background: #2a3942;
+                border-color: transparent;
+                color: #e9edef;
+            }
+            .wa-send-btn {
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: #25D366;
+                color: white;
+                border: none;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                transition: transform 0.15s;
+            }
+            .wa-send-btn:active { transform: scale(0.9); }
+            .wa-send-btn:disabled { opacity: 0.5; cursor: default; }
+            .wa-send-btn svg { width: 20px; height: 20px; }
+
+            /* Empty state for chat */
+            .wa-empty-chat {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 40px;
+                background: var(--background-alt, #f0f2f5);
+            }
+            [data-theme="dark"] .wa-empty-chat {
+                background: #0b141a;
+            }
+            .wa-empty-chat svg {
+                width: 80px;
+                height: 80px;
+                color: var(--text-tertiary, #94a3b8);
+                margin-bottom: 20px;
+                opacity: 0.4;
+            }
+            .wa-empty-chat h3 {
+                margin: 0 0 8px;
+                font-size: 20px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            .wa-empty-chat p {
+                margin: 0;
+                font-size: 14px;
+                color: var(--text-secondary);
+            }
+
+            /* Channel selector dropdown */
+            .wa-channel-menu {
+                position: absolute;
+                bottom: calc(100% + 8px);
+                left: 0;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+                overflow: hidden;
+                z-index: 100;
+                min-width: 180px;
+            }
+            .wa-channel-option {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 14px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: background 0.15s;
+                color: var(--text-primary);
+                border: none;
+                background: none;
+                width: 100%;
+                text-align: left;
+            }
+            .wa-channel-option:hover {
+                background: var(--background-alt, #f0f2f5);
+            }
+            .wa-channel-option svg { width: 18px; height: 18px; }
+            .wa-channel-option.active {
+                background: rgba(37,211,102,0.08);
+                font-weight: 600;
+            }
+
+            /* Email Status Banner (inline) */
+            .wa-email-status {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 16px;
+                font-size: 12px;
+                border-top: 1px solid var(--border);
+                flex-shrink: 0;
             }
             </style>
+
+            <div class="wa-chat-container" id="waChatContainer">
+                <!-- Contact List Sidebar -->
+                <div class="wa-sidebar" id="waChatSidebar">
+                    <div class="wa-sidebar-header">
+                        <h3>Chats</h3>
+                        <div class="wa-sidebar-actions">
+                            <button onclick="openComposeModal()" title="New message">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="wa-search-box">
+                        <div class="wa-search-wrap">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <input class="wa-search-input" type="text" placeholder="Search or start new chat" id="waContactSearch" oninput="filterWaChatContacts(this.value)">
+                        </div>
+                    </div>
+                    <div class="wa-contact-list" id="waContactList">
+                        <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                            <p style="font-size:13px;">Loading contacts...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Main Area -->
+                <div class="wa-chat-main wa-hidden" id="waChatMain">
+                    <!-- Chat Header -->
+                    <div class="wa-chat-header" id="waChatHeader">
+                        <button class="wa-chat-header-back" onclick="waShowContactList()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <div class="wa-chat-header-avatar" id="waChatAvatar">G</div>
+                        <div class="wa-chat-header-info">
+                            <div class="wa-chat-header-name" id="waChatName">Guest</div>
+                            <div class="wa-chat-header-status" id="waChatStatus">tap for info</div>
+                        </div>
+                        <div class="wa-chat-header-actions">
+                            <button onclick="waOpenWhatsApp()" title="Open in WhatsApp">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                            </button>
+                            <button onclick="waCallGuest()" title="Call">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="wa-chat-body" id="waChatBody">
+                        <!-- Messages will be rendered here -->
+                    </div>
+
+                    <!-- Quick Templates -->
+                    <div class="wa-templates-row" id="waTemplatesRow">
+                        <button class="wa-template-chip" onclick="waInsertTemplate('booking-confirmation')">Booking Confirmed</button>
+                        <button class="wa-template-chip" onclick="waInsertTemplate('payment-reminder')">Payment Reminder</button>
+                        <button class="wa-template-chip" onclick="waInsertTemplate('check-in')">Check-in Guide</button>
+                        <button class="wa-template-chip" onclick="waInsertTemplate('check-out')">Check-out Thanks</button>
+                        <button class="wa-template-chip" onclick="waInsertTemplate('review-request')">Review Request</button>
+                    </div>
+
+                    <!-- Email Status (shown when email channel selected) -->
+                    <div id="waEmailStatus" style="display:none;"></div>
+
+                    <!-- Composer -->
+                    <div class="wa-composer">
+                        <div style="position:relative;">
+                            <button class="wa-composer-channel" id="waChannelBtn" onclick="waToggleChannelMenu()" title="Change channel">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="color:#25D366;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                            </button>
+                            <div class="wa-channel-menu" id="waChannelMenu" style="display:none;">
+                                <button class="wa-channel-option active" onclick="waSelectChannel('whatsapp')">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" style="color:#25D366;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                                    WhatsApp
+                                </button>
+                                <button class="wa-channel-option" onclick="waSelectChannel('email')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#0ea5e9;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                    Email
+                                </button>
+                                <button class="wa-channel-option" onclick="waSelectChannel('sms')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#a855f7;"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                                    SMS
+                                </button>
+                            </div>
+                        </div>
+                        <textarea class="wa-composer-textarea" id="waComposerInput" placeholder="Type a message..." rows="1" oninput="waAutoResize(this)"></textarea>
+                        <button class="wa-send-btn" onclick="waSendMessage()" id="waSendBtn" title="Send">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Empty state when no chat selected (desktop) -->
+                <div class="wa-empty-chat" id="waEmptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+                    </svg>
+                    <h3>ResIQ Chat</h3>
+                    <p>Select a guest to start messaging.<br>Send via WhatsApp, Email, or SMS.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -8191,200 +8763,26 @@
             }
         }
 
-        // Communication Functions
+        // Communication Functions — WhatsApp-style Chat
         let communicationMessages = [];
         let currentCommunicationFilter = 'all';
+        let waChatContacts = [];
+        let waActiveContact = null;
+        let waCurrentChannel = 'whatsapp';
 
         function loadCommunication() {
             try {
                 const stored = localStorage.getItem('communicationMessages');
                 communicationMessages = stored ? JSON.parse(stored) : [];
-                renderCommunicationMessages();
-                renderEmailStatusBanner();
             } catch (error) {
                 console.error('Error loading communications:', error);
                 communicationMessages = [];
             }
+            waLoadContacts();
         }
 
-        function renderEmailStatusBanner() {
-            const banner = document.getElementById('emailStatusBanner');
-            if (!banner) return;
-            const configured = !!(localStorage.getItem('emailjs_service_id') &&
-                                  localStorage.getItem('emailjs_template_id') &&
-                                  localStorage.getItem('emailjs_public_key'));
-            if (configured) {
-                banner.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #dcfce7; border-radius: 8px; border-left: 3px solid var(--success); font-size: 13px; color: #166534;">
-                        <span>✅</span>
-                        <span><strong>Email sending active</strong> via EmailJS — emails go directly to guest inboxes</span>
-                    </div>`;
-            } else {
-                banner.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff7ed; border-radius: 8px; border-left: 3px solid var(--warning); font-size: 13px; color: #92400e;">
-                        <span>⚠️</span>
-                        <span>Email sending not configured.
-                            <button onclick="showView('settings'); setTimeout(() => switchSettingsTab('integrations'), 200)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-weight: 600; text-decoration: underline; font-size: 13px; padding: 0; margin-left: 4px;">
-                                Set up EmailJS →
-                            </button>
-                        </span>
-                    </div>`;
-            }
-        }
-
-        function renderCommunicationMessages() {
-            const messageHistory = document.getElementById('messageHistory');
-            if (!messageHistory) return;
-
-            let filteredMessages = communicationMessages;
-            if (currentCommunicationFilter !== 'all') {
-                filteredMessages = communicationMessages.filter(m => m.channel === currentCommunicationFilter);
-            }
-
-            if (filteredMessages.length === 0) {
-                messageHistory.innerHTML = `
-                    <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-                        <div style="margin-bottom: 16px; opacity: 0.4;"><i data-lucide="mail" style="width: 56px; height: 56px;"></i></div>
-                        <h3 style="margin-bottom: 8px; color: var(--text-secondary); font-weight: 600;">No messages yet</h3>
-                        <p style="font-size: 14px;">Use the quick templates above or compose a message to get started</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const channelColors = {
-                email: { bg: '#e0f2f7', color: '#0e7490', icon: '📧' },
-                whatsapp: { bg: '#dcfce7', color: '#166534', icon: '💬' },
-                sms: { bg: '#f3f4f6', color: '#374151', icon: '📱' }
-            };
-
-            messageHistory.innerHTML = filteredMessages.map(msg => {
-                const ch = channelColors[msg.channel] || { bg: '#f3f4f6', color: '#374151', icon: '💬' };
-                const statusColor = msg.status === 'sent' ? 'var(--success)' : '#92400e';
-                const statusBg = msg.status === 'sent' ? '#dcfce7' : '#fef3c7';
-                const date = new Date(msg.timestamp);
-                const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                return `
-                <div class="comm-msg-item">
-                    <div class="comm-msg-avatar" style="background: ${ch.bg}; color: ${ch.color}; font-size: 18px;">
-                        ${ch.icon}
-                    </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-                            <div>
-                                <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${msg.recipient.split('(')[0].trim()}</span>
-                                ${msg.recipientEmail ? `<span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">${msg.recipientEmail}</span>` : ''}
-                            </div>
-                            <span style="font-size: 11px; color: var(--text-tertiary); white-space: nowrap; margin-left: 12px;">${dateStr} ${timeStr}</span>
-                        </div>
-                        <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); margin-bottom: 4px;">${msg.subject}</div>
-                        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">${msg.message.substring(0, 200)}${msg.message.length > 200 ? '…' : ''}</div>
-                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
-                            <span style="display: inline-block; padding: 2px 10px; background: ${ch.bg}; color: ${ch.color}; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase;">${msg.channel}</span>
-                            ${msg.status ? `<span style="display: inline-block; padding: 2px 10px; background: ${statusBg}; color: ${statusColor}; border-radius: 10px; font-size: 11px; font-weight: 600;">${msg.status}</span>` : ''}
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function getChannelIcon(channel) {
-            const icons = {
-                'whatsapp': '💬',
-                'email': '📧',
-                'sms': '📱'
-            };
-            return icons[channel] || '💬';
-        }
-
-        function openComposeModal() {
-            const emailJSConfigured = !!(localStorage.getItem('emailjs_service_id') &&
-                                        localStorage.getItem('emailjs_template_id') &&
-                                        localStorage.getItem('emailjs_public_key'));
-
-            const emailLabel = emailJSConfigured
-                ? '📧 Email (will be sent)'
-                : '📧 Email (configure in Settings first)';
-
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.style.display = 'flex';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 600px;">
-                    <div class="modal-header">
-                        <h3 class="modal-title"><i data-lucide="mail" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Compose Message</h3>
-                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <div style="padding: 20px;">
-                        <div class="form-group">
-                            <label>Channel *</label>
-                            <select id="composeChannel" onchange="updateComposeChannelHint(this.value)">
-                                <option value="email">Email</option>
-                                <option value="whatsapp"><i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp (logged only)</option>
-                                <option value="sms"><i data-lucide="smartphone" style="width: 12px; height: 12px; margin-right: 3px;"></i>SMS (logged only)</option>
-                            </select>
-                        </div>
-                        <div id="composeChannelHint" style="margin: -8px 0 12px 0; font-size: 12px; color: var(--text-secondary); padding: 8px 12px; background: ${emailJSConfigured ? '#e0f2f7' : '#fff7ed'}; border-radius: 6px;">
-                            ${emailJSConfigured
-                                ? '✅ EmailJS configured — email will be sent directly to guest'
-                                : '⚠️ EmailJS not configured — go to <strong>Settings → Integrations</strong> to enable email sending'}
-                        </div>
-                        <div class="form-group">
-                            <label>Recipient *</label>
-                            <select id="composeRecipient">
-                                <option value="">Loading guests...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Subject</label>
-                            <input type="text" id="composeSubject" placeholder="e.g., Booking Confirmation">
-                        </div>
-                        <div class="form-group">
-                            <label>Message *</label>
-                            <textarea id="composeMessage" rows="6" placeholder="Type your message here..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                        <button class="btn btn-primary" onclick="sendComposedMessage()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="send" style="width: 14px; height: 14px;"></i> Send</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) modal.remove();
-            });
-
-            loadGuestsForCompose();
-        }
-
-        function updateComposeChannelHint(channel) {
-            const hint = document.getElementById('composeChannelHint');
-            if (!hint) return;
-            const emailJSConfigured = !!(localStorage.getItem('emailjs_service_id') &&
-                                        localStorage.getItem('emailjs_template_id') &&
-                                        localStorage.getItem('emailjs_public_key'));
-            if (channel === 'email') {
-                hint.style.background = emailJSConfigured ? '#e0f2f7' : '#fff7ed';
-                hint.innerHTML = emailJSConfigured
-                    ? '✅ EmailJS configured — email will be sent directly to guest'
-                    : '⚠️ EmailJS not configured — go to <strong>Settings → Integrations</strong> to enable email sending';
-            } else {
-                hint.style.background = '#f8fafc';
-                hint.innerHTML = `ℹ️ ${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'} messages are logged in history only. Direct sending coming soon.`;
-            }
-        }
-
-        async function loadGuestsForCompose() {
-            const select = document.getElementById('composeRecipient');
-            if (!select) return;
-
+        async function waLoadContacts() {
             try {
-                select.innerHTML = '<option value="">Loading guests...</option>';
-                select.disabled = true;
-
                 const reservations = await db.getReservations();
                 const uniqueGuests = {};
 
@@ -8395,33 +8793,342 @@
                             uniqueGuests[key] = {
                                 name: r.guest_name,
                                 phone: r.guest_phone,
-                                email: r.guest_email && r.guest_email !== 'placeholder@ical.import' ? r.guest_email : ''
+                                email: r.guest_email && r.guest_email !== 'placeholder@ical.import' ? r.guest_email : '',
+                                property: r.property_name || '',
+                                bookingId: r.booking_id || '',
+                                status: r.status || '',
+                                checkIn: r.check_in || '',
+                                checkOut: r.check_out || '',
+                                totalAmount: r.total_amount || 0,
+                                paidAmount: r.paid_amount || 0,
                             };
                         }
                     }
                 });
 
-                const guestEntries = Object.values(uniqueGuests);
+                waChatContacts = Object.values(uniqueGuests);
 
-                if (guestEntries.length === 0) {
-                    select.innerHTML = '<option value="">No guests found</option>';
-                } else {
-                    select.innerHTML = '<option value="">Select Guest...</option>' +
-                        guestEntries.map(g => {
-                            const label = g.email
-                                ? `${g.name} — ${g.email}`
-                                : `${g.name} (${g.phone}) — no email`;
-                            return `<option value="${g.phone}" data-email="${g.email || ''}" data-name="${g.name}">${label}</option>`;
-                        }).join('');
+                // Sort contacts: those with messages first, then alphabetically
+                waChatContacts.sort((a, b) => {
+                    const aMsgs = communicationMessages.filter(m => m.contactPhone === a.phone);
+                    const bMsgs = communicationMessages.filter(m => m.contactPhone === b.phone);
+                    const aLast = aMsgs.length ? new Date(aMsgs[0].timestamp).getTime() : 0;
+                    const bLast = bMsgs.length ? new Date(bMsgs[0].timestamp).getTime() : 0;
+                    if (aLast !== bLast) return bLast - aLast;
+                    return a.name.localeCompare(b.name);
+                });
+
+                waRenderContactList();
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+            }
+        }
+
+        function waRenderContactList(filter = '') {
+            const list = document.getElementById('waContactList');
+            if (!list) return;
+
+            let contacts = waChatContacts;
+            if (filter) {
+                const f = filter.toLowerCase();
+                contacts = contacts.filter(c =>
+                    c.name.toLowerCase().includes(f) ||
+                    c.phone.includes(f) ||
+                    (c.property && c.property.toLowerCase().includes(f))
+                );
+            }
+
+            if (contacts.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;opacity:0.3;margin-bottom:12px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        <p style="font-size:13px;margin:0;">${filter ? 'No contacts match your search' : 'No guests yet. Add a booking to start chatting.'}</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = contacts.map(c => {
+                const msgs = communicationMessages.filter(m => m.contactPhone === c.phone);
+                const lastMsg = msgs[0];
+                const preview = lastMsg ? lastMsg.message.substring(0, 50) + (lastMsg.message.length > 50 ? '...' : '') : (c.property || c.phone);
+                const time = lastMsg ? new Date(lastMsg.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+                const unread = msgs.filter(m => !m.read && m.direction === 'received').length;
+                const initials = c.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const isActive = waActiveContact && waActiveContact.phone === c.phone;
+
+                return `
+                <div class="wa-contact-item${isActive ? ' active' : ''}" onclick="waOpenChat('${c.phone.replace(/'/g, "\\'")}')">
+                    <div class="wa-contact-avatar">${initials}</div>
+                    <div class="wa-contact-info">
+                        <div class="wa-contact-name">${c.name}</div>
+                        <div class="wa-contact-preview">${preview}</div>
+                    </div>
+                    <div class="wa-contact-meta">
+                        <div class="wa-contact-time">${time}</div>
+                        ${unread > 0 ? `<div class="wa-contact-badge">${unread}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function filterWaChatContacts(value) {
+            waRenderContactList(value);
+        }
+
+        function waOpenChat(phone) {
+            const contact = waChatContacts.find(c => c.phone === phone);
+            if (!contact) return;
+
+            waActiveContact = contact;
+            const initials = contact.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+            // Update header
+            const avatar = document.getElementById('waChatAvatar');
+            const name = document.getElementById('waChatName');
+            const status = document.getElementById('waChatStatus');
+            if (avatar) avatar.textContent = initials;
+            if (name) name.textContent = contact.name;
+            if (status) status.textContent = contact.property ? `${contact.property} · ${contact.phone}` : contact.phone;
+
+            // Show chat area, hide empty state
+            const main = document.getElementById('waChatMain');
+            const sidebar = document.getElementById('waChatSidebar');
+            const empty = document.getElementById('waEmptyState');
+
+            if (main) { main.classList.remove('wa-hidden'); main.style.display = 'flex'; }
+            if (empty) empty.style.display = 'none';
+
+            // On mobile, hide sidebar
+            if (window.innerWidth <= 768 && sidebar) {
+                sidebar.classList.add('wa-hidden');
+            }
+
+            waRenderMessages();
+            waRenderContactList(document.getElementById('waContactSearch')?.value || '');
+
+            // Focus composer
+            setTimeout(() => {
+                const input = document.getElementById('waComposerInput');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function waShowContactList() {
+            const main = document.getElementById('waChatMain');
+            const sidebar = document.getElementById('waChatSidebar');
+
+            if (sidebar) sidebar.classList.remove('wa-hidden');
+            if (main && window.innerWidth <= 768) main.classList.add('wa-hidden');
+        }
+
+        function waRenderMessages() {
+            const body = document.getElementById('waChatBody');
+            if (!body || !waActiveContact) return;
+
+            const msgs = communicationMessages
+                .filter(m => m.contactPhone === waActiveContact.phone)
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+            if (msgs.length === 0) {
+                body.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:40px;">
+                        <div style="background:rgba(37,211,102,0.1);border-radius:16px;padding:20px 30px;max-width:340px;">
+                            <p style="font-size:13px;color:var(--text-secondary);margin:0;">
+                                No messages yet with <strong>${waActiveContact.name}</strong>.<br>
+                                Use a template or type a message below.
+                            </p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            let lastDate = '';
+
+            msgs.forEach(msg => {
+                const date = new Date(msg.timestamp);
+                const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+                if (dateStr !== lastDate) {
+                    html += `<div class="wa-date-sep"><span>${dateStr}</span></div>`;
+                    lastDate = dateStr;
                 }
 
-                select.disabled = false;
-            } catch (error) {
-                console.error('Error loading guests:', error);
-                select.innerHTML = '<option value="">Error loading guests</option>';
-                select.disabled = false;
-                showToast('Error', 'Failed to load guests. Please try again.', '❌');
+                const isSent = msg.direction !== 'received';
+                const channelClass = `wa-msg-channel-${msg.channel || 'whatsapp'}`;
+                const checkMark = isSent ? `<span class="wa-msg-status"><svg viewBox="0 0 16 11" fill="currentColor"><path d="M11.071.653a.457.457 0 0 0-.304-.102.493.493 0 0 0-.381.178l-6.19 7.636-2.405-2.272a.463.463 0 0 0-.336-.146.47.47 0 0 0-.343.146l-.311.31a.445.445 0 0 0-.14.337c0 .136.046.249.14.337l2.995 2.83a.63.63 0 0 0 .345.14.498.498 0 0 0 .345-.14l6.39-7.635a.457.457 0 0 0 .14-.337.457.457 0 0 0-.14-.337l-.805-.945z"/></svg></span>` : '';
+
+                html += `
+                <div class="wa-msg wa-msg-${isSent ? 'sent' : 'received'}">
+                    <div class="wa-msg-bubble">
+                        ${msg.subject ? `<div style="font-size:12px;font-weight:600;color:var(--primary);margin-bottom:4px;">${msg.subject}</div>` : ''}
+                        <div class="wa-msg-text">${msg.message}</div>
+                        <div class="wa-msg-footer">
+                            <span class="wa-msg-channel ${channelClass}">${msg.channel || 'whatsapp'}</span>
+                            <span class="wa-msg-time">${timeStr}</span>
+                            ${checkMark}
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            body.innerHTML = html;
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function waAutoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function waToggleChannelMenu() {
+            const menu = document.getElementById('waChannelMenu');
+            if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function waSelectChannel(channel) {
+            waCurrentChannel = channel;
+            const menu = document.getElementById('waChannelMenu');
+            if (menu) menu.style.display = 'none';
+
+            // Update channel button icon color
+            const btn = document.getElementById('waChannelBtn');
+            const colors = { whatsapp: '#25D366', email: '#0ea5e9', sms: '#a855f7' };
+            if (btn) {
+                const svg = btn.querySelector('svg');
+                if (svg) svg.style.color = colors[channel] || '#25D366';
             }
+
+            // Update active state in menu
+            document.querySelectorAll('.wa-channel-option').forEach(opt => {
+                opt.classList.toggle('active', opt.textContent.trim().toLowerCase().includes(channel));
+            });
+
+            // Show email status if email channel
+            const emailStatus = document.getElementById('waEmailStatus');
+            if (emailStatus) {
+                if (channel === 'email') {
+                    const configured = !!(localStorage.getItem('emailjs_service_id') &&
+                                         localStorage.getItem('emailjs_template_id') &&
+                                         localStorage.getItem('emailjs_public_key'));
+                    emailStatus.style.display = 'flex';
+                    emailStatus.className = 'wa-email-status';
+                    emailStatus.innerHTML = configured
+                        ? '<span style="color:#22c55e;">●</span> <span>EmailJS configured — email will be sent</span>'
+                        : '<span style="color:#f59e0b;">●</span> <span>EmailJS not set up — <a href="#" onclick="showView(\'settings\'); setTimeout(() => switchSettingsTab(\'integrations\'), 200); return false;" style="color:var(--primary);font-weight:600;">Configure in Settings</a></span>';
+                } else {
+                    emailStatus.style.display = 'none';
+                }
+            }
+        }
+
+        async function waSendMessage() {
+            const textarea = document.getElementById('waComposerInput');
+            if (!textarea || !textarea.value.trim() || !waActiveContact) return;
+
+            const message = textarea.value.trim();
+            const channel = waCurrentChannel;
+
+            // For WhatsApp, open wa.me link
+            if (channel === 'whatsapp') {
+                const phone = waActiveContact.phone.replace(/[^0-9]/g, '');
+                if (phone) {
+                    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+                    window.open(waUrl, '_blank');
+                }
+            }
+
+            // For email, send via EmailJS
+            if (channel === 'email') {
+                if (!waActiveContact.email) {
+                    showToast('No Email', 'This guest has no email address on file.', '');
+                    return;
+                }
+                try {
+                    await sendEmailViaEmailJS(waActiveContact.email, waActiveContact.name, 'Message from ResIQ', message);
+                    showToast('Email Sent', `Email sent to ${waActiveContact.name}`, '');
+                } catch (err) {
+                    showToast('Email Failed', err.message || 'Check EmailJS configuration', '');
+                    return;
+                }
+            }
+
+            // Log message
+            const newMsg = {
+                id: Date.now(),
+                channel: channel,
+                contactPhone: waActiveContact.phone,
+                recipient: waActiveContact.name,
+                recipientEmail: waActiveContact.email,
+                subject: '',
+                message: message,
+                timestamp: new Date().toISOString(),
+                status: channel === 'email' ? 'sent' : 'logged',
+                direction: 'sent'
+            };
+
+            communicationMessages.unshift(newMsg);
+            localStorage.setItem('communicationMessages', JSON.stringify(communicationMessages));
+
+            // Clear input
+            textarea.value = '';
+            textarea.style.height = 'auto';
+
+            // Re-render
+            waRenderMessages();
+            waRenderContactList(document.getElementById('waContactSearch')?.value || '');
+
+            if (window.nativeApp?.haptic) window.nativeApp.haptic('success');
+        }
+
+        function waInsertTemplate(templateType) {
+            const templates = {
+                'booking-confirmation': `Hello ${waActiveContact?.name || 'Guest'}!\n\nYour booking is confirmed.\n\nWe look forward to hosting you!\n\n— Team ${localStorage.getItem('businessName') || 'ResIQ'}`,
+                'payment-reminder': `Hi ${waActiveContact?.name || 'Guest'},\n\nThis is a gentle reminder for your pending payment.\n\nPlease complete the payment at your earliest convenience.\n\nThank you!`,
+                'check-in': `Welcome ${waActiveContact?.name || 'Guest'}!\n\nHere are your check-in details:\n\nCheck-in time: 2:00 PM onwards\n\nPlease have your government ID ready for verification.\n\nSee you soon!`,
+                'check-out': `Hi ${waActiveContact?.name || 'Guest'},\n\nThank you for staying with us! We hope you had a wonderful experience.\n\nPlease leave a review if you enjoyed your stay.\n\nWarm regards!`,
+                'review-request': `Dear ${waActiveContact?.name || 'Guest'},\n\nThank you for choosing us! We'd love to hear about your experience.\n\nYour feedback helps us improve and helps future guests.\n\nThank you!`
+            };
+
+            const textarea = document.getElementById('waComposerInput');
+            if (textarea && templates[templateType]) {
+                textarea.value = templates[templateType];
+                waAutoResize(textarea);
+                textarea.focus();
+            }
+        }
+
+        function waOpenWhatsApp() {
+            if (!waActiveContact) return;
+            const phone = waActiveContact.phone.replace(/[^0-9]/g, '');
+            if (phone) window.open(`https://wa.me/${phone}`, '_blank');
+        }
+
+        function waCallGuest() {
+            if (!waActiveContact) return;
+            window.open(`tel:${waActiveContact.phone}`, '_self');
+        }
+
+        // Legacy functions kept for compatibility
+        function renderCommunicationMessages() { waRenderMessages(); }
+        function renderEmailStatusBanner() {}
+
+        function openComposeModal() {
+            // Open the chat view and show contact list
+            if (typeof showView === 'function') showView('communication');
+        }
+
+        function filterCommunications(type, element) {
+            currentCommunicationFilter = type;
+        }
+
+        function sendTemplate(templateType) {
+            if (typeof showView === 'function') showView('communication');
+        }
+
+        async function loadGuestsForCompose() {
+            // Now handled by waLoadContacts
         }
 
         // ============================================================
