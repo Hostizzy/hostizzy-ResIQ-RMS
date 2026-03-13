@@ -421,7 +421,7 @@
 | Component | Technology |
 |-----------|-----------|
 | **Frontend** | Vanilla JavaScript (ES6+), HTML5, CSS3 |
-| **Backend** | Supabase (PostgreSQL, Authentication, Real-time) |
+| **Backend** | Supabase (PostgreSQL, Real-time), Firebase Authentication |
 | **Charts** | Chart.js 3.x |
 | **Storage** | LocalStorage (sessions), Service Worker Cache |
 | **PWA** | Service Worker API, Web App Manifest |
@@ -489,7 +489,7 @@
 
 ## 🔐 Security Features
 
-- ✅ **Authentication**: Supabase email/password authentication
+- ✅ **Authentication**: Firebase email/password authentication
 - ✅ **Session Management**: Secure token-based sessions
 - ✅ **Role-Based Access**: Admin, Owner, Guest permissions
 - ✅ **Input Validation**: All inputs sanitized and validated

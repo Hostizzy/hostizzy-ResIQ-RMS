@@ -2380,39 +2380,25 @@
             }
 
             try {
-                // ── Step 1: Try Firebase Auth (primary) ──────────────────
-                let firebaseAuthUser = null;
-                try {
-                    const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
-                    if (credential.user) {
-                        firebaseAuthUser = credential.user;
-                        console.log('[Auth] Firebase Auth login successful for owner');
-                    }
-                } catch (e) {
-                    console.warn('[Auth] Firebase Auth failed, using legacy fallback:', e.message);
+                // ── Step 1: Authenticate with Firebase ──────────────────
+                const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                if (!credential.user) {
+                    showToast('Login Failed', 'Invalid email or password', '❌');
+                    return;
                 }
+                console.log('[Auth] Firebase Auth login successful for owner');
 
-                // Get all owners from database
+                // ── Step 2: Find owner profile in database ──────────────
                 const { data: owners, error } = await supabase
                     .from('property_owners')
                     .select('*');
                 if (error) throw error;
 
-                let owner = null;
-
-                if (firebaseAuthUser) {
-                    // Firebase Auth succeeded — find owner by email
-                    owner = owners.find(o => o.email === email);
-                } else {
-                    // DEPRECATED: Legacy fallback — plain-text password comparison
-                    // Remove after running scripts/migrate-users-to-firebase.js
-                    console.warn('[Auth] DEPRECATED: Using plaintext DB login. Migrate users to Firebase Auth.');
-                    owner = owners.find(o => o.email === email && o.password === password);
-                }
+                const owner = owners.find(o => o.email === email);
 
                 if (owner) {
                     if (!owner.is_active) {
-                        if (firebaseAuthUser) await firebaseAuth.signOut();
+                        await firebaseAuth.signOut();
                         showToast('Account Inactive', 'Your account has been deactivated', '❌');
                         return;
                     }
@@ -2442,8 +2428,8 @@
 
                     showToast('Welcome!', `Logged in as ${owner.name}`, '👋');
                 } else {
-                    if (firebaseAuthUser) await firebaseAuth.signOut();
-                    showToast('Login Failed', 'Invalid email or password', '❌');
+                    await firebaseAuth.signOut();
+                    showToast('Login Failed', 'No owner account found for this email', '❌');
                 }
 
             } catch (error) {
