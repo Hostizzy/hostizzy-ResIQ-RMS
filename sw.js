@@ -202,11 +202,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Redirect root URL to /app (matches hosting config redirects)
-  if (request.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/index.html')) {
-    event.respondWith(Response.redirect(new URL('/app', url.origin), 302));
-    return;
-  }
+  // Let root URL pass through to index.html (landing page)
+  // PWA users are redirected to /app client-side via display-mode: standalone check
+  // Browser users see the landing page
 
   // Handle navigation requests (HTML pages)
   // IMPORTANT: Always fetch fresh HTML to avoid serving stale/broken JavaScript
