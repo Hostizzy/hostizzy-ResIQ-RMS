@@ -584,11 +584,11 @@
             <!-- Footer (Desktop) -->
             <div class="login-footer login-desktop-only">
                 <div class="login-footer-links">
-                    <a href="about.html">About</a>
+                    <a href="/about">About</a>
                     <span>&middot;</span>
-                    <a href="privacy.html">Privacy</a>
+                    <a href="/privacy">Privacy</a>
                     <span>&middot;</span>
-                    <a href="terms.html">Terms</a>
+                    <a href="/terms">Terms</a>
                     <span>&middot;</span>
                     <a href="mailto:support@hostizzy.com">Support</a>
                 </div>
@@ -597,11 +597,11 @@
             <!-- Footer (Mobile) -->
             <div class="login-footer login-mobile-only">
                 <div class="login-footer-links">
-                    <a href="about.html">About &amp; Help</a>
+                    <a href="/about">About &amp; Help</a>
                     <span>&middot;</span>
-                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="/privacy">Privacy Policy</a>
                     <span>&middot;</span>
-                    <a href="terms.html">Terms of Service</a>
+                    <a href="/terms">Terms of Service</a>
                     <span>&middot;</span>
                     <a href="mailto:support@hostizzy.com">Contact Support</a>
                 </div>
@@ -4120,74 +4120,12 @@
                     <button class="btn btn-secondary btn-sm" onclick="openAppSettings()">Open App Settings →</button>
                 </div>
 
-                <!-- WhatsApp (Coming Soon) -->
-                <div class="card" style="margin-bottom: 16px; opacity: 0.8;">
-                    <div class="integration-header">
-                        <div>
-                            <h4 style="margin: 0 0 4px 0;"><i data-lucide="message-circle" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>WhatsApp Business</h4>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Send automated messages via WhatsApp Business API</p>
-                        </div>
-                        <span class="badge" style="background: var(--text-secondary); color: white;">Coming Soon</span>
-                    </div>
-                    <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 0 0;">
-                        WhatsApp Business API integration is planned for v3.0. For now, use the direct WhatsApp link from the Guest view.
-                    </p>
-                </div>
-
-                <!-- Payment Gateway (Coming Soon) -->
-                <div class="card" style="opacity: 0.8;">
-                    <div class="integration-header">
-                        <div>
-                            <h4 style="margin: 0 0 4px 0;"><i data-lucide="credit-card" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Payment Gateway</h4>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Accept online payments via Razorpay / Stripe</p>
-                        </div>
-                        <span class="badge" style="background: var(--text-secondary); color: white;">Coming Soon</span>
-                    </div>
-                    <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 0 0;">
-                        Online payment collection is planned for v3.0. Contact <a href="mailto:support@hostizzy.com" style="color: var(--primary);">support@hostizzy.com</a> for early access.
-                    </p>
-                </div>
             </div>
 
             <!-- Advanced Settings -->
             <div id="settings-advanced" class="settings-panel">
                 <div class="card">
                     <h3 style="margin-bottom: 20px;"><i data-lucide="sliders" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Advanced Settings</h3>
-
-                    <div class="settings-toggle">
-                        <div>
-                            <strong>Enable PWA Mode</strong>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Install app on home screen for offline access</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="pwaMode" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="settings-toggle">
-                        <div>
-                            <strong>Auto Backup</strong>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Automatically backup data to cloud</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="autoBackup" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="settings-toggle">
-                        <div>
-                            <strong>Developer Mode</strong>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Enable advanced debugging features</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="developerMode">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
 
                     <h4 style="margin-bottom: 16px; color: var(--text-primary);"><i data-lucide="cpu" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Smart Automation</h4>
 
@@ -8165,19 +8103,12 @@
                 document.getElementById('bookingConfirmations').checked = bookingConf;
                 document.getElementById('dailySummary').checked = dailySum;
 
-                // Load advanced settings
-                document.getElementById('pwaMode').checked = true;
-                document.getElementById('autoBackup').checked = localStorage.getItem('autoBackup') !== 'false';
-                document.getElementById('developerMode').checked = localStorage.getItem('developerMode') === 'true';
-
                 // Load dark mode toggle state
                 const currentTheme = localStorage.getItem('theme') || 'light';
                 document.getElementById('darkModeToggle').checked = currentTheme === 'dark';
 
                 // Load automation settings
                 document.getElementById('smartAutomationEnabled').checked = localStorage.getItem('smartAutomationEnabled') !== 'false';
-                document.getElementById('paymentReminderDays').value = localStorage.getItem('paymentReminderDays') || '7';
-                document.getElementById('documentExpiryDays').value = localStorage.getItem('documentExpiryDays') || '30';
                 document.getElementById('automationInterval').value = localStorage.getItem('automationInterval') || '30';
 
                 // Load email settings
@@ -8219,12 +8150,8 @@
 
         function saveAutomationSettings() {
             try {
-                const paymentReminderDays = document.getElementById('paymentReminderDays').value;
-                const documentExpiryDays = document.getElementById('documentExpiryDays').value;
                 const automationInterval = document.getElementById('automationInterval').value;
 
-                localStorage.setItem('paymentReminderDays', paymentReminderDays);
-                localStorage.setItem('documentExpiryDays', documentExpiryDays);
                 localStorage.setItem('automationInterval', automationInterval);
 
                 // Restart automation with new interval
