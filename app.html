@@ -7212,11 +7212,13 @@
         // ==========================================
 
         function showMainApp(user) {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('loginScreen')?.classList.add('hidden');
+            document.getElementById('mainApp')?.classList.remove('hidden');
             updateUserEmailDisplay(user.email);
-            document.getElementById('mobileHeader').classList.remove('hidden');
-            document.getElementById('mobileUserEmail').textContent = user.email;
+            const mobileHeader = document.getElementById('mobileHeader');
+            if (mobileHeader) mobileHeader.classList.remove('hidden');
+            const mobileUserEmail = document.getElementById('mobileUserEmail');
+            if (mobileUserEmail) mobileUserEmail.textContent = user.email;
             if (user.role === 'staff') hidePerformanceForStaff();
         }
 
@@ -22260,67 +22262,11 @@ function printPropertyView() {
 
     <script>
 
-   // PWA Install Prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('💡 PWA install prompt ready');
-        console.log('Event:', e);
-        
-        // Prevent the mini-infobar from appearing
-        e.preventDefault();
-        deferredPrompt = e;
-        
-    });
-    
     // Log PWA installation criteria
     console.log('PWA Check:', {
         isHTTPS: window.location.protocol === 'https:' || window.location.hostname === 'localhost',
         hasServiceWorker: 'serviceWorker' in navigator,
         hasManifest: document.querySelector('link[rel="manifest"]') !== null
-    });
-
-    // Handle install button click
-    const installBtn = document.getElementById('installBtn');
-    if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                console.log('No deferred prompt available');
-                return;
-            }
-            
-            // Show the install prompt
-            deferredPrompt.prompt();
-            
-            // Wait for the user's response
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`PWA install: ${outcome}`);
-            
-            // Clear the deferred prompt
-            deferredPrompt = null;
-            
-            // Hide the install bar
-            const installBar = document.getElementById('installBar');
-            if (installBar) {
-                installBar.style.display = 'none';
-            }
-            
-            if (outcome === 'accepted') {
-                showToast('Success', 'App installed successfully!', '🎉');
-            }
-        });
-    }
-
-    // Handle successful installation
-    window.addEventListener('appinstalled', () => {
-        console.log('🎉 PWA installed successfully');
-        deferredPrompt = null;
-        
-        // Hide install bar
-        const installBar = document.getElementById('installBar');
-        if (installBar) {
-            installBar.style.display = 'none';
-        }
-        
-        showToast('Success', 'ResIQ installed! Open from your home screen.', '🎉');
     });
 
     // Quick Actions System
@@ -25293,8 +25239,8 @@ function printPropertyView() {
         // PWA SERVICE WORKER & INSTALL PROMPT
         // ==========================================
         
-        let deferredPrompt = null;
-        let isInstalled = false;
+        var deferredPrompt = null;
+        var isInstalled = false;
 
         // Check if already installed
         function checkIfInstalled() {
@@ -25340,7 +25286,9 @@ function printPropertyView() {
             
             // Store the event for later use
             deferredPrompt = e;
-            
+            deferredPWAPrompt = e;
+            window.deferredPrompt = e;
+
             // Check if user previously dismissed
             const dismissed = localStorage.getItem('pwa_install_dismissed');
             const dismissedTime = localStorage.getItem('pwa_install_dismissed_time');
@@ -25393,7 +25341,7 @@ function printPropertyView() {
         let revenueChartInstance = null;
         let paymentChartInstance = null;
         let kanbanSortables = [];
-        let deferredPWAPrompt = null;
+        var deferredPWAPrompt = null;
 
         // =================================================================
         // 1. KANBAN BOARD WITH SORTABLEJS
@@ -25963,14 +25911,6 @@ function printPropertyView() {
                 showToast('❌ Installation failed', 'error');
             }
         }
-
-        // Capture install prompt
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPWAPrompt = e;
-            window.deferredPrompt = e;
-            showPWABanner();
-        });
 
         // Initialize on load
         window.addEventListener('load', () => {

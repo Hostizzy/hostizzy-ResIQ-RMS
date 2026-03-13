@@ -81,7 +81,6 @@ const STATIC_CACHE = [
   '/modules/components/empty-state.js',
   '/css/main.css',
   '/css/landing.css',
-  '/app.html',
   '/views/router.js',
   '/views/shared.js',
   '/assets/logo.png',
