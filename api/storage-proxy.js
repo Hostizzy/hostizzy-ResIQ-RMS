@@ -17,12 +17,8 @@ export const config = {
     }
 };
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.error('[storage-proxy] Missing required env vars: SUPABASE_URL, SUPABASE_ANON_KEY');
-}
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dxthxsguqrxpurorpokq.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg';
 
 const ALLOWED_BUCKETS = ['guest-id-documents'];
 
