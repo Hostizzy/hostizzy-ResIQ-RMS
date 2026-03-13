@@ -38,12 +38,12 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.21.0';
+const CACHE_VERSION = 'v5.22.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 // Set to true for critical updates that require clearing all caches
-const FORCE_UPDATE = false;
+const FORCE_UPDATE = true;
 
 // Files to cache for offline support
 const STATIC_CACHE = [

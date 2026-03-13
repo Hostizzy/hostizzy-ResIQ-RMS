@@ -11,10 +11,15 @@ box-sizing: border-box;
 --sab: env(safe-area-inset-bottom, 0px);
 --sal: env(safe-area-inset-left, 0px);
 
-/* Color System - Professional Palette (Guesty-inspired) */
---primary: #0891b2;           /* Teal - professional, clean */
+/* Color System - Brand Palette (from ResIQ logo) */
+--primary: #0891b2;           /* Teal - primary accent */
 --primary-dark: #0e7490;      /* Darker teal */
 --primary-light: #06b6d4;     /* Lighter teal */
+--brand-navy: #1B3A5C;        /* Navy blue - depth, headings */
+--brand-navy-light: #2A5080;  /* Lighter navy */
+--brand-orange: #E8943A;      /* Orange - CTAs, highlights */
+--brand-orange-light: #F0A85C;/* Light orange - hover */
+--brand-coral: #E07460;       /* Hostizzy coral */
 --secondary: #475569;         /* Slate gray - neutral */
 --success: #059669;           /* Muted emerald green */
 --success-light: #10b981;
@@ -38,13 +43,15 @@ box-sizing: border-box;
 --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
 --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 
-/* Gradient System - Subtle, professional */
---gradient-primary: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+/* Gradient System - Brand-aligned */
+--gradient-primary: linear-gradient(135deg, #1B3A5C 0%, #0891b2 100%);
+--gradient-brand: linear-gradient(135deg, #1B3A5C 0%, #0891b2 50%, #5BBAB5 100%);
+--gradient-cta: linear-gradient(135deg, #E8943A 0%, #F0A85C 100%);
 --gradient-success: linear-gradient(135deg, #059669 0%, #10b981 100%);
 --gradient-warning: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
 --gradient-danger: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
---gradient-ocean: linear-gradient(135deg, #0891b2 0%, #3b82f6 100%);
---gradient-sunset: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+--gradient-ocean: linear-gradient(135deg, #1B3A5C 0%, #0891b2 100%);
+--gradient-sunset: linear-gradient(135deg, #E8943A 0%, #E07460 100%);
 --gradient-purple: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
 
 /* Border Radius System */
@@ -462,11 +469,13 @@ to { transform: rotate(360deg); }
 .login-container {
 display: flex;
 min-height: 100vh;
+margin-top: -60px;
+padding-top: 0;
 }
 
 .login-brand {
 flex: 1;
-background: linear-gradient(135deg, #0e7490 0%, #0891b2 40%, #06b6d4 80%, #22d3ee 100%);
+background: linear-gradient(135deg, #1B3A5C 0%, #0e7490 40%, #0891b2 80%, #5BBAB5 100%);
 display: flex;
 align-items: center;
 justify-content: center;
@@ -632,6 +641,12 @@ display: flex;
 align-items: center;
 justify-content: center;
 gap: 8px;
+background: var(--gradient-cta) !important;
+box-shadow: 0 4px 14px rgba(232, 148, 58, 0.35);
+}
+
+.login-btn:hover {
+box-shadow: 0 6px 20px rgba(232, 148, 58, 0.45);
 }
 
 .login-password-toggle {
@@ -1900,7 +1915,7 @@ transition: transform 0.2s ease;
     content: '';
     display: block;
     height: 1px;
-    background: var(--border);
+    background: rgba(255, 255, 255, 0.1);
     margin: 8px 0;
 }
 
@@ -3440,8 +3455,8 @@ overflow: hidden;
 .sidebar {
 display: none;
 width: 240px;
-background: white;
-border-right: 1px solid var(--border);
+background: var(--brand-navy, #1B3A5C);
+border-right: none;
 overflow-y: auto;
 position: fixed;
 left: 0;
@@ -3457,14 +3472,14 @@ display: flex;
 
 .sidebar-header {
 padding: 20px 16px;
-border-bottom: 1px solid var(--border);
+border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-title {
 font-size: 12px;
 font-weight: 700;
 text-transform: uppercase;
-color: var(--text-tertiary);
+color: rgba(255, 255, 255, 0.5);
 letter-spacing: 0.5px;
 margin-bottom: 12px;
 }
@@ -3482,7 +3497,7 @@ display: flex;
 align-items: center;
 gap: 12px;
 padding: 12px 16px;
-color: var(--text-secondary);
+color: rgba(255, 255, 255, 0.7);
 text-decoration: none;
 border-radius: 8px;
 cursor: pointer;
@@ -3493,15 +3508,16 @@ border: 2px solid transparent;
 }
 
 .sidebar-item:hover {
-background: var(--background);
-color: var(--text-primary);
+background: rgba(255, 255, 255, 0.1);
+color: white;
 }
 
 .sidebar-item.active {
-background: var(--primary);
+background: rgba(8, 145, 178, 0.3);
 color: white;
-box-shadow: 0 2px 8px rgba(8, 145, 178, 0.3);
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 transform: translateX(2px);
+border-left: 3px solid var(--brand-orange, #E8943A);
 }
 
 .sidebar-item.active .sidebar-item-icon {
@@ -3577,7 +3593,7 @@ margin: 2px 0;
 
 .sidebar-footer {
 padding: 16px 8px;
-border-top: 1px solid var(--border);
+border-top: 1px solid rgba(255, 255, 255, 0.1);
 display: flex;
 flex-direction: column;
 gap: 4px;
