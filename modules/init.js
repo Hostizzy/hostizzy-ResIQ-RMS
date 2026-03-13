@@ -224,26 +224,30 @@ function wireIntegrations() {
  * Wait for the main app to be ready then initialize
  */
 function waitForApp() {
+    let initialized = false;
+
     // Check if the main app is loaded (login complete, mainApp visible)
     const checkReady = () => {
         const mainApp = document.getElementById('mainApp');
-        const isVisible = mainApp && !mainApp.classList.contains('hidden');
-        return isVisible;
+        return mainApp && !mainApp.classList.contains('hidden');
     };
 
     if (checkReady()) {
         initModules();
-        return;
+        initialized = true;
     }
 
-    // Use MutationObserver to detect when mainApp becomes visible
+    // Observe mainApp visibility changes (login/logout cycles)
+    // Don't disconnect — keep watching so modules re-init after logout→login
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                if (checkReady()) {
-                    observer.disconnect();
+                if (checkReady() && !initialized) {
+                    initialized = true;
                     initModules();
-                    return;
+                } else if (!checkReady() && initialized) {
+                    // mainApp hidden (logout) — mark as needing re-init
+                    initialized = false;
                 }
             }
         }
@@ -253,14 +257,6 @@ function waitForApp() {
     if (mainApp) {
         observer.observe(mainApp, { attributes: true });
     }
-
-    // Fallback: initialize after timeout
-    setTimeout(() => {
-        observer.disconnect();
-        if (document.getElementById('mainApp')) {
-            initModules();
-        }
-    }, 10000);
 }
 
 // Start
