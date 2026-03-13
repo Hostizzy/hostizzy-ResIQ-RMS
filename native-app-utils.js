@@ -186,7 +186,7 @@ function detectSafeAreas() {
 // APP INSTALL PROMPT
 // ============================================
 
-let deferredPrompt = null;
+var deferredPrompt = null;
 
 /**
  * Initialize app install prompt

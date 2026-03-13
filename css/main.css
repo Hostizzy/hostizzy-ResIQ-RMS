@@ -323,6 +323,31 @@ background: #0f172a;
 border-top-color: #334155;
 }
 
+[data-theme="dark"] .mobile-action-btn {
+color: #e2e8f0;
+}
+
+[data-theme="dark"] .mobile-action-btn:active {
+background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .mobile-notif-badge {
+border-color: rgba(30, 41, 59, 0.98);
+}
+
+[data-theme="dark"] .mobile-header-title {
+color: #e2e8f0;
+}
+
+[data-theme="dark"] .mobile-search-bar {
+border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .mobile-search-wrapper {
+background: rgba(255, 255, 255, 0.06);
+border-color: rgba(255, 255, 255, 0.08);
+}
+
 [data-theme="dark"] .mobile-header {
 background: rgba(30, 41, 59, 0.98);
 backdrop-filter: saturate(180%) blur(20px);
@@ -3706,6 +3731,29 @@ align-items: center;
 justify-content: center;
 }
 
+.mobile-logo-btn {
+background: none;
+border: none;
+cursor: pointer;
+padding: 4px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 10px;
+transition: all 0.2s ease;
+}
+
+.mobile-logo-btn:active {
+transform: scale(0.93);
+}
+
+.mobile-logo-icon {
+width: 40px;
+height: 40px;
+border-radius: 8px;
+object-fit: contain;
+}
+
 .mobile-header-spacer {
 flex: 1;
 }
@@ -4023,60 +4071,13 @@ body {
     display: none;
 }
 
-/* Sidebar as full-width drawer on mobile */
+/* Sidebar completely hidden on mobile — navigation via bottom tabs + More sheet */
 .sidebar {
-    display: flex;
-    width: 280px;
-    left: -290px;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 10001;
-    top: 0;
-    height: 100vh;
-    padding-top: 60px;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+    display: none !important;
 }
 
-.sidebar.active,
-.sidebar.mobile-open {
-    left: 0;
-}
-
-/* Full sidebar with labels and large icons */
-.sidebar-item-label {
-    display: block;
-    font-size: 15px;
-    font-weight: 500;
-}
-
-.sidebar-category-header {
-    display: flex;
-    padding: 10px 14px;
-}
-
-.sidebar-category-title {
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-}
-
-.sidebar-item {
-    justify-content: flex-start;
-    padding: 12px 16px;
-    gap: 14px;
-}
-
-.sidebar-item-icon {
-    font-size: 22px;
-}
-
-.sidebar-item-icon i {
-    width: 24px !important;
-    height: 24px !important;
-}
-
-.sidebar-category-items {
-    padding: 0 0 0 8px;
+.mobile-overlay {
+    display: none !important;
 }
 
 .container {
@@ -4094,15 +4095,57 @@ body {
     display: block;
 }
 
-.mobile-sidebar {
-    display: block;
+.container {
+    padding-bottom: calc(140px + env(safe-area-inset-bottom)); /* Extra padding for bottom tabs */
 }
 
-.container {
-    padding-bottom: calc(140px + env(safe-area-inset-bottom)); /* Extra padding for mobile nav */
+/* ========================================
+   VIEW HEADERS — Responsive page headers
+   Stack title and buttons vertically on mobile,
+   compact buttons with smaller sizing
+   ======================================== */
+.view-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px;
+    margin-bottom: 16px !important;
+    padding-bottom: 14px !important;
 }
-.mobile-nav{
-    padding-bottom: env(safe-area-inset-bottom);
+
+.view-header h2 {
+    font-size: 18px !important;
+    gap: 8px !important;
+}
+
+.view-header h2 i {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.view-header p {
+    font-size: 12px !important;
+}
+
+/* Compact action buttons row */
+.view-header > div:last-child {
+    display: flex !important;
+    gap: 6px !important;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.view-header .btn,
+.view-header .btn-primary,
+.view-header .btn-secondary {
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    white-space: nowrap;
+}
+
+.view-header .btn i {
+    width: 12px !important;
+    height: 12px !important;
 }
 }
 
@@ -6225,6 +6268,253 @@ line-height: 1.5;
 *:focus-visible {
 outline: 2px solid var(--primary);
 outline-offset: 2px;
+}
+
+/* ========================================
+   MOBILE HEADER — Logo + Title + Actions
+   No sidebar, no drawer. Bottom tabs "More"
+   button opens the bottom sheet for nav.
+   ======================================== */
+
+@media (max-width: 768px) {
+    .mobile-header-content {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        padding: 0 12px;
+        gap: 8px;
+    }
+
+    .mobile-header-logo {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .mobile-header-title {
+        flex: 1;
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: left;
+        padding-left: 4px;
+    }
+
+    .mobile-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+
+    .mobile-action-btn {
+        background: none;
+        border: none;
+        padding: 8px;
+        cursor: pointer;
+        color: var(--text-primary);
+        border-radius: 50%;
+        transition: background 0.2s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        min-width: 40px;
+    }
+
+    .mobile-action-btn:active {
+        background: rgba(0, 0, 0, 0.06);
+        transform: scale(0.95);
+    }
+
+    .mobile-notif-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 8px;
+        background: #ef4444;
+        color: white;
+        font-size: 9px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        border: 2px solid white;
+    }
+
+    /* Mobile Search Bar (expandable) */
+    .mobile-search-bar {
+        padding: 8px 12px 10px;
+        border-top: 1px solid var(--border, #e2e8f0);
+    }
+
+    .mobile-search-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--background-alt, #f1f5f9);
+        border-radius: 10px;
+        padding: 10px 14px;
+        border: 1px solid var(--border, #e2e8f0);
+    }
+
+    .mobile-search-input {
+        border: none;
+        background: none;
+        outline: none;
+        font-size: 14px;
+        color: var(--text-primary);
+        width: 100%;
+        font-family: inherit;
+    }
+
+    .mobile-search-input::placeholder {
+        color: var(--text-tertiary);
+    }
+
+    .mobile-search-close {
+        background: none;
+        border: none;
+        color: var(--text-tertiary);
+        padding: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        min-height: auto;
+        min-width: auto;
+    }
+}
+
+/* Hide mobile-only elements on desktop/tablet */
+@media (min-width: 769px) {
+    .mobile-header-actions,
+    .mobile-header-title,
+    .mobile-search-bar {
+        display: none;
+    }
+}
+
+/* ========================================
+   MOBILE TEXT ALIGNMENT & LAYOUT FIXES
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Dash header stacks properly on mobile */
+    .dash-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        text-align: left;
+    }
+
+    .dash-greeting {
+        font-size: 20px;
+        text-align: left;
+        width: 100%;
+    }
+
+    .dash-date {
+        text-align: left;
+    }
+
+    /* View titles - left aligned */
+    .view-header,
+    .card-header {
+        text-align: left;
+    }
+
+    .card-header h3,
+    .card-header h2 {
+        text-align: left;
+        font-size: 16px;
+    }
+
+    /* Home view text alignment */
+    .home-welcome-header {
+        text-align: left;
+    }
+
+    .home-greeting-time,
+    .home-greeting-user,
+    .home-greeting-subtitle {
+        text-align: left;
+    }
+
+    .home-section-header {
+        text-align: left;
+    }
+
+    .home-section-title {
+        text-align: left;
+        font-size: 13px;
+    }
+
+    /* Stat cards - left align values and labels */
+    .today-stat-value {
+        font-size: 24px;
+        text-align: left;
+    }
+
+    .today-stat-label {
+        text-align: left;
+        font-size: 10px;
+    }
+
+    /* App launcher labels centered */
+    .app-icon-label {
+        text-align: center;
+    }
+
+    /* Section titles */
+    .app-launcher-section-title {
+        text-align: left;
+        padding-left: 4px;
+    }
+
+    /* Container top padding to account for fixed mobile header */
+    .container {
+        padding-top: 16px;
+    }
+
+    /* Page-level headings left-aligned */
+    h1, h2, h3 {
+        text-align: left;
+    }
+
+    /* Modal headers on mobile */
+    .modal-header {
+        text-align: left;
+    }
+
+    .modal-header h2,
+    .modal-header h3 {
+        text-align: left;
+    }
+
+    /* Data rows text alignment */
+    .reservation-row,
+    .guest-row,
+    .payment-row {
+        text-align: left;
+    }
+
+    /* Table cells */
+    td, th {
+        text-align: left;
+    }
+
+    /* No content hidden behind mobile header */
+    #mainApp > .container:first-of-type {
+        scroll-margin-top: 60px;
+    }
 }
 
 /* Reduced motion preference */
