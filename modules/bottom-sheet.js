@@ -177,6 +177,107 @@ const BOTTOM_SHEET_CSS = `
     color: var(--text-secondary, #475569);
 }
 
+/* App Icon Grid (phone home screen style) */
+.resiq-sheet-app-section {
+    margin-bottom: 20px;
+}
+
+.resiq-sheet-app-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary, #94a3b8);
+    padding: 0 4px 10px;
+}
+
+.resiq-sheet-app-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px 8px;
+    justify-items: center;
+}
+
+.resiq-sheet-app-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    border: none;
+    background: none;
+    padding: 4px;
+    width: 100%;
+    max-width: 76px;
+}
+
+.resiq-sheet-app-icon:active .resiq-sheet-app-icon-box {
+    transform: scale(0.88);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.resiq-sheet-app-icon-box {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.resiq-sheet-app-icon-box::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.resiq-sheet-app-icon-box svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.8;
+    position: relative;
+    z-index: 1;
+}
+
+.resiq-sheet-app-icon-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary, #475569);
+    text-align: center;
+    line-height: 1.2;
+    max-width: 72px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+}
+
+[data-theme="dark"] .resiq-sheet-app-icon-label {
+    color: #94a3b8;
+}
+
+/* Tablet: 5 columns */
+@media (min-width: 481px) {
+    .resiq-sheet-app-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px 12px;
+    }
+    .resiq-sheet-app-icon-box {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+    }
+}
+
 /* Menu list items */
 .resiq-sheet-menu-item {
     display: flex;
@@ -334,6 +435,27 @@ class BottomSheet {
 
         let bodyHTML = '';
 
+        if (options.appIcons) {
+            options.appIcons.forEach(section => {
+                bodyHTML += '<div class="resiq-sheet-app-section">';
+                if (section.title) {
+                    bodyHTML += `<div class="resiq-sheet-app-section-title">${section.title}</div>`;
+                }
+                bodyHTML += '<div class="resiq-sheet-app-grid">';
+                section.items.forEach(item => {
+                    bodyHTML += `
+                        <button class="resiq-sheet-app-icon" data-action="${item.id || ''}">
+                            <div class="resiq-sheet-app-icon-box" style="background: ${item.gradient || item.color || 'var(--primary)'}">
+                                ${SHEET_ICONS[item.icon] || ''}
+                            </div>
+                            <div class="resiq-sheet-app-icon-label">${item.label}</div>
+                        </button>
+                    `;
+                });
+                bodyHTML += '</div></div>';
+            });
+        }
+
         if (options.actions) {
             bodyHTML += '<div class="resiq-sheet-actions">';
             options.actions.forEach(action => {
@@ -395,10 +517,11 @@ class BottomSheet {
         }
 
         // Action clicks
+        const appIconItems = (options.appIcons || []).flatMap(s => s.items || []);
         sheet.querySelectorAll('[data-action]').forEach(el => {
             el.addEventListener('click', () => {
                 const actionId = el.dataset.action;
-                const allActions = [...(options.actions || []), ...(options.menuItems || [])];
+                const allActions = [...appIconItems, ...(options.actions || []), ...(options.menuItems || [])];
                 const action = allActions.find(a => a.id === actionId);
                 if (action?.callback) {
                     action.callback();
@@ -487,149 +610,46 @@ class BottomSheet {
         });
     }
 
-    /** Open "More" navigation menu (replaces sidebar on mobile/tablet) */
+    /** Open "More" navigation menu — app icon grid like a phone home screen */
     openMoreMenu() {
+        const nav = (view) => () => { if (typeof window.showView === 'function') window.showView(view); };
+
         return this.open({
-            title: 'Menu',
-            menuItems: [
+            appIcons: [
                 {
-                    id: 'dashboard',
-                    icon: 'barChart',
-                    label: 'Dashboard',
-                    description: 'Overview & key metrics',
-                    color: 'rgba(8, 145, 178, 0.1)',
-                    iconColor: '#0891b2',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('dashboard'); }
-                },
-                { type: 'separator', label: 'Analytics' },
-                {
-                    id: 'property-analytics',
-                    icon: 'building',
-                    label: 'Property',
-                    description: 'Property performance',
-                    color: 'rgba(99, 102, 241, 0.1)',
-                    iconColor: '#6366f1',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('property'); }
+                    title: '',
+                    items: [
+                        { id: 'dashboard', icon: 'barChart', label: 'Dashboard', gradient: 'linear-gradient(135deg, #0891b2, #06b6d4)', callback: nav('dashboard') },
+                        { id: 'property-analytics', icon: 'building', label: 'Property', gradient: 'linear-gradient(135deg, #6366f1, #818cf8)', callback: nav('property') },
+                        { id: 'business-analytics', icon: 'briefcase', label: 'Business', gradient: 'linear-gradient(135deg, #4f46e5, #6366f1)', callback: nav('business') },
+                        { id: 'financials', icon: 'dollarSign', label: 'Financials', gradient: 'linear-gradient(135deg, #059669, #10b981)', callback: nav('financials') },
+                    ]
                 },
                 {
-                    id: 'business-analytics',
-                    icon: 'briefcase',
-                    label: 'Business',
-                    description: 'Revenue & occupancy trends',
-                    color: 'rgba(99, 102, 241, 0.1)',
-                    iconColor: '#6366f1',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('business'); }
+                    title: 'Operations',
+                    items: [
+                        { id: 'guests', icon: 'users', label: 'Guests', gradient: 'linear-gradient(135deg, #7c3aed, #a855f7)', callback: nav('guests') },
+                        { id: 'documents', icon: 'fileText', label: 'Documents', gradient: 'linear-gradient(135deg, #d97706, #f59e0b)', callback: nav('guestDocuments') },
+                        { id: 'meals', icon: 'utensils', label: 'Meals', gradient: 'linear-gradient(135deg, #ea580c, #f97316)', callback: nav('meals') },
+                        { id: 'expenses', icon: 'receipt', label: 'Expenses', gradient: 'linear-gradient(135deg, #e11d48, #f43f5e)', callback: nav('expenses') },
+                    ]
                 },
                 {
-                    id: 'financials',
-                    icon: 'dollarSign',
-                    label: 'Financials',
-                    description: 'Financial reports & analysis',
-                    color: 'rgba(99, 102, 241, 0.1)',
-                    iconColor: '#6366f1',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('financials'); }
-                },
-                { type: 'separator', label: 'Operations' },
-                {
-                    id: 'guests',
-                    icon: 'users',
-                    label: 'Guests',
-                    description: 'Guest management',
-                    color: 'rgba(168, 85, 247, 0.1)',
-                    iconColor: '#a855f7',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('guests'); }
+                    title: 'Management',
+                    items: [
+                        { id: 'properties', icon: 'building2', label: 'Properties', gradient: 'linear-gradient(135deg, #0ea5e9, #38bdf8)', callback: nav('properties') },
+                        { id: 'team', icon: 'userCheck', label: 'Team', gradient: 'linear-gradient(135deg, #22c55e, #4ade80)', callback: nav('team') },
+                        { id: 'owners', icon: 'shield', label: 'Owners', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)', callback: nav('owners') },
+                        { id: 'availability', icon: 'calendarDays', label: 'Availability', gradient: 'linear-gradient(135deg, #14b8a6, #2dd4bf)', callback: nav('availability') },
+                    ]
                 },
                 {
-                    id: 'documents',
-                    icon: 'fileText',
-                    label: 'Documents',
-                    description: 'Guest KYC & documents',
-                    color: 'rgba(217, 119, 6, 0.1)',
-                    iconColor: '#d97706',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('guestDocuments'); }
-                },
-                {
-                    id: 'meals',
-                    icon: 'utensils',
-                    label: 'Meals',
-                    description: 'Meal planning & tracking',
-                    color: 'rgba(234, 88, 12, 0.1)',
-                    iconColor: '#ea580c',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('meals'); }
-                },
-                {
-                    id: 'expenses',
-                    icon: 'receipt',
-                    label: 'Expenses',
-                    description: 'Expense tracking',
-                    color: 'rgba(239, 68, 68, 0.1)',
-                    iconColor: '#ef4444',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('expenses'); }
-                },
-                { type: 'separator', label: 'Management' },
-                {
-                    id: 'properties',
-                    icon: 'building2',
-                    label: 'Properties',
-                    description: 'Manage your properties',
-                    color: 'rgba(14, 165, 233, 0.1)',
-                    iconColor: '#0ea5e9',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('properties'); }
-                },
-                {
-                    id: 'team',
-                    icon: 'userCheck',
-                    label: 'Team',
-                    description: 'Team members & roles',
-                    color: 'rgba(34, 197, 94, 0.1)',
-                    iconColor: '#22c55e',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('team'); }
-                },
-                {
-                    id: 'owners',
-                    icon: 'shield',
-                    label: 'Owners',
-                    description: 'Property owner management',
-                    color: 'rgba(59, 130, 246, 0.1)',
-                    iconColor: '#3b82f6',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('owners'); }
-                },
-                {
-                    id: 'availability',
-                    icon: 'calendarDays',
-                    label: 'Availability',
-                    description: 'Calendar & OTA sync',
-                    color: 'rgba(20, 184, 166, 0.1)',
-                    iconColor: '#14b8a6',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('availability'); }
-                },
-                {
-                    id: 'communication',
-                    icon: 'messageCircle',
-                    label: 'Communication',
-                    description: 'WhatsApp & messaging',
-                    color: 'rgba(37, 211, 102, 0.1)',
-                    iconColor: '#25D366',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('communication'); }
-                },
-                { type: 'separator', label: '' },
-                {
-                    id: 'settings',
-                    icon: 'settings',
-                    label: 'Settings',
-                    description: 'App preferences & config',
-                    color: 'rgba(100, 116, 139, 0.1)',
-                    iconColor: '#64748b',
-                    callback: () => { if (typeof window.showView === 'function') window.showView('settings'); }
-                },
-                {
-                    id: 'logout',
-                    icon: 'logOut',
-                    label: 'Logout',
-                    description: 'Sign out of your account',
-                    color: 'rgba(239, 68, 68, 0.1)',
-                    iconColor: '#ef4444',
-                    callback: () => { if (typeof window.logout === 'function') window.logout(); }
+                    title: '',
+                    items: [
+                        { id: 'communication', icon: 'messageCircle', label: 'Messages', gradient: 'linear-gradient(135deg, #25D366, #4ade80)', callback: nav('communication') },
+                        { id: 'settings', icon: 'settings', label: 'Settings', gradient: 'linear-gradient(135deg, #64748b, #94a3b8)', callback: nav('settings') },
+                        { id: 'logout', icon: 'logOut', label: 'Logout', gradient: 'linear-gradient(135deg, #ef4444, #f87171)', callback: () => { if (typeof window.logout === 'function') window.logout(); } },
+                    ]
                 },
             ]
         });

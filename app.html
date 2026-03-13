@@ -3786,6 +3786,7 @@
             <div class="settings-tabs">
                 <button class="settings-tab active" onclick="switchSettingsTab('general')">General</button>
                 <button class="settings-tab" onclick="switchSettingsTab('business')">Business Info</button>
+                <button class="settings-tab" onclick="switchSettingsTab('email')">Email</button>
                 <button class="settings-tab" onclick="switchSettingsTab('notifications')">Notifications</button>
                 <button class="settings-tab" onclick="switchSettingsTab('integrations')">Integrations</button>
                 <button class="settings-tab" onclick="switchSettingsTab('advanced')">Advanced</button>
@@ -3877,6 +3878,118 @@
                     </div>
 
                     <button class="btn btn-primary" onclick="saveBusinessSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Business Info</button>
+                </div>
+            </div>
+
+            <!-- Email Settings -->
+            <div id="settings-email" class="settings-panel">
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="mail" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Email Configuration</h3>
+
+                    <div style="background: #e0f2f7; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; border-left: 3px solid var(--primary); font-size: 13px;">
+                        Configure your email settings for sending booking confirmations, payment receipts, and guest communications.
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sender Email Address</label>
+                        <input type="email" id="emailSenderAddress" placeholder="bookings@yourbusiness.com">
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">This email will appear as the "From" address in outgoing emails</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sender Display Name</label>
+                        <input type="text" id="emailSenderName" placeholder="Your Business Name">
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Name shown to guests (e.g. "Oceanview Villas" or "ResIQ Bookings")</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Reply-To Email</label>
+                        <input type="email" id="emailReplyTo" placeholder="support@yourbusiness.com">
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Where guest replies will be sent (leave blank to use sender email)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>CC Email (Optional)</label>
+                        <input type="email" id="emailCC" placeholder="manager@yourbusiness.com">
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Receive a copy of all outgoing emails</small>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveEmailSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Email Settings</button>
+                </div>
+
+                <!-- Email Templates -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="file-text" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Email Templates</h3>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Booking Confirmation</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Auto-send confirmation when a booking is created</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="emailTemplateBookingConfirm" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Payment Receipt</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Auto-send receipt when a payment is recorded</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="emailTemplatePaymentReceipt" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Check-in Instructions</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Send check-in details 1 day before arrival</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="emailTemplateCheckinInstructions" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Payment Reminder</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Remind guests about pending payments</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="emailTemplatePaymentReminder">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="settings-toggle">
+                        <div>
+                            <strong>Check-out Thank You</strong>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Send thank you email after check-out</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="emailTemplateThankYou">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveEmailTemplateSettings()" style="display: flex; align-items: center; gap: 6px; margin-top: 16px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Template Settings</button>
+                </div>
+
+                <!-- Email Signature -->
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="pen-line" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Email Signature</h3>
+
+                    <div class="form-group">
+                        <label>Signature Text</label>
+                        <textarea id="emailSignature" rows="4" placeholder="Best regards,&#10;Your Business Name&#10;+91 1234567890&#10;www.yourbusiness.com"></textarea>
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Appended to all outgoing emails</small>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveEmailSignature()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Signature</button>
                 </div>
             </div>
 
@@ -8067,6 +8180,9 @@
                 document.getElementById('documentExpiryDays').value = localStorage.getItem('documentExpiryDays') || '30';
                 document.getElementById('automationInterval').value = localStorage.getItem('automationInterval') || '30';
 
+                // Load email settings
+                if (typeof loadEmailSettings === 'function') loadEmailSettings();
+
                 // Update Gmail send integration status
                 updateGmailSendStatus();
 
@@ -8162,6 +8278,67 @@
             } catch (error) {
                 showToast('❌ Error', 'Failed to save notification settings', '⚠️');
             }
+        }
+
+        function saveEmailSettings() {
+            try {
+                const settings = {
+                    senderAddress: document.getElementById('emailSenderAddress')?.value || '',
+                    senderName: document.getElementById('emailSenderName')?.value || '',
+                    replyTo: document.getElementById('emailReplyTo')?.value || '',
+                    cc: document.getElementById('emailCC')?.value || ''
+                };
+                localStorage.setItem('emailSettings', JSON.stringify(settings));
+                showToast('✅ Saved', 'Email settings saved successfully', '📧');
+            } catch (error) {
+                showToast('❌ Error', 'Failed to save email settings', '⚠️');
+            }
+        }
+
+        function saveEmailTemplateSettings() {
+            try {
+                const templates = {
+                    bookingConfirm: document.getElementById('emailTemplateBookingConfirm')?.checked ?? true,
+                    paymentReceipt: document.getElementById('emailTemplatePaymentReceipt')?.checked ?? true,
+                    checkinInstructions: document.getElementById('emailTemplateCheckinInstructions')?.checked ?? true,
+                    paymentReminder: document.getElementById('emailTemplatePaymentReminder')?.checked ?? false,
+                    thankYou: document.getElementById('emailTemplateThankYou')?.checked ?? false
+                };
+                localStorage.setItem('emailTemplateSettings', JSON.stringify(templates));
+                showToast('✅ Saved', 'Email template preferences saved', '📧');
+            } catch (error) {
+                showToast('❌ Error', 'Failed to save template settings', '⚠️');
+            }
+        }
+
+        function saveEmailSignature() {
+            try {
+                const signature = document.getElementById('emailSignature')?.value || '';
+                localStorage.setItem('emailSignature', signature);
+                showToast('✅ Saved', 'Email signature saved', '✍️');
+            } catch (error) {
+                showToast('❌ Error', 'Failed to save signature', '⚠️');
+            }
+        }
+
+        function loadEmailSettings() {
+            try {
+                const settings = JSON.parse(localStorage.getItem('emailSettings') || '{}');
+                if (settings.senderAddress) document.getElementById('emailSenderAddress').value = settings.senderAddress;
+                if (settings.senderName) document.getElementById('emailSenderName').value = settings.senderName;
+                if (settings.replyTo) document.getElementById('emailReplyTo').value = settings.replyTo;
+                if (settings.cc) document.getElementById('emailCC').value = settings.cc;
+
+                const templates = JSON.parse(localStorage.getItem('emailTemplateSettings') || '{}');
+                if (templates.bookingConfirm !== undefined) document.getElementById('emailTemplateBookingConfirm').checked = templates.bookingConfirm;
+                if (templates.paymentReceipt !== undefined) document.getElementById('emailTemplatePaymentReceipt').checked = templates.paymentReceipt;
+                if (templates.checkinInstructions !== undefined) document.getElementById('emailTemplateCheckinInstructions').checked = templates.checkinInstructions;
+                if (templates.paymentReminder !== undefined) document.getElementById('emailTemplatePaymentReminder').checked = templates.paymentReminder;
+                if (templates.thankYou !== undefined) document.getElementById('emailTemplateThankYou').checked = templates.thankYou;
+
+                const signature = localStorage.getItem('emailSignature');
+                if (signature) document.getElementById('emailSignature').value = signature;
+            } catch (e) { /* ignore */ }
         }
 
         function exportAllData() {
