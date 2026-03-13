@@ -38,7 +38,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.25.0';
+const CACHE_VERSION = 'v5.26.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -202,12 +202,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Redirect root URL to /app (matches hosting config redirects)
+  if (request.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/index.html')) {
+    event.respondWith(Response.redirect(new URL('/app', url.origin), 302));
+    return;
+  }
+
   // Handle navigation requests (HTML pages)
   // IMPORTANT: Always fetch fresh HTML to avoid serving stale/broken JavaScript
   // This prevents issues like duplicate variable declarations and missing functions
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request, { cache: 'no-store', redirect: 'follow' })
+      fetch(new Request(request.url, { redirect: 'follow' }), { cache: 'no-store' })
         .then((response) => {
           // Only cache clean, non-redirected HTML responses for offline use
           if (response && response.status === 200 && !response.redirected) {
