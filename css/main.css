@@ -4098,6 +4098,55 @@ body {
 .container {
     padding-bottom: calc(140px + env(safe-area-inset-bottom)); /* Extra padding for bottom tabs */
 }
+
+/* ========================================
+   VIEW HEADERS — Responsive page headers
+   Stack title and buttons vertically on mobile,
+   compact buttons with smaller sizing
+   ======================================== */
+.view-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px;
+    margin-bottom: 16px !important;
+    padding-bottom: 14px !important;
+}
+
+.view-header h2 {
+    font-size: 18px !important;
+    gap: 8px !important;
+}
+
+.view-header h2 i {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.view-header p {
+    font-size: 12px !important;
+}
+
+/* Compact action buttons row */
+.view-header > div:last-child {
+    display: flex !important;
+    gap: 6px !important;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.view-header .btn,
+.view-header .btn-primary,
+.view-header .btn-secondary {
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    white-space: nowrap;
+}
+
+.view-header .btn i {
+    width: 12px !important;
+    height: 12px !important;
+}
 }
 
 /* Quick Filters */

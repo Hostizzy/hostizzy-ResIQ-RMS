@@ -613,15 +613,6 @@
 
     <!-- Main App -->
     <div id="mainApp" class="hidden">
-        <!-- Mobile Header -->
-        <div id="mobileHeader" class="mobile-header hidden">
-            <div class="mobile-header-content">
-                <button class="mobile-menu-btn" onclick="toggleMobileSidebar()"><i data-lucide="menu" style="width: 22px; height: 22px;"></i></button>
-                <img src="assets/logo-96.png" alt="ResIQ" class="mobile-logo">
-                <span id="mobileUserEmail" style="font-size: 12px; color: var(--text-secondary);"></span>
-            </div>
-        </div>
-
 
         <!-- Pull to Refresh Indicator -->
         <div class="pull-to-refresh-indicator" id="pullToRefreshIndicator">
@@ -4078,6 +4069,12 @@
                         <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0;">
                             Uses the same Google OAuth Client ID as Gmail Booking Import. Make sure you've added the <code>gmail.send</code> scope in your Google Cloud Console.
                         </p>
+                        <div id="gmailSendNoClientId" style="display: none; margin-bottom: 12px; padding: 10px 14px; background: #fff7ed; border-radius: 8px; border-left: 3px solid var(--warning); font-size: 13px; color: #92400e;">
+                            <strong>Setup required:</strong> You need to configure a Google OAuth Client ID first.
+                            <button class="btn btn-secondary" onclick="openAppSettings()" style="margin-top: 8px; font-size: 12px; padding: 4px 12px; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="settings" style="width: 12px; height: 12px;"></i> Open App Settings to configure
+                            </button>
+                        </div>
                         <button class="btn btn-primary" onclick="connectGmailForSending()" style="display: flex; align-items: center; gap: 6px;">
                             <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> Connect Gmail for Sending
                         </button>
@@ -8588,6 +8585,16 @@
         }
 
         async function connectGmailForSending() {
+            const clientId = localStorage.getItem('gmail_client_id');
+            const warningDiv = document.getElementById('gmailSendNoClientId');
+            if (!clientId) {
+                // Show inline warning with link to App Settings
+                if (warningDiv) warningDiv.style.display = 'block';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                showToast('Please set up Google OAuth Client ID first in App Settings', 'error');
+                return;
+            }
+            if (warningDiv) warningDiv.style.display = 'none';
             // Reuse the existing Gmail OAuth flow which now includes gmail.send scope
             await connectGmail();
             updateGmailSendStatus();
