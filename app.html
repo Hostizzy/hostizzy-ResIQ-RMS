@@ -5927,11 +5927,20 @@
             return `<i data-lucide="${name}" class="${className}" style="width: ${size}px; height: ${size}px; display: inline-block; vertical-align: middle;"></i>`;
         }
 
-        // Re-initialize icons after dynamic content updates
-        function refreshIcons() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+        // Re-initialize icons after dynamic content updates (debounced)
+        var _refreshIconsTimer = null;
+        function refreshIcons(scopeEl) {
+            if (typeof lucide === 'undefined') return;
+            clearTimeout(_refreshIconsTimer);
+            _refreshIconsTimer = setTimeout(function() {
+                _refreshIconsTimer = null;
+                if (scopeEl) {
+                    // Scoped refresh — only process icons inside the given element
+                    lucide.createIcons({ nodes: [scopeEl] });
+                } else {
+                    lucide.createIcons();
+                }
+            }, 50);
         }
     </script>
 

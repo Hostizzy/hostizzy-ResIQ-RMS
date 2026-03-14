@@ -667,7 +667,10 @@ async function showView(viewName) {
     }
 
     // Re-initialize Lucide icons after view renders
-    setTimeout(() => refreshIcons(), 100);
+    requestAnimationFrame(() => {
+        const viewEl = document.getElementById(`${viewName}View`);
+        if (typeof refreshIcons === 'function') refreshIcons(viewEl || undefined);
+    });
 }
 
 // Settings Functions
@@ -842,7 +845,43 @@ function populateFiltersAndDisplay(properties, reservations) {
     monthFilter.innerHTML = '<option value="">All Months</option>' +
         months.map(m => `<option value="${m}">${m}</option>`).join('');
 
-    displayReservations(reservations);
+    // Restore saved filters BEFORE display to avoid double-render
+    const savedFilters = loadFilterState('reservations');
+    let hasActiveFilters = false;
+    if (savedFilters) {
+        if (savedFilters.search) {
+            const si = document.getElementById('searchReservations');
+            if (si) si.value = savedFilters.search;
+            hasActiveFilters = true;
+        }
+        if (savedFilters.status) {
+            const sf = document.getElementById('statusFilter');
+            if (sf) sf.value = savedFilters.status;
+            hasActiveFilters = true;
+        }
+        if (savedFilters.property) {
+            const pf = document.getElementById('propertyFilter');
+            if (pf) pf.value = savedFilters.property;
+            hasActiveFilters = true;
+        }
+        if (savedFilters.bookingSource) {
+            const bf = document.getElementById('bookingSourceFilter');
+            if (bf) bf.value = savedFilters.bookingSource;
+            hasActiveFilters = true;
+        }
+        if (savedFilters.month) {
+            const mf = document.getElementById('monthFilter');
+            if (mf) mf.value = savedFilters.month;
+            hasActiveFilters = true;
+        }
+    }
+
+    // Single render: apply filters if saved, otherwise show all
+    if (hasActiveFilters) {
+        filterReservations();
+    } else {
+        displayReservations(reservations);
+    }
 
     // Attach debounced event listeners (prevents lag with large datasets)
     const debouncedFilter = debounce(filterReservations, 300);
@@ -879,39 +918,6 @@ function populateFiltersAndDisplay(properties, reservations) {
         monthFilterEl.removeEventListener('change', filterReservations);
         monthFilterEl.addEventListener('change', filterReservations);
     }
-
-    // Restore saved filters
-    setTimeout(() => {
-        const savedFilters = loadFilterState('reservations');
-        if (savedFilters) {
-            console.log('🔄 Restoring reservation filters:', savedFilters);
-
-            // Restore each filter
-            if (savedFilters.search) {
-                const searchInput = document.getElementById('searchReservations');
-                if (searchInput) searchInput.value = savedFilters.search;
-            }
-            if (savedFilters.status) {
-                const statusFilterEl = document.getElementById('statusFilter');
-                if (statusFilterEl) statusFilterEl.value = savedFilters.status;
-            }
-            if (savedFilters.property) {
-                const propertyFilterEl = document.getElementById('propertyFilter');
-                if (propertyFilterEl) propertyFilterEl.value = savedFilters.property;
-            }
-            if (savedFilters.bookingSource) {
-                const bookingSourceFilterEl = document.getElementById('bookingSourceFilter');
-                if (bookingSourceFilterEl) bookingSourceFilterEl.value = savedFilters.bookingSource;
-            }
-            if (savedFilters.month) {
-                const monthFilterEl = document.getElementById('monthFilter');
-                if (monthFilterEl) monthFilterEl.value = savedFilters.month;
-            }
-
-            // Apply the filters
-            setTimeout(() => filterReservations(), 200);
-        }
-    }, 500);
 }
 
 // Reservations
@@ -961,7 +967,43 @@ async function loadReservations(forceRefresh = false) {
         monthFilter.innerHTML = '<option value="">All Months</option>' + 
             months.map(m => `<option value="${m}">${m}</option>`).join('');
         
-        displayReservations(allReservations);
+        // Restore saved filters BEFORE display to avoid double-render
+        const savedFilters = loadFilterState('reservations');
+        let hasActiveFilters = false;
+        if (savedFilters) {
+            if (savedFilters.search) {
+                const si = document.getElementById('searchReservations');
+                if (si) si.value = savedFilters.search;
+                hasActiveFilters = true;
+            }
+            if (savedFilters.status) {
+                const sf = document.getElementById('statusFilter');
+                if (sf) sf.value = savedFilters.status;
+                hasActiveFilters = true;
+            }
+            if (savedFilters.property) {
+                const pf = document.getElementById('propertyFilter');
+                if (pf) pf.value = savedFilters.property;
+                hasActiveFilters = true;
+            }
+            if (savedFilters.bookingSource) {
+                const bf = document.getElementById('bookingSourceFilter');
+                if (bf) bf.value = savedFilters.bookingSource;
+                hasActiveFilters = true;
+            }
+            if (savedFilters.month) {
+                const mf = document.getElementById('monthFilter');
+                if (mf) mf.value = savedFilters.month;
+                hasActiveFilters = true;
+            }
+        }
+
+        // Single render: apply filters if saved, otherwise show all
+        if (hasActiveFilters) {
+            filterReservations();
+        } else {
+            displayReservations(allReservations);
+        }
 
         // Attach debounced event listeners (prevents lag with large datasets)
         const debouncedFilter = debounce(filterReservations, 300);
@@ -998,39 +1040,6 @@ async function loadReservations(forceRefresh = false) {
             monthFilterEl.removeEventListener('change', filterReservations);
             monthFilterEl.addEventListener('change', filterReservations);
         }
-
-        // Restore saved filters
-        setTimeout(() => {
-            const savedFilters = loadFilterState('reservations');
-            if (savedFilters) {
-                console.log('🔄 Restoring reservation filters:', savedFilters);
-                
-                // Restore each filter
-                if (savedFilters.search) {
-                    const searchInput = document.getElementById('searchReservations');
-                    if (searchInput) searchInput.value = savedFilters.search;
-                }
-                if (savedFilters.status) {
-                    const statusFilter = document.getElementById('statusFilter');
-                    if (statusFilter) statusFilter.value = savedFilters.status;
-                }
-                if (savedFilters.property) {
-                    const propertyFilter = document.getElementById('propertyFilter');
-                    if (propertyFilter) propertyFilter.value = savedFilters.property;
-                }
-                if (savedFilters.bookingSource) {
-                    const sourceFilter = document.getElementById('bookingSourceFilter');
-                    if (sourceFilter) sourceFilter.value = savedFilters.bookingSource;
-                }
-                if (savedFilters.month) {
-                    const monthFilter = document.getElementById('monthFilter');
-                    if (monthFilter) monthFilter.value = savedFilters.month;
-                }
-                
-                // Apply the filters
-                setTimeout(() => filterReservations(), 200);
-            }
-        }, 500);
     } catch (error) {
         console.error('Reservations error:', error);
         showToast('Error', 'Failed to load reservations', '❌');
@@ -1063,14 +1072,13 @@ function displayReservations(reservations) {
         const isCancelled = r.status === 'cancelled';
 
         return `
-            <tr ${isCancelled ? 'style="opacity: 0.6;"' : ''}>
+            <tr ${isCancelled ? 'style="opacity: 0.6;"' : ''} data-booking-id="${r.booking_id}">
                 <td style="width: 40px;">
                     <input type="checkbox" class="row-select-checkbox" data-booking-id="${r.booking_id}"
                            onchange="toggleRowSelection(this, '${r.booking_id}')" ${isCancelled ? 'disabled' : ''}>
                 </td>
                 <td>
-                    <div style="font-weight: 700; color: var(--primary); cursor: pointer; ${isCancelled ? 'text-decoration: line-through;' : ''}"
-                         onclick="openReservationModal('${r.booking_id}')" title="Click to edit">
+                    <div class="res-booking-id-link" data-action="edit" data-bid="${r.booking_id}" style="font-weight: 700; color: var(--primary); cursor: pointer; ${isCancelled ? 'text-decoration: line-through;' : ''}" title="Click to edit">
                         ${r.booking_id || 'N/A'}
                     </div>
                     ${r.check_out ? `<div style="font-size: 10px; color: var(--text-tertiary); margin-top: 2px;">→ ${formatDate(r.check_out)}</div>` : ''}
@@ -1110,12 +1118,12 @@ function displayReservations(reservations) {
                 </td>
                 <td>
                     <div style="position: relative;">
-                        <span class="res-status-badge ${r.status}" onclick="toggleStatusDropdown(event, '${r.booking_id}')">
+                        <span class="res-status-badge ${r.status}" data-action="status-toggle" data-bid="${r.booking_id}">
                             ${statusIcon}${r.status.replace('-', ' ')}
                         </span>
                         <div class="status-dropdown" id="status-dropdown-${r.booking_id}">
                             ${['confirmed', 'pending', 'checked-in', 'checked-out', 'cancelled'].map(status => `
-                                <div class="status-dropdown-item" onclick="changeReservationStatus('${r.booking_id}', '${status}')">
+                                <div class="status-dropdown-item" data-action="change-status" data-bid="${r.booking_id}" data-status="${status}">
                                     ${statusIcons[status]}${status.replace('-', ' ')}
                                 </div>
                             `).join('')}
@@ -1124,19 +1132,19 @@ function displayReservations(reservations) {
                 </td>
                 <td>
                     <div class="row-hover-actions">
-                        <button class="quick-action-btn" onclick="openPaymentModal('${r.booking_id}')" title="Add Payment">
+                        <button class="quick-action-btn" data-action="payment" data-bid="${r.booking_id}" title="Add Payment">
                             <i data-lucide="credit-card" style="width: 11px; height: 11px;"></i>Pay
                         </button>
-                        <button class="quick-action-btn" onclick="viewPaymentHistory('${r.booking_id}')" title="Payment History">
+                        <button class="quick-action-btn" data-action="payment-history" data-bid="${r.booking_id}" title="Payment History">
                             <i data-lucide="history" style="width: 11px; height: 11px;"></i>
                         </button>
-                        <button class="quick-action-btn" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send WhatsApp">
+                        <button class="quick-action-btn" data-action="whatsapp" data-bid="${r.booking_id}" title="Send WhatsApp">
                             <i data-lucide="message-circle" style="width: 11px; height: 11px;"></i>
                         </button>
-                        <button class="quick-action-btn" onclick="openReservationModal('${r.booking_id}')" title="Edit">
+                        <button class="quick-action-btn" data-action="edit" data-bid="${r.booking_id}" title="Edit">
                             <i data-lucide="edit" style="width: 11px; height: 11px;"></i>
                         </button>
-                        ${!isCancelled ? `<button class="quick-action-btn" onclick="deleteReservation('${r.booking_id}')" title="Delete" style="color: var(--danger);">
+                        ${!isCancelled ? `<button class="quick-action-btn" data-action="delete" data-bid="${r.booking_id}" title="Delete" style="color: var(--danger);">
                             <i data-lucide="trash-2" style="width: 11px; height: 11px;"></i>
                         </button>` : ''}
                     </div>
@@ -1145,8 +1153,19 @@ function displayReservations(reservations) {
         `;
     }).join('');
 
-    // Refresh Lucide icons
-    setTimeout(() => { if (typeof refreshIcons === 'function') refreshIcons(); }, 100);
+    // Refresh Lucide icons — scoped to table only to avoid full-DOM scan
+    requestAnimationFrame(() => {
+        try {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons({ nodes: [tbody] });
+            } else if (typeof refreshIcons === 'function') {
+                refreshIcons();
+            }
+        } catch (e) {
+            // Fallback to full refresh if scoped fails
+            if (typeof refreshIcons === 'function') refreshIcons();
+        }
+    });
 }
 // Toggle status dropdown
 function toggleStatusDropdown(event, bookingId) {
@@ -1168,6 +1187,57 @@ function toggleStatusDropdown(event, bookingId) {
 document.addEventListener('click', function() {
     document.querySelectorAll('.status-dropdown.active').forEach(d => d.classList.remove('active'));
 });
+
+// ── Event Delegation for Reservation Table ──
+// Uses data-action attributes so clicks survive DOM re-renders (innerHTML)
+(function initReservationTableDelegation() {
+    function handleTableClick(e) {
+        const actionEl = e.target.closest('[data-action]');
+        if (!actionEl) return;
+
+        const action = actionEl.dataset.action;
+        const bid = actionEl.dataset.bid;
+        if (!bid) return;
+
+        switch (action) {
+            case 'edit':
+                openReservationModal(bid);
+                break;
+            case 'payment':
+                openPaymentModal(bid);
+                break;
+            case 'payment-history':
+                viewPaymentHistory(bid);
+                break;
+            case 'whatsapp':
+                openWhatsAppMenu(bid);
+                break;
+            case 'delete':
+                deleteReservation(bid);
+                break;
+            case 'status-toggle':
+                e.stopPropagation();
+                toggleStatusDropdown(e, bid);
+                break;
+            case 'change-status':
+                e.stopPropagation();
+                changeReservationStatus(bid, actionEl.dataset.status);
+                break;
+        }
+    }
+
+    // Attach once — delegate handles all current and future rows
+    const tbody = document.getElementById('reservationsTableBody');
+    if (tbody) {
+        tbody.addEventListener('click', handleTableClick);
+    } else {
+        // Table may not exist yet; wait for DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            const tb = document.getElementById('reservationsTableBody');
+            if (tb) tb.addEventListener('click', handleTableClick);
+        });
+    }
+})();
 
 // Change reservation status inline
 async function changeReservationStatus(bookingId, newStatus) {
