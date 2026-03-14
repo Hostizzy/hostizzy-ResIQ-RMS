@@ -2156,7 +2156,7 @@ async function exportPaymentsCSV() {
         return;
     }
     
-    let csv = 'Booking ID,Guest,Property,Check-in,Total Amount,OTA Fee,Host Payout,Paid Amount,Balance,Payment Status,Source\n';
+    let csv = 'Booking ID,Guest,Property,Check-in,Gross Amount,OTA Fee,Receivable,Collected,Outstanding,Payment Status,Source\n';
 
     for (const r of reservationsToExport) {
         const total = parseFloat(r.total_amount) || 0;

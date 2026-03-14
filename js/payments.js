@@ -25,65 +25,58 @@ async function loadPayments() {
         // Filter confirmed reservations (reuse later for reminders)
         const confirmedReservations = allReservations.filter(r => r.status !== 'cancelled');
         
-        // Calculate metrics
-        const totalRevenue = confirmedReservations
-            .reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-        
+        // Calculate metrics — based on payment receivable (host payout), not gross guest payments
+        const totalReceivable = confirmedReservations
+            .reduce((sum, r) => sum + getHostPayout(r), 0);
+
+        const totalCollected = confirmedReservations
+            .reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
+
+        const totalOutstanding = confirmedReservations
+            .reduce((sum, r) => sum + getBalance(r), 0);
+
         const totalOtaFees = confirmedReservations
             .reduce((sum, r) => sum + (parseFloat(r.ota_service_fee) || 0), 0);
-        
-        const netRevenue = totalRevenue - totalOtaFees;
-        
-        const totalPaid = confirmedReservations
-            .reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
-        
-        const totalPending = confirmedReservations
-            .reduce((sum, r) => sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0)), 0);
-        
+
         // Render payment stats cards
         let statsHTML = `
             <div class="stat-card" style="border-left-color: var(--primary);">
-                <div class="stat-label">Total Revenue</div>
-                <div class="stat-value">${formatCurrency(totalRevenue)}</div>
+                <div class="stat-label">Total Receivable</div>
+                <div class="stat-value">${formatCurrency(totalReceivable)}</div>
                 <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                    Gross booking amount
+                    Expected host payout
                 </div>
             </div>
         `;
-        
-        // Conditionally add OTA fees card
+
+        // Conditionally add OTA fees card for visibility
         if (totalOtaFees > 0) {
+            const totalGross = confirmedReservations
+                .reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
             statsHTML += `
-            <div class="stat-card" style="border-left-color: #ef4444;">
-                <div class="stat-label">🏢 OTA Fees</div>
-                <div class="stat-value">${formatCurrency(totalOtaFees)}</div>
+            <div class="stat-card" style="border-left-color: #f59e0b;">
+                <div class="stat-label">Gross Booking Value</div>
+                <div class="stat-value">${formatCurrency(totalGross)}</div>
                 <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                    Commission deductions
-                </div>
-            </div>
-            <div class="stat-card" style="border-left-color: #10b981;">
-                <div class="stat-label">💰 Net Revenue</div>
-                <div class="stat-value">${formatCurrency(netRevenue)}</div>
-                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                    After OTA fees
+                    Before OTA fees (${formatCurrency(totalOtaFees)} deducted)
                 </div>
             </div>
             `;
         }
-        
+
         statsHTML += `
             <div class="stat-card" style="border-left-color: #10b981;">
                 <div class="stat-label">Total Collected</div>
-                <div class="stat-value">${formatCurrency(totalPaid)}</div>
+                <div class="stat-value">${formatCurrency(totalCollected)}</div>
                 <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                    Received payments
+                    Payments received
                 </div>
             </div>
             <div class="stat-card" style="border-left-color: #ef4444;">
-                <div class="stat-label">Total Pending</div>
-                <div class="stat-value">${formatCurrency(totalPending)}</div>
+                <div class="stat-label">Outstanding</div>
+                <div class="stat-value">${formatCurrency(totalOutstanding)}</div>
                 <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                    Outstanding balance
+                    Yet to be collected
                 </div>
             </div>
         `;
@@ -122,14 +115,14 @@ function displayPayments(reservations) {
     tbody.innerHTML = reservations.map(r => {
         const total = parseFloat(r.total_amount) || 0;
         const otaFee = parseFloat(r.ota_service_fee) || 0;
-        const hostPayout = getHostPayout(r);
+        const receivable = getHostPayout(r);
         const paid = parseFloat(r.paid_amount) || 0;
         const isOTA = r.booking_source && r.booking_source !== 'DIRECT';
         const balance = getBalance(r);
         const status = r.payment_status || 'pending';
 
-        // Calculate payment progress %
-        const progressPercent = total > 0 ? Math.min((paid / total) * 100, 100) : 0;
+        // Calculate payment progress % based on receivable amount
+        const progressPercent = receivable > 0 ? Math.min((paid / receivable) * 100, 100) : 0;
         const progressClass = status === 'paid' ? 'full' : status === 'partial' ? 'partial' : 'pending';
 
         // Status icon
@@ -158,14 +151,14 @@ function displayPayments(reservations) {
                 <td>${formatDate(r.check_in)}</td>
                 <td>
                     <div style="font-weight: 600; font-size: 14px;">
-                        ${formatCurrency(total, {compact: false})}
+                        ${formatCurrency(receivable, {compact: false})}
                     </div>
                     ${otaFee > 0 ? `
-                        <div style="font-size: 11px; color: var(--danger); margin-top: 2px;">
-                            <i data-lucide="building" style="width: 10px; height: 10px; margin-right: 2px;"></i>OTA Fee: ${formatCurrency(otaFee, {compact: false})}
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">
+                            Gross: ${formatCurrency(total, {compact: false})}
                         </div>
-                        <div style="font-size: 11px; color: var(--success); margin-top: 2px; font-weight: 600;">
-                            <i data-lucide="coins" style="width: 10px; height: 10px; margin-right: 2px;"></i>Host Payout: ${formatCurrency(hostPayout, {compact: false})}
+                        <div style="font-size: 11px; color: var(--danger); margin-top: 1px;">
+                            <i data-lucide="building" style="width: 10px; height: 10px; margin-right: 2px;"></i>OTA Fee: -${formatCurrency(otaFee, {compact: false})}
                         </div>
                     ` : ''}
                 </td>
@@ -180,7 +173,7 @@ function displayPayments(reservations) {
                 <td>
                     <span class="payment-status ${status}">${statusIcon}${status.toUpperCase()}</span>
                     ${isOTA ?
-                        '<div style="font-size: 10px; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 3px;"><i data-lucide="credit-card" style="width: 10px; height: 10px;"></i>Guest Prepaid via OTA</div>'
+                        '<div style="font-size: 10px; color: var(--text-secondary); margin-top: 6px; display: flex; align-items: center; gap: 3px;"><i data-lucide="credit-card" style="width: 10px; height: 10px;"></i>Via OTA</div>'
                         : ''}
                 </td>
                 <td>
