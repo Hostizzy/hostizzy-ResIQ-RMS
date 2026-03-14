@@ -256,9 +256,15 @@ async function loadDashboard() {
         // Update greeting
         updateDashGreeting();
 
-        allReservations = await db.getReservations();
-        allPayments = await db.getAllPayments();
-        const properties = await db.getProperties();
+        // Use cache when available (avoids redundant Supabase calls)
+        allReservations = dataCache.get('reservations') || await db.getReservations();
+        allPayments = dataCache.get('payments') || await db.getAllPayments();
+        const properties = dataCache.get('properties') || await db.getProperties();
+
+        // Ensure cache is populated for next load
+        if (!dataCache.get('reservations')) dataCache.set('reservations', allReservations);
+        if (!dataCache.get('payments')) dataCache.set('payments', allPayments);
+        if (!dataCache.get('properties')) dataCache.set('properties', properties);
 
         // Update global state for home screen
         state.reservations = allReservations;

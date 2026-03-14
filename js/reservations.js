@@ -648,36 +648,33 @@ async function showView(viewName) {
     }
 
     try {
-        // ── Only fetch data on FIRST load. Subsequent navigations use cached DOM. ──
-        // Views that always need a refresh (home stats) use lightweight updates only.
-        if (!alreadyLoaded) {
-            if (viewName === 'home') {
-                await loadInitialData();
-                await updateHomeScreenStats();
-            }
-            else if (viewName === 'dashboard') await loadDashboard();
-            else if (viewName === 'reservations') await loadReservations();
-            else if (viewName === 'guests') await loadGuests();
-            else if (viewName === 'guestDocuments') await loadGuestDocuments();
-            else if (viewName === 'payments') await loadPayments();
-            else if (viewName === 'meals') await loadMeals();
-            else if (viewName === 'availability') await loadAvailabilityCalendar();
-            else if (viewName === 'properties') await loadProperties();
-            else if (viewName === 'property') await loadPropertyView();
-            else if (viewName === 'business') await loadBusinessView();
-            else if (viewName === 'financials') await loadBusinessIntelligence();
-            else if (viewName === 'team') await loadTeam();
-            else if (viewName === 'owners') await loadOwners();
-            else if (viewName === 'expenses') await loadExpenses();
-            else if (viewName === 'settings') loadSettings();
-            else if (viewName === 'communication') loadCommunication();
+        // ── Always call load functions (they use dataCache so revisits are fast).
+        // The spinner only shows on the very first load.
+        if (viewName === 'home') {
+            if (!alreadyLoaded) await loadInitialData();
+            await updateHomeScreenStats();
+        }
+        else if (viewName === 'dashboard') await loadDashboard();
+        else if (viewName === 'reservations') await loadReservations();
+        else if (viewName === 'guests') await loadGuests();
+        else if (viewName === 'guestDocuments') await loadGuestDocuments();
+        else if (viewName === 'payments') await loadPayments();
+        else if (viewName === 'meals') await loadMeals();
+        else if (viewName === 'availability') await loadAvailabilityCalendar();
+        else if (viewName === 'properties') await loadProperties();
+        else if (viewName === 'property') await loadPropertyView();
+        else if (viewName === 'business') await loadBusinessView();
+        else if (viewName === 'financials') await loadBusinessIntelligence();
+        else if (viewName === 'team') await loadTeam();
+        else if (viewName === 'owners') await loadOwners();
+        else if (viewName === 'expenses') await loadExpenses();
+        else if (viewName === 'settings') loadSettings();
+        else if (viewName === 'communication') loadCommunication();
 
+        if (!alreadyLoaded) {
             markViewAsLoaded(viewName);
             hideViewLoadingSpinner(viewName);
             console.log(`✅ Lazy loaded: ${viewName}`);
-        } else if (viewName === 'home') {
-            // Home screen stats are lightweight — always refresh counts
-            await updateHomeScreenStats();
         }
     } catch (error) {
         console.error(`❌ Error loading view ${viewName}:`, error);

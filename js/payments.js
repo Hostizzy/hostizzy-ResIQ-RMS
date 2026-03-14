@@ -2,7 +2,9 @@
 
 async function loadPayments() {
     try {
-        allReservations = await db.getReservations();
+        // Use cache when available to avoid redundant Supabase calls on view switch
+        allReservations = dataCache.get('reservations') || await db.getReservations();
+        if (!dataCache.get('reservations')) dataCache.set('reservations', allReservations);
         
         // Populate property filter dropdown
         const propertyFilter = document.getElementById('paymentPropertyFilter');
@@ -197,6 +199,7 @@ function displayPayments(reservations) {
 
 // Store filtered payments for CSV export
 let filteredPayments = [];
+const _debouncedPaymentFilter = debounce(filterPayments, 300);
 
 function filterPayments() {
     const search = document.getElementById('searchPayments').value.toLowerCase();

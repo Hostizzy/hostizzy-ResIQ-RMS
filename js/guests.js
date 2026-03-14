@@ -199,9 +199,10 @@ let currentSortDirection = 'asc';
 async function loadGuests() {
     try {
         console.log('Loading guests...');
-        
-        // Get all reservations
-        const reservations = await db.getReservations();
+
+        // Use cache when available to avoid redundant Supabase calls on view switch
+        const reservations = dataCache.get('reservations') || await db.getReservations();
+        if (!dataCache.get('reservations')) dataCache.set('reservations', reservations);
         console.log('Reservations loaded:', reservations.length);
         
         // Create guest map (group by phone or email)

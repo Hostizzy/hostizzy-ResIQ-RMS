@@ -2548,13 +2548,13 @@
                 <!-- Desktop filters (hidden on mobile) -->
                 <div class="filters filters-desktop">
                     <div class="filter-item" style="flex: 1; max-width: 350px;">
-                        <input type="text" id="searchReservations" placeholder="Search by guest, booking ID, phone, property..." style="width: 100%;">
+                        <input type="text" id="searchReservations" placeholder="Search by guest, booking ID, phone, property..." style="width: 100%;" oninput="_stableDebouncedFilter()" onkeydown="if(event.key==='Enter') filterReservations();">
                     </div>
                     <button class="btn btn-primary btn-sm" onclick="filterReservations()" style="white-space: nowrap;">
                         Search
                     </button>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="statusFilter">
+                        <select id="statusFilter" onchange="filterReservations()">
                             <option value="">All Status</option>
                             <option value="confirmed">Confirmed</option>
                             <option value="pending">Pending</option>
@@ -2564,12 +2564,12 @@
                         </select>
                     </div>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="propertyFilter">
+                        <select id="propertyFilter" onchange="filterReservations()">
                             <option value="">All Properties</option>
                         </select>
                     </div>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="bookingSourceFilter">
+                        <select id="bookingSourceFilter" onchange="filterReservations()">
                             <option value="">All Sources</option>
                             <option value="DIRECT">Direct</option>
                             <option value="AIRBNB">Airbnb</option>
@@ -2579,7 +2579,7 @@
                         </select>
                     </div>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="monthFilter">
+                        <select id="monthFilter" onchange="filterReservations()">
                             <option value="">All Months</option>
                         </select>
                     </div>
@@ -2591,7 +2591,7 @@
                     <div class="filters-mobile-bar">
                         <div class="filters-mobile-search">
                             <i data-lucide="search" style="width: 18px; height: 18px; color: var(--text-tertiary); flex-shrink: 0;"></i>
-                            <input type="text" id="searchReservationsMobile" placeholder="Search guest, ID, phone..." oninput="document.getElementById('searchReservations').value = this.value;" onkeydown="if(event.key==='Enter') filterReservations();">
+                            <input type="text" id="searchReservationsMobile" placeholder="Search guest, ID, phone..." oninput="document.getElementById('searchReservations').value = this.value; _stableDebouncedFilter();" onkeydown="if(event.key==='Enter') filterReservations();">
                         </div>
                         <button class="filters-mobile-toggle" onclick="toggleFilterSheet()">
                             <i data-lucide="sliders-horizontal" style="width: 18px; height: 18px;"></i>
@@ -2612,7 +2612,7 @@
                     <div class="filter-sheet-body">
                         <div class="filter-sheet-group">
                             <label class="filter-sheet-label">Status</label>
-                            <select id="statusFilterMobile" onchange="document.getElementById('statusFilter').value = this.value;">
+                            <select id="statusFilterMobile" onchange="document.getElementById('statusFilter').value = this.value; filterReservations();">
                                 <option value="">All Status</option>
                                 <option value="confirmed">Confirmed</option>
                                 <option value="pending">Pending</option>
@@ -2623,13 +2623,13 @@
                         </div>
                         <div class="filter-sheet-group">
                             <label class="filter-sheet-label">Property</label>
-                            <select id="propertyFilterMobile" onchange="document.getElementById('propertyFilter').value = this.value;">
+                            <select id="propertyFilterMobile" onchange="document.getElementById('propertyFilter').value = this.value; filterReservations();">
                                 <option value="">All Properties</option>
                             </select>
                         </div>
                         <div class="filter-sheet-group">
                             <label class="filter-sheet-label">Booking Source</label>
-                            <select id="bookingSourceFilterMobile" onchange="document.getElementById('bookingSourceFilter').value = this.value;">
+                            <select id="bookingSourceFilterMobile" onchange="document.getElementById('bookingSourceFilter').value = this.value; filterReservations();">
                                 <option value="">All Sources</option>
                                 <option value="DIRECT">Direct</option>
                                 <option value="AIRBNB">Airbnb</option>
@@ -2640,7 +2640,7 @@
                         </div>
                         <div class="filter-sheet-group">
                             <label class="filter-sheet-label">Month</label>
-                            <select id="monthFilterMobile" onchange="document.getElementById('monthFilter').value = this.value;">
+                            <select id="monthFilterMobile" onchange="document.getElementById('monthFilter').value = this.value; filterReservations();">
                                 <option value="">All Months</option>
                             </select>
                         </div>
@@ -2786,7 +2786,7 @@
                     <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
                         <div style="flex: 1; min-width: 250px; position: relative;">
                             <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-tertiary);"></i>
-                            <input type="text" id="searchPayments" placeholder="Search by guest, booking ID..." onkeypress="if(event.key==='Enter') filterPayments()" style="width: 100%; padding-left: 34px;">
+                            <input type="text" id="searchPayments" placeholder="Search by guest, booking ID..." oninput="if(typeof _debouncedPaymentFilter!=='undefined') _debouncedPaymentFilter(); else filterPayments();" onkeypress="if(event.key==='Enter') filterPayments()" style="width: 100%; padding-left: 34px;">
                         </div>
                         <select id="paymentPropertyFilter" onchange="filterPayments()" style="min-width: 160px;">
                             <option value="">All Properties</option>
