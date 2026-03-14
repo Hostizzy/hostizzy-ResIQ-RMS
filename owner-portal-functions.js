@@ -547,6 +547,17 @@ async function loadOwnerPayments() {
             return;
         }
 
+        // Sort payments by booking check-in date (descending) instead of payment_date
+        if (ownerData.payments && ownerData.bookings) {
+            ownerData.payments.sort((a, b) => {
+                const bookingA = ownerData.bookings.find(bk => bk.booking_id === a.booking_id);
+                const bookingB = ownerData.bookings.find(bk => bk.booking_id === b.booking_id);
+                const dateA = bookingA && bookingA.check_in ? new Date(bookingA.check_in) : new Date(0);
+                const dateB = bookingB && bookingB.check_in ? new Date(bookingB.check_in) : new Date(0);
+                return dateB - dateA;
+            });
+        }
+
         // Populate property filter (only on first load)
         const propertyFilter = document.getElementById('paymentPropertyFilter');
         if (propertyFilter.options.length === 1) {
@@ -558,26 +569,33 @@ async function loadOwnerPayments() {
             });
         }
 
-        // Populate month filter (only on first load)
+        // Populate month filter from booking check-in dates (only on first load)
         const monthFilter = document.getElementById('paymentMonthFilter');
         if (monthFilter.options.length === 1) {
-            for (let i = 0; i < 12; i++) {
-                const date = new Date();
-                date.setMonth(date.getMonth() - i);
-                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                const monthLabel = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+            // Build unique months from booking check-in dates
+            const monthSet = {};
+            (ownerData.bookings || []).forEach(booking => {
+                if (booking.check_in) {
+                    const date = new Date(booking.check_in);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    const monthLabel = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+                    monthSet[monthKey] = monthLabel;
+                }
+            });
+            // Sort descending (newest first)
+            Object.keys(monthSet).sort((a, b) => b.localeCompare(a)).forEach(monthKey => {
                 const option = document.createElement('option');
                 option.value = monthKey;
-                option.textContent = monthLabel;
+                option.textContent = monthSet[monthKey];
                 monthFilter.appendChild(option);
-            }
+            });
         }
 
         // Apply filters using cached data (no DB call needed)
         filterOwnerPayments();
 
     } catch (error) {
-        showToast('Error', 'Failed to load payments: ' + error.message, '❌');
+        showToast('Error', 'Failed to load revenue data: ' + error.message, '❌');
     }
 }
 
@@ -592,7 +610,10 @@ function filterOwnerPayments() {
 
     if (selectedMonth) {
         filteredPayments = filteredPayments.filter(p => {
-            const date = new Date(p.payment_date);
+            // Group by reservation check-in month, not payment date
+            const booking = ownerData.bookings.find(b => b.booking_id === p.booking_id);
+            if (!booking || !booking.check_in) return false;
+            const date = new Date(booking.check_in);
             const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             return monthKey === selectedMonth;
         });
@@ -625,7 +646,7 @@ function renderOwnerPaymentsList(payments) {
     const container = document.getElementById('ownerPaymentsList');
 
     if (payments.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No payments found</p>';
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No revenue records found</p>';
         return;
     }
 
@@ -638,6 +659,8 @@ function renderOwnerPaymentsList(payments) {
         payments.forEach(payment => {
             const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
             const propertyName = booking ? booking.property_name : 'Unknown';
+            const checkInDate = booking && booking.check_in ? new Date(booking.check_in).toLocaleDateString('en-IN') : 'N/A';
+            const bookingSource = booking && booking.booking_source ? booking.booking_source : 'DIRECT';
 
             html += `
                 <div class="booking-mobile-card">
@@ -652,8 +675,12 @@ function renderOwnerPaymentsList(payments) {
                     </div>
                     <div class="booking-mobile-card-body">
                         <div class="booking-mobile-row">
-                            <span class="booking-mobile-label">Payment Date</span>
-                            <span class="booking-mobile-value">${new Date(payment.payment_date).toLocaleDateString('en-IN')}</span>
+                            <span class="booking-mobile-label">Check-in</span>
+                            <span class="booking-mobile-value">${checkInDate}</span>
+                        </div>
+                        <div class="booking-mobile-row">
+                            <span class="booking-mobile-label">Source</span>
+                            <span class="booking-mobile-value">${bookingSource}</span>
                         </div>
                         <div class="booking-mobile-row">
                             <span class="booking-mobile-label">Method</span>
@@ -678,9 +705,10 @@ function renderOwnerPaymentsList(payments) {
     } else {
         // Desktop table layout
         let html = '<div class="table-container"><table class="data-table"><thead><tr>';
-        html += '<th>Payment Date</th>';
+        html += '<th>Check-in Date</th>';
         html += '<th>Booking ID</th>';
         html += '<th>Property</th>';
+        html += '<th>Source</th>';
         html += '<th>Amount</th>';
         html += '<th>Method</th>';
         html += '<th>Recipient</th>';
@@ -690,11 +718,14 @@ function renderOwnerPaymentsList(payments) {
         payments.forEach(payment => {
             const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
             const propertyName = booking ? booking.property_name : 'Unknown';
+            const checkInDate = booking && booking.check_in ? new Date(booking.check_in).toLocaleDateString('en-IN') : 'N/A';
+            const bookingSource = booking && booking.booking_source ? booking.booking_source : 'DIRECT';
 
             html += '<tr>';
-            html += `<td>${new Date(payment.payment_date).toLocaleDateString('en-IN')}</td>`;
+            html += `<td>${checkInDate}</td>`;
             html += `<td><strong>${payment.booking_id}</strong></td>`;
             html += `<td>${propertyName}</td>`;
+            html += `<td><span style="font-size: 12px;">${bookingSource}</span></td>`;
             html += `<td><strong style="color: var(--success);">₹${parseFloat(payment.amount).toLocaleString('en-IN')}</strong></td>`;
             html += `<td>${payment.payment_method || 'N/A'}</td>`;
             html += `<td>${payment.payment_recipient || 'N/A'}</td>`;

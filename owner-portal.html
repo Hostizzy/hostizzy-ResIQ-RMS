@@ -1406,7 +1406,7 @@
                     <span class="icon">📅</span> Bookings
                 </button>
                 <button class="sidebar-nav-item" onclick="showOwnerView('ownerPayments')">
-                    <span class="icon">💵</span> Payments
+                    <span class="icon">💵</span> Revenue
                 </button>
                 <button class="sidebar-nav-item" onclick="showOwnerView('ownerCalendar')">
                     <span class="icon">🗓️</span> Calendar
@@ -1517,8 +1517,8 @@
 
                             <div class="home-card warning" onclick="showOwnerView('ownerPayments')">
                                 <div class="home-card-icon">💵</div>
-                                <div class="home-card-title">Payment Collections</div>
-                                <div class="home-card-description">Track payments received for your properties</div>
+                                <div class="home-card-title">Reservation Revenue</div>
+                                <div class="home-card-description">Revenue from your property reservations by check-in month</div>
                             </div>
 
                             <div class="home-card" onclick="showOwnerView('ownerCalendar')">
@@ -1713,15 +1713,15 @@
             <!-- Payments View -->
             <div id="ownerPaymentsView" class="owner-view hidden">
                 <div style="margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Payment Collections</h3>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Track all payments received for your properties</p>
+                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Reservation Revenue</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Revenue from reservations grouped by check-in month</p>
                 </div>
 
                 <!-- Filters -->
                 <div class="card" style="margin-bottom: 24px;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                         <div>
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Month</label>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Check-in Month</label>
                             <select id="paymentMonthFilter" onchange="filterOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="">All Months</option>
                             </select>
@@ -1747,15 +1747,15 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <div class="stat-card">
                         <div class="stat-value" id="paymentsTotal">₹0</div>
-                        <div class="stat-label">Total Payments</div>
+                        <div class="stat-label">Total Revenue</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="paymentsToOwner">₹0</div>
-                        <div class="stat-label">Paid to Owner</div>
+                        <div class="stat-label">Owner Earnings</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="paymentsToHostizzy">₹0</div>
-                        <div class="stat-label">Paid to Hostizzy</div>
+                        <div class="stat-label">Hostizzy Commission</div>
                     </div>
                 </div>
 
@@ -2272,7 +2272,7 @@
                 'ownerHome': 'Home',
                 'ownerDashboard': 'Analytics Dashboard',
                 'ownerBookings': 'Bookings',
-                'ownerPayments': 'Payment Collections',
+                'ownerPayments': 'Reservation Revenue',
                 'ownerCalendar': 'Availability Calendar',
                 'ownerPayouts': 'Payout History',
                 'ownerExpenses': 'Property Expenses',
