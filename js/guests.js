@@ -334,60 +334,58 @@ async function loadGuests() {
         filteredGuests = [...allGuests];
         currentGuestPage = 1;
         
-        // Restore saved filters
-        setTimeout(() => {
-            const savedFilters = loadFilterState('guests');
-            if (savedFilters) {
-                console.log('🔄 Restoring guest filters:', savedFilters);
-                
-                // Restore search
-                if (savedFilters.search) {
-                    const searchInput = document.getElementById('searchGuests');
-                    if (searchInput) searchInput.value = savedFilters.search;
-                }
-                
-                // Restore type filter
-                if (savedFilters.typeFilter) {
-                    const typeFilter = document.getElementById('guestTypeFilter');
-                    if (typeFilter) typeFilter.value = savedFilters.typeFilter;
-                }
-                
-                // Restore sort (only if a valid column)
-                if (savedFilters.sortBy && ['name','phone','email','city','lastVisit','nextCheckIn','stays','spent'].includes(savedFilters.sortBy)) {
-                    currentSortColumn = savedFilters.sortBy;
-                }
-                if (savedFilters.sortDir && (savedFilters.sortDir === 'asc' || savedFilters.sortDir === 'desc')) {
-                    currentSortDirection = savedFilters.sortDir;
-                }
-                
-                // Restore per page
-                if (savedFilters.perPage) {
-                    const perPageSelect = document.getElementById('guestsPerPage');
-                    if (perPageSelect) perPageSelect.value = savedFilters.perPage;
-                    guestsPerPage = savedFilters.perPage === 'all' ? displayedGuests.length : parseInt(savedFilters.perPage);
-                }
-                
-                // Restore view (table/cards)
-                if (savedFilters.currentView) {
-                    currentGuestView = savedFilters.currentView;
-                    switchGuestView(savedFilters.currentView);
-                }
-                
-                // Restore page number
-                if (savedFilters.currentPage) {
-                    currentGuestPage = savedFilters.currentPage;
-                }
-                
-                // Apply search if exists
-                if (savedFilters.search) {
-                    searchGuests();
-                } else {
-                    filterGuests();
-                }
+        // Restore saved filters (no delay — DOM elements already exist)
+        const savedFilters = loadFilterState('guests');
+        if (savedFilters) {
+            console.log('🔄 Restoring guest filters:', savedFilters);
+
+            // Restore search
+            if (savedFilters.search) {
+                const searchInput = document.getElementById('searchGuests');
+                if (searchInput) searchInput.value = savedFilters.search;
+            }
+
+            // Restore type filter
+            if (savedFilters.typeFilter) {
+                const typeFilter = document.getElementById('guestTypeFilter');
+                if (typeFilter) typeFilter.value = savedFilters.typeFilter;
+            }
+
+            // Restore sort (only if a valid column)
+            if (savedFilters.sortBy && ['name','phone','email','city','lastVisit','nextCheckIn','stays','spent'].includes(savedFilters.sortBy)) {
+                currentSortColumn = savedFilters.sortBy;
+            }
+            if (savedFilters.sortDir && (savedFilters.sortDir === 'asc' || savedFilters.sortDir === 'desc')) {
+                currentSortDirection = savedFilters.sortDir;
+            }
+
+            // Restore per page
+            if (savedFilters.perPage) {
+                const perPageSelect = document.getElementById('guestsPerPage');
+                if (perPageSelect) perPageSelect.value = savedFilters.perPage;
+                guestsPerPage = savedFilters.perPage === 'all' ? displayedGuests.length : parseInt(savedFilters.perPage);
+            }
+
+            // Restore view (table/cards)
+            if (savedFilters.currentView) {
+                currentGuestView = savedFilters.currentView;
+                switchGuestView(savedFilters.currentView);
+            }
+
+            // Restore page number
+            if (savedFilters.currentPage) {
+                currentGuestPage = savedFilters.currentPage;
+            }
+
+            // Apply search if exists — call _executeGuestSearch directly (skip debounce for restore)
+            if (savedFilters.search) {
+                _executeGuestSearch();
             } else {
                 filterGuests();
             }
-        }, 300);
+        } else {
+            filterGuests();
+        }
         
     } catch (error) {
         console.error('Error loading guests:', error);
@@ -410,9 +408,15 @@ async function loadGuests() {
 }
 
 /**
- * Search guests by name, phone, or email (instant search)
+ * Search guests by name, phone, or email (debounced to prevent lag on large datasets)
  */
+const _debouncedGuestSearch = debounce(_executeGuestSearch, 250);
+
 function searchGuests() {
+    _debouncedGuestSearch();
+}
+
+function _executeGuestSearch() {
     const searchTerm = document.getElementById('searchGuests').value.toLowerCase().trim();
     
     if (!searchTerm) {
