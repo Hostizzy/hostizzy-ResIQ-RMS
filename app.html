@@ -4318,7 +4318,230 @@
         </div>
     </div>
 
-    <!-- Reservation Modal -->
+    <!-- Quick Edit Reservation Modal (flat single-page form for editing existing reservations) -->
+    <div id="quickEditModal" class="modal">
+        <div class="modal-content" style="max-width: 720px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="quickEditTitle">Edit Reservation</h3>
+                <button class="close-btn" onclick="closeQuickEditModal()">&times;</button>
+            </div>
+            <div class="quick-edit-body" style="padding: 20px; max-height: 75vh; overflow-y: auto;">
+                <input type="hidden" id="qeReservationId">
+                <input type="hidden" id="qeBookingId">
+
+                <!-- Booking ID & Status Banner -->
+                <div class="qe-banner" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--background); border-radius: var(--radius-lg); margin-bottom: 20px; border: 1px solid var(--border);">
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary);">Booking ID</span>
+                        <div id="qeBannerBookingId" style="font-weight: 700; font-size: 16px; color: var(--primary);"></div>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary);">Property</span>
+                        <div id="qeBannerProperty" style="font-weight: 600; font-size: 14px;"></div>
+                    </div>
+                    <div>
+                        <select id="qeStatus" style="font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <option value="confirmed">Confirmed</option>
+                            <option value="pending">Pending</option>
+                            <option value="checked-in">Checked In</option>
+                            <option value="checked-out">Checked Out</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Section: Guest Info (collapsible) -->
+                <div class="qe-section">
+                    <div class="qe-section-header" onclick="toggleQeSection(this)">
+                        <span><i data-lucide="user" style="width: 14px; height: 14px; margin-right: 6px;"></i>Guest Info</span>
+                        <i data-lucide="chevron-down" class="qe-chevron" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="qe-section-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Guest Name *</label>
+                                <input type="text" id="qeGuestName" required placeholder="Full name">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone *</label>
+                                <input type="tel" id="qeGuestPhone" required placeholder="+91 XXXXX XXXXX">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="qeGuestEmail" placeholder="guest@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Travelling From</label>
+                                <input type="text" id="qeGuestCity" placeholder="City / Country">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Booking Details (collapsible) -->
+                <div class="qe-section">
+                    <div class="qe-section-header" onclick="toggleQeSection(this)">
+                        <span><i data-lucide="calendar" style="width: 14px; height: 14px; margin-right: 6px;"></i>Booking Details</span>
+                        <i data-lucide="chevron-down" class="qe-chevron" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="qe-section-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Property *</label>
+                                <select id="qeProperty" required onchange="qeCalculateTaxes()">
+                                    <option value="">Select Property</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Booking Type</label>
+                                <select id="qeBookingType">
+                                    <option value="STAYCATION">Staycation</option>
+                                    <option value="WEDDING">Wedding</option>
+                                    <option value="BIRTHDAY">Birthday Party</option>
+                                    <option value="CORPORATE_EVENT">Corporate Event</option>
+                                    <option value="CORPORATE_STAY">Corporate Stay</option>
+                                    <option value="SHOOT">Shoot</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Booking Source</label>
+                                <select id="qeBookingSource" onchange="qeToggleOtaFields()">
+                                    <option value="DIRECT">Direct</option>
+                                    <option value="AIRBNB">Airbnb</option>
+                                    <option value="AGODA/BOOKING.COM">Agoda/Booking.com</option>
+                                    <option value="MMT/GOIBIBO">MMT/Goibibo</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="qeReservationCodeGroup" style="display: none;">
+                                <label>OTA Reservation Code *</label>
+                                <input type="text" id="qeReservationCode" placeholder="OTA booking code">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Check-in *</label>
+                                <input type="date" id="qeCheckIn" required onchange="qeCalculateTaxes()">
+                            </div>
+                            <div class="form-group">
+                                <label>Check-out *</label>
+                                <input type="date" id="qeCheckOut" required onchange="qeCalculateTaxes()">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Rooms</label>
+                                <input type="number" id="qeRooms" min="1" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Adults</label>
+                                <input type="number" id="qeAdults" min="1" value="2">
+                            </div>
+                            <div class="form-group">
+                                <label>Kids</label>
+                                <input type="number" id="qeKids" min="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Pricing (collapsible, starts open) -->
+                <div class="qe-section">
+                    <div class="qe-section-header" onclick="toggleQeSection(this)">
+                        <span><i data-lucide="indian-rupee" style="width: 14px; height: 14px; margin-right: 6px;"></i>Pricing</span>
+                        <i data-lucide="chevron-down" class="qe-chevron" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <div class="qe-section-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Stay Amount (&#8377;)</label>
+                                <input type="number" id="qeStayAmount" min="0" step="0.01" value="0" oninput="qeCalculateTaxes()">
+                            </div>
+                            <div class="form-group">
+                                <label>Extra Guest Charges (&#8377;)</label>
+                                <input type="number" id="qeExtraGuest" min="0" step="0.01" value="0" oninput="qeCalculateTaxes()">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Meals/Chef (&#8377;)</label>
+                                <input type="number" id="qeMeals" min="0" step="0.01" value="0" oninput="qeCalculateTaxes()">
+                            </div>
+                            <div class="form-group">
+                                <label>Bonfire/Other (&#8377;)</label>
+                                <input type="number" id="qeBonfire" min="0" step="0.01" value="0" oninput="qeCalculateTaxes()">
+                            </div>
+                        </div>
+                        <div class="form-group" id="qeOtaFeeGroup" style="display: none;">
+                            <label>OTA Service Fee (&#8377;)</label>
+                            <input type="number" id="qeOtaFee" min="0" step="0.01" value="0" oninput="qeCalculateTaxes()">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>GST Status</label>
+                                <select id="qeGstStatus" onchange="qeCalculateTaxes()">
+                                    <option value="gst">GST Applicable</option>
+                                    <option value="non_gst">Non-GST</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>GST Rate</label>
+                                <select id="qeGstRate" onchange="qeHandleGstRate()">
+                                    <option value="auto">Auto</option>
+                                    <option value="5">5%</option>
+                                    <option value="12">12%</option>
+                                    <option value="18">18%</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Taxes (&#8377;)</label>
+                                <input type="number" id="qeTaxes" min="0" step="0.01" value="0" readonly style="background: #f1f5f9;" oninput="qeCalculateTaxes()">
+                            </div>
+                            <div class="form-group">
+                                <label>Damages (&#8377;)</label>
+                                <input type="number" id="qeDamages" min="0" step="0.01" value="0" oninput="qeCalculateTaxes()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Hostizzy Revenue (&#8377;)</label>
+                            <input type="number" id="qeHostizzyRevenue" min="0" step="0.01" value="0" readonly style="background: var(--background);">
+                            <small style="font-size: 12px; color: var(--text-secondary); display: block; margin-top: 4px;">Auto-calculated based on property's revenue share %</small>
+                        </div>
+
+                        <!-- Total Summary -->
+                        <div style="margin-top: 16px; padding: 14px 16px; background: var(--background); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px;">
+                                <span>TOTAL AMOUNT</span>
+                                <span id="qeNightsDisplay">0 nights</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 20px; font-weight: 700; color: var(--primary);">
+                                <span>&#8377;</span>
+                                <span id="qeTotalDisplay">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save / Cancel Footer -->
+            <div class="wizard-nav">
+                <button class="btn btn-secondary" onclick="closeQuickEditModal()">Cancel</button>
+                <div style="flex: 1;"></div>
+                <button class="btn btn-primary" id="qeSaveBtn" onclick="saveQuickEdit()">
+                    <i data-lucide="check" style="width: 14px; height: 14px; margin-right: 6px;"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reservation Modal (New Reservation Wizard) -->
     <div id="reservationModal" class="modal">
         <div class="modal-content" style="max-width: 700px;">
             <!-- Modal Header -->

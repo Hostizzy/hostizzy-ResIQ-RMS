@@ -633,7 +633,7 @@ function renderGuestTable() {
         const lastVisitText = guest.lastVisit ? formatDate(guest.lastVisit) : 'Never';
 
         html += `
-            <tr style="cursor: pointer;" onclick="showGuestDetail('${guest.key.replace(/'/g, "\\'")}')">
+            <tr style="cursor: pointer;" data-action="view-guest" data-guest-key="${guest.key.replace(/"/g, '&quot;')}">
                 <td data-label="Guest Name">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div style="width: 36px; height: 36px; background: var(--gradient-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; flex-shrink: 0;">
@@ -670,7 +670,7 @@ function renderGuestTable() {
                     <strong style="color: var(--success); font-size: inherit;">${formatCurrency(guest.totalSpent)}</strong>
                 </td>
                 <td data-label="Actions">
-                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); showGuestDetail('${guest.key.replace(/'/g, "\\'")}')">
+                    <button class="btn btn-sm btn-primary" data-action="view-guest" data-guest-key="${guest.key.replace(/"/g, '&quot;')}">
                         👁️ View
                     </button>
                 </td>
@@ -1287,5 +1287,30 @@ function downloadCSV(headers, rows, filename) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
+
+// ── Event Delegation for Guests Table ──
+(function initGuestTableDelegation() {
+    function handleGuestClick(e) {
+        const actionEl = e.target.closest('[data-action]');
+        if (!actionEl) return;
+        const action = actionEl.dataset.action;
+        const guestKey = actionEl.dataset.guestKey;
+        if (!guestKey) return;
+
+        if (action === 'view-guest') {
+            showGuestDetail(guestKey);
+        }
+    }
+
+    const tbody = document.getElementById('guestTableBody');
+    if (tbody) {
+        tbody.addEventListener('click', handleGuestClick);
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            const tb = document.getElementById('guestTableBody');
+            if (tb) tb.addEventListener('click', handleGuestClick);
+        });
+    }
+})();
 
 // ==========================================

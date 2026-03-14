@@ -151,6 +151,10 @@ async function loadInitialData() {
             allReservations = recentReservations || [];
             allPayments = [];
 
+            // Populate cache so subsequent view loads are instant
+            dataCache.set('reservations', allReservations);
+            dataCache.set('properties', properties);
+
             console.log('Mobile-optimized data loaded:', {
                 reservations: (recentReservations || []).length,
                 properties: properties.length,
@@ -171,11 +175,23 @@ async function loadInitialData() {
             allReservations = reservations;
             allPayments = payments;
 
+            // Populate cache so subsequent view loads are instant
+            dataCache.set('reservations', reservations);
+            dataCache.set('properties', properties);
+            dataCache.set('payments', payments);
+
             console.log('Full data loaded:', {
                 reservations: reservations.length,
                 properties: properties.length,
                 payments: payments.length
             });
+        }
+
+        // Hide splash screen now that data is loaded
+        const splash = document.getElementById('splashScreen');
+        if (splash && splash.style.display !== 'none') {
+            splash.style.opacity = '0';
+            setTimeout(() => { if (splash) splash.style.display = 'none'; }, 400);
         }
 
         // Start Smart Automation Engine after data is loaded
@@ -618,7 +634,8 @@ document.addEventListener('click', function(e) {
 // View Management
 async function showView(viewName) {
     document.querySelectorAll('.container').forEach(el => el.classList.add('hidden'));
-    document.getElementById(`${viewName}View`).classList.remove('hidden');
+    const viewEl = document.getElementById(`${viewName}View`);
+    viewEl.classList.remove('hidden');
 
     // Remove active state from all navigation items
     document.querySelectorAll('.nav-link, .sidebar-item').forEach(link => {
@@ -645,11 +662,13 @@ async function showView(viewName) {
     if (!alreadyLoaded) {
         showViewLoadingSpinner(viewName);
         viewLoadingState[viewName] = true;
+    } else {
+        // Show lightweight transition overlay on revisits (auto-hidden after load)
+        showViewTransitionLoader(viewEl);
     }
 
     try {
         // ── Always call load functions (they use dataCache so revisits are fast).
-        // The spinner only shows on the very first load.
         if (viewName === 'home') {
             if (!alreadyLoaded) await loadInitialData();
             await updateHomeScreenStats();
@@ -681,11 +700,29 @@ async function showView(viewName) {
         hideViewLoadingSpinner(viewName);
     }
 
-    // Re-initialize Lucide icons after view renders
+    // Remove transition overlay
+    hideViewTransitionLoader(viewEl);
+
+    // Re-initialize Lucide icons after view renders — scoped to view only
     requestAnimationFrame(() => {
-        const viewEl = document.getElementById(`${viewName}View`);
         if (typeof refreshIcons === 'function') refreshIcons(viewEl || undefined);
     });
+}
+
+// Lightweight transition loader for revisited views
+function showViewTransitionLoader(viewEl) {
+    if (!viewEl || viewEl.querySelector('.view-transition-loader')) return;
+    viewEl.style.position = 'relative';
+    const loader = document.createElement('div');
+    loader.className = 'view-transition-loader';
+    loader.innerHTML = '<div class="loading-spinner" style="width:32px;height:32px;border-width:3px;"></div>';
+    viewEl.appendChild(loader);
+}
+
+function hideViewTransitionLoader(viewEl) {
+    if (!viewEl) return;
+    const loader = viewEl.querySelector('.view-transition-loader');
+    if (loader) loader.remove();
 }
 
 // Settings Functions
@@ -1143,7 +1180,7 @@ document.addEventListener('click', function() {
 
         switch (action) {
             case 'edit':
-                openReservationModal(bid);
+                openQuickEditModal(bid);
                 break;
             case 'payment':
                 openPaymentModal(bid);
@@ -1881,7 +1918,7 @@ async function saveReservation() {
 }
 
 async function editReservation(booking_id) {
-    openReservationModal(booking_id);
+    openQuickEditModal(booking_id);
 }
 
 async function deleteReservation(booking_id) {
@@ -2190,6 +2227,343 @@ async function exportPaymentsCSV() {
     a.download = filename;
     a.click();
     showToast('Exported', `${reservationsToExport.length} payment records exported successfully`, '📥');
+}
+
+// ==========================================
+// QUICK EDIT MODAL — Flat single-page edit form
+// ==========================================
+
+function toggleQeSection(headerEl) {
+    headerEl.parentElement.classList.toggle('collapsed');
+}
+
+function openQuickEditModal(booking_id) {
+    const r = allReservations.find(res => res.booking_id === booking_id);
+    if (!r) {
+        showToast('Error', 'Reservation not found', '❌');
+        return;
+    }
+
+    const modal = document.getElementById('quickEditModal');
+
+    // Populate banner
+    document.getElementById('qeBannerBookingId').textContent = r.booking_id;
+    document.getElementById('qeBannerProperty').textContent = r.property_name || '';
+    document.getElementById('qeReservationId').value = r.id;
+    document.getElementById('qeBookingId').value = r.booking_id;
+
+    // Populate property dropdown
+    const qeProp = document.getElementById('qeProperty');
+    const properties = state.properties || [];
+    qeProp.innerHTML = '<option value="">Select Property</option>' +
+        properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+    // Populate fields
+    document.getElementById('qeStatus').value = r.status || 'confirmed';
+    document.getElementById('qeGuestName').value = r.guest_name || '';
+    document.getElementById('qeGuestPhone').value = r.guest_phone || '';
+    document.getElementById('qeGuestEmail').value = r.guest_email || '';
+    document.getElementById('qeGuestCity').value = r.guest_city || '';
+    document.getElementById('qeProperty').value = r.property_id || '';
+    document.getElementById('qeBookingType').value = r.booking_type || 'STAYCATION';
+    document.getElementById('qeBookingSource').value = r.booking_source || 'DIRECT';
+    document.getElementById('qeCheckIn').value = r.check_in || '';
+    document.getElementById('qeCheckOut').value = r.check_out || '';
+    document.getElementById('qeRooms').value = r.number_of_rooms || 1;
+    document.getElementById('qeAdults').value = r.adults || 2;
+    document.getElementById('qeKids').value = r.kids || 0;
+    document.getElementById('qeStayAmount').value = r.stay_amount || 0;
+    document.getElementById('qeExtraGuest').value = r.extra_guest_charges || 0;
+    document.getElementById('qeMeals').value = r.meals_chef || 0;
+    document.getElementById('qeBonfire').value = r.bonfire_other || 0;
+    document.getElementById('qeOtaFee').value = r.ota_service_fee || 0;
+    document.getElementById('qeGstStatus').value = r.gst_status || 'gst';
+    document.getElementById('qeGstRate').value = r.gst_rate_mode || 'auto';
+    document.getElementById('qeTaxes').value = r.taxes || 0;
+    document.getElementById('qeDamages').value = r.damages || 0;
+    document.getElementById('qeHostizzyRevenue').value = r.hostizzy_revenue || 0;
+
+    // OTA fields visibility
+    qeToggleOtaFields();
+    if (r.booking_id && !r.booking_id.startsWith('HST')) {
+        document.getElementById('qeReservationCode').value = r.booking_id;
+    }
+
+    // GST rate mode
+    qeHandleGstRate();
+
+    // Calculate totals display
+    qeUpdateTotalDisplay();
+
+    // Expand all sections by default
+    modal.querySelectorAll('.qe-section').forEach(s => s.classList.remove('collapsed'));
+
+    modal.classList.add('active');
+    requestAnimationFrame(() => {
+        if (typeof refreshIcons === 'function') refreshIcons(modal);
+    });
+}
+
+function closeQuickEditModal() {
+    document.getElementById('quickEditModal').classList.remove('active');
+}
+
+function qeToggleOtaFields() {
+    const source = document.getElementById('qeBookingSource').value;
+    const otaSources = ['AIRBNB', 'AGODA/BOOKING.COM', 'MMT/GOIBIBO'];
+    const isOta = otaSources.includes(source);
+    document.getElementById('qeReservationCodeGroup').style.display = isOta ? '' : 'none';
+    document.getElementById('qeOtaFeeGroup').style.display = isOta ? '' : 'none';
+}
+
+function qeHandleGstRate() {
+    const mode = document.getElementById('qeGstRate').value;
+    const taxesInput = document.getElementById('qeTaxes');
+    if (mode === 'custom') {
+        taxesInput.readOnly = false;
+        taxesInput.style.background = '#ffffff';
+    } else {
+        taxesInput.readOnly = true;
+        taxesInput.style.background = '#f1f5f9';
+        qeCalculateTaxes();
+    }
+}
+
+function qeCalculateTaxes() {
+    const gstStatus = document.getElementById('qeGstStatus').value;
+    const taxesInput = document.getElementById('qeTaxes');
+    const gstRateMode = document.getElementById('qeGstRate').value;
+
+    if (gstStatus === 'non_gst') {
+        taxesInput.value = '0';
+        taxesInput.readOnly = true;
+        qeUpdateTotalDisplay();
+        return;
+    }
+
+    if (gstRateMode === 'custom') {
+        qeUpdateTotalDisplay();
+        return;
+    }
+
+    const stayAmount = parseFloat(document.getElementById('qeStayAmount').value) || 0;
+    const extraGuest = parseFloat(document.getElementById('qeExtraGuest').value) || 0;
+    const checkIn = document.getElementById('qeCheckIn').value;
+    const checkOut = document.getElementById('qeCheckOut').value;
+
+    let nights = 0;
+    if (checkIn && checkOut) {
+        nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+        if (nights < 0) nights = 0;
+    }
+
+    const baseAmount = stayAmount + extraGuest;
+    let gstRate = 0;
+
+    if (gstRateMode === 'auto') {
+        const perNight = nights > 0 ? stayAmount / nights : stayAmount;
+        gstRate = perNight <= 7500 ? 5 : 18;
+    } else {
+        gstRate = parseFloat(gstRateMode) || 0;
+    }
+
+    const taxes = Math.round(baseAmount * gstRate / 100 * 100) / 100;
+    taxesInput.value = taxes;
+
+    // Calculate Hostizzy revenue
+    qeCalculateHostizzyRevenue(stayAmount, extraGuest);
+    qeUpdateTotalDisplay();
+}
+
+function qeCalculateHostizzyRevenue(stayAmount, extraGuestCharges) {
+    const propertyId = parseInt(document.getElementById('qeProperty').value);
+    const properties = state.properties || [];
+    const property = properties.find(p => p.id === propertyId);
+
+    if (!property) return;
+
+    const revenueSharePct = property.hostizzy_revenue_share || 10;
+    const otaFee = parseFloat(document.getElementById('qeOtaFee').value) || 0;
+    const baseForRevenue = (stayAmount + extraGuestCharges) - otaFee;
+    const revenue = Math.round(baseForRevenue * revenueSharePct / 100 * 100) / 100;
+    document.getElementById('qeHostizzyRevenue').value = Math.max(0, revenue);
+}
+
+function qeUpdateTotalDisplay() {
+    const stay = parseFloat(document.getElementById('qeStayAmount').value) || 0;
+    const extra = parseFloat(document.getElementById('qeExtraGuest').value) || 0;
+    const meals = parseFloat(document.getElementById('qeMeals').value) || 0;
+    const bonfire = parseFloat(document.getElementById('qeBonfire').value) || 0;
+    const taxes = parseFloat(document.getElementById('qeTaxes').value) || 0;
+    const damages = parseFloat(document.getElementById('qeDamages').value) || 0;
+    const total = stay + extra + meals + bonfire + taxes + damages;
+
+    const checkIn = document.getElementById('qeCheckIn').value;
+    const checkOut = document.getElementById('qeCheckOut').value;
+    let nights = 0;
+    if (checkIn && checkOut) {
+        nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+        if (nights < 0) nights = 0;
+    }
+
+    const totalEl = document.getElementById('qeTotalDisplay');
+    const nightsEl = document.getElementById('qeNightsDisplay');
+    if (totalEl) totalEl.textContent = total.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+    if (nightsEl) nightsEl.textContent = nights + ' night' + (nights !== 1 ? 's' : '');
+}
+
+async function saveQuickEdit() {
+    const propertyId = parseInt(document.getElementById('qeProperty').value);
+    if (!propertyId) {
+        showToast('Validation Error', 'Please select a property', '❌');
+        return;
+    }
+
+    const checkIn = document.getElementById('qeCheckIn').value;
+    const checkOut = document.getElementById('qeCheckOut').value;
+    if (!checkIn || !checkOut) {
+        showToast('Validation Error', 'Please enter check-in and check-out dates', '❌');
+        return;
+    }
+
+    const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
+    if (nights <= 0) {
+        showToast('Validation Error', 'Check-out must be after check-in', '❌');
+        return;
+    }
+
+    const guestName = document.getElementById('qeGuestName').value.trim();
+    const guestPhone = document.getElementById('qeGuestPhone').value.trim();
+    if (!guestName || !guestPhone) {
+        showToast('Validation Error', 'Guest name and phone are required', '❌');
+        return;
+    }
+
+    const bookingSource = document.getElementById('qeBookingSource').value;
+    const reservationCode = (document.getElementById('qeReservationCode').value || '').trim();
+    const otaSources = ['AIRBNB', 'AGODA/BOOKING.COM', 'MMT/GOIBIBO'];
+    if (otaSources.includes(bookingSource) && !reservationCode) {
+        showToast('Validation Error', 'Please enter the OTA reservation code', '❌');
+        return;
+    }
+
+    const saveBtn = document.getElementById('qeSaveBtn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="loading-spinner" style="width:14px;height:14px;border-width:2px;margin-right:6px;"></span>Saving...';
+
+    try {
+        const properties = state.properties || [];
+        const property = properties.find(p => p.id === propertyId);
+
+        const stayAmount = parseFloat(document.getElementById('qeStayAmount').value) || 0;
+        const extraGuestCharges = parseFloat(document.getElementById('qeExtraGuest').value) || 0;
+        const mealsChef = parseFloat(document.getElementById('qeMeals').value) || 0;
+        const bonfireOther = parseFloat(document.getElementById('qeBonfire').value) || 0;
+        const taxes = parseFloat(document.getElementById('qeTaxes').value) || 0;
+        const damages = parseFloat(document.getElementById('qeDamages').value) || 0;
+        const adults = parseInt(document.getElementById('qeAdults').value) || 0;
+        const kids = parseInt(document.getElementById('qeKids').value) || 0;
+
+        const mealsRevenue = mealsChef + bonfireOther;
+        const totalPreTax = stayAmount + extraGuestCharges + mealsRevenue;
+        const totalIncTax = totalPreTax + taxes;
+        const totalAmount = totalIncTax + damages;
+
+        const monthDate = new Date(checkIn);
+        const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+        const bookingStatus = document.getElementById('qeStatus').value;
+
+        const reservation = {
+            id: parseInt(document.getElementById('qeReservationId').value),
+            property_id: propertyId,
+            property_name: property ? property.name : '',
+            booking_type: document.getElementById('qeBookingType').value,
+            booking_date: new Date().toISOString().split('T')[0],
+            check_in: checkIn,
+            check_out: checkOut,
+            month: month,
+            nights: nights,
+            gst_status: document.getElementById('qeGstStatus').value,
+            gst_rate_mode: document.getElementById('qeGstRate').value,
+            taxes: document.getElementById('qeGstStatus').value === 'non_gst' ? 0 : taxes,
+            guest_name: guestName,
+            guest_phone: guestPhone,
+            guest_email: document.getElementById('qeGuestEmail').value || null,
+            guest_city: document.getElementById('qeGuestCity').value || null,
+            status: bookingStatus,
+            booking_source: bookingSource,
+            number_of_rooms: parseInt(document.getElementById('qeRooms').value) || 1,
+            adults: adults,
+            kids: kids,
+            number_of_guests: adults + kids,
+            stay_amount: stayAmount,
+            extra_guest_charges: extraGuestCharges,
+            meals_chef: mealsChef,
+            bonfire_other: bonfireOther,
+            ota_service_fee: parseFloat(document.getElementById('qeOtaFee').value) || 0,
+            total_amount_pre_tax: totalPreTax,
+            total_amount_inc_tax: totalIncTax,
+            total_amount: totalAmount,
+            damages: damages,
+            hostizzy_revenue: parseFloat(document.getElementById('qeHostizzyRevenue').value) || 0,
+            host_payout: totalAmount - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
+            payout_eligible: totalAmount - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
+            is_legacy: false,
+            avg_room_rate: nights > 0 ? stayAmount / nights : 0,
+            avg_nightly_rate: nights > 0 ? totalAmount / nights : 0
+        };
+
+        // Handle booking_id for OTA changes
+        if (otaSources.includes(bookingSource) && reservationCode) {
+            reservation.booking_id = reservationCode;
+        }
+
+        // Cancelled reservation cleanup
+        if (bookingStatus === 'cancelled') {
+            const nullFields = ['booking_type', 'booking_date', 'month', 'nights', 'gst_status',
+                'gst_rate_mode', 'guest_city', 'booking_source', 'number_of_rooms', 'adults',
+                'kids', 'number_of_guests', 'stay_amount', 'extra_guest_charges', 'meals_chef',
+                'bonfire_other', 'ota_service_fee', 'taxes', 'total_amount_pre_tax',
+                'total_amount_inc_tax', 'total_amount', 'damages', 'hostizzy_revenue',
+                'host_payout', 'payout_eligible', 'avg_room_rate', 'avg_nightly_rate',
+                'paid_amount', 'payment_status', 'last_reminder_date'];
+            nullFields.forEach(f => reservation[f] = null);
+        }
+
+        if (navigator.onLine) {
+            const result = await db.saveReservation(reservation);
+            console.log('Quick edit saved:', result);
+
+            if (bookingStatus === 'cancelled' && reservation.booking_id) {
+                await cleanupCancelledReservationData(reservation.booking_id);
+            }
+
+            closeQuickEditModal();
+            dataCache.invalidate('reservations');
+            loadedViews.delete('reservations');
+            loadedViews.delete('dashboard');
+            loadedViews.delete('home');
+            _filterListenersAttached = false;
+            await loadReservations();
+            await loadDashboard();
+            showToast('Success', 'Reservation updated!', '✅');
+        } else {
+            await saveToOfflineDB('pendingReservations', reservation);
+            closeQuickEditModal();
+            dataCache.invalidate('reservations');
+            loadedViews.delete('reservations');
+            _filterListenersAttached = false;
+            await loadReservations();
+            showToast('Saved Offline', 'Will sync when online', '💾');
+        }
+    } catch (error) {
+        console.error('Quick edit save error:', error);
+        showToast('Error', 'Failed to save: ' + error.message, '❌');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px; margin-right: 6px;"></i>Save Changes';
+        requestAnimationFrame(() => { if (typeof refreshIcons === 'function') refreshIcons(saveBtn.parentElement); });
+    }
 }
 
 // Utilities

@@ -79,6 +79,7 @@ window.addEventListener('load', async () => {
 
             // Show UI first, then load data
             initializeSplashScreen();
+            // Hide splash after 3s max (data may load sooner)
             setTimeout(() => {
                 const splash = document.getElementById('splashScreen');
                 if (splash && splash.style.display !== 'none') {
@@ -88,31 +89,19 @@ window.addEventListener('load', async () => {
                         if (splash2) splash2.style.display = 'none';
                     }, 500);
                 }
-            }, 12000);
+            }, 3000);
             const lastView = localStorage.getItem('lastView') || 'home';
-            setTimeout(() => showView(lastView), 1000);
+            setTimeout(() => showView(lastView), 300);
 
-            // Load data with delays on mobile to prevent freezing
-            if (isMobile || isSlowConnection) {
-                console.log('📱 Mobile/slow connection detected - optimizing load sequence');
-                // Delay heavy data loading on mobile
-                setTimeout(() => loadInitialData(), 2000);
+            // Load data immediately on all devices — no artificial delays
+            loadInitialData();
 
-                if (navigator.onLine) {
-                    // Delay non-critical operations longer on mobile
-                    setTimeout(autoSync, 10000); // 10s delay
-                    setTimeout(initializeAutoSync, 15000); // 15s delay
-                    setTimeout(scheduleAutoStatusUpdates, 20000); // 20s delay
-                }
-            } else {
-                // Desktop - load normally
-                loadInitialData();
-
-                if (navigator.onLine) {
-                    setTimeout(autoSync, 2000);
-                    setTimeout(initializeAutoSync, 3000);
-                    setTimeout(scheduleAutoStatusUpdates, 3000);
-                }
+            if (navigator.onLine) {
+                // Non-critical background tasks after initial data is loaded
+                const bgDelay = (isMobile || isSlowConnection) ? 5000 : 2000;
+                setTimeout(autoSync, bgDelay);
+                setTimeout(initializeAutoSync, bgDelay + 1000);
+                setTimeout(scheduleAutoStatusUpdates, bgDelay + 1000);
             }
         } catch (error) {
             console.error('Session restore error:', error);

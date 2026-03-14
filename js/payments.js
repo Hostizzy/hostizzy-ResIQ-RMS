@@ -139,7 +139,7 @@ function displayPayments(reservations) {
             <tr>
                 <td>
                     <strong style="color: var(--primary); cursor: pointer; text-decoration: underline;"
-                            onclick="navigateToReservation('${r.booking_id}')">
+                            data-action="navigate" data-bid="${r.booking_id}">
                         ${r.booking_id || 'N/A'}
                     </strong>
                 </td>
@@ -178,17 +178,55 @@ function displayPayments(reservations) {
                 </td>
                 <td>
                     <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                        ${balance > 0 ? `<button class="btn btn-primary btn-sm" onclick="openPaymentModal('${r.booking_id}')" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" style="width: 12px; height: 12px;"></i>Add</button>` : ''}
-                        <button class="btn btn-secondary btn-sm" onclick="viewPaymentHistory('${r.booking_id}')" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="history" style="width: 12px; height: 12px;"></i>History</button>
-                        ${balance > 0 ? `<button class="btn btn-secondary btn-sm" onclick="openWhatsAppMenu('${r.booking_id}')" title="Send Payment Reminder" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="message-circle" style="width: 12px; height: 12px;"></i>Remind</button>` : ''}
+                        ${balance > 0 ? `<button class="btn btn-primary btn-sm" data-action="add-payment" data-bid="${r.booking_id}" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" style="width: 12px; height: 12px;"></i>Add</button>` : ''}
+                        <button class="btn btn-secondary btn-sm" data-action="payment-history" data-bid="${r.booking_id}" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="history" style="width: 12px; height: 12px;"></i>History</button>
+                        ${balance > 0 ? `<button class="btn btn-secondary btn-sm" data-action="remind" data-bid="${r.booking_id}" title="Send Payment Reminder" style="display: flex; align-items: center; gap: 4px;"><i data-lucide="message-circle" style="width: 12px; height: 12px;"></i>Remind</button>` : ''}
                     </div>
                 </td>
             </tr>
         `;
     }).join('');
-    // Refresh Lucide icons after rendering
-    setTimeout(() => { if (typeof refreshIcons === 'function') refreshIcons(); }, 100);
+    // Refresh Lucide icons — scoped to table
+    requestAnimationFrame(() => {
+        if (typeof refreshIcons === 'function') refreshIcons(tbody);
+    });
 }
+
+// ── Event Delegation for Payments Table ──
+(function initPaymentTableDelegation() {
+    function handlePaymentClick(e) {
+        const actionEl = e.target.closest('[data-action]');
+        if (!actionEl) return;
+        const action = actionEl.dataset.action;
+        const bid = actionEl.dataset.bid;
+        if (!bid) return;
+
+        switch (action) {
+            case 'navigate':
+                navigateToReservation(bid);
+                break;
+            case 'add-payment':
+                openPaymentModal(bid);
+                break;
+            case 'payment-history':
+                viewPaymentHistory(bid);
+                break;
+            case 'remind':
+                openWhatsAppMenu(bid);
+                break;
+        }
+    }
+
+    const tbody = document.getElementById('paymentsTableBody');
+    if (tbody) {
+        tbody.addEventListener('click', handlePaymentClick);
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            const tb = document.getElementById('paymentsTableBody');
+            if (tb) tb.addEventListener('click', handlePaymentClick);
+        });
+    }
+})();
 
 // Store filtered payments for CSV export
 let filteredPayments = [];
