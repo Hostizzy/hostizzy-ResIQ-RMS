@@ -1366,13 +1366,10 @@ async function loadOwnerPayouts() {
                 }
 
                 // Settlement calculation:
-                // Property Share = payout_eligible - commission
-                // Hostizzy owes Property = Property Share - Received by Property - Expenses
-                // Property owes Hostizzy = Commission - Received by Hostizzy
-                // Net Settlement = what Hostizzy owes Property (positive) or Property owes Hostizzy (negative)
-                const hostizzyOwesProperty = propertyShare - totalToOwner - monthExpenses;
-                const propertyOwesHostizzy = totalCommission - totalToHostizzy;
-                const netSettlement = hostizzyOwesProperty - propertyOwesHostizzy;
+                // Property Share = payout_eligible - commission (commission already deducted)
+                // Net Settlement = Property Share - Paid to Owner + Paid to Hostizzy - Expenses
+                // Positive = Hostizzy owes Owner, Negative = Owner owes Hostizzy
+                const netSettlement = propertyShare - totalToOwner + totalToHostizzy - monthExpenses;
 
                 monthlySettlements.push({
                     year,
