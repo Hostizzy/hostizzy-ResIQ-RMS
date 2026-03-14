@@ -598,6 +598,8 @@
             border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
+            background: var(--surface);
+            color: var(--text);
         }
 
         .form-group input:focus,
@@ -605,6 +607,12 @@
         .form-group select:focus {
             outline: none;
             border-color: var(--primary);
+        }
+
+        /* Global select/input styling for dark mode support */
+        select, input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"] {
+            background: var(--surface);
+            color: var(--text);
         }
 
         .form-group small {
@@ -1672,7 +1680,7 @@
                         <div style="color: var(--text-secondary); font-size: 14px;">
                             <span id="bookingsCount">0</span> bookings found
                         </div>
-                        <button onclick="clearBookingsFilters()" style="padding: 8px 16px; border: 1px solid var(--border); background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                        <button onclick="clearBookingsFilters()" style="padding: 8px 16px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 6px; cursor: pointer; font-size: 14px;">
                             Clear Filters
                         </button>
                     </div>
@@ -2249,11 +2257,15 @@
             // Show selected view
             document.getElementById(viewName + 'View').classList.remove('hidden');
 
-            // Update sidebar active state
+            // Update sidebar active state based on viewName (not event)
             document.querySelectorAll('.sidebar-nav-item').forEach(btn => {
                 btn.classList.remove('active');
+                // Match sidebar button to view by checking onclick attribute
+                const onclickAttr = btn.getAttribute('onclick') || '';
+                if (onclickAttr.includes("'" + viewName + "'")) {
+                    btn.classList.add('active');
+                }
             });
-            event.target.closest('.sidebar-nav-item')?.classList.add('active');
 
             // Update page title
             const pageTitles = {
@@ -2333,7 +2345,14 @@
                 // Calculate Hostizzy revenue using the hostizzy_revenue field from database (same as main app)
                 const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
 
-                const netEarnings = totalRevenue - totalHostizzyShare;
+                // Calculate payout eligible (total - OTA fees) before subtracting commission
+                const totalPayoutEligible = confirmedBookings.reduce((sum, b) => {
+                    const total = parseFloat(b.total_amount) || 0;
+                    const otaFee = parseFloat(b.ota_service_fee) || 0;
+                    return sum + (total - otaFee);
+                }, 0);
+
+                const netEarnings = totalPayoutEligible - totalHostizzyShare;
                 const pendingPayout = await db.getOwnerPendingPayout(ownerId);
 
                 document.getElementById('homeQuickTotalRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 });

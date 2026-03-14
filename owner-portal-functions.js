@@ -433,7 +433,7 @@ function loadRevenueCharts() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.parsed || 0;
-                                const percentage = ((value / totalRevenue) * 100).toFixed(1);
+                                const percentage = totalPayoutEligible > 0 ? ((value / totalPayoutEligible) * 100).toFixed(1) : '0.0';
                                 return `${label}: ₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })} (${percentage}%)`;
                             }
                         }
@@ -1935,18 +1935,18 @@ async function loadOwnerExpenses() {
     }
 }
 
-// Resize handler for mobile optimization
-window.addEventListener('resize', () => {
-    // Reload current view to adjust for mobile/desktop
+// Resize handler for mobile optimization (debounced to prevent excessive re-renders)
+window.addEventListener('resize', debounce(() => {
+    // Re-render current view to adjust for mobile/desktop layout (uses cached data, no DB calls)
     const activeView = document.querySelector('.owner-view:not(.hidden)');
     if (activeView) {
         const viewName = activeView.id.replace('View', '');
         if (viewName === 'ownerDashboard') {
             renderOwnerRecentBookings(ownerData.bookings.slice(0, 10));
-        } else if (viewName === 'ownerBookings') {
-            loadOwnerBookings();
+        } else if (viewName === 'ownerBookings' && filteredOwnerBookings.length > 0) {
+            renderOwnerBookingsList(filteredOwnerBookings);
         } else if (viewName === 'ownerPayments') {
             renderOwnerPaymentsList(ownerData.payments);
         }
     }
-});
+}, 500));
