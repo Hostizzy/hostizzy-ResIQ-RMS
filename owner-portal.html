@@ -1647,7 +1647,7 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Search</label>
-                            <input type="text" id="bookingsSearch" placeholder="Search booking ID, guest name, phone..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;" oninput="filterOwnerBookings()">
+                            <input type="text" id="bookingsSearch" placeholder="Search booking ID, guest name, phone..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;" oninput="debouncedFilterBookings()">
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Property</label>
@@ -1722,19 +1722,19 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Month</label>
-                            <select id="paymentMonthFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            <select id="paymentMonthFilter" onchange="filterOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="">All Months</option>
                             </select>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Property</label>
-                            <select id="paymentPropertyFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            <select id="paymentPropertyFilter" onchange="filterOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="">All Properties</option>
                             </select>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Payout Status</label>
-                            <select id="paymentPayoutFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            <select id="paymentPayoutFilter" onchange="filterOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="">All</option>
                                 <option value="eligible">Eligible for Payout</option>
                                 <option value="paid_out">Already Paid Out</option>
