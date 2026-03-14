@@ -465,14 +465,29 @@ function toggleSidebarCategory(categoryId) {
 // Global Search
 let globalSearchResults = [];
 
+// Debounced global search — prevents blocking the main thread on every keystroke
+const _debouncedGlobalSearch = debounce(_executeGlobalSearch, 250);
+
 function handleGlobalSearch(event) {
     const searchInput = document.getElementById('globalSearch');
-    const searchResults = document.getElementById('searchResults');
     const searchClear = document.getElementById('searchClear');
-    const query = searchInput.value.toLowerCase().trim();
+    const query = searchInput.value.trim();
 
-    // Show/hide clear button
+    // Show/hide clear button immediately (cheap DOM op)
     searchClear.style.display = query ? 'block' : 'none';
+
+    if (query.length < 2) {
+        document.getElementById('searchResults').style.display = 'none';
+        return;
+    }
+
+    _debouncedGlobalSearch();
+}
+
+function _executeGlobalSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    const searchResults = document.getElementById('searchResults');
+    const query = searchInput.value.toLowerCase().trim();
 
     if (query.length < 2) {
         searchResults.style.display = 'none';
@@ -633,33 +648,36 @@ async function showView(viewName) {
     }
 
     try {
-        // Load view data
-        if (viewName === 'home') {
-            await loadInitialData();
-            await updateHomeScreenStats();
-        }
-        else if (viewName === 'dashboard') await loadDashboard();
-        else if (viewName === 'reservations') await loadReservations();
-        else if (viewName === 'guests') await loadGuests();
-        else if (viewName === 'guestDocuments') await loadGuestDocuments();
-        else if (viewName === 'payments') await loadPayments();
-        else if (viewName === 'meals') await loadMeals();
-        else if (viewName === 'availability') await loadAvailabilityCalendar();
-        else if (viewName === 'properties') await loadProperties();
-        else if (viewName === 'property') await loadPropertyView();
-        else if (viewName === 'business') await loadBusinessView();
-        else if (viewName === 'financials') await loadBusinessIntelligence();
-        else if (viewName === 'team') await loadTeam();
-        else if (viewName === 'owners') await loadOwners();
-        else if (viewName === 'expenses') await loadExpenses();
-        else if (viewName === 'settings') loadSettings(); // Synchronous
-        else if (viewName === 'communication') loadCommunication(); // Synchronous
-
-        // Mark view as loaded
+        // ── Only fetch data on FIRST load. Subsequent navigations use cached DOM. ──
+        // Views that always need a refresh (home stats) use lightweight updates only.
         if (!alreadyLoaded) {
+            if (viewName === 'home') {
+                await loadInitialData();
+                await updateHomeScreenStats();
+            }
+            else if (viewName === 'dashboard') await loadDashboard();
+            else if (viewName === 'reservations') await loadReservations();
+            else if (viewName === 'guests') await loadGuests();
+            else if (viewName === 'guestDocuments') await loadGuestDocuments();
+            else if (viewName === 'payments') await loadPayments();
+            else if (viewName === 'meals') await loadMeals();
+            else if (viewName === 'availability') await loadAvailabilityCalendar();
+            else if (viewName === 'properties') await loadProperties();
+            else if (viewName === 'property') await loadPropertyView();
+            else if (viewName === 'business') await loadBusinessView();
+            else if (viewName === 'financials') await loadBusinessIntelligence();
+            else if (viewName === 'team') await loadTeam();
+            else if (viewName === 'owners') await loadOwners();
+            else if (viewName === 'expenses') await loadExpenses();
+            else if (viewName === 'settings') loadSettings();
+            else if (viewName === 'communication') loadCommunication();
+
             markViewAsLoaded(viewName);
             hideViewLoadingSpinner(viewName);
             console.log(`✅ Lazy loaded: ${viewName}`);
+        } else if (viewName === 'home') {
+            // Home screen stats are lightweight — always refresh counts
+            await updateHomeScreenStats();
         }
     } catch (error) {
         console.error(`❌ Error loading view ${viewName}:`, error);
@@ -760,20 +778,13 @@ async function autoUpdateReservationStatuses() {
 
 /**
  * Schedule auto-status updates
+ * NOTE: This now delegates to the Smart Automation Engine (startSmartAutomation)
+ * to avoid running two duplicate auto-status-update loops.
  */
 function scheduleAutoStatusUpdates() {
-    const isMobile = window.innerWidth <= 768;
-
-    if (isMobile) {
-        // Mobile: Run every 2 hours to save battery/data, don't run immediately
-        setInterval(() => autoUpdateReservationStatuses(), 2 * 3600000);
-        console.log('✅ Auto status update scheduler initialized for mobile (every 2 hours)');
-    } else {
-        // Desktop: Run immediately and every hour
-        setTimeout(() => autoUpdateReservationStatuses(), 2000);
-        setInterval(() => autoUpdateReservationStatuses(), 3600000);
-        console.log('✅ Auto status update scheduler initialized (every hour)');
-    }
+    // Smart Automation is already started from loadInitialData().
+    // This function is kept as a no-op for backward compatibility with callers in app.js.
+    console.log('✅ Auto status updates: handled by Smart Automation Engine');
 }
 
 /**
@@ -883,41 +894,8 @@ function populateFiltersAndDisplay(properties, reservations) {
         displayReservations(reservations);
     }
 
-    // Attach debounced event listeners (prevents lag with large datasets)
-    const debouncedFilter = debounce(filterReservations, 300);
-
-    const searchInput = document.getElementById('searchReservations');
-    const statusFilter = document.getElementById('statusFilter');
-    const propertyFilterEl = document.getElementById('propertyFilter');
-    const bookingSourceFilter = document.getElementById('bookingSourceFilter');
-    const monthFilterEl = document.getElementById('monthFilter');
-
-    // Remove any existing listeners by cloning elements
-    if (searchInput) {
-        searchInput.removeEventListener('input', debouncedFilter);
-        searchInput.addEventListener('input', debouncedFilter);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') filterReservations(); // Immediate on Enter
-        });
-    }
-
-    // Select filters update immediately (no debounce needed)
-    if (statusFilter) {
-        statusFilter.removeEventListener('change', filterReservations);
-        statusFilter.addEventListener('change', filterReservations);
-    }
-    if (propertyFilterEl) {
-        propertyFilterEl.removeEventListener('change', filterReservations);
-        propertyFilterEl.addEventListener('change', filterReservations);
-    }
-    if (bookingSourceFilter) {
-        bookingSourceFilter.removeEventListener('change', filterReservations);
-        bookingSourceFilter.addEventListener('change', filterReservations);
-    }
-    if (monthFilterEl) {
-        monthFilterEl.removeEventListener('change', filterReservations);
-        monthFilterEl.addEventListener('change', filterReservations);
-    }
+    // Attach filter event listeners ONCE using stable references
+    _attachFilterListeners();
 }
 
 // Reservations
@@ -1005,41 +983,8 @@ async function loadReservations(forceRefresh = false) {
             displayReservations(allReservations);
         }
 
-        // Attach debounced event listeners (prevents lag with large datasets)
-        const debouncedFilter = debounce(filterReservations, 300);
-
-        const searchInput = document.getElementById('searchReservations');
-        const statusFilter = document.getElementById('statusFilter');
-        const propertyFilterEl = document.getElementById('propertyFilter');
-        const bookingSourceFilter = document.getElementById('bookingSourceFilter');
-        const monthFilterEl = document.getElementById('monthFilter');
-
-        // Remove any existing listeners by cloning elements
-        if (searchInput) {
-            searchInput.removeEventListener('input', debouncedFilter);
-            searchInput.addEventListener('input', debouncedFilter);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') filterReservations(); // Immediate on Enter
-            });
-        }
-
-        // Select filters update immediately (no debounce needed)
-        if (statusFilter) {
-            statusFilter.removeEventListener('change', filterReservations);
-            statusFilter.addEventListener('change', filterReservations);
-        }
-        if (propertyFilterEl) {
-            propertyFilterEl.removeEventListener('change', filterReservations);
-            propertyFilterEl.addEventListener('change', filterReservations);
-        }
-        if (bookingSourceFilter) {
-            bookingSourceFilter.removeEventListener('change', filterReservations);
-            bookingSourceFilter.addEventListener('change', filterReservations);
-        }
-        if (monthFilterEl) {
-            monthFilterEl.removeEventListener('change', filterReservations);
-            monthFilterEl.addEventListener('change', filterReservations);
-        }
+        // Attach filter event listeners ONCE using stable references
+        _attachFilterListeners();
     } catch (error) {
         console.error('Reservations error:', error);
         showToast('Error', 'Failed to load reservations', '❌');
@@ -1239,9 +1184,26 @@ document.addEventListener('click', function() {
     }
 })();
 
-// Change reservation status inline
+// Change reservation status inline — optimistic update without full reload
 async function changeReservationStatus(bookingId, newStatus) {
     try {
+        // Optimistic UI update: patch local data + re-render affected row
+        const reservation = allReservations.find(r => r.booking_id === bookingId);
+        if (reservation) {
+            reservation.status = newStatus;
+        }
+
+        // Close the dropdown immediately
+        document.querySelectorAll('.status-dropdown.active').forEach(d => d.classList.remove('active'));
+
+        // Re-display current filtered list (cheap — just innerHTML, no DB call)
+        if (filteredReservationsForExport.length > 0) {
+            displayReservations(filteredReservationsForExport);
+        } else {
+            displayReservations(allReservations);
+        }
+
+        // Persist to database in background
         const { error } = await supabase
             .from('reservations')
             .update({ status: newStatus })
@@ -1249,17 +1211,25 @@ async function changeReservationStatus(bookingId, newStatus) {
 
         if (error) throw error;
 
-        // Reload data
-        await loadReservations();
+        // Invalidate cache so next full load fetches fresh data
+        dataCache.invalidate('reservations');
+
         showToast('Status Updated', `Reservation ${bookingId} is now ${newStatus}`, '✅');
     } catch (error) {
         console.error('Status update error:', error);
         showToast('Error', 'Failed to update status', '❌');
+        // On failure, reload to get server truth
+        dataCache.invalidate('reservations');
+        await loadReservations();
     }
 }
 
 // Store filtered reservations for CSV export
 let filteredReservationsForExport = [];
+
+// ── Stable debounced filter reference (so removeEventListener actually works) ──
+const _stableDebouncedFilter = debounce(filterReservations, 300);
+let _filterListenersAttached = false;
 
 function filterReservations() {
     const search = document.getElementById('searchReservations').value.toLowerCase();
@@ -1296,6 +1266,35 @@ function filterReservations() {
         bookingSource: document.getElementById('bookingSourceFilter').value,
         month: document.getElementById('monthFilter').value
     });
+}
+
+/**
+ * Attach filter event listeners exactly ONCE using stable function references.
+ * Uses a flag to prevent duplicate listeners accumulating on repeated loadReservations() calls.
+ */
+function _attachFilterListeners() {
+    if (_filterListenersAttached) return;
+
+    const searchInput = document.getElementById('searchReservations');
+    const statusFilter = document.getElementById('statusFilter');
+    const propertyFilterEl = document.getElementById('propertyFilter');
+    const bookingSourceFilter = document.getElementById('bookingSourceFilter');
+    const monthFilterEl = document.getElementById('monthFilter');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', _stableDebouncedFilter);
+        searchInput.addEventListener('keypress', _filterOnEnter);
+    }
+    if (statusFilter) statusFilter.addEventListener('change', filterReservations);
+    if (propertyFilterEl) propertyFilterEl.addEventListener('change', filterReservations);
+    if (bookingSourceFilter) bookingSourceFilter.addEventListener('change', filterReservations);
+    if (monthFilterEl) monthFilterEl.addEventListener('change', filterReservations);
+
+    _filterListenersAttached = true;
+}
+
+function _filterOnEnter(e) {
+    if (e.key === 'Enter') filterReservations();
 }
 
 function clearFilters() {
@@ -1860,12 +1859,21 @@ async function saveReservation() {
             }
 
             closeReservationModal();
+            // Invalidate caches + force-reload views with fresh data
+            dataCache.invalidate('reservations');
+            loadedViews.delete('reservations');
+            loadedViews.delete('dashboard');
+            loadedViews.delete('home');
+            _filterListenersAttached = false;
             await loadReservations();
             await loadDashboard();
             showToast('Success', editId ? 'Reservation updated!' : 'Reservation created successfully!', '✅');
         } else {
             await saveToOfflineDB('pendingReservations', reservation);
             closeReservationModal();
+            dataCache.invalidate('reservations');
+            loadedViews.delete('reservations');
+            _filterListenersAttached = false;
             await loadReservations();
             showToast('Saved Offline', 'Will sync when online', '💾');
         }
@@ -1884,6 +1892,11 @@ async function deleteReservation(booking_id) {
 
     try {
         await db.deleteReservation(booking_id);
+        dataCache.invalidate('reservations');
+        loadedViews.delete('reservations');
+        loadedViews.delete('dashboard');
+        loadedViews.delete('home');
+        _filterListenersAttached = false;
         await loadReservations();
         await loadDashboard();
         showToast('Deleted', 'Reservation deleted successfully', '✅');
