@@ -36,7 +36,9 @@ export default function handler(req, res) {
     firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'resiq-by-hostizzy',
     firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'resiq-by-hostizzy.firebasestorage.app',
     firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '',
-    firebaseAppId: process.env.FIREBASE_APP_ID || ''
+    firebaseAppId: process.env.FIREBASE_APP_ID || '',
+    // Gmail OAuth (Client ID is public by design — secret stays server-side)
+    gmailClientId: process.env.GMAIL_CLIENT_ID || ''
   };
 
   res.status(200).json(config);

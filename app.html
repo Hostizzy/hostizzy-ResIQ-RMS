@@ -5740,23 +5740,12 @@
                         <i data-lucide="settings" style="width: 14px; height: 14px; margin-right: 4px;"></i>First-time Setup Required
                     </summary>
                     <div style="margin-top: 12px; font-size: 12px; color: #475569; line-height: 1.6;">
-                        <strong style="color: #134e4a;">Before connecting Gmail:</strong><br><br>
-                        1. Go to <a href="https://console.cloud.google.com" target="_blank" style="color: var(--primary); text-decoration: underline;">Google Cloud Console</a><br>
-                        2. Create a new project (or select existing)<br>
-                        3. Enable "Gmail API"<br>
-                        4. Create OAuth 2.0 credentials (Web application)<br>
-                        5. Add authorized redirect URI: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">https://your-domain.com</code><br>
-                        6. Copy Client ID and paste below<br><br>
-
-                        <label style="display: block; font-weight: 600; color: #134e4a; margin-top: 12px; margin-bottom: 4px;">
-                            Google OAuth Client ID:
-                        </label>
-                        <input type="text" id="gmailClientId" placeholder="123456789-abcdefg.apps.googleusercontent.com"
-                            style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-family: monospace;">
-                        <button onclick="saveGmailClientId()"
-                            style="margin-top: 8px; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; transition: all 0.2s;">
-                            Save Client ID
-                        </button>
+                        <strong style="color: #134e4a;">Gmail OAuth is configured server-side.</strong><br><br>
+                        The OAuth Client ID and Secret are securely stored as environment variables on the server.
+                        Gmail tokens are managed server-side and never stored in your browser.<br><br>
+                        To update the Gmail OAuth configuration, contact your administrator to update
+                        the <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">GMAIL_CLIENT_ID</code> and
+                        <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">GMAIL_CLIENT_SECRET</code> environment variables.
                     </div>
                 </details>
 

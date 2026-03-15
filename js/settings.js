@@ -71,10 +71,10 @@ function loadSettings() {
         // Update Gmail send integration status
         updateGmailSendStatus();
 
-        // Update Gmail integration badge
+        // Update Gmail integration badge (uses cached status from server)
         const gmailBadge = document.getElementById('gmailIntegrationBadge');
         if (gmailBadge) {
-            const gmailConnected = !!localStorage.getItem('gmail_access_token');
+            const gmailConnected = gmailConnectionStatus && gmailConnectionStatus.connected;
             gmailBadge.style.background = gmailConnected ? 'var(--success)' : 'var(--warning)';
             gmailBadge.textContent = gmailConnected ? 'Connected' : 'Not Connected';
         }
