@@ -136,16 +136,26 @@
             try { await authService.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
             currentUser = null;
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('mobileHeader')?.classList.add('hidden');
-            // Clean up bottom tabs module (re-inits when mainApp becomes visible again)
-            if (window.ResIQBottomTabs) window.ResIQBottomTabs.destroy();
-            document.body.classList.remove('has-bottom-tabs');
-            // Ensure sidebar is closed
-            document.querySelector('.sidebar')?.classList.remove('active', 'mobile-open');
-            document.querySelector('.mobile-overlay')?.classList.remove('active');
-            showToast('Logged Out', 'See you soon!', '👋');
+
+            // Detect if running as PWA / installed app
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches
+                       || window.matchMedia('(display-mode: window-controls-overlay)').matches
+                       || window.navigator.standalone === true;
+
+            if (isPWA) {
+                // PWA / Mobile App: stay on login screen
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mobileHeader')?.classList.add('hidden');
+                if (window.ResIQBottomTabs) window.ResIQBottomTabs.destroy();
+                document.body.classList.remove('has-bottom-tabs');
+                document.querySelector('.sidebar')?.classList.remove('active', 'mobile-open');
+                document.querySelector('.mobile-overlay')?.classList.remove('active');
+                showToast('Logged Out', 'See you soon!', '👋');
+            } else {
+                // Web App: redirect to landing page
+                window.location.replace('/');
+            }
         }
 
         // ── Forgot Password ──────────────────────────────────────────────────

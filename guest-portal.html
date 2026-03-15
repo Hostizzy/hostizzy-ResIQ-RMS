@@ -1829,7 +1829,7 @@ DOM.q('#btnRequestMealChanges').addEventListener('click', async () => {
 DOM.q('#btnLogout').addEventListener('click', () => {
   const confirmed = confirm('Are you sure you want to logout? You\'ll need to verify again.');
   if (!confirmed) return;
-  
+
   stopPolling();
   if (S.approvalSubscription) {
     S.approvalSubscription.unsubscribe();
@@ -1841,8 +1841,20 @@ DOM.q('#btnLogout').addEventListener('click', () => {
   S.session = null;
   S.currentSeq = null;
   S.mealPrefs = {};
-  show('scrVerify');
-  Utils.showNotification('Logged out successfully', 'success');
+
+  // Detect if running as PWA / installed app
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches
+             || window.matchMedia('(display-mode: window-controls-overlay)').matches
+             || window.navigator.standalone === true;
+
+  if (isPWA) {
+    // PWA / Mobile App: stay on verification screen
+    show('scrVerify');
+    Utils.showNotification('Logged out successfully', 'success');
+  } else {
+    // Web App: redirect to landing page
+    window.location.replace('/');
+  }
 });
 
 DOM.q('#btnMeals').addEventListener('click', async () => {

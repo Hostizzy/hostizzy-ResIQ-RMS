@@ -2461,10 +2461,21 @@
             try { await firebaseAuth.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
             currentUser = null;
-            // Show login screen
-            document.getElementById('ownerApp').classList.add('hidden');
-            document.getElementById('ownerLoginScreen').classList.remove('hidden');
-            document.getElementById('ownerLoginScreen').style.display = 'flex';
+
+            // Detect if running as PWA / installed app
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches
+                       || window.matchMedia('(display-mode: window-controls-overlay)').matches
+                       || window.navigator.standalone === true;
+
+            if (isPWA) {
+                // PWA / Mobile App: stay on login screen
+                document.getElementById('ownerApp').classList.add('hidden');
+                document.getElementById('ownerLoginScreen').classList.remove('hidden');
+                document.getElementById('ownerLoginScreen').style.display = 'flex';
+            } else {
+                // Web App: redirect to landing page
+                window.location.replace('/');
+            }
         }
 
         // ── Password Reset Functions ──────────────────────────────

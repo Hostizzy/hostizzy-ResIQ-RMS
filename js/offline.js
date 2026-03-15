@@ -41,112 +41,127 @@
             }
         }
 
-        // WhatsApp Message Templates
+        // WhatsApp Message Templates — uses configurable business name & UPI from Settings
+        function getWABusinessName() { return localStorage.getItem('whatsappBusinessName') || localStorage.getItem('businessName') || 'Hostizzy'; }
+        function getWAUpiId() { return localStorage.getItem('whatsappUpiId') || ''; }
+
         const whatsappTemplates = {
-            booking_confirmation: (booking) => `🏠 *Booking Confirmation - ResIQ by Hostizzy*
+            booking_confirmation: (booking) => {
+                const biz = getWABusinessName();
+                return `🏠 *Booking Confirmation - ${biz}*
 
-    Hi ${booking.guest_name}! 👋
+Hi ${booking.guest_name}! 👋
 
-    Your booking is *CONFIRMED* ✅
+Your booking is *CONFIRMED* ✅
 
-    📋 *Booking Details:*
-    🆔 Booking ID: *${booking.booking_id}*
-    🏡 Property: *${booking.property_name}*
-    📅 Check-in: *${formatDate(booking.check_in)}*
-    📅 Check-out: *${formatDate(booking.check_out)}*
-    🛏️ Nights: *${booking.nights}*
-    👥 Guests: *${booking.number_of_guests}*
+📋 *Booking Details:*
+🆔 Booking ID: *${booking.booking_id}*
+🏡 Property: *${booking.property_name}*
+📅 Check-in: *${formatDate(booking.check_in)}*
+📅 Check-out: *${formatDate(booking.check_out)}*
+🛏️ Nights: *${booking.nights}*
+👥 Guests: *${booking.number_of_guests}*
 
-    💰 *Payment Summary:*
-    Total Amount: ₹${Math.round(booking.total_amount).toLocaleString('en-IN')}
-    Paid: ₹${Math.round(booking.paid_amount || 0).toLocaleString('en-IN')}
-    ${(booking.paid_amount || 0) < booking.total_amount ?
-    `Balance Due: ₹${Math.round(booking.total_amount - (booking.paid_amount || 0)).toLocaleString('en-IN')}` :
-    'Fully Paid ✅'}
+💰 *Payment Summary:*
+Total Amount: ₹${Math.round(booking.total_amount).toLocaleString('en-IN')}
+Paid: ₹${Math.round(booking.paid_amount || 0).toLocaleString('en-IN')}
+${(booking.paid_amount || 0) < booking.total_amount ?
+`Balance Due: ₹${Math.round(booking.total_amount - (booking.paid_amount || 0)).toLocaleString('en-IN')}` :
+'Fully Paid ✅'}
 
-    📍 Property address & directions will be shared 24 hours before check-in.
+📍 Property address & directions will be shared 24 hours before check-in.
 
-    For any queries, reply here or call us! 📞
+For any queries, reply here or call us! 📞
 
-    Thank you for choosing Hostizzy! 🙏
-    _Powered by ResIQ_`,
+Thank you for choosing ${biz}! 🙏
+_Powered by ResIQ_`;
+            },
 
-                payment_reminder: (booking) => `💰 *Payment Reminder*
+            payment_reminder: (booking) => {
+                const upi = getWAUpiId();
+                return `💰 *Payment Reminder*
 
-    Hi ${booking.guest_name},
+Hi ${booking.guest_name},
 
-    This is a friendly reminder for your upcoming booking:
+This is a friendly reminder for your upcoming booking:
 
-    🆔 Booking ID: *${booking.booking_id}*
-    🏡 Property: *${booking.property_name}*
-    📅 Check-in: *${formatDate(booking.check_in)}*
+🆔 Booking ID: *${booking.booking_id}*
+🏡 Property: *${booking.property_name}*
+📅 Check-in: *${formatDate(booking.check_in)}*
 
-    💳 *Payment Details:*
-    Total Amount: ₹${Math.round(booking.total_amount).toLocaleString('en-IN')}
-    Already Paid: ₹${Math.round(booking.paid_amount || 0).toLocaleString('en-IN')}
-    *Pending Balance: ₹${Math.round(booking.total_amount - (booking.paid_amount || 0)).toLocaleString('en-IN')}*
+💳 *Payment Details:*
+Total Amount: ₹${Math.round(booking.total_amount).toLocaleString('en-IN')}
+Already Paid: ₹${Math.round(booking.paid_amount || 0).toLocaleString('en-IN')}
+*Pending Balance: ₹${Math.round(booking.total_amount - (booking.paid_amount || 0)).toLocaleString('en-IN')}*
 
-    Please complete the payment at your earliest convenience.
+Please complete the payment at your earliest convenience.
 
-    🏦 *Payment Options:*
-    - UPI: hostizzy@paytm
-    - Bank Transfer
-    - Cash on arrival
+🏦 *Payment Options:*${upi ? `
+- UPI: ${upi}` : ''}
+- Bank Transfer
+- Cash on arrival
 
-    Reply with payment confirmation! ✅
+Reply with payment confirmation! ✅
 
-    Thank you! 🙏`,
+Thank you! 🙏`;
+            },
 
-                check_in_instructions: (booking) => `🏠 *Check-in Instructions*
+            check_in_instructions: (booking) => `🏠 *Check-in Instructions*
 
-    Hi ${booking.guest_name}! 👋
+Hi ${booking.guest_name}! 👋
 
-    Your check-in is scheduled for *${formatDate(booking.check_in)}*
+Your check-in is scheduled for *${formatDate(booking.check_in)}*
 
-    📍 *Property:*
-    ${booking.property_name}
+📍 *Property:*
+${booking.property_name}
 
-    🔑 *Check-in Process:*
-    ⏰ Check-in time: 2:00 PM
-    📞 Call our property manager 30 mins before arrival
-    🚗 Parking: Available on premises
+🔑 *Check-in Process:*
+⏰ Check-in time: 2:00 PM
+📞 Call our property manager 30 mins before arrival
+🚗 Parking: Available on premises
 
-    🏠 *Property Manager Contact:*
-    We'll share contact details closer to check-in date.
+🏠 *Property Manager Contact:*
+We'll share contact details closer to check-in date.
 
-    Have a wonderful stay! 🌟
+Have a wonderful stay! 🌟
 
-    Need any help? Just reply to this message! 📱`,
+Need any help? Just reply to this message! 📱`,
 
-                thank_you: (booking) => `🙏 *Thank You for Staying with Us!*
+            thank_you: (booking) => {
+                const biz = getWABusinessName();
+                return `🙏 *Thank You for Staying with Us!*
 
-    Hi ${booking.guest_name},
+Hi ${booking.guest_name},
 
-    Thank you for choosing *${booking.property_name}* for your stay!
+Thank you for choosing *${booking.property_name}* for your stay!
 
-    We hope you had a wonderful experience! ⭐
+We hope you had a wonderful experience! ⭐
 
-    📝 *We'd love your feedback:*
-    Your review helps us improve and helps other guests make informed decisions.
+📝 *We'd love your feedback:*
+Your review helps us improve and helps other guests make informed decisions.
 
-    🎁 *Special Offer:*
-    Book your next stay with us and get 10% OFF!
-    Use code: *RETURNGUEST10*
+🎁 *Special Offer:*
+Book your next stay with us and get 10% OFF!
+Use code: *RETURNGUEST10*
 
-    Looking forward to hosting you again! 🏠
+Looking forward to hosting you again! 🏠
 
-    Warm regards,
-    Team Hostizzy 💚`,
+Warm regards,
+${biz} 💚`;
+            },
 
-                custom: (booking) => `Hi ${booking.guest_name},
+            custom: (booking) => {
+                const biz = getWABusinessName();
+                return `Hi ${booking.guest_name},
 
-    [Type your message here]
+[Type your message here]
 
-    Booking ID: ${booking.booking_id}
-    Property: ${booking.property_name}
+Booking ID: ${booking.booking_id}
+Property: ${booking.property_name}
 
-    Team Hostizzy 🏠`
-            };
+${biz} 🏠`;
+            }
+        };
         let offlineDB = null;
         let isOnline = navigator.onLine;
         let syncInProgress = false;

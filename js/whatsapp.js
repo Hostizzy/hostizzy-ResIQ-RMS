@@ -7,10 +7,11 @@
 window.generateWhatsAppLink = function(booking, template = 'booking_confirmation', customMessage = null) {
     // Clean phone number (remove spaces, dashes, etc.)
     let phone = (booking.guest_phone || '').replace(/[^0-9]/g, '');
-    
-    // Add country code if not present
-    if (!phone.startsWith('91') && phone.length === 10) {
-        phone = '91' + phone;
+
+    // Add country code if not present — use configured default
+    const defaultCC = localStorage.getItem('whatsappCountryCode') || '91';
+    if (!phone.startsWith(defaultCC) && phone.length <= 10) {
+        phone = defaultCC + phone;
     }
     
     // Generate message from template
