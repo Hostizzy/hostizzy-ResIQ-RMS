@@ -2396,13 +2396,14 @@
                 </div>
             </div>
 
-            <div class="card">
+            <!-- Filters Card (separate from data to prevent click/flash issues) -->
+            <div class="card" style="margin-bottom: 16px;">
                 <!-- Filters and Search -->
-                <div class="filters">
+                <div class="filters" style="padding: 16px 20px; margin-bottom: 0;">
                     <div class="filter-item" style="flex: 1; max-width: 400px;">
                         <input type="text" id="searchGuests" placeholder="Search by name, phone, email, or city..." onkeyup="searchGuests()" style="width: 100%;">
                     </div>
-                    
+
                     <!-- View Toggle -->
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <button class="btn btn-sm" id="tableViewBtn" onclick="switchGuestView('table')" style="background: var(--primary); color: white;">
@@ -2412,7 +2413,7 @@
                             <i data-lucide="layout-grid" style="width: 14px; height: 14px; margin-right: 4px;"></i>Cards
                         </button>
                     </div>
-                    
+
                     <div class="filter-item" style="max-width: 180px;">
                         <select id="guestTypeFilter" onchange="filterGuests()">
                             <option value="">All Guests</option>
@@ -2422,7 +2423,7 @@
                             <option value="highvalue">High Value (₹50K+)</option>
                         </select>
                     </div>
-                    
+
                     <div class="filter-item" style="max-width: 140px;">
                         <select id="guestsPerPage" onchange="changeGuestsPerPage()">
                             <option value="25">Show 25</option>
@@ -2431,38 +2432,41 @@
                             <option value="all">Show All</option>
                         </select>
                     </div>
-                    
+
                     <button class="btn btn-secondary btn-sm" onclick="clearGuestFilters()">Clear</button>
                 </div>
+            </div>
 
-                <!-- Guest Statistics Summary -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; padding: 20px; background: var(--background-alt); border-radius: 8px; margin-bottom: 20px;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 28px; font-weight: 700; color: var(--primary);" id="guestStatTotal">0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Total Guests</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 28px; font-weight: 700; color: var(--success);" id="guestStatRepeat">0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Repeat Guests</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 28px; font-weight: 700; color: var(--warning);" id="guestStatVIP">0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">VIP (5+ Stays)</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 28px; font-weight: 700; color: #ec4899;" id="guestStatHighValue">0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">High Value (₹50K+)</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 28px; font-weight: 700; color: #06b6d4;" id="guestStatAvgStays">0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Avg Stays/Guest</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 28px; font-weight: 700; color: #8b5cf6;" id="guestStatAdditional">0</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Additional Guests</div>
-                    </div>
+            <!-- Guest Statistics Summary -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--primary);" id="guestStatTotal">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">Total Guests</div>
                 </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--success);" id="guestStatRepeat">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">Repeat Guests</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--warning);" id="guestStatVIP">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">VIP (5+ Stays)</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #ec4899;" id="guestStatHighValue">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">High Value (₹50K+)</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #06b6d4;" id="guestStatAvgStays">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">Avg Stays/Guest</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #8b5cf6;" id="guestStatAdditional">0</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">Additional Guests</div>
+                </div>
+            </div>
 
+            <!-- Data Card (separate from filters) -->
+            <div class="card">
                 <!-- Table View Container -->
                 <div id="guestTableView" style="display: block;">
                     <div class="table-container">
@@ -2544,9 +2548,10 @@
                 </div>
             </div>
 
-            <div class="card">
+            <!-- Filters Card (separate from data to prevent click/flash issues) -->
+            <div class="card" style="margin-bottom: 16px;">
                 <!-- Desktop filters (hidden on mobile) -->
-                <div class="filters filters-desktop">
+                <div class="filters filters-desktop" style="padding: 16px 20px; margin-bottom: 0;">
                     <div class="filter-item" style="flex: 1; max-width: 350px;">
                         <input type="text" id="searchReservations" placeholder="Search by guest, booking ID, phone, property..." style="width: 100%;" oninput="_stableDebouncedFilter()" onkeydown="if(event.key==='Enter') filterReservations();">
                     </div>
@@ -2601,59 +2606,8 @@
                     </div>
                 </div>
 
-                <!-- Filter Bottom Sheet -->
-                <div class="filter-sheet-overlay" id="filterSheetOverlay" onclick="closeFilterSheet()"></div>
-                <div class="filter-sheet" id="filterSheet">
-                    <div class="filter-sheet-handle" onclick="closeFilterSheet()"><div class="filter-sheet-handle-bar"></div></div>
-                    <div class="filter-sheet-header">
-                        <h3>Filter Reservations</h3>
-                        <button class="btn btn-sm" onclick="clearFilters(); updateActiveFilterCount(); closeFilterSheet();" style="color: var(--danger); background: none; border: none; font-weight: 600;">Reset All</button>
-                    </div>
-                    <div class="filter-sheet-body">
-                        <div class="filter-sheet-group">
-                            <label class="filter-sheet-label">Status</label>
-                            <select id="statusFilterMobile" onchange="document.getElementById('statusFilter').value = this.value; filterReservations();">
-                                <option value="">All Status</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="pending">Pending</option>
-                                <option value="checked-in">Checked In</option>
-                                <option value="checked-out">Checked Out</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                        <div class="filter-sheet-group">
-                            <label class="filter-sheet-label">Property</label>
-                            <select id="propertyFilterMobile" onchange="document.getElementById('propertyFilter').value = this.value; filterReservations();">
-                                <option value="">All Properties</option>
-                            </select>
-                        </div>
-                        <div class="filter-sheet-group">
-                            <label class="filter-sheet-label">Booking Source</label>
-                            <select id="bookingSourceFilterMobile" onchange="document.getElementById('bookingSourceFilter').value = this.value; filterReservations();">
-                                <option value="">All Sources</option>
-                                <option value="DIRECT">Direct</option>
-                                <option value="AIRBNB">Airbnb</option>
-                                <option value="AGODA/BOOKING.COM">Agoda/Booking.com</option>
-                                <option value="MMT/GOIBIBO">MakeMyTrip/Goibibo</option>
-                                <option value="OTHER">Other</option>
-                            </select>
-                        </div>
-                        <div class="filter-sheet-group">
-                            <label class="filter-sheet-label">Month</label>
-                            <select id="monthFilterMobile" onchange="document.getElementById('monthFilter').value = this.value; filterReservations();">
-                                <option value="">All Months</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="filter-sheet-footer">
-                        <button class="btn btn-primary" onclick="filterReservations(); updateActiveFilterCount(); closeFilterSheet();" style="width: 100%; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 12px;">
-                            Apply Filters
-                        </button>
-                    </div>
-                </div>
-
                 <!-- View Toggle -->
-                <div style="display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); align-items: center;">
+                <div style="display: flex; gap: 12px; padding: 16px; border-top: 1px solid var(--border); align-items: center;">
                     <span style="font-weight: 600; color: var(--text-secondary); font-size: 14px;">View:</span>
                     <button class="btn btn-sm" id="tableViewBtn" onclick="switchReservationView('table')" style="background: var(--primary); color: white;">
                         Table
@@ -2662,7 +2616,61 @@
                         Kanban Board
                     </button>
                 </div>
+            </div>
 
+            <!-- Filter Bottom Sheet (outside cards, fixed position) -->
+            <div class="filter-sheet-overlay" id="filterSheetOverlay" onclick="closeFilterSheet()"></div>
+            <div class="filter-sheet" id="filterSheet">
+                <div class="filter-sheet-handle" onclick="closeFilterSheet()"><div class="filter-sheet-handle-bar"></div></div>
+                <div class="filter-sheet-header">
+                    <h3>Filter Reservations</h3>
+                    <button class="btn btn-sm" onclick="clearFilters(); updateActiveFilterCount(); closeFilterSheet();" style="color: var(--danger); background: none; border: none; font-weight: 600;">Reset All</button>
+                </div>
+                <div class="filter-sheet-body">
+                    <div class="filter-sheet-group">
+                        <label class="filter-sheet-label">Status</label>
+                        <select id="statusFilterMobile" onchange="document.getElementById('statusFilter').value = this.value; filterReservations();">
+                            <option value="">All Status</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="pending">Pending</option>
+                            <option value="checked-in">Checked In</option>
+                            <option value="checked-out">Checked Out</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-sheet-group">
+                        <label class="filter-sheet-label">Property</label>
+                        <select id="propertyFilterMobile" onchange="document.getElementById('propertyFilter').value = this.value; filterReservations();">
+                            <option value="">All Properties</option>
+                        </select>
+                    </div>
+                    <div class="filter-sheet-group">
+                        <label class="filter-sheet-label">Booking Source</label>
+                        <select id="bookingSourceFilterMobile" onchange="document.getElementById('bookingSourceFilter').value = this.value; filterReservations();">
+                            <option value="">All Sources</option>
+                            <option value="DIRECT">Direct</option>
+                            <option value="AIRBNB">Airbnb</option>
+                            <option value="AGODA/BOOKING.COM">Agoda/Booking.com</option>
+                            <option value="MMT/GOIBIBO">MakeMyTrip/Goibibo</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    <div class="filter-sheet-group">
+                        <label class="filter-sheet-label">Month</label>
+                        <select id="monthFilterMobile" onchange="document.getElementById('monthFilter').value = this.value; filterReservations();">
+                            <option value="">All Months</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-sheet-footer">
+                    <button class="btn btn-primary" onclick="filterReservations(); updateActiveFilterCount(); closeFilterSheet();" style="width: 100%; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 12px;">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Card (separate from filters) -->
+            <div class="card">
                 <!-- Table View -->
                 <div id="tableView" class="table-container">
                     <table class="data-table">
@@ -2772,17 +2780,15 @@
                 </div>
             </div>
 
-            <!-- Payment Records -->
-            <div class="card" style="margin-top: 24px;">
+            <!-- Payment Filters Card (separate from data to prevent click/flash issues) -->
+            <div class="card" style="margin-top: 24px; margin-bottom: 16px;">
                 <div class="card-header">
                     <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="list" style="width: 16px; height: 16px;"></i>
                         Payment Records
                     </h3>
                 </div>
-
-                <!-- Filters -->
-                <div style="padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--background-alt); border-radius: 0;">
+                <div style="padding: 16px 20px; border-top: 1px solid var(--border); background: var(--background-alt);">
                     <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
                         <div style="flex: 1; min-width: 250px; position: relative;">
                             <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-tertiary);"></i>
@@ -2804,7 +2810,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <!-- Payment Data Card (separate from filters) -->
+            <div class="card">
                 <div class="table-container">
                     <table class="data-table">
                         <thead>

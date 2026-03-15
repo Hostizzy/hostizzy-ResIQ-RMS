@@ -6124,17 +6124,14 @@ h3 {
 /* Card hover lift */
 .card:hover {
 box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-transform: translateY(-2px);
-transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .card {
-transition: box-shadow 0.25s ease, transform 0.25s ease;
+transition: box-shadow 0.25s ease;
 }
 
-/* Button press effect */
-.btn:active,
-.card:active {
+/* Button press effect — only on buttons, not on cards containing interactive elements */
+.btn:active {
 transform: scale(0.97) !important;
 }
 
