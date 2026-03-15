@@ -141,6 +141,9 @@ async function deleteTokens(userId) {
  * Exchange authorization code for tokens
  */
 async function exchangeCodeForTokens(code) {
+    // When using initCodeClient with ux_mode: 'popup', Google delivers the auth
+    // code via postMessage. The token exchange must use 'postmessage' as the
+    // redirect_uri (not an actual URL) to match Google's expectations.
     const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -148,17 +151,19 @@ async function exchangeCodeForTokens(code) {
             code,
             client_id: GMAIL_CLIENT_ID,
             client_secret: GMAIL_CLIENT_SECRET,
-            redirect_uri: GMAIL_REDIRECT_URI,
+            redirect_uri: 'postmessage',
             grant_type: 'authorization_code'
         })
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error_description || 'Failed to exchange code');
+        console.error('[gmail-proxy] Token exchange failed:', JSON.stringify(data));
+        throw new Error(data.error_description || data.error || 'Failed to exchange code');
     }
 
-    return response.json();
+    return data;
 }
 
 /**
@@ -258,7 +263,8 @@ export default async function handler(req, res) {
     try {
         userId = await verifyFirebaseToken(authHeader.split('Bearer ')[1]);
     } catch (err) {
-        return res.status(401).json({ error: 'Invalid authentication token' });
+        console.error('[gmail-proxy] Auth failed:', err.message);
+        return res.status(401).json({ error: 'Invalid authentication token: ' + err.message });
     }
 
     try {
