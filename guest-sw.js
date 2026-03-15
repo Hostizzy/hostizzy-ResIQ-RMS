@@ -20,13 +20,14 @@ self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(STATIC_ASSETS)).then(()=>self.skipWaiting()));
 });
 self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n!==CACHE_NAME).map(n=>caches.delete(n)))) .then(()=>self.clients.claim()));
+  event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n.startsWith('hostizzy-guest-') && n!==CACHE_NAME).map(n=>caches.delete(n)))) .then(()=>self.clients.claim()));
 });
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.hostname.includes('supabase.co')) { return event.respondWith(fetch(request)); }
+  if (url.origin !== self.location.origin) return;
   if (url.protocol === 'chrome-extension:') return;
   event.respondWith(
     fetch(request).then(resp=>{

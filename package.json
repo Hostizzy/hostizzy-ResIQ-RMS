@@ -10,8 +10,7 @@
     "twa:validate": "npx @bubblewrap/cli validate --url https://resiq.hostizzy.com",
     "build:prod": "node scripts/build.js",
     "build:fast": "node scripts/build.js --fast",
-    "serve": "python3 -m http.server 8080",
-    "generate-logos": "python3 generate-logos.py || bash generate-logos.sh"
+    "serve": "python3 -m http.server 8080"
   },
   "keywords": [
     "property-management",

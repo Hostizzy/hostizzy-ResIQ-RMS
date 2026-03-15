@@ -138,12 +138,14 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         // If FORCE_UPDATE is true, delete ALL caches
         if (FORCE_UPDATE) {
-          console.warn('[SW] FORCE_UPDATE enabled - clearing ALL caches');
+          console.warn('[SW] FORCE_UPDATE enabled - clearing all ResIQ caches');
           return Promise.all(
-            cacheNames.map((name) => {
-              console.log('[SW] Force deleting cache:', name);
-              return caches.delete(name);
-            })
+            cacheNames
+              .filter((name) => name.startsWith('resiq-'))
+              .map((name) => {
+                console.log('[SW] Force deleting cache:', name);
+                return caches.delete(name);
+              })
           );
         }
 
