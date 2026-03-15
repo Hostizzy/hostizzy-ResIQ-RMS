@@ -156,12 +156,14 @@ async function exchangeCodeForTokens(code) {
         })
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error_description || 'Failed to exchange code');
+        console.error('[gmail-proxy] Token exchange failed:', JSON.stringify(data));
+        throw new Error(data.error_description || data.error || 'Failed to exchange code');
     }
 
-    return response.json();
+    return data;
 }
 
 /**
@@ -261,7 +263,8 @@ export default async function handler(req, res) {
     try {
         userId = await verifyFirebaseToken(authHeader.split('Bearer ')[1]);
     } catch (err) {
-        return res.status(401).json({ error: 'Invalid authentication token' });
+        console.error('[gmail-proxy] Auth failed:', err.message);
+        return res.status(401).json({ error: 'Invalid authentication token: ' + err.message });
     }
 
     try {
