@@ -124,6 +124,10 @@ jobs:
           # signing key, etc.) over the one init generated from web manifest
           cp /tmp/custom-twa-manifest.json twa-manifest.json
 
+          # Generate checksum file for twa-manifest.json so bubblewrap build
+          # doesn't prompt "No checksum file was found" and ask to regenerate
+          sha256sum twa-manifest.json > .twa-manifest.sha256
+
           # Verify the project was created
           if [ -f "gradlew" ]; then
             echo "Android project generated successfully"
@@ -148,6 +152,10 @@ jobs:
           set timeout 600
           spawn bubblewrap build --skipPwaValidation
           expect {
+            -re "regenerate" {
+              send "no\r"
+              exp_continue
+            }
             -re "Would you like to apply" {
               send "y\r"
               exp_continue
@@ -158,6 +166,14 @@ jobs:
             }
             -re "versionCode" {
               send "$env(BUILD_VERSION_CODE)\r"
+              exp_continue
+            }
+            -re "\\(Y/n\\)" {
+              send "y\r"
+              exp_continue
+            }
+            -re "\\?" {
+              send "\r"
               exp_continue
             }
             timeout {
