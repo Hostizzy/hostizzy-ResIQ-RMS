@@ -2007,24 +2007,46 @@
     <script>
         // Backend Configuration
         // Auth: Firebase Authentication | Database: Supabase (PostgreSQL)
-        var SUPABASE_URL = 'https://dxthxsguqrxpurorpokq.supabase.co';
-        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg';
+        // Keys loaded from /api/config at runtime.
+        var SUPABASE_URL = '';
+        var SUPABASE_ANON_KEY = '';
         // Use proxy to avoid ISP blocking of direct supabase.co connections
         var supabase = createSupabaseProxy();
 
-        // Firebase Auth Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBZki72Y_X9OaQt4yl5q_f5XgUos4dI1BE",
-            authDomain: "resiq-by-hostizzy.firebaseapp.com",
-            projectId: "resiq-by-hostizzy",
-            storageBucket: "resiq-by-hostizzy.firebasestorage.app",
-            messagingSenderId: "755242026549",
-            appId: "1:755242026549:web:c688a6b1cc794ec2aad37c"
-        };
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const firebaseAuth = firebase.auth();
+        // Firebase Auth — initialized after config fetch
+        var firebaseAuth = null;
+        var _configReady = (async function _initConfig() {
+            try {
+                var resp = await fetch('/api/config');
+                if (resp.ok) {
+                    var cfg = await resp.json();
+                    SUPABASE_URL = cfg.supabaseUrl || '';
+                    SUPABASE_ANON_KEY = cfg.supabaseAnonKey || '';
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp({
+                            apiKey: cfg.firebaseApiKey,
+                            authDomain: cfg.firebaseAuthDomain,
+                            projectId: cfg.firebaseProjectId,
+                            storageBucket: cfg.firebaseStorageBucket,
+                            messagingSenderId: cfg.firebaseMessagingSenderId,
+                            appId: cfg.firebaseAppId
+                        });
+                    }
+                    firebaseAuth = firebase.auth();
+                    return;
+                }
+            } catch (e) {
+                console.warn('[Config] API fetch failed, using fallback:', e.message);
+            }
+            if (!firebase.apps.length) {
+                firebase.initializeApp({
+                    apiKey: "AIzaSyBZki72Y_X9OaQt4yl5q_f5XgUos4dI1BE",
+                    authDomain: "resiq-by-hostizzy.firebaseapp.com",
+                    projectId: "resiq-by-hostizzy"
+                });
+            }
+            firebaseAuth = firebase.auth();
+        })();
 
         // Map Firebase error codes to user-friendly messages
         function getAuthErrorMessage(err) {
@@ -2592,6 +2614,9 @@
 
         // Check authentication on page load
         window.addEventListener('DOMContentLoaded', async () => {
+            // Wait for config (Firebase init) before auth operations
+            if (typeof _configReady !== 'undefined') await _configReady;
+
             // Load saved theme preference
             const savedTheme = localStorage.getItem('ownerPortalTheme') || 'light';
             applyOwnerTheme(savedTheme);
@@ -2706,5 +2731,6 @@
 
     <!-- Owner Portal Functions -->
     <script src="owner-portal-functions.js"></script>
+    <script src="js/protection.js"></script>
 </body>
 </html>
