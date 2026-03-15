@@ -1,22 +1,34 @@
-// ResIQ Settings — App settings, email settings, data import/export
+// ResIQ Settings — App settings, email settings, WhatsApp config, data import/export
 
-function switchSettingsTab(tabName) {
+function switchSettingsTab(tabName, btnEl) {
     // Update tab buttons
     document.querySelectorAll('.settings-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    event.target.classList.add('active');
+    if (btnEl) {
+        btnEl.classList.add('active');
+    } else {
+        // Fallback: find the button by data-tab attribute
+        const btn = document.querySelector(`.settings-tab[data-tab="${tabName}"]`);
+        if (btn) btn.classList.add('active');
+    }
 
     // Update panels
     document.querySelectorAll('.settings-panel').forEach(panel => {
         panel.classList.remove('active');
     });
-    document.getElementById(`settings-${tabName}`).classList.add('active');
+    const panel = document.getElementById(`settings-${tabName}`);
+    if (panel) {
+        panel.classList.add('active');
+    }
+
+    // Re-render icons in the newly visible panel
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function loadSettings() {
-    // Load saved settings from localStorage
     try {
+        // General / Preferences
         const businessName = localStorage.getItem('businessName');
         const currency = localStorage.getItem('currency') || 'INR';
         const timezone = localStorage.getItem('timezone') || 'Asia/Kolkata';
@@ -27,42 +39,34 @@ function loadSettings() {
         if (timezone) document.getElementById('timezoneSelect').value = timezone;
         if (dateFormat) document.getElementById('dateFormatSelect').value = dateFormat;
 
-        // Load business info
-        const businessEmail = localStorage.getItem('businessEmail');
-        const businessPhone = localStorage.getItem('businessPhone');
-        const businessAddress = localStorage.getItem('businessAddress');
-        const businessGST = localStorage.getItem('businessGST');
-        const businessWebsite = localStorage.getItem('businessWebsite');
+        // Business info
+        const fields = ['businessEmail', 'businessPhone', 'businessAddress', 'businessGST', 'businessWebsite'];
+        fields.forEach(field => {
+            const val = localStorage.getItem(field);
+            const el = document.getElementById(field);
+            if (val && el) el.value = val;
+        });
 
-        if (businessEmail) document.getElementById('businessEmail').value = businessEmail;
-        if (businessPhone) document.getElementById('businessPhone').value = businessPhone;
-        if (businessAddress) document.getElementById('businessAddress').value = businessAddress;
-        if (businessGST) document.getElementById('businessGST').value = businessGST;
-        if (businessWebsite) document.getElementById('businessWebsite').value = businessWebsite;
+        // Notification toggles
+        document.getElementById('emailNotifications').checked = localStorage.getItem('emailNotifications') !== 'false';
+        document.getElementById('whatsappNotifications').checked = localStorage.getItem('whatsappNotifications') !== 'false';
+        document.getElementById('paymentReminders').checked = localStorage.getItem('paymentReminders') !== 'false';
+        document.getElementById('bookingConfirmations').checked = localStorage.getItem('bookingConfirmations') !== 'false';
+        document.getElementById('dailySummary').checked = localStorage.getItem('dailySummary') === 'true';
 
-        // Load notification settings
-        const emailNotif = localStorage.getItem('emailNotifications') !== 'false';
-        const whatsappNotif = localStorage.getItem('whatsappNotifications') !== 'false';
-        const paymentRem = localStorage.getItem('paymentReminders') !== 'false';
-        const bookingConf = localStorage.getItem('bookingConfirmations') !== 'false';
-        const dailySum = localStorage.getItem('dailySummary') === 'true';
-
-        document.getElementById('emailNotifications').checked = emailNotif;
-        document.getElementById('whatsappNotifications').checked = whatsappNotif;
-        document.getElementById('paymentReminders').checked = paymentRem;
-        document.getElementById('bookingConfirmations').checked = bookingConf;
-        document.getElementById('dailySummary').checked = dailySum;
-
-        // Load dark mode toggle state
+        // Dark mode
         const currentTheme = localStorage.getItem('theme') || 'light';
         document.getElementById('darkModeToggle').checked = currentTheme === 'dark';
 
-        // Load automation settings
+        // Automation
         document.getElementById('smartAutomationEnabled').checked = localStorage.getItem('smartAutomationEnabled') !== 'false';
         document.getElementById('automationInterval').value = localStorage.getItem('automationInterval') || '30';
 
-        // Load email settings
+        // Email settings
         if (typeof loadEmailSettings === 'function') loadEmailSettings();
+
+        // WhatsApp settings
+        loadWhatsAppSettings();
 
         // Update Gmail send integration status
         updateGmailSendStatus();
@@ -90,10 +94,10 @@ function toggleSmartAutomation() {
     const isEnabled = document.getElementById('smartAutomationEnabled').checked;
     if (isEnabled) {
         startSmartAutomation();
-        showToast('Automation Enabled', 'Smart Automation is now running', '✅');
+        showToast('Automation Enabled', 'Smart Automation is now running', '');
     } else {
         stopSmartAutomation();
-        showToast('Automation Disabled', 'Smart Automation has been stopped', '⚠️');
+        showToast('Automation Disabled', 'Smart Automation has been stopped', '');
     }
     localStorage.setItem('smartAutomationEnabled', isEnabled);
 }
@@ -101,18 +105,16 @@ function toggleSmartAutomation() {
 function saveAutomationSettings() {
     try {
         const automationInterval = document.getElementById('automationInterval').value;
-
         localStorage.setItem('automationInterval', automationInterval);
 
-        // Restart automation with new interval
         if (document.getElementById('smartAutomationEnabled').checked) {
             stopSmartAutomation();
             startSmartAutomation();
         }
 
-        showToast('✅ Settings Saved', 'Automation settings updated successfully', '🤖');
+        showToast('Settings Saved', 'Automation settings updated', '');
     } catch (error) {
-        showToast('❌ Error', 'Failed to save automation settings', '⚠️');
+        showToast('Error', 'Failed to save automation settings', '');
     }
 }
 
@@ -123,24 +125,30 @@ function saveGeneralSettings() {
         localStorage.setItem('timezone', document.getElementById('timezoneSelect').value);
         localStorage.setItem('dateFormat', document.getElementById('dateFormatSelect').value);
 
-        showToast('✅ Settings Saved', 'General settings saved successfully', '⚙️');
+        showToast('Settings Saved', 'Preferences saved successfully', '');
     } catch (error) {
-        showToast('❌ Error', 'Failed to save settings', '⚠️');
+        showToast('Error', 'Failed to save settings', '');
     }
 }
 
-function saveBusinessSettings() {
+function saveBusinessProfile() {
     try {
+        localStorage.setItem('businessName', document.getElementById('businessName').value);
         localStorage.setItem('businessEmail', document.getElementById('businessEmail').value);
         localStorage.setItem('businessPhone', document.getElementById('businessPhone').value);
         localStorage.setItem('businessAddress', document.getElementById('businessAddress').value);
         localStorage.setItem('businessGST', document.getElementById('businessGST').value);
         localStorage.setItem('businessWebsite', document.getElementById('businessWebsite').value);
 
-        showToast('✅ Settings Saved', 'Business info saved successfully', '📇');
+        showToast('Settings Saved', 'Business profile saved successfully', '');
     } catch (error) {
-        showToast('❌ Error', 'Failed to save business info', '⚠️');
+        showToast('Error', 'Failed to save business profile', '');
     }
+}
+
+// Keep legacy function for backward compatibility
+function saveBusinessSettings() {
+    saveBusinessProfile();
 }
 
 function saveNotificationSettings() {
@@ -150,10 +158,30 @@ function saveNotificationSettings() {
         localStorage.setItem('paymentReminders', document.getElementById('paymentReminders').checked);
         localStorage.setItem('bookingConfirmations', document.getElementById('bookingConfirmations').checked);
         localStorage.setItem('dailySummary', document.getElementById('dailySummary').checked);
-
-        showToast('✅ Settings Saved', 'Notification preferences saved', '🔔');
     } catch (error) {
-        showToast('❌ Error', 'Failed to save notification settings', '⚠️');
+        console.error('Failed to save notification settings:', error);
+    }
+}
+
+// Auto-save when any toggle is flipped
+function autoSaveNotificationToggle() {
+    try {
+        // Save notification toggles
+        saveNotificationSettings();
+
+        // Save email template toggles
+        const templates = {
+            bookingConfirm: document.getElementById('emailTemplateBookingConfirm')?.checked ?? true,
+            paymentReceipt: document.getElementById('emailTemplatePaymentReceipt')?.checked ?? true,
+            checkinInstructions: document.getElementById('emailTemplateCheckinInstructions')?.checked ?? true,
+            paymentReminder: document.getElementById('emailTemplatePaymentReminder')?.checked ?? false,
+            thankYou: document.getElementById('emailTemplateThankYou')?.checked ?? false
+        };
+        localStorage.setItem('emailTemplateSettings', JSON.stringify(templates));
+
+        showToast('Saved', 'Preference updated', '');
+    } catch (error) {
+        console.error('Failed to auto-save toggle:', error);
     }
 }
 
@@ -166,9 +194,8 @@ function saveEmailSettings() {
             cc: document.getElementById('emailCC')?.value || ''
         };
         localStorage.setItem('emailSettings', JSON.stringify(settings));
-        showToast('✅ Saved', 'Email settings saved successfully', '📧');
     } catch (error) {
-        showToast('❌ Error', 'Failed to save email settings', '⚠️');
+        console.error('Failed to save email settings:', error);
     }
 }
 
@@ -182,9 +209,8 @@ function saveEmailTemplateSettings() {
             thankYou: document.getElementById('emailTemplateThankYou')?.checked ?? false
         };
         localStorage.setItem('emailTemplateSettings', JSON.stringify(templates));
-        showToast('✅ Saved', 'Email template preferences saved', '📧');
     } catch (error) {
-        showToast('❌ Error', 'Failed to save template settings', '⚠️');
+        console.error('Failed to save template settings:', error);
     }
 }
 
@@ -192,9 +218,20 @@ function saveEmailSignature() {
     try {
         const signature = document.getElementById('emailSignature')?.value || '';
         localStorage.setItem('emailSignature', signature);
-        showToast('✅ Saved', 'Email signature saved', '✍️');
     } catch (error) {
-        showToast('❌ Error', 'Failed to save signature', '⚠️');
+        console.error('Failed to save signature:', error);
+    }
+}
+
+// Unified save: email config + signature + templates
+function saveAllEmailSettings() {
+    try {
+        saveEmailSettings();
+        saveEmailSignature();
+        saveEmailTemplateSettings();
+        showToast('Settings Saved', 'Email settings saved successfully', '');
+    } catch (error) {
+        showToast('Error', 'Failed to save email settings', '');
     }
 }
 
@@ -218,6 +255,39 @@ function loadEmailSettings() {
     } catch (e) { /* ignore */ }
 }
 
+// WhatsApp Settings
+function loadWhatsAppSettings() {
+    try {
+        const countryCode = localStorage.getItem('whatsappCountryCode') || '91';
+        const businessName = localStorage.getItem('whatsappBusinessName') || '';
+        const upiId = localStorage.getItem('whatsappUpiId') || '';
+
+        const ccEl = document.getElementById('whatsappCountryCode');
+        const bnEl = document.getElementById('whatsappBusinessName');
+        const upiEl = document.getElementById('whatsappUpiId');
+
+        if (ccEl) ccEl.value = countryCode;
+        if (bnEl) bnEl.value = businessName;
+        if (upiEl) upiEl.value = upiId;
+    } catch (e) { /* ignore */ }
+}
+
+function saveWhatsAppSettings() {
+    try {
+        const countryCode = document.getElementById('whatsappCountryCode')?.value || '91';
+        const businessName = document.getElementById('whatsappBusinessName')?.value || '';
+        const upiId = document.getElementById('whatsappUpiId')?.value || '';
+
+        localStorage.setItem('whatsappCountryCode', countryCode);
+        localStorage.setItem('whatsappBusinessName', businessName);
+        localStorage.setItem('whatsappUpiId', upiId);
+
+        showToast('Settings Saved', 'WhatsApp settings saved successfully', '');
+    } catch (error) {
+        showToast('Error', 'Failed to save WhatsApp settings', '');
+    }
+}
+
 
 function exportAllData() {
     try {
@@ -239,9 +309,9 @@ function exportAllData() {
         link.click();
 
         URL.revokeObjectURL(url);
-        showToast('✅ Export Complete', 'Data exported successfully', '📥');
+        showToast('Export Complete', 'Data exported successfully', '');
     } catch (error) {
-        showToast('❌ Error', 'Failed to export data', '⚠️');
+        showToast('Error', 'Failed to export data', '');
     }
 }
 
@@ -255,28 +325,28 @@ function importData() {
             const text = await file.text();
             const data = JSON.parse(text);
 
-            if (confirm('⚠️ This will replace all existing data. Continue?')) {
+            if (confirm('This will replace all existing data. Continue?')) {
                 if (data.reservations) localStorage.setItem('reservations', JSON.stringify(data.reservations));
                 if (data.guests) localStorage.setItem('guests', JSON.stringify(data.guests));
                 if (data.properties) localStorage.setItem('properties', JSON.stringify(data.properties));
                 if (data.payments) localStorage.setItem('payments', JSON.stringify(data.payments));
                 if (data.meals) localStorage.setItem('meals', JSON.stringify(data.meals));
 
-                showToast('✅ Import Complete', 'Data imported successfully. Refreshing...', '📤');
+                showToast('Import Complete', 'Data imported successfully. Refreshing...', '');
                 setTimeout(() => location.reload(), 2000);
             }
         } catch (error) {
-            showToast('❌ Error', 'Failed to import data', '⚠️');
+            showToast('Error', 'Failed to import data', '');
         }
     };
     input.click();
 }
 
 function clearAllData() {
-    if (confirm('⚠️ Are you ABSOLUTELY sure? This will delete ALL your data permanently!')) {
-        if (confirm('⚠️ Final confirmation: Delete everything?')) {
+    if (confirm('Are you ABSOLUTELY sure? This will delete ALL your data permanently!')) {
+        if (confirm('Final confirmation: Delete everything?')) {
             localStorage.clear();
-            showToast('✅ Data Cleared', 'All data has been cleared. Refreshing...', '🗑️');
+            showToast('Data Cleared', 'All data has been cleared. Refreshing...', '');
             setTimeout(() => location.reload(), 2000);
         }
     }
@@ -285,4 +355,3 @@ function clearAllData() {
 // Communication Functions
 let communicationMessages = [];
 let currentCommunicationFilter = 'all';
-

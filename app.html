@@ -1758,28 +1758,32 @@
         /* Settings View Styles */
         .settings-tabs {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             margin-bottom: 24px;
-            flex-wrap: wrap;
             border-bottom: 2px solid var(--border);
         }
 
         .settings-tab {
-            padding: 12px 20px;
+            padding: 10px 18px;
             background: none;
             border: none;
             border-bottom: 2px solid transparent;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: var(--text-secondary);
             transition: var(--transition);
             margin-bottom: -2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
         }
 
         .settings-tab:hover {
             color: var(--text-primary);
             background: var(--background);
+            border-radius: 6px 6px 0 0;
         }
 
         .settings-tab.active {
@@ -1795,6 +1799,21 @@
         .settings-panel.active {
             display: block;
             animation: fadeIn 0.3s ease;
+        }
+
+        @media (max-width: 640px) {
+            .settings-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .settings-tabs::-webkit-scrollbar { display: none; }
+            #settings-general .card > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+            }
+            #settings-communication .card > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+            }
         }
 
         .settings-toggle {
@@ -3785,55 +3804,91 @@
 
             <!-- Settings Tabs -->
             <div class="settings-tabs">
-                <button class="settings-tab active" onclick="switchSettingsTab('general')">General</button>
-                <button class="settings-tab" onclick="switchSettingsTab('business')">Business Info</button>
-                <button class="settings-tab" onclick="switchSettingsTab('email')">Email</button>
-                <button class="settings-tab" onclick="switchSettingsTab('notifications')">Notifications</button>
-                <button class="settings-tab" onclick="switchSettingsTab('integrations')">Integrations</button>
-                <button class="settings-tab" onclick="switchSettingsTab('advanced')">Advanced</button>
+                <button class="settings-tab active" data-tab="general" onclick="switchSettingsTab('general', this)"><i data-lucide="building-2" style="width: 14px; height: 14px;"></i> Business</button>
+                <button class="settings-tab" data-tab="communication" onclick="switchSettingsTab('communication', this)"><i data-lucide="message-square" style="width: 14px; height: 14px;"></i> Communication</button>
+                <button class="settings-tab" data-tab="integrations" onclick="switchSettingsTab('integrations', this)"><i data-lucide="puzzle" style="width: 14px; height: 14px;"></i> Integrations</button>
+                <button class="settings-tab" data-tab="advanced" onclick="switchSettingsTab('advanced', this)"><i data-lucide="sliders" style="width: 14px; height: 14px;"></i> Advanced</button>
             </div>
 
-            <!-- General Settings -->
+            <!-- ==================== BUSINESS & GENERAL ==================== -->
             <div id="settings-general" class="settings-panel active">
+
+                <!-- Business Profile -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="building-2" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Business Profile</h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Business Name</label>
+                            <input type="text" id="businessName" placeholder="Your Business Name">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Contact Email</label>
+                            <input type="email" id="businessEmail" placeholder="contact@yourbusiness.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Contact Phone</label>
+                            <input type="tel" id="businessPhone" placeholder="+91 1234567890">
+                        </div>
+
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Business Address</label>
+                            <textarea id="businessAddress" rows="2" placeholder="Full business address"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tax/GST Number</label>
+                            <input type="text" id="businessGST" placeholder="GST Number">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Website</label>
+                            <input type="url" id="businessWebsite" placeholder="https://www.yourbusiness.com">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveBusinessProfile()" style="display: flex; align-items: center; gap: 6px; margin-top: 8px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Business Profile</button>
+                </div>
+
+                <!-- Preferences -->
                 <div class="card">
-                    <h3 style="margin-bottom: 20px;"><i data-lucide="settings-2" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>General Settings</h3>
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="settings-2" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Preferences</h3>
 
-                    <div class="form-group">
-                        <label>Business Name</label>
-                        <input type="text" id="businessName" placeholder="Your Business Name">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Currency</label>
+                            <select id="currencySelect">
+                                <option value="INR">₹ INR - Indian Rupee</option>
+                                <option value="USD">$ USD - US Dollar</option>
+                                <option value="EUR">€ EUR - Euro</option>
+                                <option value="GBP">£ GBP - British Pound</option>
+                                <option value="AED">د.إ AED - UAE Dirham</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Time Zone</label>
+                            <select id="timezoneSelect">
+                                <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                <option value="America/New_York">America/New_York (EST)</option>
+                                <option value="Europe/London">Europe/London (GMT)</option>
+                                <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Date Format</label>
+                            <select id="dateFormatSelect">
+                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Currency</label>
-                        <select id="currencySelect">
-                            <option value="INR">₹ INR - Indian Rupee</option>
-                            <option value="USD">$ USD - US Dollar</option>
-                            <option value="EUR">€ EUR - Euro</option>
-                            <option value="GBP">£ GBP - British Pound</option>
-                            <option value="AED">د.إ AED - UAE Dirham</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Time Zone</label>
-                        <select id="timezoneSelect">
-                            <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                            <option value="America/New_York">America/New_York (EST)</option>
-                            <option value="Europe/London">Europe/London (GMT)</option>
-                            <option value="Asia/Dubai">Asia/Dubai (GST)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Date Format</label>
-                        <select id="dateFormatSelect">
-                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                        </select>
-                    </div>
-
-                    <div class="settings-toggle">
+                    <div class="settings-toggle" style="margin-top: 8px;">
                         <div>
                             <strong>Dark Mode</strong>
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Use dark theme for better readability at night</p>
@@ -3844,83 +3899,128 @@
                         </label>
                     </div>
 
-                    <button class="btn btn-primary" onclick="saveGeneralSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save General Settings</button>
+                    <button class="btn btn-primary" onclick="saveGeneralSettings()" style="display: flex; align-items: center; gap: 6px; margin-top: 16px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Preferences</button>
                 </div>
             </div>
 
-            <!-- Business Info Settings -->
-            <div id="settings-business" class="settings-panel">
+            <!-- ==================== COMMUNICATION ==================== -->
+            <div id="settings-communication" class="settings-panel">
+
+                <!-- Email Configuration -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                        <h3 style="margin: 0;"><i data-lucide="mail" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Email Settings</h3>
+                        <span class="badge" id="gmailSendBadge" style="background: var(--warning); color: white; font-size: 11px;">Not Connected</span>
+                    </div>
+
+                    <!-- Gmail Connection -->
+                    <div id="gmailSendNotConnected" style="margin-bottom: 16px;">
+                        <div style="background: var(--background); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; border-left: 3px solid var(--primary); font-size: 13px;">
+                            Connect your Gmail to send booking confirmations, receipts, and guest communications directly from your email address.
+                        </div>
+                        <div id="gmailSendNoClientId" style="display: none; margin-bottom: 12px; padding: 10px 14px; background: #fff7ed; border-radius: 8px; border-left: 3px solid var(--warning); font-size: 13px; color: #92400e;">
+                            <strong>Setup required:</strong> Configure a Google OAuth Client ID first.
+                            <button class="btn btn-secondary" onclick="openAppSettings()" style="margin-top: 8px; font-size: 12px; padding: 4px 12px; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="settings" style="width: 12px; height: 12px;"></i> Open App Settings
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" onclick="connectGmailForSending()" style="display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> Connect Gmail
+                        </button>
+                    </div>
+                    <div id="gmailSendConnected" style="display: none; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #dcfce7; border-radius: 8px; font-size: 13px; color: #166534;">
+                            <span>Connected as <strong id="gmailSendEmail">email@gmail.com</strong></span>
+                            <button class="btn btn-secondary" onclick="disconnectGmailSending()" style="font-size: 12px; padding: 4px 12px;">Disconnect</button>
+                        </div>
+                    </div>
+
+                    <hr style="margin: 16px 0; border: none; border-top: 1px solid var(--border);">
+
+                    <!-- Email Config Fields -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Sender Email Address</label>
+                            <input type="email" id="emailSenderAddress" placeholder="bookings@yourbusiness.com">
+                            <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Appears as "From" in outgoing emails</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sender Display Name</label>
+                            <input type="text" id="emailSenderName" placeholder="Your Business Name">
+                            <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Name shown to guests</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Reply-To Email</label>
+                            <input type="email" id="emailReplyTo" placeholder="support@yourbusiness.com">
+                            <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Where guest replies go (blank = sender email)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>CC Email (Optional)</label>
+                            <input type="email" id="emailCC" placeholder="manager@yourbusiness.com">
+                            <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Receive a copy of all outgoing emails</small>
+                        </div>
+                    </div>
+
+                    <hr style="margin: 16px 0; border: none; border-top: 1px solid var(--border);">
+
+                    <!-- Email Signature inline -->
+                    <div class="form-group">
+                        <label><i data-lucide="pen-line" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Email Signature</label>
+                        <textarea id="emailSignature" rows="3" placeholder="Best regards,&#10;Your Business Name&#10;+91 1234567890"></textarea>
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Appended to all outgoing emails</small>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveAllEmailSettings()" style="display: flex; align-items: center; gap: 6px; margin-top: 8px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Email Settings</button>
+                </div>
+
+                <!-- WhatsApp Settings -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                        <h3 style="margin: 0;"><i data-lucide="message-circle" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>WhatsApp Settings</h3>
+                        <span class="badge" id="whatsappStatusBadge" style="background: var(--success); color: white; font-size: 11px;">Ready</span>
+                    </div>
+
+                    <div style="background: var(--background); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; border-left: 3px solid #25D366; font-size: 13px;">
+                        WhatsApp messages open via wa.me links. No API key needed — messages are sent through your WhatsApp app or WhatsApp Web.
+                    </div>
+
+                    <div class="form-group">
+                        <label>Default Country Code</label>
+                        <select id="whatsappCountryCode" style="max-width: 280px;">
+                            <option value="91">+91 India</option>
+                            <option value="1">+1 USA / Canada</option>
+                            <option value="44">+44 UK</option>
+                            <option value="971">+971 UAE</option>
+                            <option value="61">+61 Australia</option>
+                            <option value="65">+65 Singapore</option>
+                        </select>
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Used when guest phone number doesn't include country code</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Business Name in Messages</label>
+                        <input type="text" id="whatsappBusinessName" placeholder="Team Hostizzy">
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Sign-off name used in WhatsApp templates</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>UPI ID (for payment links)</label>
+                        <input type="text" id="whatsappUpiId" placeholder="yourbusiness@paytm">
+                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Shown in payment reminder messages</small>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveWhatsAppSettings()" style="display: flex; align-items: center; gap: 6px; margin-top: 8px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save WhatsApp Settings</button>
+                </div>
+
+                <!-- Notification Preferences & Auto-send Templates -->
                 <div class="card">
-                    <h3 style="margin-bottom: 20px;"><i data-lucide="building-2" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Business Information</h3>
+                    <h3 style="margin-bottom: 6px;"><i data-lucide="bell" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Auto-send & Notifications</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 20px 0;">Toggles auto-save when switched</p>
 
-                    <div class="form-group">
-                        <label>Contact Email</label>
-                        <input type="email" id="businessEmail" placeholder="contact@yourbusiness.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Contact Phone</label>
-                        <input type="tel" id="businessPhone" placeholder="+91 1234567890">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Business Address</label>
-                        <textarea id="businessAddress" rows="3" placeholder="Full business address"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Tax/GST Number</label>
-                        <input type="text" id="businessGST" placeholder="GST Number">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Website</label>
-                        <input type="url" id="businessWebsite" placeholder="https://www.yourbusiness.com">
-                    </div>
-
-                    <button class="btn btn-primary" onclick="saveBusinessSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Business Info</button>
-                </div>
-            </div>
-
-            <!-- Email Settings -->
-            <div id="settings-email" class="settings-panel">
-                <div class="card" style="margin-bottom: 16px;">
-                    <h3 style="margin-bottom: 20px;"><i data-lucide="mail" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Email Configuration</h3>
-
-                    <div style="background: #e0f2f7; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; border-left: 3px solid var(--primary); font-size: 13px;">
-                        Configure your email settings for sending booking confirmations, payment receipts, and guest communications.
-                    </div>
-
-                    <div class="form-group">
-                        <label>Sender Email Address</label>
-                        <input type="email" id="emailSenderAddress" placeholder="bookings@yourbusiness.com">
-                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">This email will appear as the "From" address in outgoing emails</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Sender Display Name</label>
-                        <input type="text" id="emailSenderName" placeholder="Your Business Name">
-                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Name shown to guests (e.g. "Oceanview Villas" or "ResIQ Bookings")</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Reply-To Email</label>
-                        <input type="email" id="emailReplyTo" placeholder="support@yourbusiness.com">
-                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Where guest replies will be sent (leave blank to use sender email)</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label>CC Email (Optional)</label>
-                        <input type="email" id="emailCC" placeholder="manager@yourbusiness.com">
-                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Receive a copy of all outgoing emails</small>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="saveEmailSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Email Settings</button>
-                </div>
-
-                <!-- Email Templates -->
-                <div class="card" style="margin-bottom: 16px;">
-                    <h3 style="margin-bottom: 20px;"><i data-lucide="file-text" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Email Templates</h3>
+                    <h4 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 12px;">Email Auto-send</h4>
 
                     <div class="settings-toggle">
                         <div>
@@ -3928,7 +4028,7 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Auto-send confirmation when a booking is created</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="emailTemplateBookingConfirm" checked>
+                            <input type="checkbox" id="emailTemplateBookingConfirm" checked onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -3939,7 +4039,7 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Auto-send receipt when a payment is recorded</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="emailTemplatePaymentReceipt" checked>
+                            <input type="checkbox" id="emailTemplatePaymentReceipt" checked onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -3950,7 +4050,7 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Send check-in details 1 day before arrival</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="emailTemplateCheckinInstructions" checked>
+                            <input type="checkbox" id="emailTemplateCheckinInstructions" checked onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -3961,7 +4061,7 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Remind guests about pending payments</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="emailTemplatePaymentReminder">
+                            <input type="checkbox" id="emailTemplatePaymentReminder" onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -3972,32 +4072,14 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Send thank you email after check-out</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="emailTemplateThankYou">
+                            <input type="checkbox" id="emailTemplateThankYou" onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
 
-                    <button class="btn btn-primary" onclick="saveEmailTemplateSettings()" style="display: flex; align-items: center; gap: 6px; margin-top: 16px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Template Settings</button>
-                </div>
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
 
-                <!-- Email Signature -->
-                <div class="card">
-                    <h3 style="margin-bottom: 20px;"><i data-lucide="pen-line" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Email Signature</h3>
-
-                    <div class="form-group">
-                        <label>Signature Text</label>
-                        <textarea id="emailSignature" rows="4" placeholder="Best regards,&#10;Your Business Name&#10;+91 1234567890&#10;www.yourbusiness.com"></textarea>
-                        <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Appended to all outgoing emails</small>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="saveEmailSignature()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Signature</button>
-                </div>
-            </div>
-
-            <!-- Notifications Settings -->
-            <div id="settings-notifications" class="settings-panel">
-                <div class="card">
-                    <h3 style="margin-bottom: 20px;"><i data-lucide="bell" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Notification Preferences</h3>
+                    <h4 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 12px;">Notifications</h4>
 
                     <div class="settings-toggle">
                         <div>
@@ -4005,7 +4087,7 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Receive email updates for bookings and payments</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="emailNotifications" checked>
+                            <input type="checkbox" id="emailNotifications" checked onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -4016,7 +4098,7 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Get WhatsApp alerts for important updates</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="whatsappNotifications" checked>
+                            <input type="checkbox" id="whatsappNotifications" checked onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -4027,7 +4109,7 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Auto-send payment reminder to guests</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="paymentReminders" checked>
+                            <input type="checkbox" id="paymentReminders" checked onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -4038,7 +4120,7 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Auto-send booking confirmation to guests</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="bookingConfirmations" checked>
+                            <input type="checkbox" id="bookingConfirmations" checked onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -4049,92 +4131,54 @@
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">Receive daily summary of bookings and revenue</p>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="dailySummary">
+                            <input type="checkbox" id="dailySummary" onchange="autoSaveNotificationToggle()">
                             <span class="slider"></span>
                         </label>
                     </div>
-
-                    <button class="btn btn-primary" onclick="saveNotificationSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Notification Settings</button>
                 </div>
             </div>
 
-            <!-- Integrations Settings -->
+            <!-- ==================== INTEGRATIONS ==================== -->
             <div id="settings-integrations" class="settings-panel">
 
-                <!-- Gmail Email Sending -->
+                <!-- iCal / Calendar Sync -->
                 <div class="card" style="margin-bottom: 16px;">
-                    <div class="integration-header" style="margin-bottom: 16px;">
-                        <div>
-                            <h4 style="margin: 0 0 4px 0;"><i data-lucide="mail" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Email Sending (Gmail)</h4>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Send emails to guests directly from your Gmail account</p>
-                        </div>
-                        <span class="badge" id="gmailSendBadge" style="background: var(--warning); color: white;">Not Connected</span>
-                    </div>
-
-                    <div style="background: #e0f2f7; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; border-left: 3px solid var(--primary); font-size: 13px;">
-                        <strong>How it works:</strong> Connect your Gmail account below. Emails will be sent from your own Gmail address, so guests see your real email and can reply directly.
-                    </div>
-
-                    <div id="gmailSendNotConnected">
-                        <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0;">
-                            Uses the same Google OAuth Client ID as Gmail Booking Import. Make sure you've added the <code>gmail.send</code> scope in your Google Cloud Console.
-                        </p>
-                        <div id="gmailSendNoClientId" style="display: none; margin-bottom: 12px; padding: 10px 14px; background: #fff7ed; border-radius: 8px; border-left: 3px solid var(--warning); font-size: 13px; color: #92400e;">
-                            <strong>Setup required:</strong> You need to configure a Google OAuth Client ID first.
-                            <button class="btn btn-secondary" onclick="openAppSettings()" style="margin-top: 8px; font-size: 12px; padding: 4px 12px; display: flex; align-items: center; gap: 4px;">
-                                <i data-lucide="settings" style="width: 12px; height: 12px;"></i> Open App Settings to configure
-                            </button>
-                        </div>
-                        <button class="btn btn-primary" onclick="connectGmailForSending()" style="display: flex; align-items: center; gap: 6px;">
-                            <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> Connect Gmail for Sending
-                        </button>
-                    </div>
-                    <div id="gmailSendConnected" style="display: none;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #dcfce7; border-radius: 8px; font-size: 13px; color: #166534;">
-                            <span>Connected as <strong id="gmailSendEmail">email@gmail.com</strong></span>
-                            <button class="btn btn-secondary" onclick="disconnectGmailSending()" style="font-size: 12px; padding: 4px 12px;">Disconnect</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- iCal / Calendar Sync (Active) -->
-                <div class="card" style="margin-bottom: 16px;">
-                    <div class="integration-header">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                         <div>
                             <h4 style="margin: 0 0 4px 0;"><i data-lucide="calendar-sync" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>iCal / Calendar Sync</h4>
                             <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Import bookings from Airbnb, Booking.com, Agoda via iCal feed</p>
                         </div>
-                        <span class="badge" style="background: var(--success); color: white;">Active</span>
+                        <span class="badge" style="background: var(--success); color: white; font-size: 11px;">Active</span>
                     </div>
-                    <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 12px 0;">
-                        iCal sync is configured per property. Go to <strong>Properties</strong> → select a property → <strong>Settings</strong> to add your OTA iCal feed URL and set sync frequency.
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0;">
+                        iCal sync is configured per property. Go to <strong>Properties</strong> → select a property → <strong>Settings</strong> to add your OTA iCal feed URL.
                     </p>
-                    <button class="btn btn-secondary btn-sm" onclick="showView('properties')">Go to Properties →</button>
+                    <button class="btn btn-secondary btn-sm" onclick="showView('properties')">Go to Properties</button>
                 </div>
 
-                <!-- Gmail Auto-Import (Active) -->
+                <!-- Gmail Booking Import -->
                 <div class="card" style="margin-bottom: 16px;">
-                    <div class="integration-header">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                         <div>
                             <h4 style="margin: 0 0 4px 0;"><i data-lucide="mail-open" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Gmail Booking Import</h4>
-                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Auto-create reservations from booking confirmation emails (stay@hostizzy.com)</p>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Auto-create reservations from booking confirmation emails</p>
                         </div>
-                        <span class="badge" id="gmailIntegrationBadge" style="background: var(--warning); color: white;">Not Connected</span>
+                        <span class="badge" id="gmailIntegrationBadge" style="background: var(--warning); color: white; font-size: 11px;">Not Connected</span>
                     </div>
-                    <p style="font-size: 13px; color: var(--text-secondary); margin: 12px 0 12px 0;">
-                        Configure in App Settings (top right) to connect your Gmail account.
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0;">
+                        Connect your Gmail account to auto-import OTA booking confirmations.
                     </p>
-                    <button class="btn btn-secondary btn-sm" onclick="openAppSettings()">Open App Settings →</button>
+                    <button class="btn btn-secondary btn-sm" onclick="openAppSettings()">Open App Settings</button>
                 </div>
 
             </div>
 
-            <!-- Advanced Settings -->
+            <!-- ==================== ADVANCED ==================== -->
             <div id="settings-advanced" class="settings-panel">
-                <div class="card">
-                    <h3 style="margin-bottom: 20px;"><i data-lucide="sliders" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Advanced Settings</h3>
 
-                    <h4 style="margin-bottom: 16px; color: var(--text-primary);"><i data-lucide="cpu" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Smart Automation</h4>
+                <!-- Automation -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="cpu" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Smart Automation</h3>
 
                     <div class="settings-toggle">
                         <div>
@@ -4148,33 +4192,34 @@
                     </div>
 
                     <div class="form-group" style="margin-top: 16px;">
-                        <label>Automation Check Interval (minutes)</label>
+                        <label>Automation Check Interval</label>
                         <select id="automationInterval" style="max-width: 200px;">
                             <option value="15">Every 15 minutes</option>
                             <option value="30" selected>Every 30 minutes</option>
                             <option value="60">Every hour</option>
                             <option value="120">Every 2 hours</option>
                         </select>
-                        <small style="color: var(--text-secondary); display: block; margin-top: 4px;">How often to run automated tasks</small>
                     </div>
 
-                    <button class="btn btn-primary" onclick="saveAutomationSettings()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Automation Settings</button>
+                    <button class="btn btn-primary" onclick="saveAutomationSettings()" style="display: flex; align-items: center; gap: 6px; margin-top: 8px;"><i data-lucide="save" style="width: 14px; height: 14px;"></i> Save Automation Settings</button>
+                </div>
 
-                    <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+                <!-- Data Management -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 20px;"><i data-lucide="database" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Data Management</h3>
 
-                    <h4 style="margin-bottom: 16px; color: var(--text-primary);">Data Management</h4>
-
-                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <button class="btn btn-secondary" onclick="exportAllData()"><i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i>Export All Data</button>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="exportAllData()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="download" style="width: 14px; height: 14px;"></i> Export All Data</button>
                         <button class="btn btn-secondary" onclick="importData()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="upload" style="width: 14px; height: 14px;"></i> Import Data</button>
                     </div>
+                </div>
 
-                    <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--border);">
+                <!-- Danger Zone -->
+                <div class="card">
+                    <h3 style="margin-bottom: 16px; color: var(--danger);"><i data-lucide="alert-triangle" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Danger Zone</h3>
 
-                    <h4 style="margin-bottom: 16px; color: var(--danger);">Danger Zone</h4>
-
-                    <div style="background: rgba(239, 68, 68, 0.1); padding: 16px; border-radius: 8px; border-left: 3px solid var(--danger);">
-                        <p style="font-size: 14px; margin-bottom: 12px;"><i data-lucide="alert-triangle" style="width: 14px; height: 14px; margin-right: 4px; color: var(--danger); vertical-align: middle;"></i>Clearing data will permanently delete all your reservations, guests, payments, and settings. This action cannot be undone.</p>
+                    <div style="background: rgba(239, 68, 68, 0.08); padding: 16px; border-radius: 8px; border-left: 3px solid var(--danger);">
+                        <p style="font-size: 13px; margin-bottom: 12px; color: var(--text-secondary);">Permanently delete all reservations, guests, payments, and settings. This cannot be undone.</p>
                         <button class="btn btn-danger" onclick="clearAllData()" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Clear All Data</button>
                     </div>
                 </div>
