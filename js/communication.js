@@ -1,5 +1,63 @@
 // ResIQ Communication — Email compose, Gmail integration, message templates
 
+// Gmail connection state (cached from server)
+let gmailConnectionStatus = { connected: false, email: null };
+
+/**
+ * Helper: Get Firebase ID token for authenticated proxy calls
+ */
+async function getFirebaseIdToken() {
+    const user = firebase.auth().currentUser;
+    if (!user) throw new Error('Not authenticated');
+    return user.getIdToken();
+}
+
+/**
+ * Helper: Call the Gmail proxy API
+ */
+async function callGmailProxy(action, params = {}) {
+    const idToken = await getFirebaseIdToken();
+    const response = await fetch('/api/gmail-proxy', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ action, ...params })
+    });
+
+    const result = await response.json();
+
+    if (result.error) {
+        if (result.error.reconnect) {
+            gmailConnectionStatus = { connected: false, email: null };
+            updateGmailConnectionUI(false);
+            updateGmailSendStatus();
+            renderEmailStatusBanner();
+        }
+        throw new Error(result.error.message || result.error);
+    }
+
+    return result.data;
+}
+
+/**
+ * Check Gmail connection status from server
+ */
+async function checkGmailStatus() {
+    try {
+        const status = await callGmailProxy('status');
+        gmailConnectionStatus = { connected: status.connected, email: status.email || null };
+        if (status.email) {
+            localStorage.setItem('gmail_user_email', status.email);
+        }
+        return gmailConnectionStatus;
+    } catch {
+        gmailConnectionStatus = { connected: false, email: null };
+        return gmailConnectionStatus;
+    }
+}
+
 function loadCommunication() {
     try {
         const stored = localStorage.getItem('communicationMessages');
@@ -15,9 +73,9 @@ function loadCommunication() {
 function renderEmailStatusBanner() {
     const banner = document.getElementById('emailStatusBanner');
     if (!banner) return;
-    const connected = !!localStorage.getItem('gmail_access_token');
+    const connected = gmailConnectionStatus.connected;
     if (connected) {
-        const email = localStorage.getItem('gmail_user_email') || 'your Gmail';
+        const email = gmailConnectionStatus.email || localStorage.getItem('gmail_user_email') || 'your Gmail';
         banner.innerHTML = `
             <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #dcfce7; border-radius: 8px; border-left: 3px solid var(--success); font-size: 13px; color: #166534;">
                 <span>✅</span>
@@ -113,7 +171,7 @@ function getChannelIcon(channel) {
 }
 
 function openComposeModal() {
-    const gmailConnected = !!localStorage.getItem('gmail_access_token');
+    const gmailConnected = gmailConnectionStatus.connected;
 
     const modal = document.createElement('div');
     modal.className = 'modal';
@@ -218,7 +276,7 @@ async function loadGuestsForCompose() {
 function updateComposeChannelHint(channel) {
     const hint = document.getElementById('composeChannelHint');
     if (!hint) return;
-    const gmailConnected = !!localStorage.getItem('gmail_access_token');
+    const gmailConnected = gmailConnectionStatus.connected;
     if (channel === 'email') {
         hint.style.background = gmailConnected ? '#e0f2f7' : '#fff7ed';
         hint.innerHTML = gmailConnected
@@ -241,8 +299,8 @@ function updateGmailSendStatus() {
     const connectedDiv = document.getElementById('gmailSendConnected');
     const emailSpan = document.getElementById('gmailSendEmail');
 
-    const connected = !!localStorage.getItem('gmail_access_token');
-    const email = localStorage.getItem('gmail_user_email') || '';
+    const connected = gmailConnectionStatus.connected;
+    const email = gmailConnectionStatus.email || localStorage.getItem('gmail_user_email') || '';
 
     if (badge) {
         badge.style.background = connected ? 'var(--success)' : 'var(--warning)';
@@ -254,26 +312,20 @@ function updateGmailSendStatus() {
 }
 
 async function connectGmailForSending() {
-    const clientId = localStorage.getItem('gmail_client_id');
-    const warningDiv = document.getElementById('gmailSendNoClientId');
-    if (!clientId) {
-        // Show inline warning with link to App Settings
-        if (warningDiv) warningDiv.style.display = 'block';
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-        showToast('Please set up Google OAuth Client ID first in App Settings', 'error');
-        return;
-    }
-    if (warningDiv) warningDiv.style.display = 'none';
     // Reuse the existing Gmail OAuth flow which now includes gmail.send scope
     await connectGmail();
     updateGmailSendStatus();
 }
 
-function disconnectGmailSending() {
+async function disconnectGmailSending() {
     if (!confirm('Disconnect Gmail for sending? You will need to re-authorize.')) return;
-    localStorage.removeItem('gmail_access_token');
+    try {
+        await callGmailProxy('disconnect');
+    } catch (e) {
+        console.error('Error disconnecting Gmail:', e);
+    }
     localStorage.removeItem('gmail_user_email');
-    gmailAccessToken = null;
+    gmailConnectionStatus = { connected: false, email: null };
     updateGmailSendStatus();
     updateGmailConnectionUI(false);
     renderEmailStatusBanner();
@@ -281,52 +333,19 @@ function disconnectGmailSending() {
 }
 
 async function sendEmailViaGmail(toEmail, toName, subject, messageBody) {
-    let token = localStorage.getItem('gmail_access_token');
-    if (!token) {
+    if (!gmailConnectionStatus.connected) {
         throw new Error('Gmail not connected. Go to Settings → Integrations to connect Gmail.');
     }
 
-    const fromEmail = localStorage.getItem('gmail_user_email') || '';
     const businessName = localStorage.getItem('businessName') || 'ResIQ';
 
-    // Build RFC 2822 email message
-    const emailLines = [
-        `From: ${businessName} <${fromEmail}>`,
-        `To: ${toName} <${toEmail}>`,
-        `Subject: ${subject}`,
-        'MIME-Version: 1.0',
-        'Content-Type: text/html; charset=UTF-8',
-        '',
-        messageBody.replace(/\n/g, '<br>')
-    ];
-    const rawMessage = emailLines.join('\r\n');
-
-    // Base64url encode
-    const encoded = btoa(unescape(encodeURIComponent(rawMessage)))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
-
-    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ raw: encoded })
+    return callGmailProxy('send', {
+        to: toEmail,
+        toName: toName,
+        subject: subject,
+        body: messageBody,
+        businessName: businessName
     });
-
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        if (response.status === 401) {
-            localStorage.removeItem('gmail_access_token');
-            updateGmailSendStatus();
-            throw new Error('Gmail session expired. Please reconnect Gmail in Settings → Integrations.');
-        }
-        throw new Error(err.error?.message || 'Failed to send email via Gmail');
-    }
-
-    return response.json();
 }
 
 async function sendComposedMessage() {
@@ -471,32 +490,9 @@ function sendTemplate(templateType) {
 // GMAIL INTEGRATION FUNCTIONS
 // ==========================================
 
-let gmailAccessToken = null;
-let gmailTokenClient = null;
 let gmailAutoScanInterval = null;
 
 const GMAIL_AUTO_SCAN_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours
-
-/**
- * Save Gmail OAuth Client ID
- */
-function saveGmailClientId() {
-    const clientId = document.getElementById('gmailClientId').value.trim();
-
-    if (!clientId) {
-        showToast('Please enter a valid Client ID', 'error');
-        return;
-    }
-
-    // Validate Client ID format
-    if (!clientId.endsWith('.apps.googleusercontent.com')) {
-        showToast('Invalid Client ID format', 'error');
-        return;
-    }
-
-    localStorage.setItem('gmail_client_id', clientId);
-    showToast('✅ Gmail Client ID saved!', 'success');
-}
 
 /**
  * Load Google Identity Services library
@@ -517,24 +513,29 @@ function loadGoogleIdentityServices() {
 }
 
 /**
- * Connect Gmail via OAuth 2.0
+ * Connect Gmail via OAuth 2.0 (Authorization Code Flow)
+ * Tokens are exchanged and stored server-side via /api/gmail-proxy
  */
 async function connectGmail() {
-    const clientId = localStorage.getItem('gmail_client_id');
-
-    if (!clientId) {
-        showToast('Please set up Google OAuth Client ID first (see instructions below)', 'error');
-        return;
-    }
-
     try {
         // Load Google Identity Services
         await loadGoogleIdentityServices();
 
-        // Initialize token client
-        gmailTokenClient = google.accounts.oauth2.initTokenClient({
+        // Fetch client ID from server config
+        const configResponse = await fetch('/api/config');
+        const config = await configResponse.json();
+        const clientId = config.gmailClientId;
+
+        if (!clientId) {
+            showToast('Gmail OAuth not configured on server. Contact administrator.', 'error');
+            return;
+        }
+
+        // Initialize code client (authorization code flow — tokens stay server-side)
+        const codeClient = google.accounts.oauth2.initCodeClient({
             client_id: clientId,
             scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
+            ux_mode: 'popup',
             callback: async (response) => {
                 if (response.error) {
                     console.error('OAuth error:', response);
@@ -542,51 +543,34 @@ async function connectGmail() {
                     return;
                 }
 
-                // Store access token
-                gmailAccessToken = response.access_token;
+                try {
+                    // Send auth code to server for token exchange
+                    const result = await callGmailProxy('callback', { code: response.code });
 
-                // Get user email
-                const userInfo = await getGmailUserInfo();
+                    if (result && result.connected) {
+                        gmailConnectionStatus = { connected: true, email: result.email };
+                        localStorage.setItem('gmail_user_email', result.email);
 
-                if (userInfo) {
-                    // Save to localStorage (in production, store securely in backend)
-                    localStorage.setItem('gmail_access_token', gmailAccessToken);
-                    localStorage.setItem('gmail_user_email', userInfo.emailAddress);
+                        // Update UI
+                        updateGmailConnectionUI(true, result.email);
+                        updateGmailSendStatus();
+                        renderEmailStatusBanner();
 
-                    // Update UI
-                    updateGmailConnectionUI(true, userInfo.emailAddress);
-
-                    showToast('✅ Gmail connected successfully!', 'success');
+                        showToast('✅ Gmail connected successfully!', 'success');
+                    }
+                } catch (err) {
+                    console.error('Error exchanging Gmail auth code:', err);
+                    showToast('Failed to connect Gmail: ' + err.message, 'error');
                 }
             }
         });
 
-        // Request access token
-        gmailTokenClient.requestAccessToken();
+        // Request authorization code
+        codeClient.requestCode();
 
     } catch (error) {
         console.error('Error connecting Gmail:', error);
         showToast('Failed to connect Gmail: ' + error.message, 'error');
-    }
-}
-
-/**
- * Get Gmail user info
- */
-async function getGmailUserInfo() {
-    try {
-        const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
-            headers: {
-                'Authorization': `Bearer ${gmailAccessToken}`
-            }
-        });
-
-        if (!response.ok) throw new Error('Failed to fetch user info');
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error getting Gmail user info:', error);
-        return null;
     }
 }
 
@@ -615,13 +599,18 @@ function updateGmailConnectionUI(connected, email = '') {
 /**
  * Disconnect Gmail
  */
-function disconnectGmail() {
+async function disconnectGmail() {
     if (!confirm('Disconnect Gmail? You will need to re-authorize to scan emails.')) return;
 
-    localStorage.removeItem('gmail_access_token');
+    try {
+        await callGmailProxy('disconnect');
+    } catch (e) {
+        console.error('Error disconnecting Gmail:', e);
+    }
+
     localStorage.removeItem('gmail_user_email');
     localStorage.removeItem('gmail_last_scan');
-    gmailAccessToken = null;
+    gmailConnectionStatus = { connected: false, email: null };
 
     updateGmailConnectionUI(false);
     showToast('Gmail disconnected', 'info');
@@ -631,11 +620,7 @@ function disconnectGmail() {
  * Scan Gmail for booking confirmation emails
  */
 async function scanGmailNow() {
-    if (!gmailAccessToken) {
-        gmailAccessToken = localStorage.getItem('gmail_access_token');
-    }
-
-    if (!gmailAccessToken) {
+    if (!gmailConnectionStatus.connected) {
         showToast('Please connect Gmail first', 'error');
         return;
     }
@@ -710,19 +695,7 @@ async function scanGmailNow() {
  */
 async function searchGmailMessages(query) {
     try {
-        const response = await fetch(
-            `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=20`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${gmailAccessToken}`
-                }
-            }
-        );
-
-        if (!response.ok) throw new Error('Gmail API request failed');
-
-        const data = await response.json();
-        return data.messages || [];
+        return await callGmailProxy('search', { query, maxResults: 20 });
     } catch (error) {
         console.error('Error searching Gmail:', error);
         return [];
@@ -734,19 +707,8 @@ async function searchGmailMessages(query) {
  */
 async function processGmailBookingEmail(messageId) {
     try {
-        // Fetch full message
-        const response = await fetch(
-            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}?format=full`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${gmailAccessToken}`
-                }
-            }
-        );
-
-        if (!response.ok) return { created: false, updated: false };
-
-        const message = await response.json();
+        // Fetch full message via server proxy
+        const message = await callGmailProxy('getMessage', { messageId });
 
         // Extract email body
         const emailBody = extractEmailBody(message);
@@ -1081,15 +1043,17 @@ function toggleGmailAutoScan() {
 /**
  * Initialize Gmail connection on page load
  */
-function initializeGmailConnection() {
-    const accessToken = localStorage.getItem('gmail_access_token');
-    const email = localStorage.getItem('gmail_user_email');
+async function initializeGmailConnection() {
     const lastScan = localStorage.getItem('gmail_last_scan');
     const autoScanEnabled = localStorage.getItem('gmail_auto_scan') === 'true';
 
-    if (accessToken && email) {
-        gmailAccessToken = accessToken;
-        updateGmailConnectionUI(true, email);
+    // Check Gmail connection status from server
+    await checkGmailStatus();
+
+    if (gmailConnectionStatus.connected) {
+        updateGmailConnectionUI(true, gmailConnectionStatus.email);
+        updateGmailSendStatus();
+        renderEmailStatusBanner();
 
         if (lastScan) {
             const lastScanEl = document.getElementById('gmailLastScan');

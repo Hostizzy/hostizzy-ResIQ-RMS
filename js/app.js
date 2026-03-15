@@ -30,10 +30,8 @@ window.addEventListener('load', async () => {
     isOnline = navigator.onLine;
     updateSyncIndicator();
 
-    // Gmail send is initialized via the existing Gmail OAuth connection
-    if (localStorage.getItem('gmail_access_token')) {
-        console.log('[Gmail] Send capability ready via connected Gmail account');
-    }
+    // Gmail send status is checked from server on init (via initializeGmailConnection)
+    // No localStorage token check needed — tokens are stored server-side
     
     // ── Detect password-recovery email link ──
     // Firebase sends reset links with query params: ?mode=resetPassword&oobCode=...
