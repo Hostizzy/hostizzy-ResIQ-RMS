@@ -30,8 +30,12 @@ window.addEventListener('load', async () => {
     isOnline = navigator.onLine;
     updateSyncIndicator();
 
-    // Gmail send status is checked from server on init (via initializeGmailConnection)
-    // No localStorage token check needed — tokens are stored server-side
+    // Check Gmail connection status from server on startup
+    // Tokens are stored server-side — this updates the cached status for all views
+    checkGmailStatus().then(() => {
+        renderEmailStatusBanner();
+        updateGmailSendStatus();
+    }).catch(() => {});
     
     // ── Detect password-recovery email link ──
     // Firebase sends reset links with query params: ?mode=resetPassword&oobCode=...
