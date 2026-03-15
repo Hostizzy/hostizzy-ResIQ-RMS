@@ -6,14 +6,12 @@
         // Auth: Firebase Authentication (email/password)
         // Database: Supabase (PostgreSQL via PostgREST)
         //
-        // SECURITY NOTES:
-        // 1. Enable Row Level Security (RLS) on ALL Supabase tables
-        // 2. Set up environment variables in Vercel dashboard (see .env.example)
-        // 3. Firebase config keys are safe to expose (security enforced via Firebase Rules)
-        // 4. Supabase anon key is safe with RLS enabled
+        // Keys are loaded from /api/config endpoint at runtime.
+        // The proxy client doesn't need the raw Supabase URL/key
+        // (it routes through /api/db-proxy), so no hardcoded secrets needed.
 
-        const SUPABASE_URL = 'https://dxthxsguqrxpurorpokq.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg';
+        var SUPABASE_URL = '';
+        var SUPABASE_ANON_KEY = '';
 
         // Initialize Supabase PROXY client — routes DB calls through /api/db-proxy
         // to avoid ISP blocking of direct supabase.co connections
@@ -24,20 +22,44 @@
         // ==========================================
         // Firebase is used for authentication (replaces Supabase Auth)
         // Supabase is retained for database operations (Postgres)
-        const firebaseConfig = {
-            apiKey: "AIzaSyBZki72Y_X9OaQt4yl5q_f5XgUos4dI1BE",
-            authDomain: "resiq-by-hostizzy.firebaseapp.com",
-            projectId: "resiq-by-hostizzy",
-            storageBucket: "resiq-by-hostizzy.firebasestorage.app",
-            messagingSenderId: "755242026549",
-            appId: "1:755242026549:web:c688a6b1cc794ec2aad37c"
-        };
+        // Config loaded from /api/config — initialized in _initConfig() below.
+        var firebaseAuth = null;
 
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const firebaseAuth = firebase.auth();
+        // Fetch configuration from server and initialize Firebase
+        var _configReady = (async function _initConfig() {
+            try {
+                var resp = await fetch('/api/config');
+                if (resp.ok) {
+                    var cfg = await resp.json();
+                    SUPABASE_URL = cfg.supabaseUrl || '';
+                    SUPABASE_ANON_KEY = cfg.supabaseAnonKey || '';
+                    var firebaseConfig = {
+                        apiKey: cfg.firebaseApiKey,
+                        authDomain: cfg.firebaseAuthDomain,
+                        projectId: cfg.firebaseProjectId,
+                        storageBucket: cfg.firebaseStorageBucket,
+                        messagingSenderId: cfg.firebaseMessagingSenderId,
+                        appId: cfg.firebaseAppId
+                    };
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    firebaseAuth = firebase.auth();
+                    return;
+                }
+            } catch (e) {
+                console.warn('[Config] API fetch failed, using fallback:', e.message);
+            }
+            // Fallback: initialize with minimal config so the app doesn't break offline
+            if (!firebase.apps.length) {
+                firebase.initializeApp({
+                    apiKey: "AIzaSyBZki72Y_X9OaQt4yl5q_f5XgUos4dI1BE",
+                    authDomain: "resiq-by-hostizzy.firebaseapp.com",
+                    projectId: "resiq-by-hostizzy"
+                });
+            }
+            firebaseAuth = firebase.auth();
+        })();
 
         // Firebase Auth Helper - unified auth interface
         const authService = {

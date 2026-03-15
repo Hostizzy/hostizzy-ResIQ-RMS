@@ -15,6 +15,11 @@ function formatDate(dateString) {
 
 // Check login on page load
 window.addEventListener('load', async () => {
+    // Wait for config (Firebase init) to be ready before anything auth-related
+    if (typeof _configReady !== 'undefined') {
+        await _configReady;
+    }
+
     try {
         await initOfflineDB();
         console.log('Offline database ready');
@@ -218,6 +223,16 @@ async function requestNotificationPermission() {
     return false;
 }
 
+// Safe action router — maps notification action strings to functions (no eval)
+const notificationActions = {
+    'showPayments': () => showView('payments'),
+    'showReservations': () => showView('reservations'),
+    'showGuests': () => showView('guests'),
+    'showDocuments': () => showView('documents'),
+    'showHome': () => showView('home'),
+    'filterUrgent': () => applyQuickFilter('urgent')
+};
+
 function sendNotification(title, body, data = {}) {
     if (Notification.permission === 'granted') {
         const notification = new Notification(title, {
@@ -228,11 +243,11 @@ function sendNotification(title, body, data = {}) {
             requireInteraction: data.requireInteraction || false,
             data: data
         });
-        
+
         notification.onclick = () => {
             window.focus();
-            if (data.action) {
-                eval(data.action);
+            if (data.action && notificationActions[data.action]) {
+                notificationActions[data.action]();
             }
             notification.close();
         };
@@ -264,7 +279,7 @@ async function checkUrgentNotifications() {
             { 
                 tag: 'overdue-payments',
                 requireInteraction: true,
-                action: "showView('payments')"
+                action: 'showPayments'
             }
         );
     }
@@ -282,7 +297,7 @@ async function checkUrgentNotifications() {
             `${todayCheckIns.length} guest(s) checking in today`,
             { 
                 tag: 'today-checkins',
-                action: "applyQuickFilter('urgent')"
+                action: 'filterUrgent'
             }
         );
     }

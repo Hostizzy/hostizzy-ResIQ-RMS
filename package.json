@@ -8,6 +8,8 @@
     "twa:build": "npx @bubblewrap/cli build",
     "twa:update": "npx @bubblewrap/cli update --manifest https://resiq.hostizzy.com/manifest.json",
     "twa:validate": "npx @bubblewrap/cli validate --url https://resiq.hostizzy.com",
+    "build": "node scripts/build.js",
+    "build:fast": "node scripts/build.js --fast",
     "serve": "python3 -m http.server 8080",
     "generate-logos": "python3 generate-logos.py || bash generate-logos.sh"
   },
@@ -23,6 +25,8 @@
   "author": "Hostizzy",
   "license": "UNLICENSED",
   "private": true,
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "javascript-obfuscator": "^5.3.0",
+    "terser": "^5.46.0"
+  }
 }

@@ -802,9 +802,10 @@
 /* ========================================
    CONFIGURATION & CONSTANTS
    ======================================== */
+// Keys loaded from /api/config at runtime (no hardcoded secrets in source)
 const CONFIG = {
-  SUPABASE_URL: 'https://dxthxsguqrxpurorpokq.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dGh4c2d1cXJ4cHVyb3Jwb2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMjc4MTMsImV4cCI6MjA3NTYwMzgxM30.JhGzqUolA-A_fGha-0DhHVl7p1vRq4CZcp5ttdVxjQg',
+  SUPABASE_URL: '',
+  SUPABASE_ANON_KEY: '',
   SESSION_KEY: 'hz_guest_session_v2',
   POLL_INTERVAL: 5000,
   SESSION_TIMEOUT: 24 * 60 * 60 * 1000,
@@ -814,6 +815,18 @@ const CONFIG = {
   SPECIAL_REQUESTS: ['Spicy', 'No Spice', 'Extra Oil', 'No Onion', 'No Garlic'],
   ID_NEEDS_BACK: ['aadhar', 'driving_license', 'voter_id']
 };
+
+// Fetch config from server (guest portal only needs Supabase keys, no Firebase)
+var _guestConfigReady = (async function() {
+    try {
+        var resp = await fetch('/api/config');
+        if (resp.ok) {
+            var cfg = await resp.json();
+            CONFIG.SUPABASE_URL = cfg.supabaseUrl || '';
+            CONFIG.SUPABASE_ANON_KEY = cfg.supabaseAnonKey || '';
+        }
+    } catch (e) { /* proxy client handles DB calls — keys only needed for direct access */ }
+})();
 
 // Use proxy to avoid ISP blocking of direct supabase.co connections
 const client = createSupabaseProxy();
