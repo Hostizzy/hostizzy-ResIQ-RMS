@@ -88,7 +88,7 @@
                         showMainApp(currentUser);
                         await loadDashboard();
                         showToast('Welcome!', `Logged in as ${profile.name}`, '👋');
-                        const lastView = localStorage.getItem('lastView') || 'home';
+                        const lastView = (typeof getInitialView === 'function') ? getInitialView() : (localStorage.getItem('lastView') || 'home');
                         showView(lastView);
                         if (lastView === 'home') setTimeout(() => updateHomeScreenStats(), 500);
                         return;

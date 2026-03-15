@@ -637,6 +637,13 @@ async function showView(viewName) {
     const viewEl = document.getElementById(`${viewName}View`);
     viewEl.classList.remove('hidden');
 
+    // Update browser URL to /app/viewName (skip if router already handled it)
+    const expectedPath = `/app/${viewName}`;
+    if (window.location.pathname !== expectedPath) {
+        window.history.pushState({ view: viewName }, '', expectedPath);
+    }
+    document.title = (viewName.charAt(0).toUpperCase() + viewName.slice(1)) + ' - ResIQ';
+
     // Remove active state from all navigation items
     document.querySelectorAll('.nav-link, .sidebar-item').forEach(link => {
         link.classList.remove('active');
@@ -708,6 +715,36 @@ async function showView(viewName) {
         if (typeof refreshIcons === 'function') refreshIcons(viewEl || undefined);
     });
 }
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', (e) => {
+    if (e.state?.view) {
+        showView(e.state.view);
+    } else {
+        // Parse view from URL path
+        const match = window.location.pathname.match(/^\/app\/([^/]+)$/);
+        if (match) showView(match[1]);
+    }
+});
+
+// On initial page load, set the URL if we're restoring from localStorage
+(function setInitialURL() {
+    const path = window.location.pathname;
+    // Only act if we're on /app with no sub-path
+    if (path === '/app' || path === '/app/' || path === '/app.html') {
+        const savedView = localStorage.getItem('lastView') || 'home';
+        window.history.replaceState({ view: savedView }, '', `/app/${savedView}`);
+    } else {
+        // If URL has a view path like /app/dashboard, navigate to it
+        const match = path.match(/^\/app\/([^/]+)$/);
+        if (match && match[1]) {
+            const viewEl = document.getElementById(`${match[1]}View`);
+            if (viewEl) {
+                window.history.replaceState({ view: match[1] }, '', path);
+            }
+        }
+    }
+})();
 
 // Lightweight transition loader for revisited views
 function showViewTransitionLoader(viewEl) {
