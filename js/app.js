@@ -1,5 +1,12 @@
 // ResIQ App — Main app initialization, splash screen, session restore, push notifications
 
+/** Get initial view from URL path, falling back to localStorage, then 'home' */
+function getInitialView() {
+    const match = window.location.pathname.match(/^\/app\/([^/]+)$/);
+    if (match && match[1]) return match[1];
+    return localStorage.getItem('lastView') || 'home';
+}
+
 function formatDate(dateString) {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -90,7 +97,7 @@ window.addEventListener('load', async () => {
                     }, 500);
                 }
             }, 3000);
-            const lastView = localStorage.getItem('lastView') || 'home';
+            const lastView = getInitialView();
             setTimeout(() => showView(lastView), 300);
 
             // Load data immediately on all devices — no artificial delays
@@ -148,7 +155,7 @@ function initializeSplashScreen() {
             if (!splash) return;
             splash.style.display = 'none';
             // Restore last view or default to home
-            const lastView = localStorage.getItem('lastView') || 'home';
+            const lastView = getInitialView();
             showView(lastView);
             // Update home stats if on home view
             if (lastView === 'home') {
@@ -178,7 +185,7 @@ function handleAppResume() {
             }, 250);
         }
 
-        const lastView = localStorage.getItem('lastView') || 'home';
+        const lastView = getInitialView();
         if (typeof showView === 'function') {
             setTimeout(() => showView(lastView), 0);
         }

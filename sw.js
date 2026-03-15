@@ -11,6 +11,7 @@
  * 4. Use 'var' (not const) for global variables in inline <script> tags
  *
  * Update Log:
+ * - v5.28.0: Fix SW redirect error - strip redirected flag from responses (cleanUrls compatibility)
  * - v5.21.0: Dashboard visual upgrade - dynamic greeting, quick actions, count-up animations, scroll-to-top, micro-interactions, accessibility, preconnect hints
  * - v5.20.0: Landing page, login redesign, brand color fixes (teal consistency)
  * - v5.18.0: Monolith split phase 1 - extracted 5700 lines CSS to css/main.css, added view router with History API + lazy-loading, shared utilities module, fixed QR codes (real qrcode-generator library), mobile guest cards, bottom tabs redesign
@@ -38,7 +39,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.26.0';
+const CACHE_VERSION = 'v5.28.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -209,22 +210,40 @@ self.addEventListener('fetch', (event) => {
   // IMPORTANT: Always fetch fresh HTML to avoid serving stale/broken JavaScript
   // This prevents issues like duplicate variable declarations and missing functions
   if (request.mode === 'navigate') {
+    // SPA routing: /app/* sub-paths should all serve app.html
+    const isAppSubPath = url.pathname.startsWith('/app/');
+    const fetchUrl = isAppSubPath
+      ? new Request(url.origin + '/app.html', { redirect: 'follow' })
+      : new Request(request.url, { redirect: 'follow' });
+
     event.respondWith(
-      fetch(new Request(request.url, { redirect: 'follow' }), { cache: 'no-store' })
+      fetch(fetchUrl, { cache: 'no-store' })
         .then((response) => {
-          // Only cache clean, non-redirected HTML responses for offline use
-          if (response && response.status === 200 && !response.redirected) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              // Cache the actual request URL, not just index.html
-              cache.put(request, responseClone);
+          // If the response was redirected (e.g. cleanUrls redirecting /app.html → /app),
+          // create a clean Response to avoid "redirected response used for a request whose
+          // redirect mode is not follow" error
+          let finalResponse = response;
+          if (response.redirected) {
+            finalResponse = new Response(response.body, {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers
             });
           }
-          return response;
+
+          // Only cache clean, non-redirected HTML responses for offline use
+          if (finalResponse && finalResponse.status === 200) {
+            const responseClone = finalResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              // Cache as app.html so all sub-paths share the same cache entry
+              cache.put(isAppSubPath ? '/app.html' : request.url, responseClone);
+            });
+          }
+          return finalResponse;
         })
         .catch(() => {
           // Offline fallback: serve cached version of the requested page
-          return caches.match(request)
+          return caches.match(isAppSubPath ? '/app.html' : request)
             .then((cachedResponse) => {
               if (cachedResponse) return cachedResponse;
               // If no cached version, try app.html, then offline page

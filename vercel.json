@@ -2,20 +2,28 @@
   "redirects": [],
   "rewrites": [
     {
-      "source": "/owner-portal",
-      "destination": "/owner-portal.html"
-    },
-    {
-      "source": "/guest-portal",
-      "destination": "/guest-portal.html"
+      "source": "/app/:path*",
+      "destination": "/app.html"
     },
     {
       "source": "/app",
       "destination": "/app.html"
     },
     {
-      "source": "/app/(.*)",
-      "destination": "/app.html"
+      "source": "/owner-portal/:path*",
+      "destination": "/owner-portal.html"
+    },
+    {
+      "source": "/owner-portal",
+      "destination": "/owner-portal.html"
+    },
+    {
+      "source": "/guest-portal/:path*",
+      "destination": "/guest-portal.html"
+    },
+    {
+      "source": "/guest-portal",
+      "destination": "/guest-portal.html"
     }
   ],
   "cleanUrls": true
