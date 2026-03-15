@@ -38,7 +38,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.26.0';
+const CACHE_VERSION = 'v5.27.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -209,22 +209,28 @@ self.addEventListener('fetch', (event) => {
   // IMPORTANT: Always fetch fresh HTML to avoid serving stale/broken JavaScript
   // This prevents issues like duplicate variable declarations and missing functions
   if (request.mode === 'navigate') {
+    // SPA routing: /app/* sub-paths should all serve app.html
+    const isAppSubPath = url.pathname.startsWith('/app/');
+    const fetchUrl = isAppSubPath
+      ? new Request(url.origin + '/app.html', { redirect: 'follow' })
+      : new Request(request.url, { redirect: 'follow' });
+
     event.respondWith(
-      fetch(new Request(request.url, { redirect: 'follow' }), { cache: 'no-store' })
+      fetch(fetchUrl, { cache: 'no-store' })
         .then((response) => {
           // Only cache clean, non-redirected HTML responses for offline use
           if (response && response.status === 200 && !response.redirected) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              // Cache the actual request URL, not just index.html
-              cache.put(request, responseClone);
+              // Cache as app.html so all sub-paths share the same cache entry
+              cache.put(isAppSubPath ? '/app.html' : request.url, responseClone);
             });
           }
           return response;
         })
         .catch(() => {
           // Offline fallback: serve cached version of the requested page
-          return caches.match(request)
+          return caches.match(isAppSubPath ? '/app.html' : request)
             .then((cachedResponse) => {
               if (cachedResponse) return cachedResponse;
               // If no cached version, try app.html, then offline page
