@@ -598,6 +598,8 @@
             border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
+            background: var(--surface);
+            color: var(--text);
         }
 
         .form-group input:focus,
@@ -605,6 +607,12 @@
         .form-group select:focus {
             outline: none;
             border-color: var(--primary);
+        }
+
+        /* Global select/input styling for dark mode support */
+        select, input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"] {
+            background: var(--surface);
+            color: var(--text);
         }
 
         .form-group small {
@@ -1398,7 +1406,7 @@
                     <span class="icon">📅</span> Bookings
                 </button>
                 <button class="sidebar-nav-item" onclick="showOwnerView('ownerPayments')">
-                    <span class="icon">💵</span> Payments
+                    <span class="icon">💵</span> Revenue
                 </button>
                 <button class="sidebar-nav-item" onclick="showOwnerView('ownerCalendar')">
                     <span class="icon">🗓️</span> Calendar
@@ -1509,8 +1517,8 @@
 
                             <div class="home-card warning" onclick="showOwnerView('ownerPayments')">
                                 <div class="home-card-icon">💵</div>
-                                <div class="home-card-title">Payment Collections</div>
-                                <div class="home-card-description">Track payments received for your properties</div>
+                                <div class="home-card-title">Reservation Revenue</div>
+                                <div class="home-card-description">Revenue from your property reservations by check-in month</div>
                             </div>
 
                             <div class="home-card" onclick="showOwnerView('ownerCalendar')">
@@ -1639,7 +1647,7 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Search</label>
-                            <input type="text" id="bookingsSearch" placeholder="Search booking ID, guest name, phone..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;" oninput="filterOwnerBookings()">
+                            <input type="text" id="bookingsSearch" placeholder="Search booking ID, guest name, phone..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;" oninput="debouncedFilterBookings()">
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Property</label>
@@ -1672,7 +1680,7 @@
                         <div style="color: var(--text-secondary); font-size: 14px;">
                             <span id="bookingsCount">0</span> bookings found
                         </div>
-                        <button onclick="clearBookingsFilters()" style="padding: 8px 16px; border: 1px solid var(--border); background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                        <button onclick="clearBookingsFilters()" style="padding: 8px 16px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 6px; cursor: pointer; font-size: 14px;">
                             Clear Filters
                         </button>
                     </div>
@@ -1705,28 +1713,28 @@
             <!-- Payments View -->
             <div id="ownerPaymentsView" class="owner-view hidden">
                 <div style="margin-bottom: 24px;">
-                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Payment Collections</h3>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Track all payments received for your properties</p>
+                    <h3 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">Reservation Revenue</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Revenue from reservations grouped by check-in month</p>
                 </div>
 
                 <!-- Filters -->
                 <div class="card" style="margin-bottom: 24px;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                         <div>
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Month</label>
-                            <select id="paymentMonthFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Check-in Month</label>
+                            <select id="paymentMonthFilter" onchange="filterOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="">All Months</option>
                             </select>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Filter by Property</label>
-                            <select id="paymentPropertyFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            <select id="paymentPropertyFilter" onchange="filterOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="">All Properties</option>
                             </select>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Payout Status</label>
-                            <select id="paymentPayoutFilter" onchange="loadOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+                            <select id="paymentPayoutFilter" onchange="filterOwnerPayments()" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="">All</option>
                                 <option value="eligible">Eligible for Payout</option>
                                 <option value="paid_out">Already Paid Out</option>
@@ -1739,15 +1747,15 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <div class="stat-card">
                         <div class="stat-value" id="paymentsTotal">₹0</div>
-                        <div class="stat-label">Total Payments</div>
+                        <div class="stat-label">Total Revenue</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="paymentsToOwner">₹0</div>
-                        <div class="stat-label">Paid to Owner</div>
+                        <div class="stat-label">Owner Earnings</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="paymentsToHostizzy">₹0</div>
-                        <div class="stat-label">Paid to Hostizzy</div>
+                        <div class="stat-label">Hostizzy Commission</div>
                     </div>
                 </div>
 
@@ -2249,18 +2257,22 @@
             // Show selected view
             document.getElementById(viewName + 'View').classList.remove('hidden');
 
-            // Update sidebar active state
+            // Update sidebar active state based on viewName (not event)
             document.querySelectorAll('.sidebar-nav-item').forEach(btn => {
                 btn.classList.remove('active');
+                // Match sidebar button to view by checking onclick attribute
+                const onclickAttr = btn.getAttribute('onclick') || '';
+                if (onclickAttr.includes("'" + viewName + "'")) {
+                    btn.classList.add('active');
+                }
             });
-            event.target.closest('.sidebar-nav-item')?.classList.add('active');
 
             // Update page title
             const pageTitles = {
                 'ownerHome': 'Home',
                 'ownerDashboard': 'Analytics Dashboard',
                 'ownerBookings': 'Bookings',
-                'ownerPayments': 'Payment Collections',
+                'ownerPayments': 'Reservation Revenue',
                 'ownerCalendar': 'Availability Calendar',
                 'ownerPayouts': 'Payout History',
                 'ownerExpenses': 'Property Expenses',
@@ -2333,7 +2345,14 @@
                 // Calculate Hostizzy revenue using the hostizzy_revenue field from database (same as main app)
                 const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
 
-                const netEarnings = totalRevenue - totalHostizzyShare;
+                // Calculate payout eligible (total - OTA fees) before subtracting commission
+                const totalPayoutEligible = confirmedBookings.reduce((sum, b) => {
+                    const total = parseFloat(b.total_amount) || 0;
+                    const otaFee = parseFloat(b.ota_service_fee) || 0;
+                    return sum + (total - otaFee);
+                }, 0);
+
+                const netEarnings = totalPayoutEligible - totalHostizzyShare;
                 const pendingPayout = await db.getOwnerPendingPayout(ownerId);
 
                 document.getElementById('homeQuickTotalRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 });

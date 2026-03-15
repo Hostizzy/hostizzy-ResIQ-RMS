@@ -433,7 +433,7 @@ function loadRevenueCharts() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.parsed || 0;
-                                const percentage = ((value / totalRevenue) * 100).toFixed(1);
+                                const percentage = totalPayoutEligible > 0 ? ((value / totalPayoutEligible) * 100).toFixed(1) : '0.0';
                                 return `${label}: ₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })} (${percentage}%)`;
                             }
                         }
@@ -547,7 +547,18 @@ async function loadOwnerPayments() {
             return;
         }
 
-        // Populate property filter
+        // Sort payments by booking check-in date (descending) instead of payment_date
+        if (ownerData.payments && ownerData.bookings) {
+            ownerData.payments.sort((a, b) => {
+                const bookingA = ownerData.bookings.find(bk => bk.booking_id === a.booking_id);
+                const bookingB = ownerData.bookings.find(bk => bk.booking_id === b.booking_id);
+                const dateA = bookingA && bookingA.check_in ? new Date(bookingA.check_in) : new Date(0);
+                const dateB = bookingB && bookingB.check_in ? new Date(bookingB.check_in) : new Date(0);
+                return dateB - dateA;
+            });
+        }
+
+        // Populate property filter (only on first load)
         const propertyFilter = document.getElementById('paymentPropertyFilter');
         if (propertyFilter.options.length === 1) {
             ownerData.properties.forEach(property => {
@@ -558,68 +569,84 @@ async function loadOwnerPayments() {
             });
         }
 
-        // Populate month filter (last 12 months)
+        // Populate month filter from booking check-in dates (only on first load)
         const monthFilter = document.getElementById('paymentMonthFilter');
         if (monthFilter.options.length === 1) {
-            for (let i = 0; i < 12; i++) {
-                const date = new Date();
-                date.setMonth(date.getMonth() - i);
-                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                const monthLabel = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+            // Build unique months from booking check-in dates
+            const monthSet = {};
+            (ownerData.bookings || []).forEach(booking => {
+                if (booking.check_in) {
+                    const date = new Date(booking.check_in);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    const monthLabel = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+                    monthSet[monthKey] = monthLabel;
+                }
+            });
+            // Sort descending (newest first)
+            Object.keys(monthSet).sort((a, b) => b.localeCompare(a)).forEach(monthKey => {
                 const option = document.createElement('option');
                 option.value = monthKey;
-                option.textContent = monthLabel;
+                option.textContent = monthSet[monthKey];
                 monthFilter.appendChild(option);
-            }
-        }
-
-        // Filter payments
-        let filteredPayments = ownerData.payments;
-
-        const selectedMonth = monthFilter.value;
-        const selectedProperty = propertyFilter.value;
-        const selectedPayoutStatus = document.getElementById('paymentPayoutFilter').value;
-
-        if (selectedMonth) {
-            filteredPayments = filteredPayments.filter(p => {
-                const date = new Date(p.payment_date);
-                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                return monthKey === selectedMonth;
             });
         }
 
-        if (selectedProperty) {
-            filteredPayments = filteredPayments.filter(p => {
-                const booking = ownerData.bookings.find(b => b.booking_id === p.booking_id);
-                return booking && booking.property_id == selectedProperty;
-            });
-        }
-
-        // Calculate summary
-        const totalPayments = filteredPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-        const paymentsToOwner = filteredPayments
-            .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('owner'))
-            .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-        const paymentsToHostizzy = filteredPayments
-            .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('hostizzy'))
-            .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-
-        document.getElementById('paymentsTotal').textContent = '₹' + totalPayments.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        document.getElementById('paymentsToOwner').textContent = '₹' + paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        document.getElementById('paymentsToHostizzy').textContent = '₹' + paymentsToHostizzy.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-
-        renderOwnerPaymentsList(filteredPayments);
+        // Apply filters using cached data (no DB call needed)
+        filterOwnerPayments();
 
     } catch (error) {
-        showToast('Error', 'Failed to load payments: ' + error.message, '❌');
+        showToast('Error', 'Failed to load revenue data: ' + error.message, '❌');
     }
+}
+
+// Filter payments locally using cached ownerData (no DB calls)
+function filterOwnerPayments() {
+    let filteredPayments = ownerData.payments || [];
+
+    const monthFilter = document.getElementById('paymentMonthFilter');
+    const propertyFilter = document.getElementById('paymentPropertyFilter');
+    const selectedMonth = monthFilter?.value || '';
+    const selectedProperty = propertyFilter?.value || '';
+
+    if (selectedMonth) {
+        filteredPayments = filteredPayments.filter(p => {
+            // Group by reservation check-in month, not payment date
+            const booking = ownerData.bookings.find(b => b.booking_id === p.booking_id);
+            if (!booking || !booking.check_in) return false;
+            const date = new Date(booking.check_in);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            return monthKey === selectedMonth;
+        });
+    }
+
+    if (selectedProperty) {
+        filteredPayments = filteredPayments.filter(p => {
+            const booking = ownerData.bookings.find(b => b.booking_id === p.booking_id);
+            return booking && booking.property_id == selectedProperty;
+        });
+    }
+
+    // Calculate summary
+    const totalPayments = filteredPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    const paymentsToOwner = filteredPayments
+        .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('owner'))
+        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    const paymentsToHostizzy = filteredPayments
+        .filter(p => p.payment_recipient && p.payment_recipient.toLowerCase().includes('hostizzy'))
+        .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+
+    document.getElementById('paymentsTotal').textContent = '₹' + totalPayments.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    document.getElementById('paymentsToOwner').textContent = '₹' + paymentsToOwner.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    document.getElementById('paymentsToHostizzy').textContent = '₹' + paymentsToHostizzy.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+    renderOwnerPaymentsList(filteredPayments);
 }
 
 function renderOwnerPaymentsList(payments) {
     const container = document.getElementById('ownerPaymentsList');
 
     if (payments.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No payments found</p>';
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No revenue records found</p>';
         return;
     }
 
@@ -632,6 +659,8 @@ function renderOwnerPaymentsList(payments) {
         payments.forEach(payment => {
             const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
             const propertyName = booking ? booking.property_name : 'Unknown';
+            const checkInDate = booking && booking.check_in ? new Date(booking.check_in).toLocaleDateString('en-IN') : 'N/A';
+            const bookingSource = booking && booking.booking_source ? booking.booking_source : 'DIRECT';
 
             html += `
                 <div class="booking-mobile-card">
@@ -646,8 +675,12 @@ function renderOwnerPaymentsList(payments) {
                     </div>
                     <div class="booking-mobile-card-body">
                         <div class="booking-mobile-row">
-                            <span class="booking-mobile-label">Payment Date</span>
-                            <span class="booking-mobile-value">${new Date(payment.payment_date).toLocaleDateString('en-IN')}</span>
+                            <span class="booking-mobile-label">Check-in</span>
+                            <span class="booking-mobile-value">${checkInDate}</span>
+                        </div>
+                        <div class="booking-mobile-row">
+                            <span class="booking-mobile-label">Source</span>
+                            <span class="booking-mobile-value">${bookingSource}</span>
                         </div>
                         <div class="booking-mobile-row">
                             <span class="booking-mobile-label">Method</span>
@@ -672,9 +705,10 @@ function renderOwnerPaymentsList(payments) {
     } else {
         // Desktop table layout
         let html = '<div class="table-container"><table class="data-table"><thead><tr>';
-        html += '<th>Payment Date</th>';
+        html += '<th>Check-in Date</th>';
         html += '<th>Booking ID</th>';
         html += '<th>Property</th>';
+        html += '<th>Source</th>';
         html += '<th>Amount</th>';
         html += '<th>Method</th>';
         html += '<th>Recipient</th>';
@@ -684,11 +718,14 @@ function renderOwnerPaymentsList(payments) {
         payments.forEach(payment => {
             const booking = ownerData.bookings.find(b => b.booking_id === payment.booking_id);
             const propertyName = booking ? booking.property_name : 'Unknown';
+            const checkInDate = booking && booking.check_in ? new Date(booking.check_in).toLocaleDateString('en-IN') : 'N/A';
+            const bookingSource = booking && booking.booking_source ? booking.booking_source : 'DIRECT';
 
             html += '<tr>';
-            html += `<td>${new Date(payment.payment_date).toLocaleDateString('en-IN')}</td>`;
+            html += `<td>${checkInDate}</td>`;
             html += `<td><strong>${payment.booking_id}</strong></td>`;
             html += `<td>${propertyName}</td>`;
+            html += `<td><span style="font-size: 12px;">${bookingSource}</span></td>`;
             html += `<td><strong style="color: var(--success);">₹${parseFloat(payment.amount).toLocaleString('en-IN')}</strong></td>`;
             html += `<td>${payment.payment_method || 'N/A'}</td>`;
             html += `<td>${payment.payment_recipient || 'N/A'}</td>`;
@@ -1004,6 +1041,9 @@ async function loadOwnerBookings() {
         showToast('Error', 'Failed to load bookings', '❌');
     }
 }
+
+// Debounced filter for search input (prevents lag on every keystroke)
+const debouncedFilterBookings = debounce(filterOwnerBookings, 300);
 
 // Filter Owner Bookings
 function filterOwnerBookings() {
@@ -1326,13 +1366,10 @@ async function loadOwnerPayouts() {
                 }
 
                 // Settlement calculation:
-                // Property Share = payout_eligible - commission
-                // Hostizzy owes Property = Property Share - Received by Property - Expenses
-                // Property owes Hostizzy = Commission - Received by Hostizzy
-                // Net Settlement = what Hostizzy owes Property (positive) or Property owes Hostizzy (negative)
-                const hostizzyOwesProperty = propertyShare - totalToOwner - monthExpenses;
-                const propertyOwesHostizzy = totalCommission - totalToHostizzy;
-                const netSettlement = hostizzyOwesProperty - propertyOwesHostizzy;
+                // Property Share = payout_eligible - commission (commission already deducted)
+                // Net Settlement = Property Share - Paid to Owner + Paid to Hostizzy - Expenses
+                // Positive = Hostizzy owes Owner, Negative = Owner owes Hostizzy
+                const netSettlement = propertyShare - totalToOwner + totalToHostizzy - monthExpenses;
 
                 monthlySettlements.push({
                     year,
@@ -1935,18 +1972,18 @@ async function loadOwnerExpenses() {
     }
 }
 
-// Resize handler for mobile optimization
-window.addEventListener('resize', () => {
-    // Reload current view to adjust for mobile/desktop
+// Resize handler for mobile optimization (debounced to prevent excessive re-renders)
+window.addEventListener('resize', debounce(() => {
+    // Re-render current view to adjust for mobile/desktop layout (uses cached data, no DB calls)
     const activeView = document.querySelector('.owner-view:not(.hidden)');
     if (activeView) {
         const viewName = activeView.id.replace('View', '');
         if (viewName === 'ownerDashboard') {
             renderOwnerRecentBookings(ownerData.bookings.slice(0, 10));
-        } else if (viewName === 'ownerBookings') {
-            loadOwnerBookings();
+        } else if (viewName === 'ownerBookings' && filteredOwnerBookings.length > 0) {
+            renderOwnerBookingsList(filteredOwnerBookings);
         } else if (viewName === 'ownerPayments') {
             renderOwnerPaymentsList(ownerData.payments);
         }
     }
-});
+}, 500));
