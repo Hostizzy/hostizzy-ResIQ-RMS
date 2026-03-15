@@ -51,12 +51,26 @@ jobs:
 
       - name: Generate missing logo assets
         run: |
-          sudo apt-get update && sudo apt-get install -y imagemagick
           cd assets/
-          convert logo.png -resize 96x96 logo-96.png
-          convert logo.png -resize 128x128 logo-128.png
-          convert logo.png -resize 256x256 logo-256.png
-          convert logo.png -resize 384x384 logo-384.png
+          # Determine source logo (handle case-sensitivity: Logo.png vs logo.png)
+          if [ -f "logo.png" ]; then
+            SRC="logo.png"
+          elif [ -f "Logo.png" ]; then
+            SRC="Logo.png"
+          else
+            echo "ERROR: No logo source file found in assets/" && exit 1
+          fi
+          # Only generate sizes that are missing
+          sudo apt-get update && sudo apt-get install -y imagemagick
+          for size in 96 128 256 384; do
+            target="logo-${size}.png"
+            if [ ! -f "$target" ]; then
+              echo "Generating $target from $SRC"
+              convert "$SRC" -resize ${size}x${size} "$target"
+            else
+              echo "Skipping $target (already exists)"
+            fi
+          done
 
       - name: Decode keystore
         run: |
