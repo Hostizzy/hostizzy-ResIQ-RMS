@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS enquiries (
     guest_email TEXT,
 
     -- Enquiry Details
-    property_id UUID REFERENCES properties(id) ON DELETE SET NULL,
+    property_id INTEGER REFERENCES properties(id) ON DELETE SET NULL,
     property_name TEXT,
     check_in DATE,
     check_out DATE,
