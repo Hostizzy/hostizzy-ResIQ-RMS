@@ -9,6 +9,10 @@
  *   POST { action: "sendText", to, text }               — Send a plain text message
  *   POST { action: "status" }                            — Check WABA connection
  *
+ * Webhook: https://hostos.hostizzy.com/api/webhooks/whatsapp (shared with Hostos)
+ * ResIQ does NOT have its own inbox — CTA buttons direct guests to reply
+ * to a property-specific WhatsApp number instead.
+ *
  * Environment variables required:
  *   WHATSAPP_ACCESS_TOKEN   — Permanent token from Meta Business
  *   WHATSAPP_PHONE_ID       — Phone Number ID (central sending number)

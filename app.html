@@ -4061,6 +4061,15 @@
                                 <li>If no property number is set, guests reply to the central number (+919560494001)</li>
                             </ol>
                         </div>
+
+                        <div style="background: var(--background); border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid var(--border);">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Webhook (shared with Hostos)</h4>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <code style="flex: 1; padding: 8px 12px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); font-size: 12px; word-break: break-all; user-select: all;">https://hostos.hostizzy.com/api/webhooks/whatsapp</code>
+                                <button onclick="navigator.clipboard.writeText('https://hostos.hostizzy.com/api/webhooks/whatsapp'); showToast('Copied', 'Webhook URL copied', '')" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 11px; white-space: nowrap;">Copy</button>
+                            </div>
+                            <p style="font-size: 11px; color: var(--text-tertiary); margin: 0;">Registered in Meta Developer Console. Shared between Hostos and ResIQ for incoming messages and delivery status updates.</p>
+                        </div>
                     </div>
 
                     <div class="form-group">
