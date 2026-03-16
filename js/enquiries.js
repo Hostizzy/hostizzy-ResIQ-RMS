@@ -257,6 +257,7 @@ async function openEnquiryModal(enquiryId = null) {
     const isEdit = !!enq;
     const modal = document.createElement('div');
     modal.className = 'modal';
+    modal.dataset.enquiryModal = 'true';
     modal.style.display = 'flex';
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
@@ -428,6 +429,7 @@ function openEnquiryDetail(enquiryId) {
 
     const modal = document.createElement('div');
     modal.className = 'modal';
+    modal.dataset.enquiryModal = 'true';
     modal.style.display = 'flex';
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
@@ -538,8 +540,8 @@ async function convertEnquiryToBooking(enquiryId) {
     const enq = enquiriesData.find(e => e.id === enquiryId);
     if (!enq) return;
 
-    // Close the detail modal
-    document.querySelectorAll('.modal').forEach(m => m.remove());
+    // Close only dynamically-created enquiry modals (not static app modals like reservationModal)
+    document.querySelectorAll('.modal[data-enquiry-modal]').forEach(m => m.remove());
 
     // Pre-fill reservation modal with enquiry data
     if (typeof openReservationModal === 'function') {

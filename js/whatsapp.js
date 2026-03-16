@@ -240,6 +240,32 @@ window.sendWhatsAppMessage = async function(booking_id, template = 'booking_conf
     }
 };
 
+/**
+ * Send WhatsApp via normal wa.me link (opens WhatsApp web/app).
+ * Used when user explicitly picks "WhatsApp" channel in messaging modal.
+ */
+window.sendWhatsAppNormal = async function(booking, template = 'booking_confirmation', customMessage = null) {
+    try {
+        if (!booking.guest_phone) { showToast('Error', 'Guest phone number not available', '❌'); return; }
+
+        const whatsappUrl = generateWhatsAppLink(booking, template, customMessage);
+        window.open(whatsappUrl, '_blank');
+
+        const message = customMessage || whatsappTemplates[template](booking);
+        await logCommunication({
+            booking_id: booking.booking_id, guest_name: booking.guest_name, guest_phone: booking.guest_phone,
+            message_type: 'whatsapp', template_used: template,
+            message_content: message, sent_by: currentUser?.email || 'system'
+        });
+
+        showToast('WhatsApp Opened', `Message ready for ${booking.guest_name}`, '📱');
+        if ('vibrate' in navigator) navigator.vibrate([10, 50, 10]);
+    } catch (error) {
+        console.error('WhatsApp error:', error);
+        showToast('Error', 'Failed to open WhatsApp: ' + error.message, '❌');
+    }
+};
+
 // ============================================
 // WHATSAPP BUSINESS API — SEND WITH CTA BUTTON
 // ============================================
@@ -296,7 +322,16 @@ window.sendWhatsAppViaAPI = async function(booking, template = 'booking_confirma
             throw new Error(json.error.message || json.error);
         }
 
-        showToast('Message Sent', `WhatsApp sent to ${booking.guest_name} via Business API`, '✅');
+        // Validate that a message ID was actually returned
+        const msgId = json.meta?.messageId || json.data?.messages?.[0]?.id;
+        const sentPhone = json.meta?.formattedPhone || booking.guest_phone;
+        if (!msgId) {
+            console.warn('WhatsApp API returned success but no message ID:', json);
+            throw new Error(`Message may not have been delivered to ${sentPhone}. No message ID returned.`);
+        }
+
+        console.log(`WhatsApp message sent: ID=${msgId}, to=${sentPhone}, type=${json.meta?.type || 'interactive'}`);
+        showToast('Message Sent', `WhatsApp sent to ${booking.guest_name} (${sentPhone})`, '✅');
         if ('vibrate' in navigator) navigator.vibrate([10, 50, 10]);
 
     } catch (error) {
@@ -460,6 +495,7 @@ window.switchMessagingChannel = function(channel) {
     currentMessagingChannel = channel;
 
     const waBtn = document.getElementById('channelToggleWhatsapp');
+    const waApiBtn = document.getElementById('channelToggleWhatsappApi');
     const emailBtn = document.getElementById('channelToggleEmail');
     const guestCard = document.getElementById('messagingGuestCard');
     const subjectGroup = document.getElementById('messagingSubjectGroup');
@@ -472,6 +508,7 @@ window.switchMessagingChannel = function(channel) {
 
     // Toggle active states
     if (waBtn) waBtn.classList.toggle('active', channel === 'whatsapp');
+    if (waApiBtn) waApiBtn.classList.toggle('active', channel === 'whatsapp_api');
     if (emailBtn) emailBtn.classList.toggle('active', channel === 'email');
 
     if (channel === 'email') {
@@ -494,9 +531,30 @@ window.switchMessagingChannel = function(channel) {
                 : '⚠️ Gmail not connected — go to <strong>Settings → Integrations</strong> to connect';
             emailStatus.style.background = connected ? 'rgba(255,255,255,0.2)' : 'rgba(255,200,100,0.3)';
         }
+    } else if (channel === 'whatsapp_api') {
+        // WhatsApp Business API styling
+        if (guestCard) guestCard.style.background = 'linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)';
+        if (subjectGroup) subjectGroup.style.display = 'none';
+        if (previewBox) previewBox.style.background = '#e0f2fe';
+        if (previewLabel) previewLabel.innerHTML = '<i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>API Message Preview';
+        if (previewLabel) previewLabel.style.color = '#0284c7';
+        if (previewIcon) previewIcon.innerHTML = '<i data-lucide="zap" style="width: 20px; height: 20px; color: #0ea5e9;"></i>';
+        if (sendBtn) { sendBtn.className = 'btn'; sendBtn.style.cssText = 'flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px; background: #0ea5e9; color: white; border: none; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer;'; }
+        if (sendLabel) sendLabel.textContent = 'Send via API';
+
+        // Show WABA CTA info
+        if (emailStatus && currentMessagingBooking) {
+            const replyNum = typeof getWABAReplyNumber === 'function'
+                ? getWABAReplyNumber(currentMessagingBooking.property_id) : '+919560494001';
+            const ctaLabel = localStorage.getItem('wabaCtaLabel') || 'Chat with Property';
+            emailStatus.style.display = 'block';
+            emailStatus.innerHTML = `📲 Business API — CTA: "${ctaLabel}" → ${replyNum}`;
+            emailStatus.style.background = 'rgba(14, 165, 233, 0.15)';
+        } else if (emailStatus) {
+            emailStatus.style.display = 'none';
+        }
     } else {
-        // WhatsApp styling
-        const wabaActive = typeof isWABAMode === 'function' && isWABAMode();
+        // WhatsApp Normal (wa.me link) styling
         if (guestCard) guestCard.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
         if (subjectGroup) subjectGroup.style.display = 'none';
         if (previewBox) previewBox.style.background = '#dcf8c6';
@@ -504,20 +562,8 @@ window.switchMessagingChannel = function(channel) {
         if (previewLabel) previewLabel.style.color = '#128c7e';
         if (previewIcon) previewIcon.innerHTML = '<i data-lucide="message-circle" style="width: 20px; height: 20px; color: #25d366;"></i>';
         if (sendBtn) { sendBtn.className = 'btn btn-success'; sendBtn.style.cssText = 'flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px;'; }
-        if (sendLabel) sendLabel.textContent = wabaActive ? 'Send via API' : 'Open WhatsApp';
+        if (sendLabel) sendLabel.textContent = 'Open WhatsApp';
         if (emailStatus) emailStatus.style.display = 'none';
-
-        // Show WABA CTA info when in API mode
-        if (wabaActive && currentMessagingBooking) {
-            const replyNum = typeof getWABAReplyNumber === 'function'
-                ? getWABAReplyNumber(currentMessagingBooking.property_id) : '+919560494001';
-            const ctaLabel = localStorage.getItem('wabaCtaLabel') || 'Chat with Property';
-            if (emailStatus) {
-                emailStatus.style.display = 'block';
-                emailStatus.innerHTML = `📲 Business API — CTA: "${ctaLabel}" → ${replyNum}`;
-                emailStatus.style.background = 'rgba(37, 211, 102, 0.15)';
-            }
-        }
     }
 
     updateMessagingContactInfo();
@@ -605,7 +651,12 @@ window.confirmSendMessage = async function() {
     }
 
     if (currentMessagingChannel === 'whatsapp') {
-        sendWhatsAppMessage(currentMessagingBooking.booking_id, template, customMessage);
+        // Normal WhatsApp — opens wa.me link
+        sendWhatsAppNormal(currentMessagingBooking, template, customMessage);
+        closeMessagingModal();
+    } else if (currentMessagingChannel === 'whatsapp_api') {
+        // WhatsApp Business API — sends via server
+        sendWhatsAppViaAPI(currentMessagingBooking, template, customMessage);
         closeMessagingModal();
     } else {
         // Email send
