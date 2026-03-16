@@ -70,6 +70,7 @@ async function verifyFirebaseToken(idToken) {
  */
 async function waApiCall(endpoint, body) {
     const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_ID}/${endpoint}`;
+    console.log(`[whatsapp-proxy] Calling ${endpoint} → to: ${body?.to}`);
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -81,9 +82,20 @@ async function waApiCall(endpoint, body) {
 
     const data = await response.json();
     if (!response.ok) {
+        const errCode = data?.error?.code || response.status;
         const errMsg = data?.error?.message || `WhatsApp API error: ${response.status}`;
-        throw new Error(errMsg);
+        console.error(`[whatsapp-proxy] API error ${errCode}: ${errMsg}`);
+        throw new Error(`[${errCode}] ${errMsg}`);
     }
+
+    // Validate that WhatsApp actually accepted the message
+    if (endpoint === 'messages' && (!data.messages || !data.messages[0]?.id)) {
+        console.error('[whatsapp-proxy] No message ID in response:', JSON.stringify(data));
+        throw new Error('WhatsApp accepted the request but did not return a message ID');
+    }
+
+    const msgId = data.messages?.[0]?.id;
+    if (msgId) console.log(`[whatsapp-proxy] Message accepted: ${msgId}`);
     return data;
 }
 
@@ -113,33 +125,59 @@ async function logToSupabase(record) {
  * Handles: +91XXXXXXXXXX, 91XXXXXXXXXX, 0XXXXXXXXXX, XXXXXXXXXX
  */
 function formatPhone(phone, defaultCountryCode = '91') {
-    let cleaned = (phone || '').replace(/[^0-9]/g, '');
+    let cleaned = (phone || '').replace(/[^0-9+]/g, '');
+
+    // If phone starts with '+', it already has a country code — just strip the +
+    if (cleaned.startsWith('+')) {
+        cleaned = cleaned.replace(/\+/g, '');
+        // International number with explicit country code — trust it as-is
+        if (cleaned.length >= 10) {
+            console.log(`[whatsapp-proxy] Phone formatted (international): ${cleaned}`);
+            return cleaned;
+        }
+    }
+
+    // Remove all remaining non-digits
+    cleaned = cleaned.replace(/[^0-9]/g, '');
 
     // Remove leading 0 (Indian STD format: 079XXXXXXX → 79XXXXXXX)
     if (cleaned.startsWith('0')) {
         cleaned = cleaned.substring(1);
     }
 
-    // Already has country code + 10 digits
+    // Already has country code + 10 digits (for default country)
     if (cleaned.startsWith(defaultCountryCode) && cleaned.length === (defaultCountryCode.length + 10)) {
+        console.log(`[whatsapp-proxy] Phone formatted (with CC): ${cleaned}`);
         return cleaned;
     }
 
-    // Exactly 10 digits — add country code
+    // Exactly 10 digits — add default country code
     if (cleaned.length === 10) {
-        return defaultCountryCode + cleaned;
+        const result = defaultCountryCode + cleaned;
+        console.log(`[whatsapp-proxy] Phone formatted (added CC ${defaultCountryCode}): ${result}`);
+        return result;
     }
 
     // Longer than 10, starts with country code — trust it
     if (cleaned.length > 10 && cleaned.startsWith(defaultCountryCode)) {
+        console.log(`[whatsapp-proxy] Phone formatted (long with CC): ${cleaned}`);
         return cleaned;
     }
 
-    // Fallback
-    if (cleaned.length <= 10) {
-        return defaultCountryCode + cleaned;
+    // Longer than 12 digits likely already has an international code — trust it
+    if (cleaned.length > 12) {
+        console.log(`[whatsapp-proxy] Phone formatted (long international): ${cleaned}`);
+        return cleaned;
     }
 
+    // Fallback: add default country code for short numbers
+    if (cleaned.length <= 10) {
+        const result = defaultCountryCode + cleaned;
+        console.log(`[whatsapp-proxy] Phone formatted (fallback): ${result}`);
+        return result;
+    }
+
+    console.log(`[whatsapp-proxy] Phone formatted (as-is): ${cleaned}`);
     return cleaned;
 }
 
@@ -214,21 +252,65 @@ export default async function handler(req, res) {
                 if (!messagePayload.interactive.header) delete messagePayload.interactive.header;
                 if (!messagePayload.interactive.footer) delete messagePayload.interactive.footer;
 
-                const result = await waApiCall('messages', messagePayload);
+                let result;
+                let msgType = 'interactive_cta';
 
-                // Log to DB
+                try {
+                    result = await waApiCall('messages', messagePayload);
+                } catch (interactiveErr) {
+                    // Error 131047 = outside 24-hour window, need template message
+                    // Error 131026 = message type not supported / recipient can't receive
+                    const errMsg = interactiveErr.message || '';
+                    const isSessionError = errMsg.includes('131047') || errMsg.includes('131026')
+                        || errMsg.includes('re-engage') || errMsg.includes('24');
+
+                    if (isSessionError) {
+                        console.log('[whatsapp-proxy] Interactive msg failed (outside 24h window), falling back to text template');
+                        // Fallback: send as plain text (works if within session) or re-throw
+                        // For outside 24h window, only approved templates work
+                        // Try sending as plain text first (in case it's a different session issue)
+                        try {
+                            result = await waApiCall('messages', {
+                                messaging_product: 'whatsapp',
+                                recipient_type: 'individual',
+                                to: phone,
+                                type: 'text',
+                                text: { preview_url: false, body: bodyText }
+                            });
+                            msgType = 'text_fallback';
+                            console.log('[whatsapp-proxy] Text fallback succeeded');
+                        } catch (textErr) {
+                            // Both interactive and text failed — need a pre-approved template
+                            console.error('[whatsapp-proxy] Text fallback also failed:', textErr.message);
+                            throw new Error(
+                                'Message cannot be delivered: guest has not messaged this number in the last 24 hours. ' +
+                                'Use a pre-approved WhatsApp template instead, or ask the guest to message you first.'
+                            );
+                        }
+                    } else {
+                        throw interactiveErr;
+                    }
+                }
+
+                // Log to DB with actual message ID for tracking
+                const waMessageId = result?.messages?.[0]?.id || null;
                 await logToSupabase({
                     booking_id: bookingId || null,
                     guest_name: guestName || null,
                     guest_phone: phone,
                     message_type: 'whatsapp_api',
-                    template_used: templateUsed || 'interactive_cta',
+                    template_used: templateUsed || msgType,
                     message_content: bodyText,
                     sent_by: sentBy || 'system',
-                    status: 'sent'
+                    status: 'sent',
+                    wa_message_id: waMessageId
                 });
 
-                return res.status(200).json({ data: result, error: null });
+                return res.status(200).json({
+                    data: result,
+                    error: null,
+                    meta: { formattedPhone: phone, messageId: waMessageId, type: msgType }
+                });
             }
 
             // ─── Send plain text message ───

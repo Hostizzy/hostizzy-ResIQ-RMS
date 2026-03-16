@@ -296,7 +296,16 @@ window.sendWhatsAppViaAPI = async function(booking, template = 'booking_confirma
             throw new Error(json.error.message || json.error);
         }
 
-        showToast('Message Sent', `WhatsApp sent to ${booking.guest_name} via Business API`, '✅');
+        // Validate that a message ID was actually returned
+        const msgId = json.meta?.messageId || json.data?.messages?.[0]?.id;
+        const sentPhone = json.meta?.formattedPhone || booking.guest_phone;
+        if (!msgId) {
+            console.warn('WhatsApp API returned success but no message ID:', json);
+            throw new Error(`Message may not have been delivered to ${sentPhone}. No message ID returned.`);
+        }
+
+        console.log(`WhatsApp message sent: ID=${msgId}, to=${sentPhone}, type=${json.meta?.type || 'interactive'}`);
+        showToast('Message Sent', `WhatsApp sent to ${booking.guest_name} (${sentPhone})`, '✅');
         if ('vibrate' in navigator) navigator.vibrate([10, 50, 10]);
 
     } catch (error) {
