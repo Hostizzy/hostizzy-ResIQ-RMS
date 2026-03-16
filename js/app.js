@@ -29,13 +29,6 @@ window.addEventListener('load', async () => {
 
     isOnline = navigator.onLine;
     updateSyncIndicator();
-
-    // Check Gmail connection status from server on startup
-    // Tokens are stored server-side — this updates the cached status for all views
-    checkGmailStatus().then(() => {
-        renderEmailStatusBanner();
-        updateGmailSendStatus();
-    }).catch(() => {});
     
     // ── Detect password-recovery email link ──
     // Firebase sends reset links with query params: ?mode=resetPassword&oobCode=...
@@ -116,6 +109,13 @@ window.addEventListener('load', async () => {
                 setTimeout(autoSync, bgDelay);
                 setTimeout(initializeAutoSync, bgDelay + 1000);
                 setTimeout(scheduleAutoStatusUpdates, bgDelay + 1000);
+
+                // Check Gmail connection status — tokens are server-side,
+                // so any device with the same user sees the same connection
+                checkGmailStatus().then(() => {
+                    renderEmailStatusBanner();
+                    updateGmailSendStatus();
+                }).catch(() => {});
             }
         } catch (error) {
             console.error('Session restore error:', error);

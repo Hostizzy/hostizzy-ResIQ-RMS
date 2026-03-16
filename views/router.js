@@ -17,6 +17,7 @@ const VIEW_CONFIG = {
     propertyView:  { title: 'Property',      icon: 'building-2',     loader: null },
     business:      { title: 'Business',      icon: 'briefcase',      loader: null },
     calendar:      { title: 'Calendar',      icon: 'calendar-days',  loader: null },
+    enquiries:     { title: 'Enquiries',      icon: 'user-plus',       loader: null },
     communication: { title: 'Communication', icon: 'message-square', loader: null },
     team:          { title: 'Team',          icon: 'users-2',        loader: null },
     owners:        { title: 'Owners',        icon: 'user-check',     loader: null },

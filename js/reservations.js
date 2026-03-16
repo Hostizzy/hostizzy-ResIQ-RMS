@@ -695,6 +695,7 @@ async function showView(viewName) {
         else if (viewName === 'owners') await loadOwners();
         else if (viewName === 'expenses') await loadExpenses();
         else if (viewName === 'settings') loadSettings();
+        else if (viewName === 'enquiries') await loadEnquiries();
         else if (viewName === 'communication') loadCommunication();
 
         if (!alreadyLoaded) {
@@ -1154,8 +1155,8 @@ function displayReservations(reservations) {
                         <button class="quick-action-btn" data-action="payment-history" data-bid="${r.booking_id}" title="Payment History">
                             <i data-lucide="history" style="width: 11px; height: 11px;"></i>
                         </button>
-                        <button class="quick-action-btn" data-action="whatsapp" data-bid="${r.booking_id}" title="Send WhatsApp">
-                            <i data-lucide="message-circle" style="width: 11px; height: 11px;"></i>
+                        <button class="quick-action-btn" data-action="message" data-bid="${r.booking_id}" title="Send Message">
+                            <i data-lucide="send" style="width: 11px; height: 11px;"></i>
                         </button>
                         <button class="quick-action-btn" data-action="edit" data-bid="${r.booking_id}" title="Edit">
                             <i data-lucide="edit" style="width: 11px; height: 11px;"></i>
@@ -1225,8 +1226,8 @@ document.addEventListener('click', function() {
             case 'payment-history':
                 viewPaymentHistory(bid);
                 break;
-            case 'whatsapp':
-                openWhatsAppMenu(bid);
+            case 'message':
+                openMessagingModal(bid, 'whatsapp');
                 break;
             case 'delete':
                 deleteReservation(bid);

@@ -335,5 +335,82 @@
                     .delete()
                     .eq('id', ownerId);
                 if (error) throw error;
+            },
+
+            // ─── Enquiries / Leads ───────────────────────────
+            async getEnquiries() {
+                const { data, error } = await supabase
+                    .from('enquiries')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            },
+            async getEnquiry(id) {
+                const { data, error } = await supabase
+                    .from('enquiries')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+            async saveEnquiry(enquiry) {
+                if (enquiry.id) {
+                    const { data, error } = await supabase
+                        .from('enquiries')
+                        .update({ ...enquiry, updated_at: new Date().toISOString() })
+                        .eq('id', enquiry.id)
+                        .select();
+                    if (error) throw error;
+                    return data?.[0];
+                } else {
+                    const { id, ...clean } = enquiry;
+                    const { data, error } = await supabase
+                        .from('enquiries')
+                        .insert([clean])
+                        .select();
+                    if (error) throw error;
+                    return data?.[0];
+                }
+            },
+            async updateEnquiryStatus(id, status, extra = {}) {
+                const updates = { status, updated_at: new Date().toISOString(), ...extra };
+                const { data, error } = await supabase
+                    .from('enquiries')
+                    .update(updates)
+                    .eq('id', id)
+                    .select();
+                if (error) throw error;
+                return data?.[0];
+            },
+            async deleteEnquiry(id) {
+                const { error } = await supabase
+                    .from('enquiries')
+                    .delete()
+                    .eq('id', id);
+                if (error) throw error;
+            },
+
+            // ─── Communications (Supabase-backed) ───────────
+            // Existing table schema: booking_id, guest_name, guest_phone,
+            // message_type, template_used, message_content, sent_by, sent_at
+            // New columns: recipient_email, subject, status, scheduled_for, created_at
+            async getCommunications() {
+                const { data, error } = await supabase
+                    .from('communications')
+                    .select('*')
+                    .order('sent_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            },
+            async saveCommunication(message) {
+                const { id, ...clean } = message;
+                const { data, error } = await supabase
+                    .from('communications')
+                    .insert([clean])
+                    .select();
+                if (error) throw error;
+                return data?.[0];
             }
         };
