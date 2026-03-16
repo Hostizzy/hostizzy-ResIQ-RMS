@@ -9,6 +9,10 @@
  *   POST { action: "sendText", to, text }               — Send a plain text message
  *   POST { action: "status" }                            — Check WABA connection
  *
+ * Webhook: https://hostos.hostizzy.com/api/webhooks/whatsapp (shared with Hostos)
+ * ResIQ does NOT have its own inbox — CTA buttons direct guests to reply
+ * to a property-specific WhatsApp number instead.
+ *
  * Environment variables required:
  *   WHATSAPP_ACCESS_TOKEN   — Permanent token from Meta Business
  *   WHATSAPP_PHONE_ID       — Phone Number ID (central sending number)
@@ -106,12 +110,36 @@ async function logToSupabase(record) {
 
 /**
  * Format phone number for WhatsApp API (must include country code, no + prefix)
+ * Handles: +91XXXXXXXXXX, 91XXXXXXXXXX, 0XXXXXXXXXX, XXXXXXXXXX
  */
 function formatPhone(phone, defaultCountryCode = '91') {
     let cleaned = (phone || '').replace(/[^0-9]/g, '');
-    if (cleaned.length <= 10) {
-        cleaned = defaultCountryCode + cleaned;
+
+    // Remove leading 0 (Indian STD format: 079XXXXXXX → 79XXXXXXX)
+    if (cleaned.startsWith('0')) {
+        cleaned = cleaned.substring(1);
     }
+
+    // Already has country code + 10 digits
+    if (cleaned.startsWith(defaultCountryCode) && cleaned.length === (defaultCountryCode.length + 10)) {
+        return cleaned;
+    }
+
+    // Exactly 10 digits — add country code
+    if (cleaned.length === 10) {
+        return defaultCountryCode + cleaned;
+    }
+
+    // Longer than 10, starts with country code — trust it
+    if (cleaned.length > 10 && cleaned.startsWith(defaultCountryCode)) {
+        return cleaned;
+    }
+
+    // Fallback
+    if (cleaned.length <= 10) {
+        return defaultCountryCode + cleaned;
+    }
+
     return cleaned;
 }
 

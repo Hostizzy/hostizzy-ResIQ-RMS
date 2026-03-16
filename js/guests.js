@@ -120,7 +120,9 @@ function copyGuestPortalLink(url) {
 function sendPortalQRWhatsApp(bookingId, guestName, phone) {
     const portalUrl = window.location.origin + '/guest-portal?booking=' + bookingId;
     const message = `Hello ${guestName}!\n\nPlease complete your check-in for booking *${bookingId}* using this link:\n${portalUrl}\n\nYou can:\n✅ Submit your ID documents\n✅ Set meal preferences\n✅ View booking details\n\nNo login needed — just tap the link!\n\n— Team Hostizzy`;
-    const formattedPhone = phone.replace(/\D/g, '');
+    const formattedPhone = typeof formatPhoneForWhatsApp === 'function'
+        ? formatPhoneForWhatsApp(phone)
+        : phone.replace(/\D/g, '');
     window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
 }
 
@@ -1131,11 +1133,10 @@ function whatsappGuest() {
         return;
     }
     
-    let phone = currentGuestData.phone.replace(/[^0-9]/g, '');
-    if (!phone.startsWith('91') && phone.length === 10) {
-        phone = '91' + phone;
-    }
-    
+    const phone = typeof formatPhoneForWhatsApp === 'function'
+        ? formatPhoneForWhatsApp(currentGuestData.phone)
+        : currentGuestData.phone.replace(/[^0-9]/g, '');
+
     const message = encodeURIComponent(`Hello ${currentGuestData.name}, this is ResIQ by Hostizzy.`);
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
 }

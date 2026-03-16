@@ -1,6 +1,48 @@
 // ResIQ Messaging — Unified WhatsApp + Email messaging, templates, communication history
 
     // ============================================
+    // PHONE NUMBER FORMATTING (shared utility)
+    // ============================================
+
+    /**
+     * Robust phone number formatter for WhatsApp.
+     * Handles: +91XXXXXXXXXX, 91XXXXXXXXXX, 0XXXXXXXXXX, XXXXXXXXXX
+     * Returns: country code + 10-digit number (e.g. "919560494001")
+     */
+    window.formatPhoneForWhatsApp = function(phone, defaultCountryCode) {
+        const cc = defaultCountryCode || localStorage.getItem('whatsappCountryCode') || '91';
+        let cleaned = (phone || '').replace(/[^0-9]/g, '');
+
+        // Remove leading 0 (Indian STD format: 079XXXXXXX → 79XXXXXXX)
+        if (cleaned.startsWith('0')) {
+            cleaned = cleaned.substring(1);
+        }
+
+        // If starts with country code and remaining is 10 digits, it's already formatted
+        if (cleaned.startsWith(cc) && cleaned.length === (cc.length + 10)) {
+            return cleaned;
+        }
+
+        // If exactly 10 digits, prepend country code
+        if (cleaned.length === 10) {
+            return cc + cleaned;
+        }
+
+        // If longer than CC+10 and starts with CC, trust it
+        if (cleaned.length > 10 && cleaned.startsWith(cc)) {
+            return cleaned;
+        }
+
+        // Fallback: if <= 10 digits, add country code
+        if (cleaned.length <= 10) {
+            return cc + cleaned;
+        }
+
+        // Return as-is for international numbers
+        return cleaned;
+    };
+
+    // ============================================
     // MESSAGING STATE
     // ============================================
 
@@ -163,11 +205,7 @@ ${biz}`
     // ============================================
 
 window.generateWhatsAppLink = function(booking, template = 'booking_confirmation', customMessage = null) {
-    let phone = (booking.guest_phone || '').replace(/[^0-9]/g, '');
-    const defaultCC = localStorage.getItem('whatsappCountryCode') || '91';
-    if (!phone.startsWith(defaultCC) && phone.length <= 10) {
-        phone = defaultCC + phone;
-    }
+    const phone = formatPhoneForWhatsApp(booking.guest_phone);
     const message = customMessage || whatsappTemplates[template](booking);
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 };
