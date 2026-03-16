@@ -447,42 +447,24 @@ function filterCommunications(type, element) {
 }
 
 function sendTemplate(templateType) {
-    const templates = {
-        'booking-confirmation': {
-            subject: 'Booking Confirmation',
-            message: 'Dear Guest,\n\nYour booking has been confirmed! We look forward to hosting you.\n\nThank you for choosing us!'
-        },
-        'payment-reminder': {
-            subject: 'Payment Reminder',
-            message: 'Dear Guest,\n\nThis is a friendly reminder about your pending payment. Please complete your payment at your earliest convenience.\n\nThank you!'
-        },
-        'check-in': {
-            subject: 'Check-in Details',
-            message: 'Dear Guest,\n\nWe\'re excited to welcome you! Here are your check-in details:\n\nCheck-in time: 2:00 PM\nProperty address: [Your Property Address]\n\nSee you soon!'
-        },
-        'check-out': {
-            subject: 'Thank You for Staying',
-            message: 'Dear Guest,\n\nThank you for staying with us! We hope you had a wonderful experience.\n\nCheck-out time: 11:00 AM\n\nWe hope to see you again!'
-        },
-        'review-request': {
-            subject: 'Please Share Your Experience',
-            message: 'Dear Guest,\n\nWe hope you enjoyed your stay! We would love to hear about your experience.\n\nPlease take a moment to leave us a review.\n\nThank you!'
-        },
-        'custom': {
-            subject: 'Custom Message',
-            message: ''
-        }
+    // Map communication tab template keys to unified modal template keys
+    const templateKeyMap = {
+        'booking-confirmation': 'booking_confirmation',
+        'payment-reminder': 'payment_reminder',
+        'check-in': 'check_in_instructions',
+        'check-out': 'thank_you',
+        'review-request': 'review_request',
+        'custom': 'custom'
     };
 
-    const template = templates[templateType];
-    if (template) {
+    const templateKey = templateKeyMap[templateType] || 'custom';
+
+    // Open the unified messaging modal with guest/booking selector
+    if (typeof openMessagingModalFromComm === 'function') {
+        openMessagingModalFromComm('email', templateKey);
+    } else {
+        // Fallback to old compose modal
         openComposeModal();
-        setTimeout(() => {
-            const subjectInput = document.getElementById('composeSubject');
-            const messageInput = document.getElementById('composeMessage');
-            if (subjectInput) subjectInput.value = template.subject;
-            if (messageInput) messageInput.value = template.message;
-        }, 100);
     }
 }
 

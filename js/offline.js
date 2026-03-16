@@ -150,6 +150,22 @@ Warm regards,
 ${biz} 💚`;
             },
 
+            review_request: (booking) => {
+                const biz = getWABusinessName();
+                return `⭐ *We'd Love Your Feedback!*
+
+Hi ${booking.guest_name},
+
+We hope you enjoyed your stay at *${booking.property_name}*! 🏠
+
+We would truly appreciate it if you could take a moment to share your experience. Your feedback helps us improve! 📝
+
+If there's anything we could have done better, let us know.
+
+Thank you for choosing ${biz}! 🙏
+_Powered by ResIQ_`;
+            },
+
             custom: (booking) => {
                 const biz = getWABusinessName();
                 return `Hi ${booking.guest_name},

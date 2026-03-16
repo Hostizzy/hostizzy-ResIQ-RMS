@@ -1157,6 +1157,9 @@ function displayReservations(reservations) {
                         <button class="quick-action-btn" data-action="whatsapp" data-bid="${r.booking_id}" title="Send WhatsApp">
                             <i data-lucide="message-circle" style="width: 11px; height: 11px;"></i>
                         </button>
+                        <button class="quick-action-btn" data-action="email" data-bid="${r.booking_id}" title="Send Email">
+                            <i data-lucide="mail" style="width: 11px; height: 11px;"></i>
+                        </button>
                         <button class="quick-action-btn" data-action="edit" data-bid="${r.booking_id}" title="Edit">
                             <i data-lucide="edit" style="width: 11px; height: 11px;"></i>
                         </button>
@@ -1226,7 +1229,10 @@ document.addEventListener('click', function() {
                 viewPaymentHistory(bid);
                 break;
             case 'whatsapp':
-                openWhatsAppMenu(bid);
+                openMessagingModal(bid, 'whatsapp');
+                break;
+            case 'email':
+                openMessagingModal(bid, 'email');
                 break;
             case 'delete':
                 deleteReservation(bid);

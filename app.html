@@ -5584,72 +5584,100 @@
         </div>
      </div>
 
-    <!-- WhatsApp Modal -->
-    <div id="whatsappModal" class="modal">
+    <!-- Unified Messaging Modal (WhatsApp + Email) -->
+    <div id="messagingModal" class="modal">
          <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h3 class="modal-title"><i data-lucide="message-circle" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Send WhatsApp Message</h3>
-                <button class="close-btn" onclick="closeWhatsAppModal()">&times;</button>
+                <h3 class="modal-title" id="messagingModalTitle"><i data-lucide="message-circle" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Send Message</h3>
+                <button class="close-btn" onclick="closeMessagingModal()">&times;</button>
             </div>
-            
+
             <div style="padding: 24px;">
+                <!-- Channel Toggle -->
+                <div style="display: flex; gap: 4px; background: var(--bg-secondary); border-radius: 10px; padding: 4px; margin-bottom: 20px;">
+                    <button id="channelToggleWhatsapp" class="channel-toggle-btn active" onclick="switchMessagingChannel('whatsapp')" style="flex: 1; padding: 10px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                        <i data-lucide="message-circle" style="width: 16px; height: 16px;"></i> WhatsApp
+                    </button>
+                    <button id="channelToggleEmail" class="channel-toggle-btn" onclick="switchMessagingChannel('email')" style="flex: 1; padding: 10px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                        <i data-lucide="mail" style="width: 16px; height: 16px;"></i> Email
+                    </button>
+                </div>
+
+                <!-- Guest Selector (shown when opened from Communication tab without a booking) -->
+                <div id="messagingGuestSelector" class="form-group" style="display: none;">
+                    <label>Select Guest / Booking *</label>
+                    <select id="messagingBookingSelect" onchange="onMessagingBookingSelected()" style="font-size: 14px;">
+                        <option value="">Loading bookings...</option>
+                    </select>
+                </div>
+
                 <!-- Guest Info Card -->
-                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; color: white;">
+                <div id="messagingGuestCard" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; color: white; transition: background 0.3s;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                         <div><i data-lucide="user-circle" style="width: 36px; height: 36px; color: var(--text-secondary);"></i></div>
                         <div style="flex: 1;">
-                            <div style="font-weight: 700; font-size: 18px; margin-bottom: 4px;" id="whatsappGuestName">Guest Name</div>
-                            <div style="font-size: 14px; opacity: 0.9; display: flex; align-items: center; gap: 8px;">
-                                <span>📞</span>
-                                <span id="whatsappGuestPhone">Phone</span>
+                            <div style="font-weight: 700; font-size: 18px; margin-bottom: 4px;" id="messagingGuestName">Guest Name</div>
+                            <div id="messagingContactInfo" style="font-size: 14px; opacity: 0.9; display: flex; align-items: center; gap: 8px;">
+                                <span id="messagingContactIcon">📞</span>
+                                <span id="messagingContactValue">Phone</span>
                             </div>
                         </div>
                     </div>
                     <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">
-                        🆔 Booking: <span id="whatsappBookingId" style="font-weight: 600;">-</span>
+                        🆔 Booking: <span id="messagingBookingId" style="font-weight: 600;">-</span>
+                    </div>
+                    <!-- Gmail status hint (email only) -->
+                    <div id="messagingEmailStatus" style="display: none; margin-top: 10px; font-size: 12px; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.2);">
                     </div>
                 </div>
-                
+
+                <!-- Email Subject (email only) -->
+                <div id="messagingSubjectGroup" class="form-group" style="display: none;">
+                    <label>Subject *</label>
+                    <input type="text" id="messagingSubject" placeholder="Email subject line" style="font-size: 14px;">
+                </div>
+
                 <!-- Template Selection -->
                 <div class="form-group">
                     <label>Select Message Template *</label>
-                    <select id="whatsappTemplate" onchange="previewWhatsAppMessage()" style="font-size: 14px;">
+                    <select id="messagingTemplate" onchange="previewMessagingMessage()" style="font-size: 14px;">
                         <option value="booking_confirmation">Booking Confirmation - Full booking details</option>
                         <option value="payment_reminder">Payment Reminder - Pending balance alert</option>
                         <option value="check_in_instructions">Check-in Instructions - Arrival details</option>
                         <option value="thank_you">Thank You Message - Post-checkout feedback</option>
+                        <option value="review_request">Review Request - Ask for feedback</option>
                         <option value="custom">Custom Message - Write your own</option>
                     </select>
                 </div>
-                
+
                 <!-- Custom Message (hidden by default) -->
-                <div class="form-group" id="customMessageGroup" style="display: none;">
+                <div class="form-group" id="messagingCustomGroup" style="display: none;">
                     <label>Custom Message</label>
-                    <textarea id="customMessageText" rows="6" placeholder="Type your message here..." oninput="previewWhatsAppMessage()"></textarea>
+                    <textarea id="messagingCustomText" rows="6" placeholder="Type your message here..." oninput="previewMessagingMessage()"></textarea>
                 </div>
-                
+
                 <!-- Message Preview -->
-                <div style="background: #dcf8c6; padding: 16px; border-radius: 12px; margin-bottom: 20px; max-height: 350px; overflow-y: auto; position: relative;">
-                    <div style="font-size: 11px; color: #128c7e; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div id="messagingPreviewBox" style="background: #dcf8c6; padding: 16px; border-radius: 12px; margin-bottom: 20px; max-height: 350px; overflow-y: auto; position: relative; transition: background 0.3s;">
+                    <div id="messagingPreviewLabel" style="font-size: 11px; color: #128c7e; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
                         <i data-lucide="smartphone" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Message Preview
                     </div>
-                    <div id="whatsappPreview" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #303030;"></div>
-                    <div style="position: absolute; top: 12px; right: 12px; background: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div id="messagingPreview" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #303030;"></div>
+                    <div id="messagingPreviewIcon" style="position: absolute; top: 12px; right: 12px; background: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <i data-lucide="message-circle" style="width: 20px; height: 20px; color: #25d366;"></i>
                     </div>
                 </div>
-                
+
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-                    <button class="btn btn-secondary" onclick="closeWhatsAppModal()" style="flex: 1;">
+                    <button class="btn btn-secondary" onclick="closeMessagingModal()" style="flex: 1;">
                         Cancel
                     </button>
-                    <button class="btn btn-success" onclick="confirmSendWhatsApp()" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <button id="messagingSendBtn" class="btn btn-success" onclick="confirmSendMessage()" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <i data-lucide="message-circle" style="width: 18px; height: 18px;"></i>
-                        <span>Open WhatsApp</span>
+                        <span id="messagingSendLabel">Open WhatsApp</span>
                     </button>
                 </div>
-                
+
                 <!-- Communication History -->
                 <div style="padding-top: 20px; border-top: 1px solid var(--border);">
                     <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
@@ -5662,7 +5690,15 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
+
+    <style>
+        .channel-toggle-btn { background: transparent; color: var(--text-secondary); }
+        .channel-toggle-btn.active[data-channel="whatsapp"],
+        #channelToggleWhatsapp.active { background: #25d366; color: white; }
+        .channel-toggle-btn.active[data-channel="email"],
+        #channelToggleEmail.active { background: #0e7490; color: white; }
+    </style> 
  
 
 <!-- App Settings Modal -->
