@@ -472,7 +472,9 @@ class QRCheckin {
         });
 
         this._modal.querySelector('#resiqQRWhatsApp').addEventListener('click', () => {
-            const phone = reservation.phone?.replace(/[^0-9]/g, '');
+            const phone = typeof window.formatPhoneForWhatsApp === 'function'
+                ? window.formatPhoneForWhatsApp(reservation.phone || reservation.guest_phone)
+                : (reservation.phone || '').replace(/[^0-9]/g, '');
             if (phone) {
                 const msg = encodeURIComponent(
                     `Hello ${reservation.guest_name},\n\n` +

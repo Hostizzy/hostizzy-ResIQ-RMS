@@ -459,7 +459,7 @@ function openEnquiryDetail(enquiryId) {
                     ${enq.guest_phone ? `
                     <div style="display: flex; gap: 8px; margin-top: 12px;">
                         <a href="tel:${enq.guest_phone}" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; background: var(--primary); color: white; text-decoration: none;"><i data-lucide="phone" style="width: 12px; height: 12px;"></i>Call</a>
-                        <a href="https://wa.me/${enq.guest_phone.replace(/[^0-9]/g, '')}" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; background: #25D366; color: white; text-decoration: none;"><i data-lucide="message-circle" style="width: 12px; height: 12px;"></i>WhatsApp</a>
+                        <a href="https://wa.me/${typeof formatPhoneForWhatsApp === 'function' ? formatPhoneForWhatsApp(enq.guest_phone) : enq.guest_phone.replace(/[^0-9]/g, '')}" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; background: #25D366; color: white; text-decoration: none;"><i data-lucide="message-circle" style="width: 12px; height: 12px;"></i>WhatsApp</a>
                     </div>` : ''}
                 </div>
 

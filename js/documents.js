@@ -535,7 +535,9 @@ async function rejectDocument() {
             const deadlineStr = deadline.toLocaleDateString('en-IN');
             
             const message = `Hi ${reservation.guest_name}, your ID document was not approved. Please resubmit before ${deadlineStr}. Reason: ${reason}`;
-            const formattedPhone = reservation.guest_phone.replace(/\D/g, '');
+            const formattedPhone = typeof formatPhoneForWhatsApp === 'function'
+                ? formatPhoneForWhatsApp(reservation.guest_phone)
+                : reservation.guest_phone.replace(/\D/g, '');
             const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
             
             // Open WhatsApp (user can send manually or auto-send if integrated)

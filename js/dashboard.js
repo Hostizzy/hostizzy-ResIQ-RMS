@@ -2216,21 +2216,23 @@ function renderActionCenter(reservations) {
         }
         
         const balance = getBalance(reservation);
-        const phone = reservation.guest_phone.replace(/[^0-9]/g, '');
-        
+        const phone = typeof formatPhoneForWhatsApp === 'function'
+            ? formatPhoneForWhatsApp(reservation.guest_phone)
+            : reservation.guest_phone.replace(/[^0-9]/g, '');
+
         let message = `Hello ${reservation.guest_name}!\n\n`;
         message += `This is a reminder for your booking at ${reservation.property_name}\n`;
         message += `Booking ID: ${reservation.booking_id}\n`;
         message += `Check-in: ${formatDate(reservation.check_in)}\n`;
         message += `Check-out: ${formatDate(reservation.check_out)}\n\n`;
-        
+
         if (balance > 0) {
             message += `Pending Payment: ₹${Math.round(balance).toLocaleString('en-IN')}\n\n`;
         }
-        
+
         message += `Looking forward to hosting you!\n- Hostizzy Team`;
-        
-        const whatsappUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(message)}`;
+
+        const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
         
         showToast('WhatsApp Opened', 'Message template ready to send', '✅');
