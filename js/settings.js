@@ -355,7 +355,8 @@ async function checkWABAStatus() {
     if (!statusEl) return;
 
     try {
-        const token = currentUser ? await currentUser.getIdToken() : null;
+        const firebaseUser = firebase.auth().currentUser;
+        const token = firebaseUser ? await firebaseUser.getIdToken() : null;
         if (!token) {
             statusEl.innerHTML = '⚠️ Please sign in to check WABA status';
             statusEl.style.background = 'rgba(255,200,100,0.15)';
