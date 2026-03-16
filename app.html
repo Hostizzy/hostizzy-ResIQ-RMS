@@ -5811,6 +5811,9 @@
                     <button id="channelToggleWhatsapp" class="channel-toggle-btn active" onclick="switchMessagingChannel('whatsapp')" style="flex: 1; padding: 10px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
                         <i data-lucide="message-circle" style="width: 16px; height: 16px;"></i> WhatsApp
                     </button>
+                    <button id="channelToggleWhatsappApi" class="channel-toggle-btn" onclick="switchMessagingChannel('whatsapp_api')" style="flex: 1; padding: 10px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                        <i data-lucide="zap" style="width: 16px; height: 16px;"></i> WA API
+                    </button>
                     <button id="channelToggleEmail" class="channel-toggle-btn" onclick="switchMessagingChannel('email')" style="flex: 1; padding: 10px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
                         <i data-lucide="mail" style="width: 16px; height: 16px;"></i> Email
                     </button>
@@ -5909,6 +5912,7 @@
         .channel-toggle-btn { background: transparent; color: var(--text-secondary); }
         .channel-toggle-btn.active[data-channel="whatsapp"],
         #channelToggleWhatsapp.active { background: #25d366; color: white; }
+        #channelToggleWhatsappApi.active { background: #0ea5e9; color: white; }
         .channel-toggle-btn.active[data-channel="email"],
         #channelToggleEmail.active { background: #0e7490; color: white; }
     </style> 
