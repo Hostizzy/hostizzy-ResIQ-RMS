@@ -1,10 +1,17 @@
 -- =====================================================
 -- RESIQ - COMMUNICATIONS TABLE ENHANCEMENTS
 -- Adds new columns to the existing communications table
--- (table already exists with: booking_id, guest_name,
---  guest_phone, message_type, template_used,
---  message_content, sent_by, sent_at)
+--
+-- Existing schema:
+--   id UUID PK, booking_id TEXT NOT NULL, guest_name TEXT,
+--   guest_phone TEXT, message_type TEXT DEFAULT 'whatsapp',
+--   template_used TEXT, message_content TEXT,
+--   sent_at TIMESTAMP DEFAULT now(), sent_by TEXT,
+--   status TEXT DEFAULT 'sent'
 -- =====================================================
+
+-- Allow communications not tied to a booking (e.g. from Communication view)
+ALTER TABLE communications ALTER COLUMN booking_id DROP NOT NULL;
 
 -- Add recipient email (for email messages)
 ALTER TABLE communications ADD COLUMN IF NOT EXISTS recipient_email TEXT;
@@ -12,18 +19,14 @@ ALTER TABLE communications ADD COLUMN IF NOT EXISTS recipient_email TEXT;
 -- Add subject line
 ALTER TABLE communications ADD COLUMN IF NOT EXISTS subject TEXT;
 
--- Add status tracking
-ALTER TABLE communications ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'sent';
-
 -- Add scheduling support
 ALTER TABLE communications ADD COLUMN IF NOT EXISTS scheduled_for TIMESTAMPTZ;
 
--- Add created_at if missing
+-- Add created_at for sorting consistency
 ALTER TABLE communications ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Indexes for new query patterns
 CREATE INDEX IF NOT EXISTS idx_communications_message_type ON communications(message_type);
-CREATE INDEX IF NOT EXISTS idx_communications_created ON communications(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_communications_scheduled ON communications(scheduled_for) WHERE status = 'scheduled';
 
 -- RLS (safe to run even if already enabled)
