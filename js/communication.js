@@ -1,8 +1,14 @@
 // ResIQ Communication — Email compose, Gmail integration, message templates
 // Enhanced: Supabase persistence, custom templates, scheduled messages
 
-// Gmail connection state (cached from server)
-let gmailConnectionStatus = { connected: false, email: null };
+// Gmail connection state (restored from localStorage cache, validated from server)
+let gmailConnectionStatus = (function() {
+    try {
+        const cached = localStorage.getItem('gmail_connection_status');
+        if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return { connected: false, email: null };
+})();
 
 // Custom message templates (persisted to localStorage, editable by user)
 const DEFAULT_TEMPLATES = {
@@ -175,9 +181,12 @@ async function checkGmailStatus() {
         if (status.email) {
             localStorage.setItem('gmail_user_email', status.email);
         }
+        // Cache connection status so next page load starts with correct state
+        localStorage.setItem('gmail_connection_status', JSON.stringify(gmailConnectionStatus));
         return gmailConnectionStatus;
     } catch {
         gmailConnectionStatus = { connected: false, email: null };
+        localStorage.setItem('gmail_connection_status', JSON.stringify(gmailConnectionStatus));
         return gmailConnectionStatus;
     }
 }
@@ -502,6 +511,7 @@ async function disconnectGmailSending() {
         console.error('Error disconnecting Gmail:', e);
     }
     localStorage.removeItem('gmail_user_email');
+    localStorage.removeItem('gmail_connection_status');
     gmailConnectionStatus = { connected: false, email: null };
     updateGmailSendStatus();
     updateGmailConnectionUI(false);
@@ -709,6 +719,7 @@ async function connectGmail() {
                     if (result && result.connected) {
                         gmailConnectionStatus = { connected: true, email: result.email };
                         localStorage.setItem('gmail_user_email', result.email);
+                        localStorage.setItem('gmail_connection_status', JSON.stringify(gmailConnectionStatus));
 
                         // Update UI
                         updateGmailConnectionUI(true, result.email);
@@ -769,6 +780,7 @@ async function disconnectGmail() {
 
     localStorage.removeItem('gmail_user_email');
     localStorage.removeItem('gmail_last_scan');
+    localStorage.removeItem('gmail_connection_status');
     gmailConnectionStatus = { connected: false, email: null };
 
     updateGmailConnectionUI(false);

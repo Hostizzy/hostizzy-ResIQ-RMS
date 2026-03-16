@@ -110,8 +110,12 @@ window.addEventListener('load', async () => {
                 setTimeout(initializeAutoSync, bgDelay + 1000);
                 setTimeout(scheduleAutoStatusUpdates, bgDelay + 1000);
 
-                // Check Gmail connection status — tokens are server-side,
-                // so any device with the same user sees the same connection
+                // Render Gmail UI immediately from cached localStorage state
+                // (gmailConnectionStatus is restored from cache on module load)
+                renderEmailStatusBanner();
+                updateGmailSendStatus();
+
+                // Then validate with server in background and re-render if changed
                 checkGmailStatus().then(() => {
                     renderEmailStatusBanner();
                     updateGmailSendStatus();
