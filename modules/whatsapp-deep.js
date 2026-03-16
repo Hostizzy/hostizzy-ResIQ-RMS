@@ -393,7 +393,7 @@ class WhatsAppDeep {
                 </div>
                 <div class="resiq-wa-input-wrap">
                     <textarea class="resiq-wa-textarea" id="resiqWATextarea" placeholder="Type a message..." rows="1"></textarea>
-                    <button class="resiq-wa-send-btn" id="resiqWASend" title="Send via WhatsApp">
+                    <button class="resiq-wa-send-btn" id="resiqWASend" title="${typeof window.isWABAMode === 'function' && window.isWABAMode() ? 'Send via Business API' : 'Send via WhatsApp'}" style="${typeof window.isWABAMode === 'function' && window.isWABAMode() ? 'background: #0ea5e9;' : ''}">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
                 </div>
@@ -476,15 +476,22 @@ class WhatsAppDeep {
         if (bubbleText) bubbleText.textContent = message;
     }
 
-    _send() {
+    async _send() {
         const textarea = this._composer?.querySelector('#resiqWATextarea');
         if (!textarea?.value) return;
 
-        const phone = this._currentReservation?.phone?.replace(/[^0-9]/g, '');
+        const phone = this._currentReservation?.phone?.replace(/[^0-9]/g, '') ||
+                       this._currentReservation?.guest_phone?.replace(/[^0-9]/g, '');
         if (!phone) {
             if (typeof window.showToast === 'function') {
                 window.showToast('No Phone', 'This guest has no phone number', '');
             }
+            return;
+        }
+
+        // Check if WABA mode is active — send via Business API with CTA
+        if (typeof window.isWABAMode === 'function' && window.isWABAMode()) {
+            await this._sendViaAPI(textarea.value, phone);
             return;
         }
 
@@ -507,6 +514,78 @@ class WhatsAppDeep {
 
         if (window.nativeApp?.haptic) window.nativeApp.haptic('success');
         this.closeComposer();
+    }
+
+    /** Send via WhatsApp Business API with CTA button */
+    async _sendViaAPI(text, phone) {
+        try {
+            const sendBtn = this._composer?.querySelector('#resiqWASend');
+            if (sendBtn) sendBtn.disabled = true;
+
+            const reservation = this._currentReservation || {};
+            const replyNumber = typeof window.getWABAReplyNumber === 'function'
+                ? window.getWABAReplyNumber(reservation.property_id) : '+919560494001';
+            const ctaLabel = localStorage.getItem('wabaCtaLabel') || 'Chat with Property';
+            const footerText = localStorage.getItem('wabaFooterText') || 'Hostizzy — Holiday Homes';
+            const biz = localStorage.getItem('whatsappBusinessName') || 'Hostizzy';
+
+            const token = typeof currentUser !== 'undefined' && currentUser
+                ? await currentUser.getIdToken() : null;
+            if (!token) {
+                if (typeof window.showToast === 'function')
+                    window.showToast('Auth Error', 'Please sign in to send via API', '');
+                if (sendBtn) sendBtn.disabled = false;
+                return;
+            }
+
+            const res = await fetch('/api/whatsapp-proxy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    action: 'sendInteractive',
+                    to: phone,
+                    bodyText: text,
+                    ctaLabel: ctaLabel,
+                    ctaPhone: replyNumber,
+                    headerText: biz,
+                    footerText: footerText,
+                    bookingId: reservation.booking_id || null,
+                    guestName: reservation.guest_name || 'Guest',
+                    templateUsed: this._currentTemplate,
+                    sentBy: (typeof currentUser !== 'undefined' && currentUser?.email) || 'system',
+                    countryCode: localStorage.getItem('whatsappCountryCode') || '91'
+                })
+            });
+
+            const json = await res.json();
+            if (json.error) throw new Error(json.error.message || json.error);
+
+            if (typeof window.showToast === 'function') {
+                window.showToast('Sent', `WhatsApp sent to ${reservation.guest_name || 'Guest'} via API`, '');
+            }
+
+            if (window.ResIQNotificationCenter) {
+                window.ResIQNotificationCenter.add({
+                    type: 'whatsapp',
+                    title: `WhatsApp API sent to ${reservation.guest_name || 'Guest'}`,
+                    body: `Template: ${TEMPLATE_LABELS[this._currentTemplate] || 'Custom'} | Reply: ${replyNumber}`,
+                    data: { bookingId: reservation.booking_id, template: this._currentTemplate },
+                });
+            }
+
+            if (window.nativeApp?.haptic) window.nativeApp.haptic('success');
+            this.closeComposer();
+        } catch (err) {
+            console.error('WhatsApp API send error:', err);
+            if (typeof window.showToast === 'function') {
+                window.showToast('API Error', err.message || 'Failed to send', '');
+            }
+            const sendBtn = this._composer?.querySelector('#resiqWASend');
+            if (sendBtn) sendBtn.disabled = false;
+        }
     }
 
     /** Send bulk WhatsApp messages */
