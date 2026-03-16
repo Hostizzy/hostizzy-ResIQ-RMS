@@ -195,14 +195,14 @@ async function loadCommunication() {
         if (supabaseMessages.length > 0) {
             communicationMessages = supabaseMessages.map(m => ({
                 id: m.id,
-                channel: m.channel,
-                recipient: m.recipient,
-                recipientEmail: m.recipient_email,
-                subject: m.subject,
-                message: m.message,
-                timestamp: m.created_at,
-                status: m.status,
-                templateKey: m.template_key,
+                channel: m.message_type || 'email',
+                recipient: m.guest_name || m.recipient || '',
+                recipientEmail: m.recipient_email || '',
+                subject: m.subject || '',
+                message: m.message_content || '',
+                timestamp: m.sent_at || m.created_at,
+                status: m.status || 'sent',
+                templateKey: m.template_used,
                 bookingId: m.booking_id,
                 scheduledFor: m.scheduled_for
             }));
@@ -226,20 +226,21 @@ async function persistCommunication(msg) {
     localMessages.unshift(msg);
     localStorage.setItem('communicationMessages', JSON.stringify(localMessages));
 
-    // Try to persist to Supabase
+    // Try to persist to Supabase (uses existing table column names)
     try {
         await db.saveCommunication({
-            channel: msg.channel,
-            recipient: msg.recipient,
+            message_type: msg.channel,
+            guest_name: msg.recipient,
             recipient_email: msg.recipientEmail || null,
-            recipient_phone: msg.recipientPhone || null,
+            guest_phone: msg.recipientPhone || null,
             subject: msg.subject,
-            message: msg.message,
+            message_content: msg.message,
             status: msg.status,
-            template_key: msg.templateKey || null,
+            template_used: msg.templateKey || null,
             booking_id: msg.bookingId || null,
             scheduled_for: msg.scheduledFor || null,
-            sent_at: msg.status === 'sent' ? new Date().toISOString() : null
+            sent_by: firebase.auth().currentUser?.email || 'system',
+            sent_at: msg.status === 'sent' ? new Date().toISOString() : new Date().toISOString()
         });
     } catch (e) {
         console.warn('Could not persist communication to Supabase:', e.message);

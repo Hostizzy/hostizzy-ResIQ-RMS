@@ -393,11 +393,14 @@
             },
 
             // ─── Communications (Supabase-backed) ───────────
+            // Existing table schema: booking_id, guest_name, guest_phone,
+            // message_type, template_used, message_content, sent_by, sent_at
+            // New columns: recipient_email, subject, status, scheduled_for, created_at
             async getCommunications() {
                 const { data, error } = await supabase
                     .from('communications')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('sent_at', { ascending: false });
                 if (error) throw error;
                 return data || [];
             },
