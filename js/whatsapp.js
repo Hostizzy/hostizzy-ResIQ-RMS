@@ -250,7 +250,8 @@ window.sendWhatsAppMessage = async function(booking_id, template = 'booking_conf
  */
 window.sendWhatsAppViaAPI = async function(booking, template = 'booking_confirmation', customMessage = null) {
     try {
-        const token = currentUser ? await currentUser.getIdToken() : null;
+        const firebaseUser = firebase.auth().currentUser;
+        const token = firebaseUser ? await firebaseUser.getIdToken() : null;
         if (!token) {
             showToast('Auth Error', 'Please sign in to send WhatsApp messages', '❌');
             return;
