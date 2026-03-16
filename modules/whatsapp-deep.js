@@ -529,8 +529,8 @@ class WhatsAppDeep {
             const footerText = localStorage.getItem('wabaFooterText') || 'Hostizzy — Holiday Homes';
             const biz = localStorage.getItem('whatsappBusinessName') || 'Hostizzy';
 
-            const token = typeof currentUser !== 'undefined' && currentUser
-                ? await currentUser.getIdToken() : null;
+            const firebaseUser = firebase.auth().currentUser;
+            const token = firebaseUser ? await firebaseUser.getIdToken() : null;
             if (!token) {
                 if (typeof window.showToast === 'function')
                     window.showToast('Auth Error', 'Please sign in to send via API', '');
