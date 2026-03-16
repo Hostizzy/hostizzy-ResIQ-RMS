@@ -1,7 +1,131 @@
 // ResIQ Communication — Email compose, Gmail integration, message templates
+// Enhanced: Supabase persistence, custom templates, scheduled messages
 
 // Gmail connection state (cached from server)
 let gmailConnectionStatus = { connected: false, email: null };
+
+// Custom message templates (persisted to localStorage, editable by user)
+const DEFAULT_TEMPLATES = {
+    booking_confirmation: {
+        name: 'Booking Confirmation',
+        subject: 'Booking Confirmed — {{property_name}}',
+        body: 'Dear {{guest_name}},\n\nYour booking has been confirmed!\n\nProperty: {{property_name}}\nCheck-in: {{check_in}}\nCheck-out: {{check_out}}\nGuests: {{guests}}\n\nWe look forward to hosting you.\n\nBest regards,\n{{business_name}}'
+    },
+    payment_reminder: {
+        name: 'Payment Reminder',
+        subject: 'Payment Reminder — {{property_name}}',
+        body: 'Dear {{guest_name}},\n\nThis is a friendly reminder that payment is pending for your upcoming stay.\n\nProperty: {{property_name}}\nCheck-in: {{check_in}}\nAmount: {{total_amount}}\n\nPlease complete the payment at your earliest convenience.\n\nThank you,\n{{business_name}}'
+    },
+    check_in_instructions: {
+        name: 'Check-in Instructions',
+        subject: 'Check-in Details — {{property_name}}',
+        body: 'Dear {{guest_name}},\n\nWelcome! Here are your check-in details:\n\nProperty: {{property_name}}\nCheck-in Date: {{check_in}}\nCheck-in Time: 2:00 PM\n\nDirections and access details will be shared closer to your arrival.\n\nSee you soon!\n{{business_name}}'
+    },
+    thank_you: {
+        name: 'Check-out Thanks',
+        subject: 'Thank You for Staying with Us!',
+        body: 'Dear {{guest_name}},\n\nThank you for staying at {{property_name}}! We hope you had a wonderful experience.\n\nWe would love to host you again. Please do not hesitate to reach out for future bookings.\n\nWarm regards,\n{{business_name}}'
+    },
+    review_request: {
+        name: 'Review Request',
+        subject: 'How was your stay at {{property_name}}?',
+        body: 'Dear {{guest_name}},\n\nWe hope you enjoyed your stay at {{property_name}}.\n\nWould you kindly take a moment to leave us a review? Your feedback helps us improve and helps future guests.\n\nThank you for choosing us!\n\nBest,\n{{business_name}}'
+    }
+};
+
+function getCustomTemplates() {
+    try {
+        const stored = localStorage.getItem('resiq_message_templates');
+        if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return { ...DEFAULT_TEMPLATES };
+}
+
+function saveCustomTemplates(templates) {
+    localStorage.setItem('resiq_message_templates', JSON.stringify(templates));
+}
+
+function openTemplateEditor() {
+    const templates = getCustomTemplates();
+    const keys = Object.keys(templates);
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i data-lucide="file-edit" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"></i>Customize Message Templates</h3>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div style="padding: 20px;">
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                    Edit your message templates. Use placeholders: <code>{{guest_name}}</code>, <code>{{property_name}}</code>, <code>{{check_in}}</code>, <code>{{check_out}}</code>, <code>{{guests}}</code>, <code>{{total_amount}}</code>, <code>{{business_name}}</code>
+                </p>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                    ${keys.map((key, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" onclick="switchTemplateTab('${key}', this)" style="font-size: 12px; padding: 4px 12px;">${templates[key].name}</button>`).join('')}
+                </div>
+                ${keys.map((key, i) => `
+                <div class="template-tab-content" id="tmplTab_${key}" style="${i > 0 ? 'display:none;' : ''}">
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" id="tmplSubject_${key}" value="${escapeHtml(templates[key].subject)}">
+                    </div>
+                    <div class="form-group">
+                        <label>Message Body</label>
+                        <textarea id="tmplBody_${key}" rows="8" style="font-family: monospace; font-size: 13px;">${escapeHtml(templates[key].body)}</textarea>
+                    </div>
+                </div>`).join('')}
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button class="btn" onclick="resetTemplatesToDefault()" style="color: var(--text-secondary);">Reset to Defaults</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveTemplatesFromEditor()">Save Templates</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    requestAnimationFrame(() => { if (typeof refreshIcons === 'function') refreshIcons(modal); });
+}
+
+function switchTemplateTab(key, el) {
+    document.querySelectorAll('.template-tab-content').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    const tab = document.getElementById(`tmplTab_${key}`);
+    if (tab) tab.style.display = 'block';
+    if (el) el.classList.add('active');
+}
+
+function saveTemplatesFromEditor() {
+    const templates = getCustomTemplates();
+    for (const key of Object.keys(templates)) {
+        const subjectEl = document.getElementById(`tmplSubject_${key}`);
+        const bodyEl = document.getElementById(`tmplBody_${key}`);
+        if (subjectEl) templates[key].subject = subjectEl.value;
+        if (bodyEl) templates[key].body = bodyEl.value;
+    }
+    saveCustomTemplates(templates);
+    document.querySelectorAll('.modal').forEach(m => m.remove());
+    showToast('Templates Saved', 'Your custom message templates have been saved', '✅');
+}
+
+function resetTemplatesToDefault() {
+    if (!confirm('Reset all templates to default? Your customizations will be lost.')) return;
+    saveCustomTemplates({ ...DEFAULT_TEMPLATES });
+    document.querySelectorAll('.modal').forEach(m => m.remove());
+    openTemplateEditor();
+    showToast('Templates Reset', 'Templates restored to defaults', '✅');
+}
+
+function escapeHtmlComm(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
 
 /**
  * Helper: Get Firebase ID token for authenticated proxy calls
@@ -58,15 +182,67 @@ async function checkGmailStatus() {
     }
 }
 
-function loadCommunication() {
+async function loadCommunication() {
     try {
-        const stored = localStorage.getItem('communicationMessages');
-        communicationMessages = stored ? JSON.parse(stored) : [];
+        // Try Supabase first, fall back to localStorage
+        let supabaseMessages = [];
+        try {
+            supabaseMessages = await db.getCommunications();
+        } catch (e) {
+            console.warn('Supabase communications table not available, using localStorage:', e.message);
+        }
+
+        if (supabaseMessages.length > 0) {
+            communicationMessages = supabaseMessages.map(m => ({
+                id: m.id,
+                channel: m.channel,
+                recipient: m.recipient,
+                recipientEmail: m.recipient_email,
+                subject: m.subject,
+                message: m.message,
+                timestamp: m.created_at,
+                status: m.status,
+                templateKey: m.template_key,
+                bookingId: m.booking_id,
+                scheduledFor: m.scheduled_for
+            }));
+        } else {
+            const stored = localStorage.getItem('communicationMessages');
+            communicationMessages = stored ? JSON.parse(stored) : [];
+        }
+
         renderCommunicationMessages();
         renderEmailStatusBanner();
     } catch (error) {
         console.error('Error loading communications:', error);
         communicationMessages = [];
+    }
+}
+
+// Persist a message to Supabase (with localStorage fallback)
+async function persistCommunication(msg) {
+    // Always save to localStorage as backup
+    const localMessages = JSON.parse(localStorage.getItem('communicationMessages') || '[]');
+    localMessages.unshift(msg);
+    localStorage.setItem('communicationMessages', JSON.stringify(localMessages));
+
+    // Try to persist to Supabase
+    try {
+        await db.saveCommunication({
+            channel: msg.channel,
+            recipient: msg.recipient,
+            recipient_email: msg.recipientEmail || null,
+            recipient_phone: msg.recipientPhone || null,
+            subject: msg.subject,
+            message: msg.message,
+            status: msg.status,
+            template_key: msg.templateKey || null,
+            booking_id: msg.bookingId || null,
+            scheduled_for: msg.scheduledFor || null,
+            sent_at: msg.status === 'sent' ? new Date().toISOString() : null
+        });
+    } catch (e) {
+        console.warn('Could not persist communication to Supabase:', e.message);
     }
 }
 
@@ -417,7 +593,7 @@ async function sendComposedMessage() {
         };
 
         communicationMessages.unshift(newMessage);
-        localStorage.setItem('communicationMessages', JSON.stringify(communicationMessages));
+        await persistCommunication(newMessage);
         renderCommunicationMessages();
 
         // Close modal
