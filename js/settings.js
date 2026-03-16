@@ -269,6 +269,29 @@ function loadWhatsAppSettings() {
         if (ccEl) ccEl.value = countryCode;
         if (bnEl) bnEl.value = businessName;
         if (upiEl) upiEl.value = upiId;
+
+        // Load WABA mode
+        const waMode = localStorage.getItem('whatsappMode') || 'links';
+        toggleWhatsAppMode(waMode);
+
+        // Load WABA settings
+        const replyNum = localStorage.getItem('wabaReplyNumber') || '+919560494001';
+        const ctaLabel = localStorage.getItem('wabaCtaLabel') || 'Chat with Property';
+        const footerText = localStorage.getItem('wabaFooterText') || 'Hostizzy — Holiday Homes';
+
+        const replyEl = document.getElementById('wabaReplyNumber');
+        const ctaEl = document.getElementById('wabaCtaLabel');
+        const footerEl = document.getElementById('wabaFooterText');
+
+        if (replyEl) replyEl.value = replyNum;
+        if (ctaEl) ctaEl.value = ctaLabel;
+        if (footerEl) footerEl.value = footerText;
+
+        // Load property reply numbers
+        loadWABAPropertyNumbers();
+
+        // Check WABA connection status
+        if (waMode === 'api') checkWABAStatus();
     } catch (e) { /* ignore */ }
 }
 
@@ -282,11 +305,143 @@ function saveWhatsAppSettings() {
         localStorage.setItem('whatsappBusinessName', businessName);
         localStorage.setItem('whatsappUpiId', upiId);
 
+        // Save WABA settings
+        const replyNum = document.getElementById('wabaReplyNumber')?.value || '+919560494001';
+        const ctaLabel = document.getElementById('wabaCtaLabel')?.value || 'Chat with Property';
+        const footerText = document.getElementById('wabaFooterText')?.value || 'Hostizzy — Holiday Homes';
+
+        localStorage.setItem('wabaReplyNumber', replyNum);
+        localStorage.setItem('wabaCtaLabel', ctaLabel);
+        localStorage.setItem('wabaFooterText', footerText);
+
+        // Save property-specific reply numbers
+        saveWABAPropertyNumbers();
+
         showToast('Settings Saved', 'WhatsApp settings saved successfully', '');
     } catch (error) {
         showToast('Error', 'Failed to save WhatsApp settings', '');
     }
 }
+
+// Toggle between wa.me links and Business API mode
+window.toggleWhatsAppMode = function(mode) {
+    localStorage.setItem('whatsappMode', mode);
+
+    const linksBtn = document.getElementById('waModeLinks');
+    const apiBtn = document.getElementById('waModeApi');
+    const linksInfo = document.getElementById('waLinksInfo');
+    const apiConfig = document.getElementById('waApiConfig');
+    const badge = document.getElementById('whatsappStatusBadge');
+
+    if (mode === 'api') {
+        if (linksBtn) { linksBtn.style.background = 'transparent'; linksBtn.style.color = 'var(--text-secondary)'; linksBtn.style.borderColor = 'var(--border)'; }
+        if (apiBtn) { apiBtn.style.background = '#0ea5e9'; apiBtn.style.color = 'white'; apiBtn.style.borderColor = '#0ea5e9'; }
+        if (linksInfo) linksInfo.style.display = 'none';
+        if (apiConfig) apiConfig.style.display = 'block';
+        if (badge) { badge.textContent = 'Business API'; badge.style.background = '#0ea5e9'; }
+        checkWABAStatus();
+    } else {
+        if (linksBtn) { linksBtn.style.background = '#25D366'; linksBtn.style.color = 'white'; linksBtn.style.borderColor = '#25D366'; }
+        if (apiBtn) { apiBtn.style.background = 'transparent'; apiBtn.style.color = 'var(--text-secondary)'; apiBtn.style.borderColor = 'var(--border)'; }
+        if (linksInfo) linksInfo.style.display = 'block';
+        if (apiConfig) apiConfig.style.display = 'none';
+        if (badge) { badge.textContent = 'Ready'; badge.style.background = 'var(--success)'; }
+    }
+};
+
+// Check WABA connection status from server
+async function checkWABAStatus() {
+    const statusEl = document.getElementById('waApiStatus');
+    if (!statusEl) return;
+
+    try {
+        const token = currentUser ? await currentUser.getIdToken() : null;
+        if (!token) {
+            statusEl.innerHTML = '⚠️ Please sign in to check WABA status';
+            statusEl.style.background = 'rgba(255,200,100,0.15)';
+            return;
+        }
+
+        const res = await fetch('/api/whatsapp-proxy', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ action: 'status' })
+        });
+
+        const json = await res.json();
+        if (json.data?.connected) {
+            statusEl.innerHTML = '✅ WhatsApp Business API connected — Phone ID: ' + (json.data.phoneId || 'configured');
+            statusEl.style.background = 'rgba(37, 211, 102, 0.1)';
+            statusEl.style.borderColor = 'rgba(37, 211, 102, 0.3)';
+        } else {
+            statusEl.innerHTML = '⚠️ WABA not configured — Set <code>WHATSAPP_ACCESS_TOKEN</code> and <code>WHATSAPP_PHONE_ID</code> in Vercel environment variables';
+            statusEl.style.background = 'rgba(255,200,100,0.15)';
+            statusEl.style.borderColor = 'rgba(255,200,100,0.3)';
+        }
+    } catch (e) {
+        statusEl.innerHTML = '❌ Could not check WABA status: ' + e.message;
+        statusEl.style.background = 'rgba(239,68,68,0.1)';
+    }
+}
+
+// Load properties and render per-property reply number fields
+async function loadWABAPropertyNumbers() {
+    const container = document.getElementById('wabaPropertyNumbers');
+    if (!container) return;
+
+    try {
+        const properties = (typeof db !== 'undefined' && db.getProperties)
+            ? await db.getProperties()
+            : (state?.properties || []);
+
+        if (!properties || properties.length === 0) {
+            container.innerHTML = '<div style="color: var(--text-tertiary); font-size: 12px; font-style: italic;">No properties found. Add properties first.</div>';
+            return;
+        }
+
+        const savedNumbers = JSON.parse(localStorage.getItem('wabaPropertyReplyNumbers') || '{}');
+
+        container.innerHTML = properties.map(p => `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 13px; font-weight: 500; min-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${p.name}">${p.name}</span>
+                <input type="text" class="waba-property-phone" data-property-id="${p.id}"
+                    value="${savedNumbers[p.id] || ''}"
+                    placeholder="+919560494001 (central)"
+                    style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); font-size: 13px;">
+            </div>
+        `).join('');
+    } catch (e) {
+        container.innerHTML = '<div style="color: var(--danger); font-size: 12px;">Error loading properties</div>';
+    }
+}
+
+// Save property-specific reply numbers
+function saveWABAPropertyNumbers() {
+    const inputs = document.querySelectorAll('.waba-property-phone');
+    const numbers = {};
+    inputs.forEach(input => {
+        const propId = input.dataset.propertyId;
+        const value = input.value.trim();
+        if (propId && value) {
+            numbers[propId] = value;
+        }
+    });
+    localStorage.setItem('wabaPropertyReplyNumbers', JSON.stringify(numbers));
+}
+
+// Get the reply number for a specific property (used by messaging functions)
+window.getWABAReplyNumber = function(propertyId) {
+    const propertyNumbers = JSON.parse(localStorage.getItem('wabaPropertyReplyNumbers') || '{}');
+    return propertyNumbers[propertyId] || localStorage.getItem('wabaReplyNumber') || '+919560494001';
+};
+
+// Check if WABA mode is active
+window.isWABAMode = function() {
+    return localStorage.getItem('whatsappMode') === 'api';
+};
 
 
 function exportAllData() {

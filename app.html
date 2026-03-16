@@ -4001,8 +4001,66 @@
                         <span class="badge" id="whatsappStatusBadge" style="background: var(--success); color: white; font-size: 11px;">Ready</span>
                     </div>
 
-                    <div style="background: var(--background); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; border-left: 3px solid #25D366; font-size: 13px;">
+                    <!-- Mode Toggle: wa.me links vs Business API -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <button id="waModeLinks" class="btn" onclick="toggleWhatsAppMode('links')" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 2px solid #25D366; background: #25D366; color: white; cursor: pointer;">
+                            wa.me Links
+                        </button>
+                        <button id="waModeApi" class="btn" onclick="toggleWhatsAppMode('api')" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 2px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer;">
+                            Business API
+                        </button>
+                    </div>
+
+                    <!-- wa.me links info -->
+                    <div id="waLinksInfo" style="background: var(--background); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; border-left: 3px solid #25D366; font-size: 13px;">
                         WhatsApp messages open via wa.me links. No API key needed — messages are sent through your WhatsApp app or WhatsApp Web.
+                    </div>
+
+                    <!-- Business API info & config -->
+                    <div id="waApiConfig" style="display: none;">
+                        <div style="background: var(--background); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; border-left: 3px solid #0ea5e9; font-size: 13px;">
+                            <strong>WhatsApp Business API</strong> — Messages are sent directly via Meta's Cloud API. Automated delivery with CTA buttons. Guests can reply to a different property number.
+                        </div>
+
+                        <div id="waApiStatus" style="padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; background: rgba(255,200,100,0.15); border: 1px solid rgba(255,200,100,0.3);">
+                            Checking WABA connection...
+                        </div>
+
+                        <div class="form-group">
+                            <label>Default Reply Number (Central)</label>
+                            <input type="text" id="wabaReplyNumber" placeholder="+919560494001" value="+919560494001">
+                            <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Fallback reply-to number when no property-specific number is set. CTA button will direct guests to chat with this number.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>CTA Button Label</label>
+                            <input type="text" id="wabaCtaLabel" placeholder="Chat with Property" value="Chat with Property">
+                            <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Text shown on the reply button in messages</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Message Footer Text</label>
+                            <input type="text" id="wabaFooterText" placeholder="Hostizzy — Holiday Homes" value="Hostizzy — Holiday Homes">
+                            <small style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block;">Small text at the bottom of every WhatsApp API message</small>
+                        </div>
+
+                        <div style="background: var(--background); border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">Property Reply Numbers</h4>
+                            <p style="font-size: 12px; color: var(--text-tertiary); margin: 0 0 12px 0;">Set a different reply number per property. If blank, the central number above is used.</p>
+                            <div id="wabaPropertyNumbers" style="display: flex; flex-direction: column; gap: 10px;">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(37, 211, 102, 0.08); border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; border: 1px dashed #25D366;">
+                            <h4 style="margin: 0 0 6px 0; font-size: 13px; color: #25D366;">How it works</h4>
+                            <ol style="margin: 0; padding-left: 18px; font-size: 12px; color: var(--text-secondary); line-height: 1.8;">
+                                <li>Automated messages are sent from your <strong>central WABA number</strong></li>
+                                <li>Each message includes a <strong>"Chat with Property"</strong> CTA button</li>
+                                <li>Tapping the button opens a WhatsApp chat with the <strong>property's reply number</strong></li>
+                                <li>If no property number is set, guests reply to the central number (+919560494001)</li>
+                            </ol>
+                        </div>
                     </div>
 
                     <div class="form-group">

@@ -376,6 +376,9 @@ const pullIndicator = document.getElementById('pullToRefreshIndicator');
 const pullArrow = document.getElementById('pullToRefreshArrow');
 
 document.addEventListener('touchstart', (e) => {
+    // Don't trigger pull-to-refresh when touching the sidebar
+    if (e.target.closest('.sidebar') || e.target.closest('.bottom-tabs')) return;
+
     if (window.scrollY === 0 && !isRefreshing) {
         touchStartY = e.touches[0].clientY;
         isPulling = true;

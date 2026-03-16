@@ -178,6 +178,12 @@ window.sendWhatsAppMessage = async function(booking_id, template = 'booking_conf
         if (!booking) { showToast('Error', 'Booking not found', '❌'); return; }
         if (!booking.guest_phone) { showToast('Error', 'Guest phone number not available', '❌'); return; }
 
+        // Check if WABA mode is active — send via Business API instead of wa.me link
+        if (typeof isWABAMode === 'function' && isWABAMode()) {
+            await sendWhatsAppViaAPI(booking, template, customMessage);
+            return;
+        }
+
         const whatsappUrl = generateWhatsAppLink(booking, template, customMessage);
         window.open(whatsappUrl, '_blank');
 
@@ -193,6 +199,70 @@ window.sendWhatsAppMessage = async function(booking_id, template = 'booking_conf
     } catch (error) {
         console.error('WhatsApp error:', error);
         showToast('Error', 'Failed to open WhatsApp: ' + error.message, '❌');
+    }
+};
+
+// ============================================
+// WHATSAPP BUSINESS API — SEND WITH CTA BUTTON
+// ============================================
+
+/**
+ * Send message via WhatsApp Business API with CTA reply button.
+ * Central number sends the message, CTA button opens chat with property's reply number.
+ */
+window.sendWhatsAppViaAPI = async function(booking, template = 'booking_confirmation', customMessage = null) {
+    try {
+        const token = currentUser ? await currentUser.getIdToken() : null;
+        if (!token) {
+            showToast('Auth Error', 'Please sign in to send WhatsApp messages', '❌');
+            return;
+        }
+
+        const message = customMessage || whatsappTemplates[template](booking);
+        const countryCode = localStorage.getItem('whatsappCountryCode') || '91';
+        const ctaLabel = localStorage.getItem('wabaCtaLabel') || 'Chat with Property';
+        const footerText = localStorage.getItem('wabaFooterText') || 'Hostizzy — Holiday Homes';
+        const biz = typeof getWABusinessName === 'function' ? getWABusinessName() : 'Hostizzy';
+
+        // Get the reply number for this property (falls back to central +919560494001)
+        const replyNumber = typeof getWABAReplyNumber === 'function'
+            ? getWABAReplyNumber(booking.property_id)
+            : localStorage.getItem('wabaReplyNumber') || '+919560494001';
+
+        const res = await fetch('/api/whatsapp-proxy', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                action: 'sendInteractive',
+                to: booking.guest_phone,
+                bodyText: message,
+                ctaLabel: ctaLabel,
+                ctaPhone: replyNumber,
+                headerText: biz,
+                footerText: footerText,
+                bookingId: booking.booking_id,
+                guestName: booking.guest_name,
+                templateUsed: template,
+                sentBy: currentUser?.email || 'system',
+                countryCode: countryCode
+            })
+        });
+
+        const json = await res.json();
+
+        if (json.error) {
+            throw new Error(json.error.message || json.error);
+        }
+
+        showToast('Message Sent', `WhatsApp sent to ${booking.guest_name} via Business API`, '✅');
+        if ('vibrate' in navigator) navigator.vibrate([10, 50, 10]);
+
+    } catch (error) {
+        console.error('WhatsApp API error:', error);
+        showToast('API Error', error.message || 'Failed to send via WhatsApp API', '❌');
     }
 };
 
@@ -387,6 +457,7 @@ window.switchMessagingChannel = function(channel) {
         }
     } else {
         // WhatsApp styling
+        const wabaActive = typeof isWABAMode === 'function' && isWABAMode();
         if (guestCard) guestCard.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
         if (subjectGroup) subjectGroup.style.display = 'none';
         if (previewBox) previewBox.style.background = '#dcf8c6';
@@ -394,8 +465,20 @@ window.switchMessagingChannel = function(channel) {
         if (previewLabel) previewLabel.style.color = '#128c7e';
         if (previewIcon) previewIcon.innerHTML = '<i data-lucide="message-circle" style="width: 20px; height: 20px; color: #25d366;"></i>';
         if (sendBtn) { sendBtn.className = 'btn btn-success'; sendBtn.style.cssText = 'flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px;'; }
-        if (sendLabel) sendLabel.textContent = 'Open WhatsApp';
+        if (sendLabel) sendLabel.textContent = wabaActive ? 'Send via API' : 'Open WhatsApp';
         if (emailStatus) emailStatus.style.display = 'none';
+
+        // Show WABA CTA info when in API mode
+        if (wabaActive && currentMessagingBooking) {
+            const replyNum = typeof getWABAReplyNumber === 'function'
+                ? getWABAReplyNumber(currentMessagingBooking.property_id) : '+919560494001';
+            const ctaLabel = localStorage.getItem('wabaCtaLabel') || 'Chat with Property';
+            if (emailStatus) {
+                emailStatus.style.display = 'block';
+                emailStatus.innerHTML = `📲 Business API — CTA: "${ctaLabel}" → ${replyNum}`;
+                emailStatus.style.background = 'rgba(37, 211, 102, 0.15)';
+            }
+        }
     }
 
     updateMessagingContactInfo();
