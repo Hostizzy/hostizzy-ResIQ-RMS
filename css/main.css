@@ -3483,6 +3483,8 @@ width: 240px;
 background: var(--brand-navy, #1B3A5C);
 border-right: none;
 overflow-y: auto;
+overscroll-behavior: contain;
+touch-action: pan-y;
 position: fixed;
 left: 0;
 top: 60px;

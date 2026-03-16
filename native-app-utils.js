@@ -79,6 +79,9 @@ function enablePullToRefresh(element, onRefresh) {
     element.insertBefore(pullIndicator, element.firstChild);
 
     element.addEventListener('touchstart', (e) => {
+        // Don't trigger pull-to-refresh when touching the sidebar
+        if (e.target.closest('.sidebar') || e.target.closest('.bottom-tabs')) return;
+
         if (element.scrollTop === 0) {
             pullToRefreshState.startY = e.touches[0].clientY;
             pullToRefreshState.dragging = true;

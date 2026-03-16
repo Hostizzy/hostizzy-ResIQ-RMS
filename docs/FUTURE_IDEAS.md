@@ -14,3 +14,26 @@
 **Notes:**
 - PWAs cannot access the native call log directly (browser sandboxing).
 - Cloud telephony route is recommended — also enables call recording/tracking.
+
+---
+
+## WhatsApp API Integration
+**Status:** On hold
+**Priority:** TBD
+
+**Concept:** Integrate WhatsApp Business API to enable direct guest communication from within ResIQ.
+
+**Possible approaches:**
+1. **WhatsApp Business API (official)** — Apply for Meta Business verification, use the Cloud API to send/receive messages via webhooks. Supports templates, media, and interactive messages.
+2. **Third-party providers (Twilio, MessageBird, 360dialog)** — Simplified access to WhatsApp API without direct Meta integration. Faster setup, handles compliance.
+
+**Potential use cases:**
+- Send booking confirmations and check-in reminders to guests
+- Receive guest enquiries directly into the enquiries module
+- Automated responses for common questions (directions, check-in time, WiFi)
+- Share guest documents (invoices, receipts) via WhatsApp
+
+**Notes:**
+- WhatsApp Business API requires Meta Business verification (can take a few days).
+- Template messages must be pre-approved by Meta for outbound messaging.
+- Could pair with the auto-log phone calls feature for a unified communications hub.
