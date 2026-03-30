@@ -806,31 +806,41 @@ async function scanGmailNow() {
     try {
         showToast('🔍 Scanning Gmail for booking confirmations...', 'info');
 
-        // Search queries for different OTA confirmation emails
+        // Search queries for different OTA confirmation emails (broadened for better coverage)
         const searchQueries = [
-            'from:automated@airbnb.com subject:"reservation confirmed"',
-            'from:noreply@booking.com subject:"confirmed"',
-            'from:noreply@agoda.com subject:"booking confirmation"',
-            'from:care@makemytrip.com subject:"booking confirmation"',
-            'subject:"booking confirmed" OR subject:"reservation confirmed"'
+            'from:airbnb.com subject:(reservation OR booking OR confirmed)',
+            'from:booking.com subject:(confirmed OR reservation OR booking)',
+            'from:agoda.com subject:(booking OR confirmed OR confirmation)',
+            'from:makemytrip.com subject:(booking OR confirmed)',
+            'from:goibibo.com subject:(booking OR confirmed)',
+            'from:vrbo.com subject:(reservation OR confirmed)',
+            'subject:"booking confirmed" OR subject:"reservation confirmed" OR subject:"booking confirmation"'
         ];
 
         let totalFound = 0;
         let totalCreated = 0;
         let totalUpdated = 0;
+        let totalSkipped = 0;
+        let totalFailed = 0;
+        const processedMessageIds = new Set(); // Avoid processing same message from multiple queries
 
         for (const query of searchQueries) {
             const messages = await searchGmailMessages(query);
 
             if (messages && messages.length > 0) {
                 console.log(`Found ${messages.length} messages for query: ${query}`);
-                totalFound += messages.length;
 
-                // Process each message
-                for (const message of messages.slice(0, 20)) { // Limit to 20 recent per query
+                // Process each message (skip already-processed from earlier queries)
+                for (const message of messages.slice(0, 20)) {
+                    if (processedMessageIds.has(message.id)) continue;
+                    processedMessageIds.add(message.id);
+                    totalFound++;
+
                     const result = await processGmailBookingEmail(message.id);
                     if (result.created) totalCreated++;
-                    if (result.updated) totalUpdated++;
+                    else if (result.updated) totalUpdated++;
+                    else if (result.skipped) totalSkipped++;
+                    else totalFailed++;
                 }
             }
         }
@@ -842,11 +852,18 @@ async function scanGmailNow() {
 
         // Show results
         if (totalFound === 0) {
-            showToast('No booking emails found', 'info');
+            showToast('No booking emails found. Check if your Gmail account receives OTA confirmation emails.', 'info');
         } else {
-            showToast(`✅ Scanned ${totalFound} emails. Created: ${totalCreated}, Updated: ${totalUpdated}`, 'success');
-            await loadReservations();
-            await loadDashboard();
+            const parts = [`Scanned ${totalFound} emails`];
+            if (totalCreated > 0) parts.push(`${totalCreated} created`);
+            if (totalUpdated > 0) parts.push(`${totalUpdated} updated`);
+            if (totalSkipped > 0) parts.push(`${totalSkipped} duplicates skipped`);
+            if (totalFailed > 0) parts.push(`${totalFailed} could not be parsed`);
+            showToast(`✅ ${parts.join(', ')}`, totalCreated > 0 ? 'success' : 'info');
+            if (totalCreated > 0 || totalUpdated > 0) {
+                await loadReservations();
+                await loadDashboard();
+            }
         }
 
     } catch (error) {
@@ -904,30 +921,51 @@ async function processGmailBookingEmail(messageId) {
 
         if (!bookingData) {
             console.log('[Gmail] Could not parse booking data from email');
-            return { created: false, updated: false };
+            return { created: false, updated: false, skipped: false };
         }
 
-        // Check if reservation already exists
-        const { data: existing } = await supabase
+        // Check 1: Duplicate by booking_id
+        const { data: existingById } = await supabase
             .from('reservations')
             .select('*')
             .eq('booking_id', bookingData.booking_id)
             .maybeSingle();
 
-        if (existing) {
+        if (existingById) {
             // Update existing
             await supabase
                 .from('reservations')
                 .update(bookingData)
-                .eq('id', existing.id);
-            return { created: false, updated: true };
-        } else {
-            // Create new
-            await supabase
-                .from('reservations')
-                .insert([bookingData]);
-            return { created: true, updated: false };
+                .eq('id', existingById.id);
+            return { created: false, updated: true, skipped: false };
         }
+
+        // Check 2: Duplicate by property + check_in + check_out dates
+        if (bookingData.property_id && bookingData.check_in && bookingData.check_out) {
+            const { data: existingByDates } = await supabase
+                .from('reservations')
+                .select('id, booking_id, guest_name')
+                .eq('property_id', bookingData.property_id)
+                .eq('check_in', bookingData.check_in)
+                .eq('check_out', bookingData.check_out)
+                .maybeSingle();
+
+            if (existingByDates) {
+                console.log(`[Gmail] Duplicate skipped: property ${bookingData.property_id}, ${bookingData.check_in} to ${bookingData.check_out} (existing: ${existingByDates.booking_id})`);
+                return { created: false, updated: false, skipped: true };
+            }
+        }
+
+        // Create new reservation
+        const { error: insertError } = await supabase
+            .from('reservations')
+            .insert([bookingData]);
+
+        if (insertError) {
+            console.error('[Gmail] Error inserting reservation:', insertError);
+            return { created: false, updated: false, skipped: false };
+        }
+        return { created: true, updated: false, skipped: false };
 
     } catch (error) {
         console.error('Error processing email:', error);
@@ -1057,13 +1095,16 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
         }
     }
 
-    // Must have at least booking ID and check-in date
-    if (!extracted.bookingId || !extracted.checkIn) {
+    // Must have at least a check-in date
+    if (!extracted.checkIn) {
+        console.log('[Gmail] Could not extract check-in date from email');
         return null;
     }
 
-    // Truncate booking_id to fit VARCHAR(50)
-    const bookingId = extracted.bookingId.substring(0, 50);
+    // Auto-generate booking_id if not extracted (use source + date combo)
+    const bookingId = extracted.bookingId
+        ? extracted.bookingId.substring(0, 50)
+        : `GMAIL-${bookingSource}-${extracted.checkIn.replace(/\D/g, '')}`.substring(0, 50);
     const guestName = (extracted.guestName || 'Guest').substring(0, 50);
 
     // Parse dates
