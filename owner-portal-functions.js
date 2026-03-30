@@ -1927,7 +1927,7 @@ async function saveExpense() {
 
         // Calculate settlement month from expense date
         const date = new Date(expenseDate);
-        const settlementMonth = `${date.getFullYear()}-${date.getMonth()}`;
+        const settlementMonth = `${date.getFullYear()}-${date.getMonth() + 1}`;
 
         const expense = {
             property_id: propertyId,

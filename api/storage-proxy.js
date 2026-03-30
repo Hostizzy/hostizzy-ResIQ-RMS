@@ -18,7 +18,8 @@ export const config = {
 };
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+// Use service role key to bypass RLS — access control is enforced by ALLOWED_BUCKETS
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
 const ALLOWED_BUCKETS = ['guest-id-documents', 'expense-receipts'];
 

@@ -522,6 +522,74 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- =====================================================
+-- STORAGE BUCKET: expense-receipts
+-- =====================================================
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'expense-receipts',
+    'expense-receipts',
+    false, -- Private bucket
+    5242880, -- 5MB limit
+    ARRAY['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage RLS policies for expense-receipts
+
+DROP POLICY IF EXISTS "Staff can upload expense receipts" ON storage.objects;
+CREATE POLICY "Staff can upload expense receipts"
+    ON storage.objects
+    FOR INSERT
+    WITH CHECK (
+        bucket_id = 'expense-receipts'
+        AND EXISTS (
+            SELECT 1 FROM team_members
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
+DROP POLICY IF EXISTS "Staff can view expense receipts" ON storage.objects;
+CREATE POLICY "Staff can view expense receipts"
+    ON storage.objects
+    FOR SELECT
+    USING (
+        bucket_id = 'expense-receipts'
+        AND EXISTS (
+            SELECT 1 FROM team_members
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
+DROP POLICY IF EXISTS "Owners can upload expense receipts" ON storage.objects;
+CREATE POLICY "Owners can upload expense receipts"
+    ON storage.objects
+    FOR INSERT
+    WITH CHECK (
+        bucket_id = 'expense-receipts'
+        AND EXISTS (
+            SELECT 1 FROM property_owners
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
+DROP POLICY IF EXISTS "Owners can view expense receipts" ON storage.objects;
+CREATE POLICY "Owners can view expense receipts"
+    ON storage.objects
+    FOR SELECT
+    USING (
+        bucket_id = 'expense-receipts'
+        AND EXISTS (
+            SELECT 1 FROM property_owners
+            WHERE email = current_setting('app.user_email', true)
+            AND is_active = true
+        )
+    );
+
+-- =====================================================
 -- VERIFICATION QUERIES
 -- =====================================================
 

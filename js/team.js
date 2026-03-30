@@ -291,7 +291,7 @@ async function loadExpenses() {
             for (let i = 0; i < 12; i++) {
                 const d = new Date();
                 d.setMonth(d.getMonth() - i);
-                const key = `${d.getFullYear()}-${d.getMonth()}`;
+                const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
                 const label = d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
                 const opt = document.createElement('option');
                 opt.value = key;
@@ -603,7 +603,7 @@ async function saveAdminExpense(expenseId) {
 
         // Calculate settlement month
         const d = new Date(expenseDate);
-        const settlementMonth = `${d.getFullYear()}-${d.getMonth()}`;
+        const settlementMonth = `${d.getFullYear()}-${d.getMonth() + 1}`;
 
         const expense = {
             property_id: propertyId,
