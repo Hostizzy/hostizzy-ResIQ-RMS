@@ -806,15 +806,16 @@ async function scanGmailNow() {
     try {
         showToast('🔍 Scanning Gmail for booking confirmations...', 'info');
 
-        // Search queries for different OTA confirmation emails (broadened for better coverage)
+        // Search queries for different OTA confirmation emails
+        // "in:anywhere" ensures emails in filtered labels (not just inbox) are found
         const searchQueries = [
-            'from:airbnb.com subject:(reservation OR booking OR confirmed)',
-            'from:booking.com subject:(confirmed OR reservation OR booking)',
-            'from:agoda.com subject:(booking OR confirmed OR confirmation)',
-            'from:makemytrip.com subject:(booking OR confirmed)',
-            'from:goibibo.com subject:(booking OR confirmed)',
-            'from:vrbo.com subject:(reservation OR confirmed)',
-            'subject:"booking confirmed" OR subject:"reservation confirmed" OR subject:"booking confirmation"'
+            'in:anywhere from:airbnb.com subject:(reservation OR booking OR confirmed)',
+            'in:anywhere from:booking.com subject:(confirmed OR reservation OR booking)',
+            'in:anywhere from:agoda.com subject:(booking OR confirmed OR confirmation)',
+            'in:anywhere from:makemytrip.com subject:(booking OR confirmed)',
+            'in:anywhere from:goibibo.com subject:(booking OR confirmed)',
+            'in:anywhere from:vrbo.com subject:(reservation OR confirmed)',
+            'in:anywhere subject:"booking confirmed" OR subject:"reservation confirmed" OR subject:"booking confirmation"'
         ];
 
         let totalFound = 0;
@@ -915,19 +916,19 @@ window.diagnoseGmailScan = async function() {
             return;
         }
 
-        // Test each search query
+        // Test each search query (with and without in:anywhere)
         const searchQueries = [
-            'from:airbnb.com subject:(reservation OR booking OR confirmed)',
-            'from:booking.com subject:(confirmed OR reservation OR booking)',
-            'from:agoda.com subject:(booking OR confirmed OR confirmation)',
-            'from:makemytrip.com subject:(booking OR confirmed)',
-            'from:goibibo.com subject:(booking OR confirmed)',
-            'from:vrbo.com subject:(reservation OR confirmed)',
-            'subject:"booking confirmed" OR subject:"reservation confirmed" OR subject:"booking confirmation"',
-            // Broader fallback queries for diagnosis
+            'in:anywhere from:airbnb.com subject:(reservation OR booking OR confirmed)',
+            'in:anywhere from:booking.com subject:(confirmed OR reservation OR booking)',
+            'in:anywhere from:agoda.com subject:(booking OR confirmed OR confirmation)',
+            'in:anywhere from:makemytrip.com subject:(booking OR confirmed)',
+            // Broader fallback queries for diagnosis (any email from OTA)
+            'in:anywhere from:airbnb.com',
+            'in:anywhere from:booking.com',
+            'in:anywhere from:agoda.com',
+            // Without in:anywhere to compare (inbox only)
             'from:airbnb.com',
             'from:booking.com',
-            'from:agoda.com',
         ];
 
         report += '2. SEARCH QUERIES:\n';
