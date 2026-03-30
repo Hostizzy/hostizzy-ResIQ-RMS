@@ -4879,122 +4879,14 @@ font-size: 11px;
 border: 1px solid var(--border);
 }
 
-/* Floating Quick Action Button */
-.quick-action-fab {
-position: fixed;
-bottom: 100px;
-right: 24px;
-width: 64px;
-height: 64px;
-border-radius: 50%;
-background: var(--gradient-primary);
-color: white;
-border: none;
-font-size: 28px;
-cursor: pointer;
-box-shadow: 0 8px 24px rgba(8, 145, 178, 0.5);
-transition: var(--transition);
-z-index: 999;
-display: flex;
-align-items: center;
-justify-content: center;
-backdrop-filter: blur(10px);
-border: 2px solid rgba(255, 255, 255, 0.2);
+/* Keyboard shortcuts header button - hide on mobile */
+@media (max-width: 768px) {
+.keyboard-shortcuts-header-btn {
+    display: none !important;
 }
-
-.quick-action-fab::before {
-content: '';
-position: absolute;
-inset: -2px;
-border-radius: 50%;
-padding: 2px;
-background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), transparent);
--webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
--webkit-mask-composite: xor;
-mask-composite: exclude;
-opacity: 0;
-transition: var(--transition);
-}
-
-.quick-action-fab:hover {
-transform: scale(1.1) rotate(5deg);
-box-shadow: 0 12px 32px rgba(8, 145, 178, 0.7);
-}
-
-.quick-action-fab:hover::before {
-opacity: 1;
-}
-
-.quick-action-fab:active {
-transform: scale(0.95);
-}
-
-/* Keyboard shortcuts button - desktop only */
-.keyboard-shortcuts-fab {
-position: fixed;
-bottom: 180px; /* Stack above quick action button */
-right: 24px;
-width: 64px;
-height: 64px;
-border-radius: 50%;
-background: var(--gradient-purple);
-color: white;
-border: none;
-font-size: 28px;
-cursor: pointer;
-box-shadow: 0 8px 24px rgba(8, 145, 178, 0.5);
-transition: var(--transition);
-z-index: 999;
-display: flex;
-align-items: center;
-justify-content: center;
-backdrop-filter: blur(10px);
-border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.keyboard-shortcuts-fab::before {
-content: '';
-position: absolute;
-inset: -2px;
-border-radius: 50%;
-padding: 2px;
-background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), transparent);
--webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
--webkit-mask-composite: xor;
-mask-composite: exclude;
-opacity: 0;
-transition: var(--transition);
-}
-
-.keyboard-shortcuts-fab:hover {
-transform: scale(1.1) rotate(-5deg);
-box-shadow: 0 12px 32px rgba(8, 145, 178, 0.7);
-}
-
-.keyboard-shortcuts-fab:hover::before {
-opacity: 1;
-}
-
-.keyboard-shortcuts-fab:active {
-transform: scale(0.95);
 }
 
 @media (max-width: 768px) {
-/* Hide keyboard shortcuts button on mobile */
-.keyboard-shortcuts-fab {
-    display: none !important;
-}
-
-.quick-action-fab {
-    bottom: 90px; /* Above mobile nav bar */
-    right: 16px;
-    width: 56px;
-    height: 56px;
-    font-size: 24px;
-}
-
 .quick-actions-panel {
     width: 95%;
     max-height: 80vh;

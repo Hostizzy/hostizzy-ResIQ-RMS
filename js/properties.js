@@ -157,6 +157,7 @@ async function loadProperties() {
                         <div class="prop-sync-dot ${p.ical_url ? 'synced' : 'not-synced'}"></div>
                         <div class="prop-sync-status">${p.ical_url ? 'iCal On' : 'No iCal'}</div>
                         ${p.ical_url ? `<div class="prop-sync-time">${lastSynced}</div>` : ''}
+                        ${p.is_managed ? `<span style="display:inline-block;margin-top:4px;padding:2px 8px;background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:600;border-radius:4px;">Managed</span>` : ''}
                     </div>
 
                     <!-- Actions -->
@@ -363,7 +364,8 @@ async function saveProperty() {
             location: document.getElementById('propertyLocation').value,
             type: document.getElementById('propertyType').value,
             capacity: parseInt(document.getElementById('propertyCapacity').value),
-            revenue_share_percent: commissionRate || 15
+            revenue_share_percent: commissionRate || 15,
+            is_managed: document.getElementById('propertyIsManaged')?.checked || false
         };
 
         if (!property.name || !property.location) {
@@ -457,6 +459,10 @@ async function openPropertySettings(propertyId) {
 
         // Populate commission rate
         document.getElementById('settingsCommissionRate').value = property.revenue_share_percent || 15;
+
+        // Populate managed toggle
+        const managedCheckbox = document.getElementById('settingsIsManaged');
+        if (managedCheckbox) managedCheckbox.checked = property.is_managed === true;
 
         // Populate iCal URL if exists
         document.getElementById('icalUrlInput').value = property.ical_url || '';
@@ -556,8 +562,10 @@ async function savePropertySettings() {
         saveButton.disabled = true;
 
         // Update property with new settings
+        const isManaged = document.getElementById('settingsIsManaged')?.checked || false;
         const updateData = {
             revenue_share_percent: commissionRate,
+            is_managed: isManaged,
             ical_url: icalUrl || null,
             ical_sync_status: icalUrl ? 'idle' : null,
             updated_at: new Date().toISOString()

@@ -641,6 +641,16 @@
                 <!-- Spacer -->
                 <div style="flex: 1;"></div>
 
+                <!-- Quick Actions (Header) -->
+                <button class="theme-toggle-btn" onclick="openQuickActions()" title="Quick Actions (Ctrl+K)" style="margin-right: 8px;">
+                    <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
+                </button>
+
+                <!-- Keyboard Shortcuts (Header, Desktop Only) -->
+                <button class="theme-toggle-btn keyboard-shortcuts-header-btn" onclick="showKeyboardShortcuts()" title="Keyboard Shortcuts (?)" style="margin-right: 8px;">
+                    <i data-lucide="keyboard" style="width: 20px; height: 20px;"></i>
+                </button>
+
                 <!-- Notification Bell -->
                 <div class="notification-bell-container" style="margin-right: 16px; position: relative;">
                     <button class="notification-bell-btn" onclick="toggleNotificationCenter()" title="Notifications">
@@ -766,6 +776,10 @@
                         <a class="sidebar-item" onclick="showView('expenses')">
                             <span class="sidebar-item-icon"><i data-lucide="receipt" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Expenses</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('pnl')">
+                            <span class="sidebar-item-icon"><i data-lucide="trending-up" style="width: 20px; height: 20px;"></i></span>
+                            <span class="sidebar-item-label">P&L</span>
                         </a>
                         <a class="sidebar-item" onclick="showView('enquiries')">
                             <span class="sidebar-item-icon"><i data-lucide="user-plus" style="width: 20px; height: 20px;"></i></span>
@@ -3675,6 +3689,43 @@
             </div>
         </div>
 
+        <!-- Property P&L View -->
+        <div id="pnlView" class="container hidden">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="trending-up" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Profit & Loss
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Property-level revenue, expenses, and net profit breakdown</p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <select id="pnlPropertyFilter" onchange="loadPnL()" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; min-width: 180px;">
+                        <option value="">All Properties</option>
+                    </select>
+                    <select id="pnlPeriodFilter" onchange="loadPnL()" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; min-width: 160px;">
+                        <option value="current">This Month</option>
+                        <option value="last">Last Month</option>
+                        <option value="quarter">Last 3 Months</option>
+                        <option value="year" selected>This Year</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- P&L Summary Cards -->
+            <div id="pnlSummaryCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;"></div>
+
+            <!-- P&L Table -->
+            <div id="pnlContent">
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary);">Loading P&L data...</div>
+            </div>
+        </div>
+
         <!-- Meals Management View -->
         <div id="mealsView" class="container hidden">
             <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
@@ -5376,6 +5427,18 @@
                 <input type="number" id="propertyCommissionRate" min="0" max="100" step="0.1" value="15" required>
                 <small style="color: var(--text-secondary);">Percentage of revenue retained by Hostizzy (0-100%). Default: 15%</small>
             </div>
+            <div class="form-group" style="padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #93c5fd;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px; color: #1e293b;">Managed by Hostizzy</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Hostizzy handles expenses from its commission share. Owner payout is not reduced by expenses.</div>
+                    </div>
+                    <label class="switch" style="flex-shrink: 0; margin-left: 12px;">
+                        <input type="checkbox" id="propertyIsManaged">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
             <button class="btn btn-primary" style="width: 100%;" onclick="saveProperty()">Save Property</button>
         </div>
     </div>
@@ -6049,6 +6112,20 @@
                 </div>
             </div>
 
+            <!-- Managed by Hostizzy Toggle -->
+            <div style="margin-bottom: 24px; padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #93c5fd;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px; color: #1e293b;">Managed by Hostizzy</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">When enabled, property expenses are paid from Hostizzy's commission share. Owner payout is not reduced by expenses.</div>
+                    </div>
+                    <label class="switch" style="flex-shrink: 0; margin-left: 12px;">
+                        <input type="checkbox" id="settingsIsManaged">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
             <!-- iCal Sync Configuration -->
             <div style="margin-bottom: 24px;">
                 <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">
@@ -6178,17 +6255,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Floating Quick Action Button -->
-    <button class="quick-action-fab" onclick="openQuickActions()" title="Quick Actions (Ctrl+K)">
-        ⚡
-    </button>
-
-    <!-- Keyboard Shortcuts Help Button (Desktop Only) -->
-    <button class="keyboard-shortcuts-fab" onclick="showKeyboardShortcuts()" 
-            title="Keyboard Shortcuts (?)">
-        ⌨️
-    </button>
 
     <!-- Keyboard Shortcuts Modal -->
     <div id="keyboardShortcutsModal" class="modal">
