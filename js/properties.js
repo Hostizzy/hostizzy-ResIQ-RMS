@@ -912,7 +912,7 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
             // Calculate nights
             const nights = Math.ceil((new Date(event.check_out) - new Date(event.check_in)) / (1000 * 60 * 60 * 24));
 
-            // Check if reservation already exists
+            // Check 1: Duplicate by booking_id (iCal UID)
             const { data: existing, error: checkError } = await supabase
                 .from('reservations')
                 .select('*')
@@ -923,6 +923,27 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                 console.error('Error checking existing reservation:', checkError);
                 skipped++;
                 continue;
+            }
+
+            // Check 2: Duplicate by property + (check_in OR check_out) dates
+            if (!existing) {
+                const orParts = [];
+                if (event.check_in) orParts.push(`check_in.eq.${event.check_in}`);
+                if (event.check_out) orParts.push(`check_out.eq.${event.check_out}`);
+
+                if (orParts.length > 0) {
+                    const { data: dupes } = await supabase
+                        .from('reservations')
+                        .select('id, booking_id')
+                        .eq('property_id', propertyId)
+                        .or(orParts.join(','));
+
+                    if (dupes && dupes.length > 0) {
+                        console.log(`[iCal] Duplicate skipped: property ${propertyId}, dates match existing:`, dupes.map(r => r.booking_id));
+                        skipped++;
+                        continue;
+                    }
+                }
             }
 
             const monthDate = new Date(event.check_in);

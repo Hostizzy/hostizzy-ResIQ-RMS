@@ -695,6 +695,7 @@ async function showView(viewName) {
         else if (viewName === 'owners') await loadOwners();
         else if (viewName === 'expenses') await loadExpenses();
         else if (viewName === 'pnl') await loadPnL();
+        else if (viewName === 'importReview') loadImportReview();
         else if (viewName === 'settings') loadSettings();
         else if (viewName === 'enquiries') await loadEnquiries();
         else if (viewName === 'communication') loadCommunication();
