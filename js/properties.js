@@ -665,6 +665,7 @@ function parseIcalData(icalText) {
     try {
         // Split by VEVENT blocks
         const events = icalText.split('BEGIN:VEVENT');
+        console.log(`[iCal] Feed contains ${events.length - 1} VEVENT blocks`);
 
         for (let i = 1; i < events.length; i++) {
             const eventBlock = events[i].split('END:VEVENT')[0];
@@ -676,10 +677,14 @@ function parseIcalData(icalText) {
             const uid = extractIcalField(eventBlock, 'UID') || `event_${i}`;
             const description = extractIcalField(eventBlock, 'DESCRIPTION') || '';
 
+            console.log(`[iCal] Event ${i}: SUMMARY="${summary}", DTSTART="${dtstart}", DTEND="${dtend}", UID="${uid?.substring(0,30)}..."`);
+
             if (dtstart && dtend) {
                 // Parse dates
                 const startDate = parseIcalDate(dtstart);
                 const endDate = parseIcalDate(dtend);
+
+                console.log(`[iCal] Event ${i}: Parsed check_in=${startDate}, check_out=${endDate}`);
 
                 if (startDate && endDate) {
                     // Store full event data for reservation creation
@@ -899,10 +904,13 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
     let skipped = 0;
 
     try {
+        console.log(`[iCal] Processing ${reservationEvents.length} reservation events for property ${propertyId}`);
         for (const event of reservationEvents) {
+            console.log(`[iCal] → Event: "${event.summary}" | ${event.check_in} → ${event.check_out} | UID: ${event.uid?.substring(0,30)}`);
+
             // Skip blocked/unavailable dates — not real guest reservations
             if (isBlockedEvent(event)) {
-                console.log(`[iCal] Skipping blocked event: "${event.summary}"`);
+                console.log(`[iCal]   ✗ BLOCKED (matched blocked pattern)`);
                 skipped++;
                 continue;
             }
@@ -952,6 +960,10 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                 continue;
             }
 
+            if (existing) {
+                console.log(`[iCal]   ↻ UID match found → will UPDATE existing reservation (id: ${existing.id})`);
+            }
+
             // Check 2: Duplicate by property + check_in AND check_out (both must match)
             // Using AND prevents back-to-back reservations from being falsely flagged
             // (e.g., Res A checkout=Jan5 should NOT block Res B checkin=Jan5)
@@ -964,7 +976,7 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                     .eq('check_out', event.check_out);
 
                 if (dupes && dupes.length > 0) {
-                    console.log(`[iCal] Duplicate skipped: property ${propertyId}, exact dates match existing:`, dupes.map(r => r.booking_id));
+                    console.log(`[iCal]   ✗ DUPLICATE by dates: check_in=${event.check_in} AND check_out=${event.check_out} match`, dupes.map(r => r.booking_id));
                     skipped++;
                     continue;
                 }
@@ -1035,9 +1047,10 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                     .eq('id', existing.id);
 
                 if (updateError) {
-                    console.error('Error updating reservation:', updateError);
+                    console.error('[iCal]   ✗ UPDATE failed:', updateError);
                     skipped++;
                 } else {
+                    console.log(`[iCal]   ✓ UPDATED: ${event.check_in} → ${event.check_out} (${guestName})`);
                     updated++;
                 }
             } else {
@@ -1047,9 +1060,10 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                     .insert([reservationData]);
 
                 if (insertError) {
-                    console.error('Error creating reservation:', insertError);
+                    console.error('[iCal]   ✗ CREATE failed:', insertError);
                     skipped++;
                 } else {
+                    console.log(`[iCal]   ✓ CREATED: ${event.check_in} → ${event.check_out} (${guestName})`);
                     created++;
                 }
             }
