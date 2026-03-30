@@ -737,24 +737,51 @@ function extractIcalField(eventBlock, fieldName) {
 }
 
 /**
- * Parse iCal date format to YYYY-MM-DD
+ * Parse iCal date format to YYYY-MM-DD with timezone handling
+ * Supports: YYYYMMDD, YYYYMMDDTHHMMSS, YYYYMMDDTHHMMSSZ (UTC),
+ *           and TZID parameter (e.g., DTSTART;TZID=Asia/Kolkata:20250105T100000)
  */
-function parseIcalDate(icalDate) {
+function parseIcalDate(icalDate, eventBlock) {
     try {
-        // Remove any timezone info and clean the string
-        let dateStr = icalDate.replace(/[TZ]/g, '').trim();
-        
-        // Handle different iCal date formats
-        // Format: YYYYMMDD or YYYYMMDDTHHMMSS
-        if (dateStr.length >= 8) {
-            const year = dateStr.substring(0, 4);
-            const month = dateStr.substring(4, 6);
-            const day = dateStr.substring(6, 8);
-            
-            return `${year}-${month}-${day}`;
+        if (!icalDate) return null;
+        const cleanDate = icalDate.trim();
+
+        // Date-only format: YYYYMMDD (no time component, no timezone conversion needed)
+        if (/^\d{8}$/.test(cleanDate)) {
+            return `${cleanDate.substring(0, 4)}-${cleanDate.substring(4, 6)}-${cleanDate.substring(6, 8)}`;
         }
-        
-        return null;
+
+        // Extract YYYYMMDD and HHMMSS parts
+        const match = cleanDate.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$/);
+        if (!match) {
+            // Fallback: just take first 8 digits
+            const digits = cleanDate.replace(/\D/g, '');
+            if (digits.length >= 8) {
+                return `${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}`;
+            }
+            return null;
+        }
+
+        const [, year, month, day, hour, minute, second, isUTC] = match;
+
+        // If no time component matters (check-in/check-out are dates only),
+        // and it's a local time or has TZID, just use the date as-is
+        // Only convert if it's UTC (Z suffix) — convert to IST (UTC+5:30) for Indian properties
+        if (isUTC === 'Z') {
+            const utcDate = new Date(Date.UTC(
+                parseInt(year), parseInt(month) - 1, parseInt(day),
+                parseInt(hour), parseInt(minute), parseInt(second)
+            ));
+            // Convert to IST (UTC+5:30) — most properties are in India
+            utcDate.setMinutes(utcDate.getMinutes() + 330);
+            const y = utcDate.getUTCFullYear();
+            const m = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
+            const d = String(utcDate.getUTCDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        // Local time or TZID — use the date as-is (already in local timezone)
+        return `${year}-${month}-${day}`;
     } catch (error) {
         console.error('Error parsing iCal date:', icalDate, error);
         return null;
@@ -925,24 +952,21 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                 continue;
             }
 
-            // Check 2: Duplicate by property + (check_in OR check_out) dates
-            if (!existing) {
-                const orParts = [];
-                if (event.check_in) orParts.push(`check_in.eq.${event.check_in}`);
-                if (event.check_out) orParts.push(`check_out.eq.${event.check_out}`);
+            // Check 2: Duplicate by property + check_in AND check_out (both must match)
+            // Using AND prevents back-to-back reservations from being falsely flagged
+            // (e.g., Res A checkout=Jan5 should NOT block Res B checkin=Jan5)
+            if (!existing && event.check_in && event.check_out) {
+                const { data: dupes } = await supabase
+                    .from('reservations')
+                    .select('id, booking_id')
+                    .eq('property_id', propertyId)
+                    .eq('check_in', event.check_in)
+                    .eq('check_out', event.check_out);
 
-                if (orParts.length > 0) {
-                    const { data: dupes } = await supabase
-                        .from('reservations')
-                        .select('id, booking_id')
-                        .eq('property_id', propertyId)
-                        .or(orParts.join(','));
-
-                    if (dupes && dupes.length > 0) {
-                        console.log(`[iCal] Duplicate skipped: property ${propertyId}, dates match existing:`, dupes.map(r => r.booking_id));
-                        skipped++;
-                        continue;
-                    }
+                if (dupes && dupes.length > 0) {
+                    console.log(`[iCal] Duplicate skipped: property ${propertyId}, exact dates match existing:`, dupes.map(r => r.booking_id));
+                    skipped++;
+                    continue;
                 }
             }
 

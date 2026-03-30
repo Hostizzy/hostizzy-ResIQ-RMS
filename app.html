@@ -677,11 +677,6 @@
                     <span class="theme-icon-dark" style="display: none;"><i data-lucide="moon" style="width: 20px; height: 20px;"></i></span>
                 </button>
 
-                <!-- App Settings -->
-                <button class="theme-toggle-btn" onclick="openAppSettings()" title="App Settings" style="margin-right: 16px;">
-                    <span style="font-size: 20px;"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></span>
-                </button>
-
                 <!-- Profile Dropdown (Desktop & Tablet) -->
                 <div class="navbar-menu">
                     <div class="user-menu-container">
@@ -3740,7 +3735,10 @@
                     </h2>
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review OTA booking emails before importing as reservations</p>
                 </div>
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="importPropertyFilter" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary); min-width: 160px;">
+                        <option value="">All Properties</option>
+                    </select>
                     <button class="btn btn-primary btn-sm" onclick="scanGmailForReview()" id="importScanBtn" style="display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="search" style="width: 14px; height: 14px;"></i> Scan Gmail
                     </button>
