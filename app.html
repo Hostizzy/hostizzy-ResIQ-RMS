@@ -5417,6 +5417,15 @@
                 <input type="number" id="propertyCommissionRate" min="0" max="100" step="0.1" value="15" required>
                 <small style="color: var(--text-secondary);">Percentage of revenue retained by Hostizzy (0-100%). Default: 15%</small>
             </div>
+            <div class="form-group" style="padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="propertyIsManaged" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">Managed by Hostizzy</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Hostizzy handles expenses from its commission share. Owner payout is not reduced by expenses.</div>
+                    </div>
+                </label>
+            </div>
             <button class="btn btn-primary" style="width: 100%;" onclick="saveProperty()">Save Property</button>
         </div>
     </div>
@@ -6088,6 +6097,17 @@
                 <div style="margin-top: 8px; font-size: 13px; color: #92400e;">
                     <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Percentage of revenue retained by Hostizzy (0-100%). Default: 15%
                 </div>
+            </div>
+
+            <!-- Managed by Hostizzy Toggle -->
+            <div style="margin-bottom: 24px; padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #93c5fd;">
+                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="settingsIsManaged" style="width: 20px; height: 20px; accent-color: #3b82f6;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px; color: #1e293b;">Managed by Hostizzy</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">When enabled, property expenses are paid from Hostizzy's commission share. Owner payout is not reduced by expenses.</div>
+                    </div>
+                </label>
             </div>
 
             <!-- iCal Sync Configuration -->

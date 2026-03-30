@@ -697,15 +697,20 @@ async function loadPnL() {
         expenses = expenses.filter(e => e.expense_date >= startDate);
     }
 
-    // Build property lookup
+    // Build property lookup (including is_managed flag)
     const propMap = {};
-    properties.forEach(p => { propMap[p.id] = p.name; });
+    const propManaged = {};
+    properties.forEach(p => {
+        propMap[p.id] = p.name;
+        propManaged[p.id] = p.is_managed === true;
+    });
 
     // Calculate P&L per property
     const pnlByProperty = {};
     propertyIds.forEach(pid => {
         pnlByProperty[pid] = {
             name: propMap[pid] || 'Unknown',
+            isManaged: propManaged[pid] || false,
             grossRevenue: 0,
             otaFees: 0,
             netRevenue: 0,
@@ -733,11 +738,21 @@ async function loadPnL() {
         pnlByProperty[pid].expenses += parseFloat(e.amount) || 0;
     });
 
-    // Calculate net revenue and profit
+    // Calculate net revenue and profit (managed vs non-managed)
     Object.values(pnlByProperty).forEach(p => {
         p.netRevenue = p.grossRevenue - p.otaFees;
-        p.ownerPayout = p.netRevenue - p.hostizzyCommission;
-        p.netProfit = p.ownerPayout - p.expenses;
+
+        if (p.isManaged) {
+            // Managed: expenses come from Hostizzy's commission, owner gets full payout
+            p.ownerPayout = p.netRevenue - p.hostizzyCommission;
+            p.hostizzyNet = p.hostizzyCommission - p.expenses; // Hostizzy keeps commission minus expenses
+            p.netProfit = p.ownerPayout; // Owner's net = full payout (no expense deduction)
+        } else {
+            // Non-managed: expenses come from owner's payout
+            p.ownerPayout = p.netRevenue - p.hostizzyCommission;
+            p.hostizzyNet = p.hostizzyCommission; // Hostizzy keeps full commission
+            p.netProfit = p.ownerPayout - p.expenses; // Owner pays expenses
+        }
     });
 
     // Totals
@@ -746,13 +761,14 @@ async function loadPnL() {
         t.otaFees += p.otaFees;
         t.netRevenue += p.netRevenue;
         t.hostizzyCommission += p.hostizzyCommission;
+        t.hostizzyNet += p.hostizzyNet;
         t.taxes += p.taxes;
         t.expenses += p.expenses;
         t.ownerPayout += p.ownerPayout;
         t.netProfit += p.netProfit;
         t.bookings += p.bookings;
         return t;
-    }, { grossRevenue: 0, otaFees: 0, netRevenue: 0, hostizzyCommission: 0, taxes: 0, expenses: 0, ownerPayout: 0, netProfit: 0, bookings: 0 });
+    }, { grossRevenue: 0, otaFees: 0, netRevenue: 0, hostizzyCommission: 0, hostizzyNet: 0, taxes: 0, expenses: 0, ownerPayout: 0, netProfit: 0, bookings: 0 });
 
     renderPnLSummary(totals);
     renderPnLTable(pnlByProperty, totals);
@@ -763,6 +779,7 @@ function renderPnLSummary(totals) {
     const profitColor = totals.netProfit >= 0 ? '#10b981' : '#ef4444';
     const marginPct = totals.netRevenue > 0 ? ((totals.netProfit / totals.netRevenue) * 100).toFixed(1) : '0.0';
 
+    const hostizzyNetColor = totals.hostizzyNet >= 0 ? '#10b981, #047857' : '#ef4444, #dc2626';
     document.getElementById('pnlSummaryCards').innerHTML = `
         <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; color: white;">
             <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">Gross Revenue</div>
@@ -774,13 +791,18 @@ function renderPnLSummary(totals) {
             <div style="font-size: 24px; font-weight: 800;">${fmt(totals.netRevenue)}</div>
             <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">After OTA fees</div>
         </div>
+        <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 20px; border-radius: 12px; color: white;">
+            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">Hostizzy Net</div>
+            <div style="font-size: 24px; font-weight: 800;">${fmt(totals.hostizzyNet)}</div>
+            <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Commission - Managed Exp.</div>
+        </div>
         <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 20px; border-radius: 12px; color: white;">
             <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">Total Expenses</div>
             <div style="font-size: 24px; font-weight: 800;">${fmt(totals.expenses)}</div>
             <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Property costs</div>
         </div>
         <div style="background: linear-gradient(135deg, ${totals.netProfit >= 0 ? '#10b981, #047857' : '#ef4444, #dc2626'}); padding: 20px; border-radius: 12px; color: white;">
-            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">Net Profit</div>
+            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">Owner Net Profit</div>
             <div style="font-size: 24px; font-weight: 800;">${fmt(totals.netProfit)}</div>
             <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">${marginPct}% margin</div>
         </div>
@@ -798,39 +820,49 @@ function renderPnLTable(pnlByProperty, totals) {
 
     let html = '<div class="card"><div class="table-container"><table class="data-table"><thead><tr>';
     html += '<th>Property</th><th style="text-align:right;">Gross Revenue</th><th style="text-align:right;">OTA Fees</th><th style="text-align:right;">Net Revenue</th>';
-    html += '<th style="text-align:right;">Commission</th><th style="text-align:right;">Owner Payout</th><th style="text-align:right;">Expenses</th><th style="text-align:right;">Net Profit</th>';
+    html += '<th style="text-align:right;">Commission</th><th style="text-align:right;">Hostizzy Net</th><th style="text-align:right;">Owner Payout</th><th style="text-align:right;">Expenses</th><th style="text-align:right;">Owner Net</th>';
     html += '</tr></thead><tbody>';
 
     entries.sort((a, b) => b[1].netProfit - a[1].netProfit);
 
     entries.forEach(([pid, p]) => {
         const profitColor = p.netProfit >= 0 ? 'var(--success)' : 'var(--danger)';
+        const hostizzyNetColor = p.hostizzyNet >= 0 ? 'var(--success)' : 'var(--danger)';
+        const managedBadge = p.isManaged ? '<span style="display:inline-block;padding:2px 6px;background:#8b5cf615;color:#8b5cf6;border-radius:4px;font-size:10px;font-weight:600;margin-left:4px;">MANAGED</span>' : '';
+        const expenseNote = p.isManaged ? '<div style="font-size:10px;color:#8b5cf6;">From Hostizzy share</div>' : '';
         html += `<tr>`;
-        html += `<td><strong>${p.name}</strong><div style="font-size:11px;color:var(--text-secondary);">${p.bookings} booking${p.bookings !== 1 ? 's' : ''}</div></td>`;
+        html += `<td><strong>${p.name}</strong>${managedBadge}<div style="font-size:11px;color:var(--text-secondary);">${p.bookings} booking${p.bookings !== 1 ? 's' : ''}</div></td>`;
         html += `<td style="text-align:right;">${fmt(p.grossRevenue)}</td>`;
         html += `<td style="text-align:right;color:var(--text-secondary);">${p.otaFees > 0 ? '-' + fmt(p.otaFees) : '-'}</td>`;
         html += `<td style="text-align:right;">${fmt(p.netRevenue)}</td>`;
         html += `<td style="text-align:right;color:var(--text-secondary);">${p.hostizzyCommission > 0 ? '-' + fmt(p.hostizzyCommission) : '-'}</td>`;
+        html += `<td style="text-align:right;color:${hostizzyNetColor};">${fmt(p.hostizzyNet)}</td>`;
         html += `<td style="text-align:right;">${fmt(p.ownerPayout)}</td>`;
-        html += `<td style="text-align:right;color:var(--text-secondary);">${p.expenses > 0 ? '-' + fmt(p.expenses) : '-'}</td>`;
+        html += `<td style="text-align:right;color:var(--text-secondary);">${p.expenses > 0 ? '-' + fmt(p.expenses) : '-'}${expenseNote}</td>`;
         html += `<td style="text-align:right;font-weight:700;color:${profitColor};">${fmt(p.netProfit)}</td>`;
         html += `</tr>`;
     });
 
     // Totals row
     const totalProfitColor = totals.netProfit >= 0 ? 'var(--success)' : 'var(--danger)';
+    const totalHzNetColor = totals.hostizzyNet >= 0 ? 'var(--success)' : 'var(--danger)';
     html += `<tr style="border-top: 2px solid var(--border); font-weight: 700; background: var(--bg-secondary);">`;
     html += `<td>TOTAL</td>`;
     html += `<td style="text-align:right;">${fmt(totals.grossRevenue)}</td>`;
     html += `<td style="text-align:right;">${totals.otaFees > 0 ? '-' + fmt(totals.otaFees) : '-'}</td>`;
     html += `<td style="text-align:right;">${fmt(totals.netRevenue)}</td>`;
     html += `<td style="text-align:right;">${totals.hostizzyCommission > 0 ? '-' + fmt(totals.hostizzyCommission) : '-'}</td>`;
+    html += `<td style="text-align:right;color:${totalHzNetColor};">${fmt(totals.hostizzyNet)}</td>`;
     html += `<td style="text-align:right;">${fmt(totals.ownerPayout)}</td>`;
     html += `<td style="text-align:right;">${totals.expenses > 0 ? '-' + fmt(totals.expenses) : '-'}</td>`;
     html += `<td style="text-align:right;color:${totalProfitColor};">${fmt(totals.netProfit)}</td>`;
     html += `</tr>`;
 
     html += '</tbody></table></div></div>';
+
+    // Calculate managed vs non-managed expense split
+    const managedExpenses = entries.filter(([_, p]) => p.isManaged).reduce((s, [_, p]) => s + p.expenses, 0);
+    const nonManagedExpenses = entries.filter(([_, p]) => !p.isManaged).reduce((s, [_, p]) => s + p.expenses, 0);
 
     // P&L statement breakdown
     html += `
@@ -849,20 +881,34 @@ function renderPnLTable(pnlByProperty, totals) {
                     <span>Net Revenue</span>
                     <strong>${fmt(totals.netRevenue)}</strong>
                 </div>
+
                 <div style="display: flex; justify-content: space-between; padding: 8px 0; color: var(--text-secondary);">
-                    <span>&nbsp;&nbsp;Less: Hostizzy Commission</span>
+                    <span>&nbsp;&nbsp;Less: Hostizzy Commission (Gross)</span>
                     <span>-${fmt(totals.hostizzyCommission)}</span>
                 </div>
+                ${managedExpenses > 0 ? `
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #8b5cf6;">
+                    <span>&nbsp;&nbsp;&nbsp;&nbsp;Less: Managed Property Expenses (from commission)</span>
+                    <span>-${fmt(managedExpenses)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #8b5cf6; font-weight: 600;">
+                    <span>&nbsp;&nbsp;Hostizzy Net (Commission - Managed Exp.)</span>
+                    <strong>${fmt(totals.hostizzyNet)}</strong>
+                </div>
+                ` : ''}
+
                 <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border); font-weight: 600;">
                     <span>Owner Payout (Property Share)</span>
                     <strong>${fmt(totals.ownerPayout)}</strong>
                 </div>
+                ${nonManagedExpenses > 0 ? `
                 <div style="display: flex; justify-content: space-between; padding: 8px 0; color: var(--text-secondary);">
-                    <span>&nbsp;&nbsp;Less: Property Expenses</span>
-                    <span>-${fmt(totals.expenses)}</span>
+                    <span>&nbsp;&nbsp;Less: Non-Managed Property Expenses (from owner)</span>
+                    <span>-${fmt(nonManagedExpenses)}</span>
                 </div>
+                ` : ''}
                 <div style="display: flex; justify-content: space-between; padding: 12px 0; border-top: 2px solid var(--border); font-weight: 800; font-size: 16px; color: ${totalProfitColor};">
-                    <span>Net Profit / (Loss)</span>
+                    <span>Owner Net Profit / (Loss)</span>
                     <strong>${fmt(totals.netProfit)}</strong>
                 </div>
             </div>
