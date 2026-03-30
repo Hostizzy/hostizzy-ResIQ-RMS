@@ -1,6 +1,9 @@
 // ResIQ Communication — Email compose, Gmail integration, message templates
 // Enhanced: Supabase persistence, custom templates, scheduled messages
 
+// Pending import review items (populated by scan, cleared after import)
+let pendingImportItems = [];
+
 // Gmail connection state (restored from localStorage cache, validated from server)
 let gmailConnectionStatus = (function() {
     try {
@@ -1055,26 +1058,49 @@ async function processGmailBookingEmail(messageId) {
             .maybeSingle();
 
         if (existingById) {
-            // Update existing
-            await supabase
-                .from('reservations')
-                .update(bookingData)
-                .eq('id', existingById.id);
+            // Update existing — ONLY update non-financial fields to avoid wiping out manually entered data
+            const safeUpdate = {};
+            if (bookingData.guest_name && bookingData.guest_name !== 'Guest') safeUpdate.guest_name = bookingData.guest_name;
+            if (bookingData.check_in) safeUpdate.check_in = bookingData.check_in;
+            if (bookingData.check_out) safeUpdate.check_out = bookingData.check_out;
+            if (bookingData.nights) safeUpdate.nights = bookingData.nights;
+            if (bookingData.month) safeUpdate.month = bookingData.month;
+            if (bookingData.guest_phone) safeUpdate.guest_phone = bookingData.guest_phone;
+            if (bookingData.guest_email) safeUpdate.guest_email = bookingData.guest_email;
+            if (bookingData.booking_source && bookingData.booking_source !== 'OTHER') safeUpdate.booking_source = bookingData.booking_source;
+            safeUpdate.updated_at = new Date().toISOString();
+
+            if (Object.keys(safeUpdate).length > 1) { // More than just updated_at
+                await supabase
+                    .from('reservations')
+                    .update(safeUpdate)
+                    .eq('id', existingById.id);
+            }
             return { created: false, updated: true, skipped: false };
         }
 
-        // Check 2: Duplicate by property + check_in + check_out dates
-        if (bookingData.property_id && bookingData.check_in && bookingData.check_out) {
-            const { data: existingByDates } = await supabase
+        // Check 2: Duplicate by (check_in OR check_out), scoped to property if matched
+        if (bookingData.check_in || bookingData.check_out) {
+            let query = supabase
                 .from('reservations')
-                .select('id, booking_id, guest_name')
-                .eq('property_id', bookingData.property_id)
-                .eq('check_in', bookingData.check_in)
-                .eq('check_out', bookingData.check_out)
-                .maybeSingle();
+                .select('id, booking_id, guest_name, property_name, check_in, check_out');
 
-            if (existingByDates) {
-                console.log(`[Gmail] Duplicate skipped: property ${bookingData.property_id}, ${bookingData.check_in} to ${bookingData.check_out} (existing: ${existingByDates.booking_id})`);
+            // Scope to property if we matched one
+            if (bookingData.property_id) {
+                query = query.eq('property_id', bookingData.property_id);
+            }
+
+            // Build OR filter: check_in matches OR check_out matches
+            const orParts = [];
+            if (bookingData.check_in) orParts.push(`check_in.eq.${bookingData.check_in}`);
+            if (bookingData.check_out) orParts.push(`check_out.eq.${bookingData.check_out}`);
+            if (orParts.length > 0) {
+                query = query.or(orParts.join(','));
+            }
+
+            const { data: dupes } = await query;
+            if (dupes && dupes.length > 0) {
+                console.log(`[Gmail] Duplicate skipped: dates match existing reservation(s):`, dupes.map(r => `${r.booking_id} (${r.check_in}→${r.check_out})`));
                 return { created: false, updated: false, skipped: true };
             }
         }
@@ -1187,15 +1213,22 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
         ],
         checkIn: [
             /check[- ]?in[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-            /check[- ]?in[:\s]+(\w+ \d{1,2},? \d{4})/i,
+            /check[- ]?in[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
+            /check[- ]?in[:\s]+(\w+\s+\d{1,2},?\s+\d{4})/i,
+            /check[- ]?in[:\s]+(\d{4}-\d{2}-\d{2})/i,
             /arrives?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-            /from[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
+            /arrives?[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
+            /from[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+            /(?:start|begin)s?\s*(?:date)?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
         ],
         checkOut: [
             /check[- ]?out[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-            /check[- ]?out[:\s]+(\w+ \d{1,2},? \d{4})/i,
+            /check[- ]?out[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
+            /check[- ]?out[:\s]+(\w+\s+\d{1,2},?\s+\d{4})/i,
+            /check[- ]?out[:\s]+(\d{4}-\d{2}-\d{2})/i,
             /departs?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-            /to[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i
+            /departs?[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
+            /(?:end|until)\s*(?:date)?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
         ],
         guests: [/(\d+)\s+(?:guests?|people|persons?)/i],
         nights: [/(\d+)\s+nights?/i],
@@ -1220,7 +1253,11 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
 
     // Must have at least a check-in date
     if (!extracted.checkIn) {
-        console.log('[Gmail] Could not extract check-in date from email');
+        console.log('[Gmail] Could not extract check-in date from email.');
+        console.log('[Gmail] Subject:', subject);
+        console.log('[Gmail] Sender:', sender);
+        console.log('[Gmail] Extracted fields:', JSON.stringify(extracted));
+        console.log('[Gmail] Body preview (first 500 chars):', emailBody.substring(0, 500));
         return null;
     }
 
@@ -1249,31 +1286,52 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
     const monthDate = new Date(checkIn);
     const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 
-    // Property Auto-Detection: match property from email content
+    // Property Auto-Detection: partial/fuzzy match property name from email content
     let matchedProperty = null;
     const searchText = (subject + ' ' + emailBody).toLowerCase();
 
+    // Score each property by match quality
+    let bestScore = 0;
     for (const property of properties) {
         const propNameLower = property.name.toLowerCase();
         const locationLower = (property.location || '').toLowerCase();
+        let score = 0;
 
-        // Check if property name appears in subject or email body
+        // Exact full name match (best)
         if (searchText.includes(propNameLower)) {
-            matchedProperty = property;
-            break;
+            score = 100;
+        } else {
+            // Partial word match: split property name into words, check each
+            const words = propNameLower.split(/[\s\-_,]+/).filter(w => w.length >= 3);
+            for (const word of words) {
+                if (searchText.includes(word)) {
+                    score += word.length; // Longer word matches score higher
+                }
+            }
         }
 
-        // Also check location (e.g., "Goa Villa" → matches properties in Goa)
-        if (locationLower && searchText.includes(locationLower)) {
+        // Location match (secondary)
+        if (locationLower && locationLower.length >= 3 && searchText.includes(locationLower)) {
+            score += 20;
+        } else if (locationLower) {
+            const locWords = locationLower.split(/[\s,]+/).filter(w => w.length >= 3);
+            for (const word of locWords) {
+                if (searchText.includes(word)) {
+                    score += 5;
+                }
+            }
+        }
+
+        if (score > bestScore) {
+            bestScore = score;
             matchedProperty = property;
-            break;
         }
     }
 
-    // Fall back to first property if no match found
-    if (!matchedProperty && properties.length > 0) {
-        matchedProperty = properties[0];
-        console.log('[Gmail] No property match found, using first property:', matchedProperty.name);
+    // Only accept match if score is meaningful (at least one 3+ char word matched)
+    if (bestScore < 3) {
+        matchedProperty = null;
+        console.log('[Gmail] No property match found in email content.');
     }
 
     const propertyId = matchedProperty ? matchedProperty.id : null;
@@ -1326,21 +1384,48 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
  * Parse flexible date formats
  */
 function parseFlexibleDate(dateStr) {
+    if (!dateStr) return null;
     try {
-        // Try different formats
-        const formats = [
-            /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/, // MM/DD/YYYY or DD-MM-YYYY
-            /(\w+)\s+(\d{1,2}),?\s+(\d{4})/ // Month DD, YYYY
-        ];
+        const months = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
+            january:0, february:1, march:2, april:3, june:5, july:6, august:7, september:8, october:9, november:10, december:11 };
+        const pad = n => String(n).padStart(2, '0');
+        let m;
 
-        for (const format of formats) {
-            const match = dateStr.match(format);
-            if (match) {
-                const date = new Date(dateStr);
-                if (!isNaN(date.getTime())) {
-                    return date.toISOString().split('T')[0];
-                }
-            }
+        // ISO format: 2026-04-15
+        if ((m = dateStr.match(/(\d{4})-(\d{1,2})-(\d{1,2})/))) {
+            return `${m[1]}-${pad(m[2])}-${pad(m[3])}`;
+        }
+
+        // DD/MM/YYYY or DD-MM-YYYY (Indian/European format — day first)
+        if ((m = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/))) {
+            const day = parseInt(m[1]), month = parseInt(m[2]), year = parseInt(m[3]);
+            // If first number > 12, it's definitely DD/MM/YYYY
+            // Default to DD/MM/YYYY for Indian context
+            return `${year}-${pad(month)}-${pad(day)}`;
+        }
+
+        // DD/MM/YY (2-digit year)
+        if ((m = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/))) {
+            const day = parseInt(m[1]), month = parseInt(m[2]), year = 2000 + parseInt(m[3]);
+            return `${year}-${pad(month)}-${pad(day)}`;
+        }
+
+        // "15 Apr 2026" or "15 April 2026"
+        if ((m = dateStr.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/))) {
+            const mon = months[m[2].toLowerCase()];
+            if (mon !== undefined) return `${m[3]}-${pad(mon + 1)}-${pad(m[1])}`;
+        }
+
+        // "Apr 15, 2026" or "April 15 2026"
+        if ((m = dateStr.match(/(\w+)\s+(\d{1,2}),?\s+(\d{4})/))) {
+            const mon = months[m[1].toLowerCase()];
+            if (mon !== undefined) return `${m[3]}-${pad(mon + 1)}-${pad(m[2])}`;
+        }
+
+        // Fallback: let JS parse it
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            return date.toISOString().split('T')[0];
         }
 
         return null;
@@ -1406,5 +1491,302 @@ async function initializeGmailConnection() {
         }
     }
 }
+
+// ================================================================
+// OTA IMPORT REVIEW — Scan, review, and selectively import bookings
+// ================================================================
+
+function loadImportReview() {
+    renderImportReview();
+}
+
+/**
+ * Scan Gmail and populate the review table (no auto-import)
+ */
+window.scanGmailForReview = async function() {
+    if (!gmailConnectionStatus.connected) {
+        showToast('Connect Gmail first in Settings → Communication', 'error');
+        return;
+    }
+
+    const scanBtn = document.getElementById('importScanBtn');
+    if (scanBtn) {
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = '<i data-lucide="loader" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Scanning...';
+    }
+
+    try {
+        showToast('Scanning Gmail for OTA booking emails...', 'info');
+
+        const searchQueries = [
+            'in:anywhere from:airbnb.com subject:(reservation OR booking OR confirmed)',
+            'in:anywhere from:booking.com subject:(confirmed OR reservation OR booking)',
+            'in:anywhere from:agoda.com subject:(booking OR confirmed OR confirmation)',
+            'in:anywhere from:makemytrip.com subject:(booking OR confirmed)',
+            'in:anywhere from:goibibo.com subject:(booking OR confirmed)',
+            'in:anywhere from:vrbo.com subject:(reservation OR confirmed)',
+        ];
+
+        const processedIds = new Set();
+        pendingImportItems = [];
+
+        // Fetch properties for auto-detection
+        const { data: properties } = await supabase
+            .from('properties')
+            .select('id, name, location')
+            .eq('is_active', true);
+
+        // Fetch existing reservations for duplicate detection
+        const { data: existingRes } = await supabase
+            .from('reservations')
+            .select('booking_id, property_id, check_in, check_out');
+
+        const existingBookingIds = new Set((existingRes || []).map(r => r.booking_id));
+        // Property-scoped date keys: "propertyId_checkIn" and "propertyId_checkOut"
+        const existingPropCheckIns = new Set((existingRes || []).map(r => `${r.property_id}_${r.check_in}`));
+        const existingPropCheckOuts = new Set((existingRes || []).map(r => `${r.property_id}_${r.check_out}`));
+        // Global date sets as fallback when property not matched
+        const existingCheckIns = new Set((existingRes || []).map(r => r.check_in));
+        const existingCheckOuts = new Set((existingRes || []).map(r => r.check_out));
+
+        for (const query of searchQueries) {
+            const messages = await searchGmailMessages(query);
+            if (!messages || messages.length === 0) continue;
+
+            for (const message of messages.slice(0, 30)) {
+                if (processedIds.has(message.id)) continue;
+                processedIds.add(message.id);
+
+                try {
+                    const fullMsg = await callGmailProxy('getMessage', { messageId: message.id });
+                    const emailBody = extractEmailBody(fullMsg);
+                    const headers = fullMsg.payload.headers;
+                    const from = headers.find(h => h.name.toLowerCase() === 'from')?.value || '';
+                    const subject = headers.find(h => h.name.toLowerCase() === 'subject')?.value || '';
+                    const dateHeader = headers.find(h => h.name.toLowerCase() === 'date')?.value || '';
+
+                    const bookingData = parseBookingEmail(emailBody, from, subject, properties || []);
+                    if (!bookingData) continue;
+
+                    // Check duplicates: booking_id OR (property-scoped check_in/check_out)
+                    const isDuplicateById = existingBookingIds.has(bookingData.booking_id);
+
+                    let isDuplicateByCheckIn = false;
+                    let isDuplicateByCheckOut = false;
+
+                    if (bookingData.property_id) {
+                        // Property-scoped check
+                        isDuplicateByCheckIn = bookingData.check_in && existingPropCheckIns.has(`${bookingData.property_id}_${bookingData.check_in}`);
+                        isDuplicateByCheckOut = bookingData.check_out && existingPropCheckOuts.has(`${bookingData.property_id}_${bookingData.check_out}`);
+                    } else {
+                        // No property matched — fall back to global date check
+                        isDuplicateByCheckIn = bookingData.check_in && existingCheckIns.has(bookingData.check_in);
+                        isDuplicateByCheckOut = bookingData.check_out && existingCheckOuts.has(bookingData.check_out);
+                    }
+                    const isDuplicateByDate = isDuplicateByCheckIn || isDuplicateByCheckOut;
+
+                    let duplicateReason = '';
+                    if (isDuplicateById) duplicateReason = 'Booking ID exists';
+                    else if (isDuplicateByCheckIn && isDuplicateByCheckOut) duplicateReason = 'Check-in & check-out match';
+                    else if (isDuplicateByCheckIn) duplicateReason = `Check-in ${bookingData.check_in} exists`;
+                    else if (isDuplicateByCheckOut) duplicateReason = `Check-out ${bookingData.check_out} exists`;
+
+                    const isDuplicate = isDuplicateById || isDuplicateByDate;
+
+                    pendingImportItems.push({
+                        messageId: message.id,
+                        emailDate: dateHeader,
+                        emailFrom: from,
+                        emailSubject: subject,
+                        bookingData: bookingData,
+                        isDuplicate: isDuplicate,
+                        duplicateReason: duplicateReason,
+                        selected: !isDuplicate, // Pre-select non-duplicates
+                    });
+                } catch (e) {
+                    console.error('[OTA Import] Error processing message:', e);
+                }
+            }
+        }
+
+        showToast(`Found ${pendingImportItems.length} booking emails. Review and import below.`, 'success');
+        renderImportReview();
+
+    } catch (error) {
+        console.error('Error scanning for review:', error);
+        showToast('Scan failed: ' + error.message, 'error');
+    } finally {
+        if (scanBtn) {
+            scanBtn.disabled = false;
+            scanBtn.innerHTML = '<i data-lucide="search" style="width: 14px; height: 14px;"></i> Scan Gmail';
+            lucide.createIcons();
+        }
+    }
+};
+
+/**
+ * Render the import review table
+ */
+function renderImportReview() {
+    const container = document.getElementById('importReviewContent');
+    if (!container) return;
+
+    if (pendingImportItems.length === 0) {
+        container.innerHTML = `
+            <div class="card" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                <div style="font-size: 48px; margin-bottom: 16px;"><i data-lucide="inbox" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>
+                <h3 style="margin: 0 0 8px 0;">No pending imports</h3>
+                <p style="margin: 0 0 16px 0;">Click "Scan Gmail" to search for OTA booking confirmation emails.</p>
+            </div>`;
+        updateImportSelectedBtn();
+        lucide.createIcons();
+        return;
+    }
+
+    const newCount = pendingImportItems.filter(i => !i.isDuplicate).length;
+    const dupCount = pendingImportItems.filter(i => i.isDuplicate).length;
+
+    let html = `
+        <div class="card" style="margin-bottom: 16px; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <strong>${pendingImportItems.length}</strong> emails found
+                ${newCount > 0 ? `&nbsp;·&nbsp; <span style="color: var(--success);"><strong>${newCount}</strong> new</span>` : ''}
+                ${dupCount > 0 ? `&nbsp;·&nbsp; <span style="color: var(--text-secondary);"><strong>${dupCount}</strong> duplicates</span>` : ''}
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-sm" onclick="toggleAllImportItems(true)" style="font-size: 12px;">Select All New</button>
+                <button class="btn btn-sm" onclick="toggleAllImportItems(false)" style="font-size: 12px;">Deselect All</button>
+                <button class="btn btn-sm" onclick="pendingImportItems = []; renderImportReview();" style="font-size: 12px; color: var(--danger);">Clear</button>
+            </div>
+        </div>
+    `;
+
+    html += '<div class="card"><div class="table-container"><table class="data-table"><thead><tr>';
+    html += '<th style="width:40px;"><input type="checkbox" onchange="toggleAllImportItems(this.checked)" id="importSelectAll"></th>';
+    html += '<th>Source</th><th>Guest</th><th>Property</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Amount</th><th>Status</th>';
+    html += '</tr></thead><tbody>';
+
+    pendingImportItems.forEach((item, idx) => {
+        const d = item.bookingData;
+        const rowBg = item.isDuplicate ? 'background: rgba(239, 68, 68, 0.05);' : '';
+        const sourceColor = getSourceColor(d.booking_source);
+
+        html += `<tr style="${rowBg}">`;
+        html += `<td><input type="checkbox" ${item.selected ? 'checked' : ''} onchange="toggleImportItem(${idx}, this.checked)"></td>`;
+        html += `<td><span style="display:inline-block;padding:2px 8px;background:${sourceColor}15;color:${sourceColor};border-radius:4px;font-size:11px;font-weight:600;">${d.booking_source}</span></td>`;
+        html += `<td><strong>${d.guest_name}</strong><div style="font-size:11px;color:var(--text-secondary);">${item.emailSubject.substring(0, 40)}${item.emailSubject.length > 40 ? '...' : ''}</div></td>`;
+        html += `<td>${d.property_name || '<span style="color:var(--danger);">No match</span>'}</td>`;
+        html += `<td>${d.check_in || '-'}</td>`;
+        html += `<td>${d.check_out || '-'}</td>`;
+        html += `<td>${d.nights || '-'}</td>`;
+        html += `<td>${d.total_amount ? '₹' + Math.round(d.total_amount).toLocaleString('en-IN') : '-'}</td>`;
+        html += `<td>`;
+        if (item.isDuplicate) {
+            html += `<span style="color:var(--text-secondary);font-size:12px;">${item.duplicateReason}</span>`;
+        } else {
+            html += `<span style="color:var(--success);font-size:12px;font-weight:600;">New</span>`;
+        }
+        html += `</td>`;
+        html += `</tr>`;
+    });
+
+    html += '</tbody></table></div></div>';
+
+    container.innerHTML = html;
+    updateImportSelectedBtn();
+    lucide.createIcons();
+}
+
+function getSourceColor(source) {
+    switch (source) {
+        case 'AIRBNB': return '#FF5A5F';
+        case 'AGODA/BOOKING.COM': return '#003580';
+        case 'MMT/GOIBIBO': return '#eb2026';
+        case 'VRBO': return '#3b5cad';
+        default: return '#6b7280';
+    }
+}
+
+window.toggleImportItem = function(idx, checked) {
+    if (pendingImportItems[idx]) {
+        pendingImportItems[idx].selected = checked;
+    }
+    updateImportSelectedBtn();
+};
+
+window.toggleAllImportItems = function(selectNew) {
+    pendingImportItems.forEach(item => {
+        item.selected = selectNew ? !item.isDuplicate : false;
+    });
+    renderImportReview();
+};
+
+function updateImportSelectedBtn() {
+    const count = pendingImportItems.filter(i => i.selected).length;
+    const btn = document.getElementById('importSelectedBtn');
+    const countSpan = document.getElementById('importSelectedCount');
+    if (btn) {
+        btn.style.display = count > 0 ? 'flex' : 'none';
+    }
+    if (countSpan) countSpan.textContent = count;
+}
+
+/**
+ * Import selected bookings as reservations
+ */
+window.importSelectedBookings = async function() {
+    const selected = pendingImportItems.filter(i => i.selected);
+    if (selected.length === 0) {
+        showToast('No bookings selected for import.', 'info');
+        return;
+    }
+
+    if (!confirm(`Import ${selected.length} booking(s) as reservations?`)) return;
+
+    const btn = document.getElementById('importSelectedBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Importing...';
+    }
+
+    let created = 0;
+    let failed = 0;
+
+    for (const item of selected) {
+        try {
+            const { error } = await supabase
+                .from('reservations')
+                .insert([item.bookingData]);
+
+            if (error) {
+                console.error('[OTA Import] Insert error:', error);
+                failed++;
+            } else {
+                created++;
+                // Remove from pending list
+                const idx = pendingImportItems.indexOf(item);
+                if (idx > -1) pendingImportItems.splice(idx, 1);
+            }
+        } catch (e) {
+            console.error('[OTA Import] Error:', e);
+            failed++;
+        }
+    }
+
+    showToast(`Imported ${created} reservation(s)${failed > 0 ? `, ${failed} failed` : ''}`, created > 0 ? 'success' : 'error');
+
+    if (created > 0) {
+        await loadReservations();
+        await loadDashboard();
+    }
+
+    renderImportReview();
+
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Import Selected (<span id="importSelectedCount">0</span>)';
+        lucide.createIcons();
+    }
+};
 
 // Initialize Performance View
