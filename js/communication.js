@@ -883,12 +883,134 @@ async function scanGmailNow() {
  */
 async function searchGmailMessages(query) {
     try {
-        return await callGmailProxy('search', { query, maxResults: 20 });
+        const result = await callGmailProxy('search', { query, maxResults: 20 });
+        console.log(`[Gmail Search] query="${query}" → ${result ? result.length : 0} results`);
+        return result;
     } catch (error) {
-        console.error('Error searching Gmail:', error);
+        console.error(`[Gmail Search] query="${query}" → ERROR:`, error.message);
         return [];
     }
 }
+
+/**
+ * Diagnose Gmail scan — shows detailed results in a modal for troubleshooting
+ */
+window.diagnoseGmailScan = async function() {
+    if (!gmailConnectionStatus.connected) {
+        alert('Gmail not connected. Connect Gmail first.');
+        return;
+    }
+
+    let report = '=== Gmail Scan Diagnostic ===\n\n';
+
+    try {
+        // Test connection
+        report += '1. CONNECTION: ';
+        try {
+            const profile = await callGmailProxy('profile');
+            report += `✅ Connected as ${profile.emailAddress}\n\n`;
+        } catch (e) {
+            report += `❌ ${e.message}\n\n`;
+            alert(report);
+            return;
+        }
+
+        // Test each search query
+        const searchQueries = [
+            'from:airbnb.com subject:(reservation OR booking OR confirmed)',
+            'from:booking.com subject:(confirmed OR reservation OR booking)',
+            'from:agoda.com subject:(booking OR confirmed OR confirmation)',
+            'from:makemytrip.com subject:(booking OR confirmed)',
+            'from:goibibo.com subject:(booking OR confirmed)',
+            'from:vrbo.com subject:(reservation OR confirmed)',
+            'subject:"booking confirmed" OR subject:"reservation confirmed" OR subject:"booking confirmation"',
+            // Broader fallback queries for diagnosis
+            'from:airbnb.com',
+            'from:booking.com',
+            'from:agoda.com',
+        ];
+
+        report += '2. SEARCH QUERIES:\n';
+        let firstMessageId = null;
+
+        for (const query of searchQueries) {
+            try {
+                const messages = await callGmailProxy('search', { query, maxResults: 5 });
+                const count = messages ? messages.length : 0;
+                report += `   ${count > 0 ? '✅' : '⚠️'} "${query}" → ${count} result(s)\n`;
+                if (count > 0 && !firstMessageId) {
+                    firstMessageId = messages[0].id;
+                }
+            } catch (e) {
+                report += `   ❌ "${query}" → ERROR: ${e.message}\n`;
+            }
+        }
+
+        // Try parsing a sample email
+        report += '\n3. SAMPLE EMAIL PARSING:\n';
+        if (firstMessageId) {
+            try {
+                const message = await callGmailProxy('getMessage', { messageId: firstMessageId });
+                const headers = message.payload.headers;
+                const from = headers.find(h => h.name.toLowerCase() === 'from')?.value || '?';
+                const subject = headers.find(h => h.name.toLowerCase() === 'subject')?.value || '?';
+                report += `   From: ${from}\n`;
+                report += `   Subject: ${subject}\n`;
+
+                const body = extractEmailBody(message);
+                report += `   Body length: ${body.length} chars\n`;
+                report += `   Body preview: ${body.substring(0, 200)}...\n\n`;
+
+                // Try parsing
+                const { data: properties } = await supabase
+                    .from('properties')
+                    .select('id, name, location')
+                    .eq('is_active', true);
+
+                const parsed = parseBookingEmail(body, from, subject, properties || []);
+                if (parsed) {
+                    report += '   Parsed: ✅\n';
+                    report += `   Booking ID: ${parsed.booking_id}\n`;
+                    report += `   Guest: ${parsed.guest_name}\n`;
+                    report += `   Check-in: ${parsed.check_in}\n`;
+                    report += `   Check-out: ${parsed.check_out}\n`;
+                    report += `   Property: ${parsed.property_name}\n`;
+                    report += `   Source: ${parsed.booking_source}\n`;
+                } else {
+                    report += '   Parsed: ❌ Could not extract booking data\n';
+                    report += '   (Need at least a check-in date in the email)\n';
+                }
+            } catch (e) {
+                report += `   ❌ Error: ${e.message}\n`;
+            }
+        } else {
+            report += '   No emails found to test parsing.\n';
+            report += '   Check: Does this Gmail account receive OTA booking confirmation emails?\n';
+        }
+
+    } catch (e) {
+        report += `\nFATAL ERROR: ${e.message}\n`;
+    }
+
+    console.log(report);
+
+    // Show in a modal
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.dataset.enquiryModal = 'true';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2>Gmail Scan Diagnostic</h2>
+                <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+            </div>
+            <div class="modal-body">
+                <pre style="white-space: pre-wrap; font-size: 13px; background: #f8fafc; padding: 16px; border-radius: 8px; max-height: 60vh; overflow-y: auto;">${report.replace(/</g, '&lt;')}</pre>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
 
 /**
  * Process a booking confirmation email
