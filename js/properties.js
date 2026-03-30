@@ -998,6 +998,18 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
             const truncatedGuestName = guestName.substring(0, 50);
             const truncatedPropertyName = property.name.substring(0, 50);
 
+            // Determine status based on dates — past reservations should be 'checked-out'
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const checkOutDate = new Date(event.check_out);
+            const checkInDate = new Date(event.check_in);
+            let reservationStatus = 'confirmed';
+            if (checkOutDate <= today) {
+                reservationStatus = 'checked-out';
+            } else if (checkInDate <= today && checkOutDate > today) {
+                reservationStatus = 'checked-in';
+            }
+
             // Prepare reservation data (partial - financial fields are null as per user request)
             const reservationData = {
                 booking_id: bookingId,
@@ -1014,7 +1026,7 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                 nights: nights,
                 booking_type: 'STAYCATION', // Default
                 booking_source: bookingSource,
-                status: 'confirmed',
+                status: reservationStatus,
                 // Financial fields - all null as requested
                 number_of_rooms: null,
                 adults: null,
@@ -1042,17 +1054,22 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
 
             if (existing) {
                 // UPDATE existing reservation (only dates and guest name, preserve financial data if entered)
+                const updateData = {
+                    check_in: event.check_in,
+                    check_out: event.check_out,
+                    nights: nights,
+                    month: month,
+                    guest_name: truncatedGuestName, // Update name if changed (truncated)
+                    booking_source: bookingSource,
+                    updated_at: new Date().toISOString()
+                };
+                // Auto-correct status for past reservations still marked as 'confirmed'
+                if (existing.status === 'confirmed' && reservationStatus !== 'confirmed') {
+                    updateData.status = reservationStatus;
+                }
                 const { error: updateError } = await supabase
                     .from('reservations')
-                    .update({
-                        check_in: event.check_in,
-                        check_out: event.check_out,
-                        nights: nights,
-                        month: month,
-                        guest_name: truncatedGuestName, // Update name if changed (truncated)
-                        booking_source: bookingSource,
-                        updated_at: new Date().toISOString()
-                    })
+                    .update(updateData)
                     .eq('id', existing.id);
 
                 if (updateError) {
@@ -1072,7 +1089,7 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                     console.error('[iCal]   ✗ CREATE failed:', insertError);
                     skipped++;
                 } else {
-                    console.log(`[iCal]   ✓ CREATED: ${event.check_in} → ${event.check_out} (${guestName})`);
+                    console.log(`[iCal]   ✓ CREATED: ${event.check_in} → ${event.check_out} (${guestName}) [status: ${reservationStatus}]`);
                     created++;
                 }
             }
