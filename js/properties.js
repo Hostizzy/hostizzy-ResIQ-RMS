@@ -867,28 +867,24 @@ async function saveSyncedDates(propertyId, blockedDates, source = 'ical') {
  * Create or update reservations from iCal events (AUTO-IMPORT)
  */
 /**
- * Detect iCal events that are blocked/unavailable dates — NOT real reservations.
- * OTAs use these to mark owner blocks, maintenance holds, or platform-managed unavailability.
- * These should be saved to synced_availability (blocked dates) but NOT to reservations.
+ * Detect iCal events that are OWNER blocks or maintenance — NOT real reservations.
+ *
+ * IMPORTANT: Airbnb/Booking.com use "Not available" or "Airbnb (Not available)"
+ * for ACTUAL guest reservations in iCal (they don't share guest names for privacy).
+ * So we must NOT block these. Only block events with explicit owner/maintenance terms.
  */
 function isBlockedEvent(event) {
     if (!event.summary) return false;
     const s = event.summary.toUpperCase().trim();
 
-    // Explicit blocking terms used by Airbnb, Booking.com, Agoda, VRBO, MakeMyTrip, etc.
+    // Only block events that are CLEARLY owner actions or maintenance
+    // NOT "Not available" / "Unavailable" — OTAs use these for real bookings!
     const blockedPatterns = [
-        'NOT AVAILABLE',
-        'UNAVAILABLE',
-        'BLOCKED',
-        'CLOSED',
-        'MAINTENANCE',
         'OWNER BLOCK',
         'OWNER STAY',
-        'HOLD',
-        'AIRBNB (NOT AVAILABLE)',
-        'BOOKING.COM (NOT AVAILABLE)',
-        'UNAVAILABLE DATES',
-        'PROPERTY UNAVAILABLE',
+        'OWNER HOLD',
+        'MAINTENANCE',
+        'PROPERTY CLOSED',
     ];
 
     return blockedPatterns.some(pattern => s.includes(pattern));
@@ -916,20 +912,16 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
             }
 
             // Parse guest name and booking source from SUMMARY
-            // Format examples: "Rahul Sharma (AIRBNB)", "John Doe (Booking.com)", "HMXXXXXXXXXX"
+            // Airbnb iCal: "Airbnb (Not available)" or "Reserved" (no guest name shared)
+            // Booking.com: "CLOSED - Guest Name" or "Guest Name"
+            // Other OTAs: "Guest Name (AIRBNB)", "HMXXXXXXXXXX"
             let guestName = 'Guest';
             let bookingSource = 'OTHER';
 
             if (event.summary) {
                 const summaryUpper = event.summary.toUpperCase();
 
-                // Extract guest name (text before parentheses or entire summary)
-                const nameMatch = event.summary.match(/^([^(]+)/);
-                if (nameMatch) {
-                    guestName = nameMatch[1].trim();
-                }
-
-                // Detect booking source
+                // Detect booking source FIRST (needed for guest name logic)
                 if (summaryUpper.includes('AIRBNB')) {
                     bookingSource = 'AIRBNB';
                 } else if (summaryUpper.includes('BOOKING') || summaryUpper.includes('AGODA')) {
@@ -938,6 +930,23 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                     bookingSource = 'MMT/GOIBIBO';
                 } else if (summaryUpper.includes('DIRECT')) {
                     bookingSource = 'DIRECT';
+                } else if (summaryUpper === 'RESERVED' || summaryUpper === 'BOOKED') {
+                    bookingSource = 'AIRBNB'; // Airbnb uses "Reserved" in their own feeds
+                }
+
+                // Extract guest name — handle OTA privacy summaries
+                const privacySummaries = ['NOT AVAILABLE', 'UNAVAILABLE', 'RESERVED', 'BOOKED', 'CLOSED'];
+                const isPrivacySummary = privacySummaries.some(p => summaryUpper.includes(p));
+
+                if (isPrivacySummary) {
+                    // OTA didn't share guest name — use source-based placeholder
+                    guestName = `${bookingSource} Guest`;
+                } else {
+                    // Extract guest name (text before parentheses or entire summary)
+                    const nameMatch = event.summary.match(/^([^(]+)/);
+                    if (nameMatch) {
+                        guestName = nameMatch[1].trim();
+                    }
                 }
             }
 
