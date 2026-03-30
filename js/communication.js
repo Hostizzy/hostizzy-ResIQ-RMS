@@ -1058,52 +1058,40 @@ async function processGmailBookingEmail(messageId) {
             .maybeSingle();
 
         if (existingById) {
-            // Update existing — ONLY update non-financial fields to avoid wiping out manually entered data
-            const safeUpdate = {};
-            if (bookingData.guest_name && bookingData.guest_name !== 'Guest') safeUpdate.guest_name = bookingData.guest_name;
-            if (bookingData.check_in) safeUpdate.check_in = bookingData.check_in;
-            if (bookingData.check_out) safeUpdate.check_out = bookingData.check_out;
-            if (bookingData.nights) safeUpdate.nights = bookingData.nights;
-            if (bookingData.month) safeUpdate.month = bookingData.month;
-            if (bookingData.guest_phone) safeUpdate.guest_phone = bookingData.guest_phone;
-            if (bookingData.guest_email) safeUpdate.guest_email = bookingData.guest_email;
-            if (bookingData.booking_source && bookingData.booking_source !== 'OTHER') safeUpdate.booking_source = bookingData.booking_source;
-            safeUpdate.updated_at = new Date().toISOString();
-
-            if (Object.keys(safeUpdate).length > 1) { // More than just updated_at
-                await supabase
-                    .from('reservations')
-                    .update(safeUpdate)
-                    .eq('id', existingById.id);
-            }
+            // Update existing
+            await supabase
+                .from('reservations')
+                .update(bookingData)
+                .eq('id', existingById.id);
             return { created: false, updated: true, skipped: false };
         }
 
-        // Check 2: Duplicate by (check_in OR check_out), scoped to property if matched
-        if (bookingData.check_in || bookingData.check_out) {
-            let query = supabase
+        // Check 2: Duplicate by property + check_in + check_out dates
+        if (bookingData.property_id && bookingData.check_in && bookingData.check_out) {
+            const { data: existingByDates } = await supabase
                 .from('reservations')
-                .select('id, booking_id, guest_name, property_name, check_in, check_out');
+                .select('id, booking_id, guest_name')
+                .eq('property_id', bookingData.property_id)
+                .eq('check_in', bookingData.check_in)
+                .eq('check_out', bookingData.check_out)
+                .maybeSingle();
 
-            // Scope to property if we matched one
-            if (bookingData.property_id) {
-                query = query.eq('property_id', bookingData.property_id);
-            }
-
-            // Build OR filter: check_in matches OR check_out matches
-            const orParts = [];
-            if (bookingData.check_in) orParts.push(`check_in.eq.${bookingData.check_in}`);
-            if (bookingData.check_out) orParts.push(`check_out.eq.${bookingData.check_out}`);
-            if (orParts.length > 0) {
-                query = query.or(orParts.join(','));
-            }
-
-            const { data: dupes } = await query;
-            if (dupes && dupes.length > 0) {
-                console.log(`[Gmail] Duplicate skipped: dates match existing reservation(s):`, dupes.map(r => `${r.booking_id} (${r.check_in}→${r.check_out})`));
+            if (existingByDates) {
+                console.log(`[Gmail] Duplicate skipped: property ${bookingData.property_id}, ${bookingData.check_in} to ${bookingData.check_out} (existing: ${existingByDates.booking_id})`);
                 return { created: false, updated: false, skipped: true };
             }
         }
+
+        // Create new reservation
+        const { error: insertError } = await supabase
+            .from('reservations')
+            .insert([bookingData]);
+
+        if (insertError) {
+            console.error('[Gmail] Error inserting reservation:', insertError);
+            return { created: false, updated: false, skipped: false };
+        }
+        return { created: true, updated: false, skipped: false };
 
         // Create new reservation
         const { error: insertError } = await supabase
@@ -1253,11 +1241,7 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
 
     // Must have at least a check-in date
     if (!extracted.checkIn) {
-        console.log('[Gmail] Could not extract check-in date from email.');
-        console.log('[Gmail] Subject:', subject);
-        console.log('[Gmail] Sender:', sender);
-        console.log('[Gmail] Extracted fields:', JSON.stringify(extracted));
-        console.log('[Gmail] Body preview (first 500 chars):', emailBody.substring(0, 500));
+        console.log('[Gmail] Could not extract check-in date from email');
         return null;
     }
 

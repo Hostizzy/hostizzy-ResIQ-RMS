@@ -925,24 +925,20 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                 continue;
             }
 
-            // Check 2: Duplicate by property + (check_in OR check_out) dates
-            if (!existing) {
-                const orParts = [];
-                if (event.check_in) orParts.push(`check_in.eq.${event.check_in}`);
-                if (event.check_out) orParts.push(`check_out.eq.${event.check_out}`);
+            // Check 2: Duplicate by property + check_in + check_out dates (if no booking_id match)
+            if (!existing && event.check_in && event.check_out) {
+                const { data: existingByDates } = await supabase
+                    .from('reservations')
+                    .select('id, booking_id')
+                    .eq('property_id', propertyId)
+                    .eq('check_in', event.check_in)
+                    .eq('check_out', event.check_out)
+                    .maybeSingle();
 
-                if (orParts.length > 0) {
-                    const { data: dupes } = await supabase
-                        .from('reservations')
-                        .select('id, booking_id')
-                        .eq('property_id', propertyId)
-                        .or(orParts.join(','));
-
-                    if (dupes && dupes.length > 0) {
-                        console.log(`[iCal] Duplicate skipped: property ${propertyId}, dates match existing:`, dupes.map(r => r.booking_id));
-                        skipped++;
-                        continue;
-                    }
+                if (existingByDates) {
+                    console.log(`[iCal] Duplicate skipped: property ${propertyId}, ${event.check_in} to ${event.check_out} (existing: ${existingByDates.booking_id})`);
+                    skipped++;
+                    continue;
                 }
             }
 
