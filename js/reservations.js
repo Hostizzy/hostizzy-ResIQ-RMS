@@ -187,6 +187,11 @@ async function loadInitialData() {
             });
         }
 
+        // Populate header property dropdown
+        if (typeof populateHeaderPropertyDropdown === 'function') {
+            populateHeaderPropertyDropdown();
+        }
+
         // Hide splash screen now that data is loaded
         const splash = document.getElementById('splashScreen');
         if (splash && splash.style.display !== 'none') {

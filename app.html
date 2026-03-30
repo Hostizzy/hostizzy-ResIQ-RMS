@@ -641,6 +641,14 @@
                 <!-- Spacer -->
                 <div style="flex: 1;"></div>
 
+                <!-- Property Selector -->
+                <div class="header-property-selector">
+                    <i data-lucide="building-2" style="width: 16px; height: 16px; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+                    <select id="headerPropertySelect" onchange="headerPropertyChanged(this.value)" title="Jump to property">
+                        <option value="">All Properties</option>
+                    </select>
+                </div>
+
                 <!-- Quick Actions (Header) -->
                 <button class="theme-toggle-btn" onclick="openQuickActions()" title="Quick Actions (Ctrl+K)" style="margin-right: 8px;">
                     <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
@@ -675,11 +683,6 @@
                 <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode" style="margin-right: 16px;">
                     <span class="theme-icon-light"><i data-lucide="sun" style="width: 20px; height: 20px;"></i></span>
                     <span class="theme-icon-dark" style="display: none;"><i data-lucide="moon" style="width: 20px; height: 20px;"></i></span>
-                </button>
-
-                <!-- App Settings -->
-                <button class="theme-toggle-btn" onclick="openAppSettings()" title="App Settings" style="margin-right: 16px;">
-                    <span style="font-size: 20px;"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></span>
                 </button>
 
                 <!-- Profile Dropdown (Desktop & Tablet) -->

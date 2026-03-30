@@ -518,6 +518,43 @@ function closeAppSettings() {
     document.getElementById('appSettingsModal').style.display = 'none';
 }
 
+/**
+ * Populate the header property dropdown with all properties
+ */
+async function populateHeaderPropertyDropdown() {
+    const select = document.getElementById('headerPropertySelect');
+    if (!select) return;
+
+    try {
+        const properties = state.properties || await db.getProperties();
+        const options = properties
+            .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+            .map(p => `<option value="${p.id}">${p.name}</option>`)
+            .join('');
+        select.innerHTML = '<option value="">All Properties</option>' + options;
+    } catch (e) {
+        console.error('[Header] Failed to populate property dropdown:', e);
+    }
+}
+
+/**
+ * Handle property selection from header dropdown
+ */
+function headerPropertyChanged(propertyId) {
+    const select = document.getElementById('headerPropertySelect');
+    if (!propertyId) {
+        showView('properties');
+    } else {
+        // Set the property view's dropdown to this property, then load view
+        const propertySelect = document.getElementById('propertySelectFilter');
+        if (propertySelect) propertySelect.value = propertyId;
+        showView('property');
+        loadPropertyView();
+    }
+    // Reset to "All Properties" so it always acts as a launcher
+    if (select) select.value = '';
+}
+
 function closePropertySettings() {
     document.getElementById('propertySettingsModal').style.display = 'none';
     document.getElementById('icalUrlInput').value = '';
