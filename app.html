@@ -641,6 +641,16 @@
                 <!-- Spacer -->
                 <div style="flex: 1;"></div>
 
+                <!-- Quick Actions (Header) -->
+                <button class="theme-toggle-btn" onclick="openQuickActions()" title="Quick Actions (Ctrl+K)" style="margin-right: 8px;">
+                    <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
+                </button>
+
+                <!-- Keyboard Shortcuts (Header, Desktop Only) -->
+                <button class="theme-toggle-btn keyboard-shortcuts-header-btn" onclick="showKeyboardShortcuts()" title="Keyboard Shortcuts (?)" style="margin-right: 8px;">
+                    <i data-lucide="keyboard" style="width: 20px; height: 20px;"></i>
+                </button>
+
                 <!-- Notification Bell -->
                 <div class="notification-bell-container" style="margin-right: 16px; position: relative;">
                     <button class="notification-bell-btn" onclick="toggleNotificationCenter()" title="Notifications">
@@ -6245,17 +6255,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Floating Quick Action Button -->
-    <button class="quick-action-fab" onclick="openQuickActions()" title="Quick Actions (Ctrl+K)">
-        ⚡
-    </button>
-
-    <!-- Keyboard Shortcuts Help Button (Desktop Only) -->
-    <button class="keyboard-shortcuts-fab" onclick="showKeyboardShortcuts()" 
-            title="Keyboard Shortcuts (?)">
-        ⌨️
-    </button>
 
     <!-- Keyboard Shortcuts Modal -->
     <div id="keyboardShortcutsModal" class="modal">
