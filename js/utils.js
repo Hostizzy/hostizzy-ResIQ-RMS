@@ -156,9 +156,10 @@
             const paid = parseFloat(reservation.paid_amount) || 0;
             const otaFee = parseFloat(reservation.ota_service_fee) || 0;
             const isOTA = reservation.booking_source && reservation.booking_source !== 'DIRECT';
-            const isLegacy = reservation.is_legacy === true;
 
-            if (isLegacy && isOTA) {
+            // For OTA bookings, the receivable is total minus OTA's cut
+            // (OTA keeps their service fee, so we never collect it)
+            if (isOTA && otaFee > 0) {
                 return (total - otaFee) - paid;
             }
             return total - paid;

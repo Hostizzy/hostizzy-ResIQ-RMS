@@ -767,6 +767,10 @@
                             <span class="sidebar-item-icon"><i data-lucide="receipt" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Expenses</span>
                         </a>
+                        <a class="sidebar-item" onclick="showView('pnl')">
+                            <span class="sidebar-item-icon"><i data-lucide="trending-up" style="width: 20px; height: 20px;"></i></span>
+                            <span class="sidebar-item-label">P&L</span>
+                        </a>
                         <a class="sidebar-item" onclick="showView('enquiries')">
                             <span class="sidebar-item-icon"><i data-lucide="user-plus" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Enquiries</span>
@@ -3672,6 +3676,43 @@
                 <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
                     Loading expenses...
                 </div>
+            </div>
+        </div>
+
+        <!-- Property P&L View -->
+        <div id="pnlView" class="container hidden">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="trending-up" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Profit & Loss
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Property-level revenue, expenses, and net profit breakdown</p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <select id="pnlPropertyFilter" onchange="loadPnL()" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; min-width: 180px;">
+                        <option value="">All Properties</option>
+                    </select>
+                    <select id="pnlPeriodFilter" onchange="loadPnL()" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; min-width: 160px;">
+                        <option value="current">This Month</option>
+                        <option value="last">Last Month</option>
+                        <option value="quarter">Last 3 Months</option>
+                        <option value="year" selected>This Year</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- P&L Summary Cards -->
+            <div id="pnlSummaryCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;"></div>
+
+            <!-- P&L Table -->
+            <div id="pnlContent">
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary);">Loading P&L data...</div>
             </div>
         </div>
 

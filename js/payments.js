@@ -467,24 +467,29 @@ async function savePayment() {
 async function recalculatePaymentStatus(bookingId) {
     const payments = await db.getPayments(bookingId);
     const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-    
+
     const reservation = await db.getReservation(bookingId);
     const totalAmount = parseFloat(reservation.total_amount) || 0;
-    
+    const otaFee = parseFloat(reservation.ota_service_fee) || 0;
+    const isOTA = reservation.booking_source && reservation.booking_source !== 'DIRECT';
+
+    // For OTA bookings, the receivable is total minus OTA's cut (they keep their fee)
+    const receivable = isOTA ? (totalAmount - otaFee) : totalAmount;
+
     // Round to nearest rupee to avoid floating-point precision issues
     const paidRounded = Math.round(totalPaid);
-    const totalRounded = Math.round(totalAmount);
+    const receivableRounded = Math.round(receivable);
 
     let paymentStatus = 'pending';
-    if (paidRounded >= totalRounded) {
+    if (paidRounded >= receivableRounded) {
         paymentStatus = 'paid';
     } else if (paidRounded > 0) {
         paymentStatus = 'partial';
     }
-    
+
     await supabase
         .from('reservations')
-        .update({ 
+        .update({
             paid_amount: totalPaid,
             payment_status: paymentStatus
         })
