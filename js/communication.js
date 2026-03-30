@@ -1496,7 +1496,22 @@ async function initializeGmailConnection() {
 // OTA IMPORT REVIEW — Scan, review, and selectively import bookings
 // ================================================================
 
-function loadImportReview() {
+async function loadImportReview() {
+    // Populate property filter dropdown
+    try {
+        const { data: properties } = await supabase
+            .from('properties')
+            .select('id, name')
+            .eq('is_active', true)
+            .order('name');
+        const select = document.getElementById('importPropertyFilter');
+        if (select && properties) {
+            select.innerHTML = '<option value="">All Properties</option>' +
+                properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
+    } catch (e) {
+        console.error('[OTA Import] Failed to load properties:', e);
+    }
     renderImportReview();
 }
 
@@ -1516,7 +1531,9 @@ window.scanGmailForReview = async function() {
     }
 
     try {
-        showToast('Scanning Gmail for OTA booking emails...', 'info');
+        // Get selected property filter
+        const filterPropertyId = document.getElementById('importPropertyFilter')?.value || '';
+        showToast(filterPropertyId ? 'Scanning Gmail for selected property...' : 'Scanning Gmail for OTA booking emails...', 'info');
 
         const searchQueries = [
             'in:anywhere from:airbnb.com subject:(reservation OR booking OR confirmed)',
@@ -1568,7 +1585,20 @@ window.scanGmailForReview = async function() {
                     const bookingData = parseBookingEmail(emailBody, from, subject, properties || []);
                     if (!bookingData) continue;
 
-                    // Check duplicates: booking_id OR (property-scoped check_in/check_out)
+                    // If property filter is set, skip emails that don't match
+                    if (filterPropertyId) {
+                        if (bookingData.property_id && bookingData.property_id !== filterPropertyId) continue;
+                        // If no property detected, assign the filtered property
+                        if (!bookingData.property_id) {
+                            const filteredProp = (properties || []).find(p => p.id === filterPropertyId);
+                            if (filteredProp) {
+                                bookingData.property_id = filteredProp.id;
+                                bookingData.property_name = filteredProp.name;
+                            }
+                        }
+                    }
+
+                    // Check duplicates: booking_id OR (property-scoped check_in AND check_out)
                     const isDuplicateById = existingBookingIds.has(bookingData.booking_id);
 
                     let isDuplicateByCheckIn = false;
@@ -1583,13 +1613,13 @@ window.scanGmailForReview = async function() {
                         isDuplicateByCheckIn = bookingData.check_in && existingCheckIns.has(bookingData.check_in);
                         isDuplicateByCheckOut = bookingData.check_out && existingCheckOuts.has(bookingData.check_out);
                     }
-                    const isDuplicateByDate = isDuplicateByCheckIn || isDuplicateByCheckOut;
+                    // Both check-in AND check-out must match to be a date duplicate
+                    // Using AND prevents back-to-back reservations from being falsely flagged
+                    const isDuplicateByDate = isDuplicateByCheckIn && isDuplicateByCheckOut;
 
                     let duplicateReason = '';
                     if (isDuplicateById) duplicateReason = 'Booking ID exists';
-                    else if (isDuplicateByCheckIn && isDuplicateByCheckOut) duplicateReason = 'Check-in & check-out match';
-                    else if (isDuplicateByCheckIn) duplicateReason = `Check-in ${bookingData.check_in} exists`;
-                    else if (isDuplicateByCheckOut) duplicateReason = `Check-out ${bookingData.check_out} exists`;
+                    else if (isDuplicateByDate) duplicateReason = 'Check-in & check-out match';
 
                     const isDuplicate = isDuplicateById || isDuplicateByDate;
 
