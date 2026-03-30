@@ -1868,9 +1868,19 @@
                             <label style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">Description</label>
                             <textarea id="expenseDescription" rows="3" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; resize: vertical;" placeholder="Brief description of the expense"></textarea>
                         </div>
+                        <div>
+                            <label style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">Receipt / Photo</label>
+                            <div id="ownerExpReceiptPreview" style="margin-bottom:8px;display:none;"></div>
+                            <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:8px;cursor:pointer;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='var(--border)'">
+                                <input type="file" id="ownerExpReceipt" accept="image/*" style="display:none;" onchange="previewOwnerExpReceipt(this)">
+                                <span style="font-size:20px;">📎</span>
+                                <span style="font-size:13px;color:var(--text-secondary);" id="ownerExpReceiptLabel">Tap to attach receipt photo</span>
+                            </label>
+                            <input type="hidden" id="ownerExpReceiptUrl" value="">
+                        </div>
                     </div>
                     <div style="display: flex; gap: 12px; margin-top: 24px;">
-                        <button onclick="saveExpense()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px;">Save Expense</button>
+                        <button id="ownerExpSaveBtn" onclick="saveExpense()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px;">Save Expense</button>
                         <button onclick="closeExpenseModal()" style="padding: 12px 24px; background: #f1f5f9; color: var(--text); border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px;">Cancel</button>
                     </div>
                 </div>

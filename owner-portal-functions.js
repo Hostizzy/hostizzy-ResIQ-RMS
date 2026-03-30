@@ -1807,6 +1807,16 @@ function openExpenseModal(expenseId = null) {
         select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
     });
 
+    // Reset receipt upload
+    const preview = document.getElementById('ownerExpReceiptPreview');
+    if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+    const receiptInput = document.getElementById('ownerExpReceipt');
+    if (receiptInput) receiptInput.value = '';
+    const receiptUrl = document.getElementById('ownerExpReceiptUrl');
+    if (receiptUrl) receiptUrl.value = '';
+    const receiptLabel = document.getElementById('ownerExpReceiptLabel');
+    if (receiptLabel) receiptLabel.textContent = 'Tap to attach receipt photo';
+
     if (expenseId) {
         document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
         // Load expense data (would need to fetch)
@@ -1819,6 +1829,43 @@ function openExpenseModal(expenseId = null) {
         document.getElementById('expenseDescription').value = '';
     }
 }
+
+// Receipt photo preview for owner expense modal
+window.previewOwnerExpReceipt = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        showToast('Invalid File', 'Please select an image file', '❌');
+        input.value = '';
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Too Large', 'Receipt photo must be under 5MB', '❌');
+        input.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('ownerExpReceiptPreview');
+        preview.style.display = 'block';
+        preview.innerHTML = `<div style="position:relative;display:inline-block;"><img src="${e.target.result}" style="max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--border);"><button onclick="clearOwnerExpReceipt()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;">&times;</button></div>`;
+        document.getElementById('ownerExpReceiptLabel').textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+};
+
+window.clearOwnerExpReceipt = function() {
+    const preview = document.getElementById('ownerExpReceiptPreview');
+    if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+    const input = document.getElementById('ownerExpReceipt');
+    if (input) input.value = '';
+    const url = document.getElementById('ownerExpReceiptUrl');
+    if (url) url.value = '';
+    const label = document.getElementById('ownerExpReceiptLabel');
+    if (label) label.textContent = 'Tap to attach receipt photo';
+};
 
 function closeExpenseModal() {
     document.getElementById('expenseModal').style.display = 'none';
@@ -1837,6 +1884,47 @@ async function saveExpense() {
             return;
         }
 
+        const saveBtn = document.getElementById('ownerExpSaveBtn');
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+
+        // Upload receipt photo if selected
+        let receiptUrl = document.getElementById('ownerExpReceiptUrl')?.value || null;
+        const receiptFile = document.getElementById('ownerExpReceipt')?.files[0];
+        if (receiptFile) {
+            try {
+                const reader = new FileReader();
+                const base64 = await new Promise((resolve, reject) => {
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(receiptFile);
+                });
+
+                const ext = receiptFile.name.split('.').pop() || 'jpg';
+                const path = `property-${propertyId}/${Date.now()}.${ext}`;
+
+                const uploadRes = await fetch('/api/storage-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'upload',
+                        bucket: 'expense-receipts',
+                        path: path,
+                        fileBase64: base64,
+                        contentType: receiptFile.type,
+                        upsert: true
+                    })
+                });
+                const uploadJson = await uploadRes.json();
+                if (uploadJson.error) throw new Error(uploadJson.error.message || 'Upload failed');
+                receiptUrl = path;
+            } catch (uploadErr) {
+                console.error('Receipt upload failed:', uploadErr);
+                showToast('Upload Error', 'Failed to upload receipt: ' + uploadErr.message, '❌');
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Expense'; }
+                return;
+            }
+        }
+
         // Calculate settlement month from expense date
         const date = new Date(expenseDate);
         const settlementMonth = `${date.getFullYear()}-${date.getMonth()}`;
@@ -1847,6 +1935,7 @@ async function saveExpense() {
             category: category,
             expense_date: expenseDate,
             description: description || null,
+            receipt_url: receiptUrl,
             entered_by: currentUser?.email || 'unknown',
             entered_by_type: 'owner',
             settlement_month: settlementMonth
@@ -1887,6 +1976,32 @@ async function deleteExpense(expenseId) {
         showToast('Error', 'Failed to delete expense: ' + error.message, '❌');
     }
 }
+
+window.viewExpenseReceipt = async function(receiptPath) {
+    if (!receiptPath) return;
+    if (receiptPath.startsWith('http')) {
+        window.open(receiptPath, '_blank');
+        return;
+    }
+    try {
+        const res = await fetch('/api/storage-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'signed-url',
+                bucket: 'expense-receipts',
+                path: receiptPath,
+                expiresIn: 3600
+            })
+        });
+        const json = await res.json();
+        if (json.error) throw new Error(json.error.message);
+        if (json.data?.signedUrl) window.open(json.data.signedUrl, '_blank');
+    } catch (err) {
+        console.error('Failed to load receipt:', err);
+        showToast('Error', 'Failed to load receipt image', '❌');
+    }
+};
 
 async function loadOwnerExpenses() {
     const container = document.getElementById('ownerExpensesList');
@@ -1953,6 +2068,7 @@ async function loadOwnerExpenses() {
                             <div style="font-weight: 700; font-size: 15px;">₹${parseFloat(expense.amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
                             <div style="font-size: 13px; color: var(--text-secondary);">${label}</div>
                             ${expense.description ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">${expense.description}</div>` : ''}
+                            ${expense.receipt_url ? `<button onclick="viewExpenseReceipt('${expense.receipt_url}')" style="margin-top:4px;background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:var(--text-secondary);display:inline-flex;align-items:center;gap:4px;">📷 View Receipt</button>` : ''}
                         </div>
                     </div>
                     <div style="text-align: right;">

@@ -385,12 +385,13 @@ function renderExpensesList(expenses) {
     };
 
     let html = '<div class="card"><div class="table-container"><table class="data-table"><thead><tr>';
-    html += '<th>Date</th><th>Property</th><th>Category</th><th>Amount</th><th>Description</th><th>Entered By</th><th>Actions</th>';
+    html += '<th>Date</th><th>Property</th><th>Category</th><th>Amount</th><th>Description</th><th>Receipt</th><th>Entered By</th><th>Actions</th>';
     html += '</tr></thead><tbody>';
 
     expenses.forEach(e => {
         const date = new Date(e.expense_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
         const propName = window._expenseProperties?.[e.property_id] || 'Unknown';
+        const hasReceipt = !!e.receipt_url;
 
         html += `<tr>`;
         html += `<td>${date}</td>`;
@@ -398,6 +399,7 @@ function renderExpensesList(expenses) {
         html += `<td><span style="background: ${categoryColors[e.category] || '#f1f5f9'}; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">${categoryLabels[e.category] || e.category}</span></td>`;
         html += `<td><strong>₹${parseFloat(e.amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</strong></td>`;
         html += `<td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${e.description || '-'}</td>`;
+        html += `<td style="text-align:center;">${hasReceipt ? `<button onclick="viewExpenseReceipt('${e.receipt_url}')" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px;" title="View receipt">📷</button>` : '<span style="color:var(--text-secondary);font-size:12px;">-</span>'}</td>`;
         html += `<td><span style="font-size: 12px; color: var(--text-secondary);">${e.entered_by_type === 'owner' ? '👤 Owner' : '🏢 Staff'}</span></td>`;
         html += `<td>
             <button onclick="openAdminExpenseModal('${e.id}')" style="padding: 6px 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 4px;">Edit</button>
@@ -462,9 +464,21 @@ async function openAdminExpenseModal(expenseId = null) {
                     <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Description</label>
                     <textarea id="adminExpDescription" rows="3" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;resize:vertical;" placeholder="Optional description">${expense?.description || ''}</textarea>
                 </div>
+                <div>
+                    <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">Receipt / Photo</label>
+                    <div id="adminExpReceiptPreview" style="margin-bottom:8px;${expense?.receipt_url ? '' : 'display:none;'}">
+                        ${expense?.receipt_url ? `<div style="position:relative;display:inline-block;"><img src="${expense.receipt_url}" style="max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="window.open(this.src,'_blank')"><button onclick="clearAdminExpReceipt()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;">&times;</button></div>` : ''}
+                    </div>
+                    <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px dashed var(--border);border-radius:8px;cursor:pointer;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                        <input type="file" id="adminExpReceipt" accept="image/*" style="display:none;" onchange="previewAdminExpReceipt(this)">
+                        <span style="font-size:20px;">📎</span>
+                        <span style="font-size:13px;color:var(--text-secondary);" id="adminExpReceiptLabel">Tap to attach receipt photo</span>
+                    </label>
+                    <input type="hidden" id="adminExpReceiptUrl" value="${expense?.receipt_url || ''}">
+                </div>
                 <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
                     <button onclick="document.getElementById('adminExpenseModal').remove()" style="padding:10px 20px;border:1px solid var(--border);background:var(--surface);border-radius:8px;cursor:pointer;font-weight:600;">Cancel</button>
-                    <button onclick="saveAdminExpense('${expenseId || ''}')" style="padding:10px 20px;background:var(--primary);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Expense</button>
+                    <button id="adminExpSaveBtn" onclick="saveAdminExpense('${expenseId || ''}')" style="padding:10px 20px;background:var(--primary);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save Expense</button>
                 </div>
             </div>
         </div>
@@ -472,6 +486,88 @@ async function openAdminExpenseModal(expenseId = null) {
 
     document.body.appendChild(modal);
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+}
+
+// Receipt photo preview for admin expense modal
+window.previewAdminExpReceipt = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        showToast('Invalid File', 'Please select an image file', '❌');
+        input.value = '';
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Too Large', 'Receipt photo must be under 5MB', '❌');
+        input.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('adminExpReceiptPreview');
+        preview.style.display = 'block';
+        preview.innerHTML = `<div style="position:relative;display:inline-block;"><img src="${e.target.result}" style="max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--border);"><button onclick="clearAdminExpReceipt()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;">&times;</button></div>`;
+        document.getElementById('adminExpReceiptLabel').textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+};
+
+window.clearAdminExpReceipt = function() {
+    const preview = document.getElementById('adminExpReceiptPreview');
+    if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+    const input = document.getElementById('adminExpReceipt');
+    if (input) input.value = '';
+    const url = document.getElementById('adminExpReceiptUrl');
+    if (url) url.value = '';
+    const label = document.getElementById('adminExpReceiptLabel');
+    if (label) label.textContent = 'Tap to attach receipt photo';
+};
+
+async function uploadExpenseReceipt(file, propertyId) {
+    const reader = new FileReader();
+    const base64 = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `property-${propertyId}/${Date.now()}.${ext}`;
+
+    const res = await fetch('/api/storage-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'upload',
+            bucket: 'expense-receipts',
+            path: path,
+            fileBase64: base64,
+            contentType: file.type,
+            upsert: true
+        })
+    });
+
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message || 'Upload failed');
+
+    // Get a signed URL for viewing
+    const urlRes = await fetch('/api/storage-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'signed-url',
+            bucket: 'expense-receipts',
+            path: path,
+            expiresIn: 31536000 // 1 year
+        })
+    });
+
+    const urlJson = await urlRes.json();
+    if (urlJson.error) throw new Error(urlJson.error.message || 'Failed to get URL');
+
+    return { path: path, signedUrl: urlJson.data.signedUrl };
 }
 
 async function saveAdminExpense(expenseId) {
@@ -487,6 +583,24 @@ async function saveAdminExpense(expenseId) {
             return;
         }
 
+        const saveBtn = document.getElementById('adminExpSaveBtn');
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+
+        // Upload receipt photo if selected
+        let receiptUrl = document.getElementById('adminExpReceiptUrl')?.value || null;
+        const receiptFile = document.getElementById('adminExpReceipt')?.files[0];
+        if (receiptFile) {
+            try {
+                const upload = await uploadExpenseReceipt(receiptFile, propertyId);
+                receiptUrl = upload.path; // Store the path, generate signed URL on view
+            } catch (uploadErr) {
+                console.error('Receipt upload failed:', uploadErr);
+                showToast('Upload Error', 'Failed to upload receipt: ' + uploadErr.message, '❌');
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Expense'; }
+                return;
+            }
+        }
+
         // Calculate settlement month
         const d = new Date(expenseDate);
         const settlementMonth = `${d.getFullYear()}-${d.getMonth()}`;
@@ -497,6 +611,7 @@ async function saveAdminExpense(expenseId) {
             category: category,
             expense_date: expenseDate,
             description: description || null,
+            receipt_url: receiptUrl,
             entered_by: currentUser?.email || 'staff',
             entered_by_type: 'staff',
             settlement_month: settlementMonth
@@ -531,4 +646,36 @@ async function deleteAdminExpense(expenseId) {
         showToast('Error', 'Failed to delete expense: ' + error.message, '❌');
     }
 }
+
+window.viewExpenseReceipt = async function(receiptPath) {
+    if (!receiptPath) return;
+
+    // If it's already a full URL, open directly
+    if (receiptPath.startsWith('http')) {
+        window.open(receiptPath, '_blank');
+        return;
+    }
+
+    // Get signed URL from storage proxy
+    try {
+        const res = await fetch('/api/storage-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'signed-url',
+                bucket: 'expense-receipts',
+                path: receiptPath,
+                expiresIn: 3600
+            })
+        });
+        const json = await res.json();
+        if (json.error) throw new Error(json.error.message);
+        if (json.data?.signedUrl) {
+            window.open(json.data.signedUrl, '_blank');
+        }
+    } catch (err) {
+        console.error('Failed to load receipt:', err);
+        showToast('Error', 'Failed to load receipt image', '❌');
+    }
+};
 
