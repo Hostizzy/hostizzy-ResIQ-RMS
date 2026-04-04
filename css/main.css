@@ -3460,6 +3460,14 @@ background-color: #10b981;
 transform: translateX(24px);
 }
 
+[data-theme="dark"] .slider {
+background-color: #475569;
+}
+
+[data-theme="dark"] .slider:before {
+background-color: #e2e8f0;
+}
+
 /* ========================================
    SIDEBAR NAVIGATION (DESKTOP & TABLET)
    ======================================== */
@@ -5940,6 +5948,12 @@ input[type="radio"] {
     min-height: 20px;
     accent-color: var(--primary);
     cursor: pointer;
+}
+
+[data-theme="dark"] input[type="checkbox"],
+[data-theme="dark"] input[type="radio"] {
+    accent-color: var(--primary);
+    color-scheme: dark;
 }
 
 /* Card grid mobile */
