@@ -1853,9 +1853,10 @@ async function loadImportReview() {
     try {
         const { data: properties } = await supabase
             .from('properties')
-            .select('id, name')
+            .select('id, name, location')
             .eq('is_active', true)
             .order('name');
+        importProperties = properties || [];
         const select = document.getElementById('importPropertyFilter');
         if (select && properties) {
             select.innerHTML = '<option value="">All Properties</option>' +
@@ -1864,6 +1865,33 @@ async function loadImportReview() {
     } catch (e) {
         console.error('[OTA Import] Failed to load properties:', e);
     }
+
+    // Load persisted drafts from Supabase (if any exist from previous sessions)
+    if (pendingImportItems.length === 0) {
+        try {
+            const { data: drafts } = await supabase
+                .from('ota_import_drafts')
+                .select('*')
+                .eq('status', 'pending')
+                .order('created_at', { ascending: false });
+
+            if (drafts && drafts.length > 0) {
+                pendingImportItems = drafts.map(d => ({
+                    messageId: d.message_id,
+                    emailDate: d.email_date,
+                    emailFrom: d.email_from,
+                    emailSubject: d.email_subject,
+                    bookingData: d.booking_data,
+                    isDuplicate: d.is_duplicate,
+                    duplicateReason: d.duplicate_reason,
+                    selected: !d.is_duplicate,
+                }));
+            }
+        } catch (e) {
+            console.error('[OTA Import] Failed to load drafts:', e);
+        }
+    }
+
     renderImportReview();
 }
 
@@ -1892,8 +1920,23 @@ window.scanGmailForReview = async function() {
         const monthsBack = scanPeriodEl ? (scanPeriodEl.value === '' ? 0 : parseInt(scanPeriodEl.value) || 6) : 6;
         const searchQueries = buildOtaSearchQueries(monthsBack);
 
-        const processedIds = new Set();
-        pendingImportItems = [];
+        // Load existing pending drafts from Supabase (merge, not replace)
+        const { data: existingDrafts } = await supabase
+            .from('ota_import_drafts')
+            .select('*')
+            .eq('status', 'pending');
+
+        const processedIds = new Set((existingDrafts || []).map(d => d.message_id));
+        pendingImportItems = (existingDrafts || []).map(d => ({
+            messageId: d.message_id,
+            emailDate: d.email_date,
+            emailFrom: d.email_from,
+            emailSubject: d.email_subject,
+            bookingData: d.booking_data,
+            isDuplicate: d.is_duplicate,
+            duplicateReason: d.duplicate_reason,
+            selected: !d.is_duplicate,
+        }));
 
         // Fetch properties for auto-detection
         const { data: properties } = await supabase
@@ -1988,7 +2031,26 @@ window.scanGmailForReview = async function() {
             }
         }
 
-        showToast(`Found ${pendingImportItems.length} booking emails. Review and import below.`, 'success');
+        // Save new scan results to ota_import_drafts (merge via upsert on message_id)
+        const newItems = pendingImportItems.filter(item => !existingDrafts || !existingDrafts.some(d => d.message_id === item.messageId));
+        if (newItems.length > 0) {
+            const draftsToSave = newItems.map(item => ({
+                message_id: item.messageId,
+                email_date: item.emailDate,
+                email_from: item.emailFrom,
+                email_subject: item.emailSubject,
+                booking_data: item.bookingData,
+                is_duplicate: item.isDuplicate,
+                duplicate_reason: item.duplicateReason,
+                status: 'pending'
+            }));
+            // Batch upsert in chunks of 50 to avoid payload limits
+            for (let i = 0; i < draftsToSave.length; i += 50) {
+                await supabase.from('ota_import_drafts').upsert(draftsToSave.slice(i, i + 50), { onConflict: 'message_id' });
+            }
+        }
+
+        showToast(`Found ${pendingImportItems.length} booking emails (${newItems.length} new). Review and import below.`, 'success');
         renderImportReview();
 
     } catch (error) {
@@ -2035,7 +2097,7 @@ function renderImportReview() {
             <div style="display: flex; gap: 8px;">
                 <button class="btn btn-sm" onclick="toggleAllImportItems(true)" style="font-size: 12px;">Select All New</button>
                 <button class="btn btn-sm" onclick="toggleAllImportItems(false)" style="font-size: 12px;">Deselect All</button>
-                <button class="btn btn-sm" onclick="pendingImportItems = []; renderImportReview();" style="font-size: 12px; color: var(--danger);">Clear</button>
+                <button class="btn btn-sm" onclick="clearImportDrafts()" style="font-size: 12px; color: var(--danger);">Clear</button>
             </div>
         </div>
     `;
@@ -2127,6 +2189,8 @@ window.assignImportProperty = function(idx, propertyId) {
         pendingImportItems[idx].bookingData.property_id = null;
         pendingImportItems[idx].bookingData.property_name = null;
     }
+    // Persist edit to draft
+    persistDraftEdit(idx);
 };
 
 window.updateImportField = function(idx, field, value) {
@@ -2144,6 +2208,30 @@ window.updateImportField = function(idx, field, value) {
             }
         }
     }
+    // Persist edit to draft
+    persistDraftEdit(idx);
+};
+
+// Fire-and-forget: persist bookingData edits to ota_import_drafts
+function persistDraftEdit(idx) {
+    const item = pendingImportItems[idx];
+    if (item && item.messageId) {
+        supabase.from('ota_import_drafts')
+            .update({ booking_data: item.bookingData })
+            .eq('message_id', item.messageId)
+            .then(() => {});
+    }
+}
+
+window.clearImportDrafts = async function() {
+    if (!confirm('Clear all pending import drafts?')) return;
+    try {
+        await supabase.from('ota_import_drafts').delete().eq('status', 'pending');
+    } catch (e) {
+        console.error('[OTA Import] Failed to clear drafts:', e);
+    }
+    pendingImportItems = [];
+    renderImportReview();
 };
 
 window.importSingleItem = async function(idx) {
@@ -2164,6 +2252,10 @@ window.importSingleItem = async function(idx) {
             console.error('[OTA Import] Insert error:', error);
             showToast('Failed to import: ' + error.message, 'error');
         } else {
+            // Mark draft as imported in Supabase
+            if (item.messageId) {
+                supabase.from('ota_import_drafts').update({ status: 'imported' }).eq('message_id', item.messageId).then(() => {});
+            }
             showToast(`Imported reservation for ${d.guest_name}`, 'success');
             pendingImportItems.splice(idx, 1);
             await loadReservations();
@@ -2218,6 +2310,10 @@ window.importSelectedBookings = async function() {
                 failed++;
             } else {
                 created++;
+                // Mark draft as imported in Supabase
+                if (item.messageId) {
+                    supabase.from('ota_import_drafts').update({ status: 'imported' }).eq('message_id', item.messageId).then(() => {});
+                }
                 // Remove from pending list
                 const idx = pendingImportItems.indexOf(item);
                 if (idx > -1) pendingImportItems.splice(idx, 1);
