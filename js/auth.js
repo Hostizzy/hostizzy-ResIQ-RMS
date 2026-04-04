@@ -39,16 +39,6 @@
             document.querySelector('.login-form-side > .login-card')?.classList.remove('hidden');
         }
 
-        function showSignupPanel() {
-            document.querySelector('.login-form-side > .login-card')?.classList.add('hidden');
-            document.getElementById('forgotPasswordPanel').classList.add('hidden');
-            document.getElementById('resetPasswordPanel').classList.add('hidden');
-            document.getElementById('pendingApprovalPanel')?.classList.add('hidden');
-            document.getElementById('rejectedPanel')?.classList.add('hidden');
-            document.getElementById('signupPanel')?.classList.remove('hidden');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
         function showPendingApprovalScreen() {
             document.querySelector('.login-form-side > .login-card')?.classList.add('hidden');
             document.getElementById('forgotPasswordPanel').classList.add('hidden');

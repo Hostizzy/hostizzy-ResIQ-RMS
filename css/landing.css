@@ -216,7 +216,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #1B3A5C 0%, #0e7490 25%, #0891b2 50%, #22d3ee 80%, #a5f3fc 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1B3A5C 40%, #0891b2 100%);
     position: relative;
     overflow: hidden;
     padding: 120px 24px 80px;
@@ -549,7 +549,7 @@ img {
 }
 
 .section-title {
-    font-size: 36px;
+    font-size: 40px;
     font-weight: 900;
     color: var(--text);
     line-height: 1.2;
@@ -645,7 +645,7 @@ img {
    ============================================ */
 .features-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
 }
 
@@ -687,7 +687,7 @@ img {
 }
 
 .feature-card h3 {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     margin-bottom: 4px;
     color: var(--text);
@@ -1398,7 +1398,7 @@ img {
    CTA BANNER
    ============================================ */
 .cta-banner {
-    background: linear-gradient(135deg, #1B3A5C 0%, #0891b2 50%, #22d3ee 100%);
+    background: linear-gradient(135deg, #1B3A5C 0%, #0e4a6f 50%, #0891b2 100%);
     padding: 64px 24px;
     text-align: center;
     position: relative;
@@ -1575,6 +1575,348 @@ img {
 .reveal-delay-4 { transition-delay: 0.4s; }
 
 /* ============================================
+   NAVBAR — Dual CTA buttons
+   ============================================ */
+.nav-cta-secondary {
+    padding: 10px 24px;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 10px;
+    color: white !important;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.nav-cta-primary {
+    padding: 10px 24px;
+    background: var(--brand-orange) !important;
+    border: 1px solid var(--brand-orange) !important;
+    border-radius: 10px;
+    color: white !important;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.nav-cta-primary:hover {
+    background: var(--brand-orange-light) !important;
+    transform: translateY(-1px);
+}
+
+.landing-nav.scrolled .nav-cta-secondary {
+    background: transparent !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+.landing-nav.scrolled .nav-cta-secondary:hover {
+    background: var(--bg-alt) !important;
+}
+
+.landing-nav.scrolled .nav-cta-primary {
+    background: var(--brand-orange) !important;
+    border-color: var(--brand-orange) !important;
+    color: white !important;
+}
+
+/* ============================================
+   FEATURE ICON — Orange variant
+   ============================================ */
+.feature-icon-orange {
+    background: linear-gradient(135deg, rgba(232, 148, 58, 0.12), rgba(232, 148, 58, 0.05)) !important;
+}
+
+/* ============================================
+   SIGNUP SECTION
+   ============================================ */
+.signup-section {
+    background: linear-gradient(135deg, #1B3A5C 0%, #0e4a6f 50%, #0e7490 100%);
+    padding: 100px 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.signup-section::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.section-tag-light {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.section-title-light {
+    color: white;
+}
+
+.section-subtitle-light {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.signup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+    max-width: var(--max-width);
+    margin: 0 auto;
+}
+
+.signup-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 480px;
+}
+
+[data-theme="dark"] .signup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+.signup-card-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+[data-theme="dark"] .signup-card-title {
+    color: var(--text);
+}
+
+.signup-card-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.signup-form-group {
+    margin-bottom: 16px;
+}
+
+.signup-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+[data-theme="dark"] .signup-form-group label {
+    color: var(--text-secondary);
+}
+
+.signup-form-group label .required {
+    color: #ef4444;
+}
+
+.signup-form-group input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    color: #1f2937;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+[data-theme="dark"] .signup-form-group input {
+    background: var(--bg);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.signup-form-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+}
+
+.signup-form-group input::placeholder {
+    color: #9ca3af;
+}
+
+.signup-password-wrap {
+    position: relative;
+}
+
+.signup-password-wrap input {
+    padding-right: 44px;
+}
+
+.signup-password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    padding: 4px;
+}
+
+.signup-password-toggle:hover {
+    color: var(--primary);
+}
+
+.signup-message {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.signup-message-error {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+[data-theme="dark"] .signup-message-error {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.2);
+}
+
+.signup-btn {
+    width: 100%;
+    padding: 13px 24px;
+    background: var(--brand-orange);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.25s;
+}
+
+.signup-btn:hover {
+    background: var(--brand-orange-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(232, 148, 58, 0.3);
+}
+
+.signup-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.signup-login-link {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 16px;
+}
+
+.signup-login-link a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.signup-login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Signup Success Card */
+.signup-success-card {
+    text-align: center;
+    max-width: 480px;
+}
+
+.signup-success-icon {
+    margin-bottom: 20px;
+}
+
+.signup-success-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.signup-success-text a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* How It Works Steps (right side) */
+.signup-steps {
+    padding-top: 16px;
+}
+
+.signup-steps-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 32px;
+}
+
+.signup-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 28px;
+}
+
+.signup-step-number {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 800;
+    color: white;
+}
+
+.signup-step h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.signup-step p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+}
+
+.signup-trust {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 @media (max-width: 1024px) {
@@ -1604,7 +1946,16 @@ img {
     }
 
     .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .signup-grid {
         grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .signup-card {
+        max-width: 100%;
     }
 
     .portals-grid,
@@ -1756,6 +2107,19 @@ img {
 
     .features-grid {
         grid-template-columns: 1fr;
+    }
+
+    .signup-section {
+        padding: 64px 20px;
+    }
+
+    .signup-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .signup-card {
+        padding: 28px 24px;
     }
 
     .portals-grid {

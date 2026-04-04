@@ -512,7 +512,7 @@
                 <!-- Sign Up Link -->
                 <div style="margin-top: 16px; text-align: center;">
                     <span style="font-size: 14px; color: var(--text-secondary);">Property owner?</span>
-                    <a href="#" onclick="showSignupPanel(); return false;" style="font-size: 14px; color: var(--primary); font-weight: 600; margin-left: 4px; text-decoration: none;">Sign up here</a>
+                    <a href="/" style="font-size: 14px; color: var(--primary); font-weight: 600; margin-left: 4px; text-decoration: none;">Register here</a>
                 </div>
 
                 <!-- Portal Links (Desktop) -->
@@ -544,45 +544,6 @@
                     <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
                     Secure login powered by Firebase
                 </p>
-            </div>
-
-            <!-- Signup Panel (Owner Registration) -->
-            <div id="signupPanel" class="login-card hidden">
-                <div class="logo">
-                    <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
-                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 12px 0 4px;">Create Account</h2>
-                    <p>Register as a property owner</p>
-                </div>
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="signupName" placeholder="Your full name" autocomplete="name">
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="signupEmail" placeholder="Email address" autocomplete="email">
-                </div>
-                <div class="form-group">
-                    <label>Phone</label>
-                    <input type="tel" id="signupPhone" placeholder="Phone number" autocomplete="tel">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <div style="position: relative;">
-                        <input type="password" id="signupPassword" placeholder="Min 8 characters" autocomplete="new-password" style="padding-right: 48px;">
-                        <button type="button" onclick="this.previousElementSibling.type = this.previousElementSibling.type === 'password' ? 'text' : 'password';" class="login-password-toggle">
-                            <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password</label>
-                    <input type="password" id="signupConfirmPassword" placeholder="Confirm password" autocomplete="new-password">
-                </div>
-                <div id="signupMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
-                <button class="btn btn-primary login-btn" onclick="signup()" id="signupButton">Create Account</button>
-                <div style="margin-top: 16px; text-align: center;">
-                    <a href="#" onclick="showLoginPanel(); return false;" class="login-forgot">&larr; Back to Login</a>
-                </div>
             </div>
 
             <!-- Pending Approval Screen -->

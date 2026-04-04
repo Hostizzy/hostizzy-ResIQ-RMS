@@ -111,10 +111,10 @@
 
             <ul class="nav-links" id="navLinks">
                 <li><a href="#features">Features</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#portals">Portals</a></li>
                 <li><a href="#technology">Technology</a></li>
-                <li><a href="/app" class="nav-cta">Login</a></li>
+                <li><a href="/app" class="nav-cta nav-cta-secondary">Login</a></li>
+                <li><a href="#signup" class="nav-cta nav-cta-primary">Sign Up Free</a></li>
             </ul>
 
             <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
@@ -144,13 +144,13 @@
                     Track every booking, collect payments, verify guest KYC, and communicate &mdash; all from one screen.
                 </p>
                 <div class="hero-buttons">
-                    <a href="/app" class="btn-hero-primary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                        Open ResIQ
+                    <a href="#signup" class="btn-hero-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                        Sign Up Free
                     </a>
-                    <a href="https://hostos.hostizzy.com" class="btn-hero-secondary" target="_blank" rel="noopener">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-                        Explore HostOS Platform
+                    <a href="/app" class="btn-hero-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                        Login
                     </a>
                 </div>
             </div>
@@ -343,6 +343,21 @@
                     <h3>Works Offline (PWA)</h3>
                     <p>Install on any device. Full offline support with background sync. No data lost even without internet. 95+ Lighthouse score.</p>
                 </div>
+                <div class="feature-card reveal reveal-delay-1">
+                    <div class="feature-icon-box feature-icon-orange"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E8943A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+                    <h3>OTA Email Import</h3>
+                    <p>Import reservations from Gmail. Supports Airbnb, Booking.com, Goibibo, MMT &amp; Agoda. Smart duplicate detection and review.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-1">
+                    <div class="feature-icon-box feature-icon-orange"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E8943A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg></div>
+                    <h3>Owner Portal &amp; Payouts</h3>
+                    <p>Dedicated dashboard for property owners. Commission tracking, monthly settlements, payout requests, and expense management.</p>
+                </div>
+                <div class="feature-card reveal reveal-delay-2">
+                    <div class="feature-icon-box feature-icon-orange"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E8943A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                    <h3>Financial System</h3>
+                    <p>Host payouts, P&amp;L reports, expense tracking per property. Commission auto-calculation with GST support.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -382,31 +397,91 @@
     </section>
 
     <!-- ============================================
-         HOW IT WORKS
+         SIGNUP + HOW IT WORKS
          ============================================ -->
-    <section class="section-landing alt" id="how-it-works">
+    <section class="signup-section" id="signup">
         <div class="section-inner">
             <div class="section-header reveal">
-                <span class="section-tag">Getting Started</span>
-                <h2 class="section-title">Up and Running in Minutes</h2>
-                <p class="section-subtitle">No complex setup, no installation required. Open your browser and start managing.</p>
+                <span class="section-tag section-tag-light">Get Started</span>
+                <h2 class="section-title section-title-light">Start Managing Your<br>Properties Today</h2>
+                <p class="section-subtitle section-subtitle-light">Create your free account. No credit card required. Get approved and start managing in minutes.</p>
             </div>
 
-            <div class="steps-grid">
-                <div class="step-card reveal">
-                    <div class="step-number">1</div>
-                    <h3>Sign Up</h3>
-                    <p>Create your account with email. Get instant access to the full RMS dashboard. No credit card required.</p>
+            <div class="signup-grid">
+                <!-- Signup Form -->
+                <div class="signup-card reveal" id="signupFormCard">
+                    <h3 class="signup-card-title">Create Your Account</h3>
+                    <p class="signup-card-subtitle">Register as a property owner</p>
+                    <div class="signup-form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" id="landingSignupName" placeholder="Your full name" autocomplete="name">
+                    </div>
+                    <div class="signup-form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" id="landingSignupEmail" placeholder="Email address" autocomplete="email">
+                    </div>
+                    <div class="signup-form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="landingSignupPhone" placeholder="Phone number" autocomplete="tel">
+                    </div>
+                    <div class="signup-form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <div class="signup-password-wrap">
+                            <input type="password" id="landingSignupPassword" placeholder="Min 8 characters" autocomplete="new-password">
+                            <button type="button" class="signup-password-toggle" onclick="const inp = document.getElementById('landingSignupPassword'); inp.type = inp.type === 'password' ? 'text' : 'password';" aria-label="Toggle password">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="signup-form-group">
+                        <label>Confirm Password <span class="required">*</span></label>
+                        <input type="password" id="landingSignupConfirm" placeholder="Confirm password" autocomplete="new-password">
+                    </div>
+                    <div id="landingSignupMsg" class="signup-message" style="display:none;"></div>
+                    <button class="signup-btn" onclick="landingSignup()" id="landingSignupBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                        Create Account
+                    </button>
+                    <p class="signup-login-link">Already have an account? <a href="/app">Login here</a></p>
                 </div>
-                <div class="step-card reveal reveal-delay-1">
-                    <div class="step-number">2</div>
-                    <h3>Add Properties</h3>
-                    <p>Add your properties, set commission rates, assign owners, and configure booking sources and payment methods.</p>
+
+                <!-- Pending Approval (hidden by default, shown after successful signup) -->
+                <div class="signup-card signup-success-card" id="signupSuccessCard" style="display:none;">
+                    <div class="signup-success-icon">
+                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <h3 class="signup-card-title">Account Created!</h3>
+                    <p class="signup-success-text">Your registration is pending admin approval. Our team will review and activate your account shortly. You'll be able to <a href="/app">log in</a> once approved.</p>
                 </div>
-                <div class="step-card reveal reveal-delay-2">
-                    <div class="step-number">3</div>
-                    <h3>Start Operations</h3>
-                    <p>Create reservations, track payments, verify guests via KYC portal, sync OTA calendars, and manage your team.</p>
+
+                <!-- How It Works Steps -->
+                <div class="signup-steps reveal reveal-delay-1">
+                    <h3 class="signup-steps-title">How It Works</h3>
+                    <div class="signup-step">
+                        <div class="signup-step-number">1</div>
+                        <div>
+                            <h4>Sign Up</h4>
+                            <p>Create your account right here. Your registration will be reviewed and approved by our team.</p>
+                        </div>
+                    </div>
+                    <div class="signup-step">
+                        <div class="signup-step-number">2</div>
+                        <div>
+                            <h4>Add Properties</h4>
+                            <p>Add your properties, set commission rates, assign owners, and configure booking sources.</p>
+                        </div>
+                    </div>
+                    <div class="signup-step">
+                        <div class="signup-step-number">3</div>
+                        <div>
+                            <h4>Start Operations</h4>
+                            <p>Create reservations, track payments, verify guests, sync OTA calendars, and manage your team.</p>
+                        </div>
+                    </div>
+                    <div class="signup-trust">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span>Trusted by 45+ properties across 15 cities in India</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -650,8 +725,8 @@
             <h2>Start Managing Your Reservations Today</h2>
             <p>Join 45+ properties across 15 cities in India using ResIQ for daily operations.</p>
             <div class="cta-buttons">
-                <a href="/app" class="btn-hero-primary">
-                    Get Started Free
+                <a href="#signup" class="btn-hero-primary">
+                    Sign Up Free
                 </a>
                 <a href="mailto:support@hostizzy.com" class="btn-hero-secondary">
                     Contact Us
@@ -791,6 +866,114 @@
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
             document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
         });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                const target = document.querySelector(a.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document.getElementById('navLinks')?.classList.remove('open');
+                }
+            });
+        });
+
+        // ============================================
+        // SIGNUP FORM (standalone — no app JS needed)
+        // ============================================
+        async function landingSignup() {
+            const name = document.getElementById('landingSignupName').value.trim();
+            const email = document.getElementById('landingSignupEmail').value.trim();
+            const phone = document.getElementById('landingSignupPhone').value.trim();
+            const password = document.getElementById('landingSignupPassword').value;
+            const confirm = document.getElementById('landingSignupConfirm').value;
+            const msgEl = document.getElementById('landingSignupMsg');
+            const btn = document.getElementById('landingSignupBtn');
+
+            msgEl.style.display = 'none';
+
+            // Validation
+            if (!name || !email || !password) {
+                showSignupError(msgEl, 'Please fill in all required fields.');
+                return;
+            }
+            if (password.length < 8) {
+                showSignupError(msgEl, 'Password must be at least 8 characters.');
+                return;
+            }
+            if (password !== confirm) {
+                showSignupError(msgEl, 'Passwords do not match.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
+
+            let firebaseCreated = false;
+            try {
+                // Step 1: Create Firebase Auth account
+                const authResp = await fetch('/api/auth-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'create-user', email, password, displayName: name })
+                });
+                const authResult = await authResp.json();
+                if (!authResp.ok) throw new Error(authResult.error || 'Failed to create account');
+                firebaseCreated = true;
+
+                // Step 2: Insert owner record via db-proxy (pending approval)
+                const dbResp = await fetch('/api/db-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        table: 'property_owners',
+                        operation: 'insert',
+                        data: [{
+                            name,
+                            email,
+                            phone: phone || null,
+                            password: 'firebase-managed',
+                            is_active: false,
+                            is_external: true,
+                            status: 'pending'
+                        }]
+                    })
+                });
+                const dbResult = await dbResp.json();
+                if (dbResult.error) throw new Error(dbResult.error.message || 'Failed to save account');
+
+                // Step 3: Show success
+                document.getElementById('signupFormCard').style.display = 'none';
+                document.getElementById('signupSuccessCard').style.display = 'block';
+
+            } catch (error) {
+                // Rollback Firebase user if DB insert failed
+                if (firebaseCreated) {
+                    try {
+                        await fetch('/api/auth-proxy', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'delete-user', email })
+                        });
+                    } catch (e) { /* best effort */ }
+                }
+                if (error.message.includes('already exists') || error.message.includes('email-already-exists')) {
+                    showSignupError(msgEl, 'An account with this email already exists.');
+                } else {
+                    showSignupError(msgEl, error.message || 'Failed to create account. Please try again.');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Create Account';
+            }
+        }
+
+        function showSignupError(el, msg) {
+            el.textContent = msg;
+            el.style.display = 'block';
+            el.className = 'signup-message signup-message-error';
+        }
     </script>
 </body>
 </html>
