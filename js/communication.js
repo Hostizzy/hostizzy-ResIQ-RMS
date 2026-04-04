@@ -1567,7 +1567,7 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
         console.log('[Gmail] Could not extract check-in date from email.');
         console.log('[Gmail] Subject:', subject);
         console.log('[Gmail] Sender:', sender);
-        console.log('[Gmail] Body preview (first 500 chars):', emailBody.substring(0, 500));
+        console.log('[Gmail] Full body:', emailBody);
         return null;
     }
 
