@@ -40,6 +40,7 @@ CREATE TRIGGER update_ota_drafts_updated_at
 ALTER TABLE ota_import_drafts ENABLE ROW LEVEL SECURITY;
 
 -- Allow authenticated staff to manage drafts
+DROP POLICY IF EXISTS "Staff can manage OTA drafts" ON ota_import_drafts;
 CREATE POLICY "Staff can manage OTA drafts"
     ON ota_import_drafts
     FOR ALL

@@ -98,6 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_property_expenses_month ON property_expenses(sett
 ALTER TABLE property_expenses ENABLE ROW LEVEL SECURITY;
 
 -- Staff can view all expenses
+DROP POLICY IF EXISTS "Staff can view all expenses" ON property_expenses;
 CREATE POLICY "Staff can view all expenses"
     ON property_expenses
     FOR SELECT
@@ -110,6 +111,7 @@ CREATE POLICY "Staff can view all expenses"
     );
 
 -- Staff can manage all expenses
+DROP POLICY IF EXISTS "Staff can manage expenses" ON property_expenses;
 CREATE POLICY "Staff can manage expenses"
     ON property_expenses
     FOR ALL
@@ -122,6 +124,7 @@ CREATE POLICY "Staff can manage expenses"
     );
 
 -- Owners can view expenses for their properties
+DROP POLICY IF EXISTS "Owners can view own property expenses" ON property_expenses;
 CREATE POLICY "Owners can view own property expenses"
     ON property_expenses
     FOR SELECT
@@ -134,6 +137,7 @@ CREATE POLICY "Owners can view own property expenses"
     );
 
 -- Owners can create expenses for their properties
+DROP POLICY IF EXISTS "Owners can create expenses" ON property_expenses;
 CREATE POLICY "Owners can create expenses"
     ON property_expenses
     FOR INSERT
@@ -146,6 +150,7 @@ CREATE POLICY "Owners can create expenses"
     );
 
 -- Owners can update their own expenses
+DROP POLICY IF EXISTS "Owners can update own expenses" ON property_expenses;
 CREATE POLICY "Owners can update own expenses"
     ON property_expenses
     FOR UPDATE
@@ -162,6 +167,7 @@ CREATE POLICY "Owners can update own expenses"
 -- STEP 7: Trigger for updated_at
 -- =====================================================
 
+DROP TRIGGER IF EXISTS update_property_expenses_updated_at ON property_expenses;
 CREATE TRIGGER update_property_expenses_updated_at
     BEFORE UPDATE ON property_expenses
     FOR EACH ROW

@@ -48,6 +48,7 @@ CREATE INDEX IF NOT EXISTS idx_settlement_status_owner_month ON settlement_statu
 ALTER TABLE settlement_status ENABLE ROW LEVEL SECURITY;
 
 -- Policy 1: Owners can view their own settlement status
+DROP POLICY IF EXISTS "Owners can view own settlements" ON settlement_status;
 CREATE POLICY "Owners can view own settlements"
     ON settlement_status
     FOR SELECT
@@ -59,6 +60,7 @@ CREATE POLICY "Owners can view own settlements"
     );
 
 -- Policy 2: Owners can create/update their own settlement status
+DROP POLICY IF EXISTS "Owners can manage own settlements" ON settlement_status;
 CREATE POLICY "Owners can manage own settlements"
     ON settlement_status
     FOR ALL
@@ -76,6 +78,7 @@ CREATE POLICY "Owners can manage own settlements"
     );
 
 -- Policy 3: Staff can view all settlement statuses
+DROP POLICY IF EXISTS "Staff can view all settlements" ON settlement_status;
 CREATE POLICY "Staff can view all settlements"
     ON settlement_status
     FOR SELECT
@@ -92,6 +95,7 @@ CREATE POLICY "Staff can view all settlements"
 -- =====================================================
 
 -- Auto-update updated_at timestamp (reuse existing function)
+DROP TRIGGER IF EXISTS update_settlement_status_updated_at ON settlement_status;
 CREATE TRIGGER update_settlement_status_updated_at
     BEFORE UPDATE ON settlement_status
     FOR EACH ROW
