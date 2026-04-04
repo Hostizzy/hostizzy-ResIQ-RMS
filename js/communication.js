@@ -1215,8 +1215,9 @@ function extractEmailBody(message) {
             .replace(/&ndash;|&#8211;/g, '–')
             .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n)))
             .replace(/&#x([0-9a-fA-F]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
-            .replace(/\s{2,}/g, ' ')
+            .replace(/[^\S\n]{2,}/g, ' ')
             .replace(/ *\n */g, '\n')
+            .replace(/\n{3,}/g, '\n\n')
             .trim();
     }
 
@@ -1252,11 +1253,11 @@ function parseAirbnbEmail(body, subject, emailYear) {
      || body.match(/(?:guest|booked by)[:\s]+([A-Za-z][\w\s]{2,40}?)(?:\n|,|$)/i);
     extracted.guestName = m ? m[1].trim() : null;
 
-    // Dates: "Check-in\nSun, 26 Apr" — no year, infer from email
-    m = body.match(/Check-?in\s+(?:\w{3},\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
+    // Dates: "Check-in\nSun, 26 Apr" or "Checkout\nSunday, 26 Apr" — no year, infer from email
+    m = body.match(/Check-?in\s+(?:\w{3,9},?\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
     extracted.checkIn = m ? m[1].trim() : null;
 
-    m = body.match(/Check-?out\s+(?:\w{3},\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
+    m = body.match(/Check-?out\s+(?:\w{3,9},?\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
     extracted.checkOut = m ? m[1].trim() : null;
 
     // Guests: "6 adults" or "2 guests"
@@ -1527,6 +1528,15 @@ function parseGenericBookingEmail(body, subject) {
  * Parse booking details from email body — OTA dispatcher
  */
 function parseBookingEmail(emailBody, sender, subject = '', properties = [], dateHeader = '') {
+    // Skip cancellation/refund emails
+    const subjectLower = subject.toLowerCase();
+    const bodyStart = emailBody.substring(0, 500).toLowerCase();
+    if (subjectLower.match(/\b(cancell?ed|cancellation|refunded?)\b/) ||
+        bodyStart.match(/\b(your (?:booking|reservation) (?:has been |was )?cancell?ed)\b/)) {
+        console.log('[Gmail] Skipping cancellation email:', subject);
+        return null;
+    }
+
     const senderLower = sender.toLowerCase();
     const emailYear = getEmailYear(dateHeader);
 
