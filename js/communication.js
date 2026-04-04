@@ -1254,10 +1254,11 @@ function parseAirbnbEmail(body, subject, emailYear) {
     extracted.guestName = m ? m[1].trim() : null;
 
     // Dates: "Check-in\nSun, 26 Apr" or "Checkout\nSunday, 26 Apr" — no year, infer from email
-    m = body.match(/Check-?in\s+(?:\w{3,9},?\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
+    // Support ASCII hyphen, en-dash, em-dash, or no separator between Check and in/out
+    m = body.match(/Check[-–—]?in\s+(?:\w{3,9},?\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
     extracted.checkIn = m ? m[1].trim() : null;
 
-    m = body.match(/Check-?out\s+(?:\w{3,9},?\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
+    m = body.match(/Check[-–—]?out\s+(?:\w{3,9},?\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
     extracted.checkOut = m ? m[1].trim() : null;
 
     // Guests: "6 adults" or "2 guests"
@@ -1319,7 +1320,7 @@ function parseGoibiboMmtEmail(body, subject, sender) {
     }
 
     // Try structured extraction first
-    m = body.match(/CHECK-?IN[\s\S]*?(\d{1,2}\s+\w{3,9}\s+'?\d{2,4})/i);
+    m = body.match(/CHECK[-–—]?IN[\s\S]*?(\d{1,2}\s+\w{3,9}\s+'?\d{2,4})/i);
     extracted.checkIn = m ? m[1].trim() : (allDates[0] || null);
 
     // Check-out: second date, or date before "(X Night)"
@@ -1400,11 +1401,11 @@ function parseAgodaEmail(body, subject) {
     }
 
     // Dates: "Check-in\nFebruary 28, 2026" or from subject "Check-in February 28, 2026"
-    m = body.match(/Check-?in\s+(\w+\s+\d{1,2},?\s+\d{4})/i)
-     || subject.match(/Check-?in\s+(\w+\s+\d{1,2},?\s+\d{4})/i);
+    m = body.match(/Check[-–—]?in\s+(\w+\s+\d{1,2},?\s+\d{4})/i)
+     || subject.match(/Check[-–—]?in\s+(\w+\s+\d{1,2},?\s+\d{4})/i);
     extracted.checkIn = m ? m[1].trim() : null;
 
-    m = body.match(/Check-?out\s+(\w+\s+\d{1,2},?\s+\d{4})/i);
+    m = body.match(/Check[-–—]?out\s+(\w+\s+\d{1,2},?\s+\d{4})/i);
     extracted.checkOut = m ? m[1].trim() : null;
 
     // Guests: "12 Adults"
@@ -1455,7 +1456,7 @@ function parseAgodaEmail(body, subject) {
 function parseGenericBookingEmail(body, subject) {
     // Preprocess: collapse common multi-line "Label\nValue" patterns into "Label: Value"
     const preprocessed = body
-        .replace(/(Check-?in|Check-?out|Confirmation code|Booking ID|Guest name|Booking Reference)\s*\n\s*/gi, '$1: ')
+        .replace(/(Check[-–—]?in|Check[-–—]?out|Confirmation code|Booking ID|Guest name|Booking Reference)\s*\n\s*/gi, '$1: ')
         .replace(/(Total|Amount|Price)\s*\n\s*([₹$€£INR])/gi, '$1: $2');
 
     const patternGroups = {
@@ -1471,20 +1472,20 @@ function parseGenericBookingEmail(body, subject) {
             /^([A-Za-z][\w\s]{2,30}?) has reserved/im,
         ],
         checkIn: [
-            /check[- ]?in[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-            /check[- ]?in[:\s]+(\d{1,2}\s+\w+\s+'?\d{2,4})/i,
-            /check[- ]?in[:\s]+(\w+\s+\d{1,2},?\s+\d{4})/i,
-            /check[- ]?in[:\s]+(\d{4}-\d{2}-\d{2})/i,
+            /check[- –—]?in[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+            /check[- –—]?in[:\s]+(\d{1,2}\s+\w+\s+'?\d{2,4})/i,
+            /check[- –—]?in[:\s]+(\w+\s+\d{1,2},?\s+\d{4})/i,
+            /check[- –—]?in[:\s]+(\d{4}-\d{2}-\d{2})/i,
             /arrives?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
             /arrives?[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
             /from[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
             /(?:start|begin)s?\s*(?:date)?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
         ],
         checkOut: [
-            /check[- ]?out[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-            /check[- ]?out[:\s]+(\d{1,2}\s+\w+\s+'?\d{2,4})/i,
-            /check[- ]?out[:\s]+(\w+\s+\d{1,2},?\s+\d{4})/i,
-            /check[- ]?out[:\s]+(\d{4}-\d{2}-\d{2})/i,
+            /check[- –—]?out[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+            /check[- –—]?out[:\s]+(\d{1,2}\s+\w+\s+'?\d{2,4})/i,
+            /check[- –—]?out[:\s]+(\w+\s+\d{1,2},?\s+\d{4})/i,
+            /check[- –—]?out[:\s]+(\d{4}-\d{2}-\d{2})/i,
             /departs?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
             /departs?[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
             /(?:end|until)\s*(?:date)?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
