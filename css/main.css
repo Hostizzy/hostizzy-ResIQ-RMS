@@ -5938,6 +5938,8 @@ input[type="checkbox"],
 input[type="radio"] {
     min-width: 20px;
     min-height: 20px;
+    accent-color: var(--primary);
+    cursor: pointer;
 }
 
 /* Card grid mobile */
