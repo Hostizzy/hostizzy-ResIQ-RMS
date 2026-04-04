@@ -1241,48 +1241,64 @@ function getEmailYear(dateHeader) {
 function parseAirbnbEmail(body, subject, emailYear) {
     const extracted = {};
 
-    // Booking ID: "Confirmation code\nHMKSK453Q8" or inline
-    let m = body.match(/Confirmation code\s+([A-Z0-9]{6,12})/i)
-         || body.match(/confirmation code[:\s]+([A-Z0-9]{6,12})/i)
+    // Booking ID: URL "/reservations/details/HMNR944A53" (most reliable), then text fallbacks
+    let m = body.match(/\/reservations\/details\/([A-Z0-9]{6,12})/i)
+         || body.match(/CONFIRMATION CODE\s+([A-Z0-9]{6,12})/i)
+         || body.match(/Confirmation code\s+([A-Z0-9]{6,12})/i)
          || body.match(/(HM[A-Z0-9]{6,})/);
     extracted.bookingId = m ? m[1] : null;
 
-    // Guest name: from subject "confirmed - Yash Jain arrives" or body "Yash Jain\nIdentity verified"
+    // Guest name: from subject "confirmed - Yash Jain arrives" or "reminder: Hitesh is coming"
+    // or body "Hitesh Sharma\nIdentity verified"
     m = subject.match(/confirmed\s*[-–—]\s*(.+?)\s+arrives?/i)
-     || body.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s*\n\s*Identity/m)
-     || body.match(/(?:guest|booked by)[:\s]+([A-Za-z][\w\s]{2,40}?)(?:\n|,|$)/i);
+     || subject.match(/reminder:\s*(.+?)\s+is coming/i)
+     || body.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s*\n\s*Identity/m);
     extracted.guestName = m ? m[1].trim() : null;
 
-    // Dates: "Check-in\nSun, 26 Apr" or "Checkout\nSunday, 26 Apr" — no year, infer from email
-    // Support ASCII hyphen, en-dash, em-dash, or no separator between Check and in/out
-    m = body.match(/Check[-–—]?in\s+(?:\w{3,9},?\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
+    // Check-in date: multiple strategies for real Airbnb email formats
+    // Strategy 1: "ARRIVES SATURDAY, 11 APR." or "ARRIVES 26 APR." in body
+    m = body.match(/ARRIVES\s+(?:\w+,?\s+)?(\d{1,2}\s+\w{3,9})\b/i);
+    if (!m) {
+        // Strategy 2: subject "arrives 26 Apr" or "arrives Apr 26"
+        m = subject.match(/arrives?\s+(?:\w+,?\s+)?(\d{1,2}\s+\w{3,9})\b/i)
+         || subject.match(/arrives?\s+(?:\w+,?\s+)?(\w{3,9}\s+\d{1,2})\b/i);
+    }
+    if (!m) {
+        // Strategy 3: structured section — "Check-in ... Checkout" then "Day, DD Mon   Day, DD Mon"
+        // Match "Day, DD Mon" pattern after Check-in label
+        m = body.match(/Check[-–—]?in[\s\S]*?(?:\w{3},?\s+)(\d{1,2}\s+\w{3,9})(?:\s|$)/i);
+    }
     extracted.checkIn = m ? m[1].trim() : null;
 
-    m = body.match(/Check[-–—]?out\s+(?:\w{3,9},?\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
-    extracted.checkOut = m ? m[1].trim() : null;
+    // Check-out: "Sat, 11 Apr   Sun, 12 Apr" — two Day-DD-Mon dates on same line
+    const dateLine = body.match(/\w{3},\s+\d{1,2}\s+\w{3,9}\s+\w{3},\s+(\d{1,2}\s+\w{3,9})/i);
+    extracted.checkOut = dateLine ? dateLine[1].trim() : null;
 
     // Guests: "6 adults" or "2 guests"
     m = body.match(/(\d+)\s+(?:adults?|guests?)/i);
     extracted.guests = m ? m[1] : null;
 
-    // Nights: "₹14,400 x 1 night"
-    m = body.match(/x\s*(\d+)\s*nights?/i) || body.match(/(\d+)\s*nights?/i);
+    // Nights: "₹14,400 x 1 night" — handle both ₹ and â¹ (UTF-8 garbled rupee)
+    m = body.match(/(?:₹|â¹)\s*[0-9,.]+\s*x\s*(\d+)\s*nights?/i)
+     || body.match(/x\s*(\d+)\s*nights?/i)
+     || body.match(/(\d+)\s*nights?/i);
     extracted.nights = m ? m[1] : null;
 
-    // Total: "Total (INR)\n₹16,992" or "Total\n₹16,992"
-    m = body.match(/Total\s*(?:\(INR\))?\s*₹\s*([0-9,.]+)/i)
-     || body.match(/Total\s*(?:amount|price|cost)?[:\s]*[₹$€£]\s*([0-9,.]+)/i);
+    // Total: "TOTAL (INR)   â¹51,330" — handle both ₹ and â¹
+    m = body.match(/TOTAL\s*\(INR\)\s*(?:₹|â¹)\s*([0-9,.]+)/i)
+     || body.match(/Total\s*(?:\(INR\))?\s*(?:₹|â¹)\s*([0-9,.]+)/i);
     extracted.total = m ? m[1] : null;
 
-    // Host payout: "You earn\n₹14,760"
-    m = body.match(/You earn\s*₹\s*([0-9,.]+)/i);
+    // Host payout: "YOU EARN   â¹44,587.5"
+    m = body.match(/YOU EARN\s*(?:₹|â¹)\s*([0-9,.]+)/i)
+     || body.match(/You earn\s*(?:₹|â¹)\s*([0-9,.]+)/i);
     extracted.hostPayout = m ? m[1] : null;
 
-    // Guest phone/email
+    // Guest phone (Airbnb rarely includes this)
     m = body.match(/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i);
     extracted.guestPhone = m ? m[1] : null;
-    m = body.match(/([\w.+-]+@[\w-]+\.\w+)/);
-    extracted.guestEmail = m ? m[1] : null;
+    // Airbnb emails don't include guest email — skip bare email match to avoid matching automated@airbnb.com
+    extracted.guestEmail = null;
 
     if (!extracted.checkIn) return null;
     return { ...extracted, bookingSource: 'AIRBNB', emailYear };
@@ -1743,6 +1759,15 @@ function parseFlexibleDate(dateStr, emailYear) {
             if (mon !== undefined) {
                 const year = emailYear || new Date().getFullYear();
                 return `${year}-${pad(mon + 1)}-${pad(m[1])}`;
+            }
+        }
+
+        // "Apr 26" or "April 11" — month first, no year (Airbnb format variant)
+        if ((m = dateStr.match(/^(\w{3,9})\s+(\d{1,2})$/))) {
+            const mon = months[m[1].toLowerCase()];
+            if (mon !== undefined) {
+                const year = emailYear || new Date().getFullYear();
+                return `${year}-${pad(mon + 1)}-${pad(m[2])}`;
             }
         }
 
