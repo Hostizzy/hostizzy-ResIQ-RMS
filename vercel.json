@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/daily-summary",
+      "schedule": "30 1 * * *"
+    }
+  ],
   "buildCommand": null,
   "redirects": [],
   "rewrites": [
