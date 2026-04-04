@@ -1,18 +1,60 @@
 // ResIQ DB — Database service layer (Supabase via proxy)
 
         const db = {
+            // ─── Multi-Tenant Scoping ─────────────────────────────
+            _ownerId: null,
+            _ownerPropertyIds: null,
+
+            async initScope(user) {
+                if (user.userType === 'owner') {
+                    this._ownerId = user.id;
+                    const { data } = await supabase.from('properties').select('id').eq('owner_id', user.id);
+                    this._ownerPropertyIds = (data || []).map(p => p.id);
+                } else if (user.owner_id) {
+                    // Team member belonging to an owner
+                    this._ownerId = user.owner_id;
+                    const { data } = await supabase.from('properties').select('id').eq('owner_id', user.owner_id);
+                    this._ownerPropertyIds = (data || []).map(p => p.id);
+                } else {
+                    // Hostizzy staff — no scope, sees everything
+                    this._ownerId = null;
+                    this._ownerPropertyIds = null;
+                }
+            },
+
+            async refreshPropertyScope() {
+                if (this._ownerId) {
+                    const { data } = await supabase.from('properties').select('id').eq('owner_id', this._ownerId);
+                    this._ownerPropertyIds = (data || []).map(p => p.id);
+                }
+            },
+
+            clearScope() {
+                this._ownerId = null;
+                this._ownerPropertyIds = null;
+            },
+
+            // ─── Core Queries (auto-scoped) ──────────────────────
             async getTeamMembers() {
-                const { data, error } = await supabase.from('team_members').select('*');
+                let query = supabase.from('team_members').select('*');
+                if (this._ownerId) query = query.eq('owner_id', this._ownerId);
+                const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
             },
             async getProperties() {
-                const { data, error } = await supabase.from('properties').select('*').order('name');
+                let query = supabase.from('properties').select('*').order('name');
+                if (this._ownerId) query = query.eq('owner_id', this._ownerId);
+                const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
             },
             async getReservations() {
-                const { data, error } = await supabase.from('reservations').select('*').order('check_in', { ascending: false });
+                let query = supabase.from('reservations').select('*').order('check_in', { ascending: false });
+                if (this._ownerPropertyIds) {
+                    query = query.in('property_id', this._ownerPropertyIds.length > 0 ? this._ownerPropertyIds : [-1]);
+                }
+                const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
             },
@@ -78,10 +120,14 @@
                 return data || [];
             },
             async getAllPayments() {
-                const { data, error } = await supabase
+                let query = supabase
                     .from('payments')
                     .select('*')
                     .order('payment_date', { ascending: false });
+                if (this._ownerPropertyIds) {
+                    query = query.in('property_id', this._ownerPropertyIds.length > 0 ? this._ownerPropertyIds : [-1]);
+                }
+                const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
             },
@@ -154,7 +200,11 @@
             },
             async getAllExpenses(propertyIds = null) {
                 let query = supabase.from('property_expenses').select('*').order('expense_date', { ascending: false });
-                if (propertyIds && propertyIds.length > 0) query = query.in('property_id', propertyIds);
+                // Use explicit propertyIds if provided, otherwise use scoped IDs
+                const filterIds = (propertyIds && propertyIds.length > 0) ? propertyIds : this._ownerPropertyIds;
+                if (filterIds) {
+                    query = query.in('property_id', filterIds.length > 0 ? filterIds : [-1]);
+                }
                 const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
@@ -176,42 +226,7 @@
                 if (error) throw error;
             },
 
-            // Owner Portal Functions
-            async getOwners() {
-                const { data, error } = await supabase
-                    .from('property_owners')
-                    .select('*')
-                    .order('name');
-                if (error) throw error;
-                return data || [];
-            },
-            async getOwner(ownerId) {
-                const { data, error } = await supabase
-                    .from('property_owners')
-                    .select('*')
-                    .eq('id', ownerId)
-                    .single();
-                if (error) throw error;
-                return data;
-            },
-            async saveOwner(owner) {
-                if (owner.id) {
-                    const { data, error } = await supabase
-                        .from('property_owners')
-                        .update(owner)
-                        .eq('id', owner.id)
-                        .select();
-                    if (error) throw error;
-                    return data?.[0];
-                } else {
-                    const { data, error } = await supabase
-                        .from('property_owners')
-                        .insert([owner])
-                        .select();
-                    if (error) throw error;
-                    return data?.[0];
-                }
-            },
+            // Owner Portal Functions (first set removed — use getOwners/getOwner/createOwner/updateOwner below)
             async getPayoutRequests(ownerId = null) {
                 let query = supabase
                     .from('payout_requests')
@@ -412,5 +427,24 @@
                     .select();
                 if (error) throw error;
                 return data?.[0];
+            },
+
+            // ─── Multi-Tenant: Owner Approval ────────────────────
+            async getPendingOwners() {
+                return supabase.from('property_owners').select('*')
+                    .eq('is_external', true).eq('status', 'pending')
+                    .order('created_at', { ascending: false });
+            },
+            async approveOwner(ownerId) {
+                return supabase.from('property_owners')
+                    .update({ status: 'approved', is_active: true })
+                    .eq('id', ownerId)
+                    .select();
+            },
+            async rejectOwner(ownerId) {
+                return supabase.from('property_owners')
+                    .update({ status: 'rejected', is_active: false })
+                    .eq('id', ownerId)
+                    .select();
             }
         };

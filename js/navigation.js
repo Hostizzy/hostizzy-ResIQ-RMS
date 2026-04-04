@@ -877,7 +877,11 @@ function updateMobileViewTitle(viewName) {
         owners: 'Owners',
         availability: 'Availability',
         communication: 'Communication',
-        settings: 'Settings'
+        settings: 'Settings',
+        pendingSignups: 'Pending Signups',
+        pnl: 'Profit & Loss',
+        enquiries: 'Enquiries',
+        importReview: 'OTA Import'
     };
     titleEl.textContent = titles[viewName] || viewName.charAt(0).toUpperCase() + viewName.slice(1);
 }

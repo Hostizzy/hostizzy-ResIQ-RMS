@@ -693,6 +693,7 @@ async function showView(viewName) {
         else if (viewName === 'financials') await loadBusinessIntelligence();
         else if (viewName === 'team') await loadTeam();
         else if (viewName === 'owners') await loadOwners();
+        else if (viewName === 'pendingSignups') await loadPendingSignups();
         else if (viewName === 'expenses') await loadExpenses();
         else if (viewName === 'pnl') await loadPnL();
         else if (viewName === 'importReview') loadImportReview();

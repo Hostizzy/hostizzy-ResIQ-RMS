@@ -509,6 +509,12 @@
                     </span>
                 </button>
 
+                <!-- Sign Up Link -->
+                <div style="margin-top: 16px; text-align: center;">
+                    <span style="font-size: 14px; color: var(--text-secondary);">Property owner?</span>
+                    <a href="#" onclick="showSignupPanel(); return false;" style="font-size: 14px; color: var(--primary); font-weight: 600; margin-left: 4px; text-decoration: none;">Sign up here</a>
+                </div>
+
                 <!-- Portal Links (Desktop) -->
                 <div class="login-portal-links login-desktop-only">
                     <a href="/owner-portal" class="login-portal-link">
@@ -538,6 +544,76 @@
                     <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
                     Secure login powered by Firebase
                 </p>
+            </div>
+
+            <!-- Signup Panel (Owner Registration) -->
+            <div id="signupPanel" class="login-card hidden">
+                <div class="logo">
+                    <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 12px 0 4px;">Create Account</h2>
+                    <p>Register as a property owner</p>
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="signupName" placeholder="Your full name" autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="signupEmail" placeholder="Email address" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="signupPhone" placeholder="Phone number" autocomplete="tel">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="signupPassword" placeholder="Min 8 characters" autocomplete="new-password" style="padding-right: 48px;">
+                        <button type="button" onclick="this.previousElementSibling.type = this.previousElementSibling.type === 'password' ? 'text' : 'password';" class="login-password-toggle">
+                            <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="signupConfirmPassword" placeholder="Confirm password" autocomplete="new-password">
+                </div>
+                <div id="signupMessage" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
+                <button class="btn btn-primary login-btn" onclick="signup()" id="signupButton">Create Account</button>
+                <div style="margin-top: 16px; text-align: center;">
+                    <a href="#" onclick="showLoginPanel(); return false;" class="login-forgot">&larr; Back to Login</a>
+                </div>
+            </div>
+
+            <!-- Pending Approval Screen -->
+            <div id="pendingApprovalPanel" class="login-card hidden">
+                <div class="logo">
+                    <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 12px 0 4px;">Account Pending</h2>
+                </div>
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">
+                        <i data-lucide="clock" style="width: 48px; height: 48px; color: var(--warning, #f59e0b);"></i>
+                    </div>
+                    <p style="font-size: 16px; color: var(--text-primary); font-weight: 600; margin-bottom: 8px;">Your account is pending approval</p>
+                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">Our team will review your registration and activate your account shortly. You'll be able to log in once approved.</p>
+                </div>
+                <button class="btn btn-primary login-btn" onclick="showLoginPanel()" style="margin-top: 12px;">Back to Login</button>
+            </div>
+
+            <!-- Account Rejected Screen -->
+            <div id="rejectedPanel" class="login-card hidden">
+                <div class="logo">
+                    <img src="assets/logo-192.png" alt="ResIQ" class="logo-img">
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 12px 0 4px;">Account Not Approved</h2>
+                </div>
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">
+                        <i data-lucide="x-circle" style="width: 48px; height: 48px; color: var(--danger, #ef4444);"></i>
+                    </div>
+                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">Your registration was not approved. Please contact support at <a href="mailto:support@hostizzy.com" style="color: var(--primary);">support@hostizzy.com</a> for assistance.</p>
+                </div>
+                <button class="btn btn-primary login-btn" onclick="showLoginPanel()" style="margin-top: 12px;">Back to Login</button>
             </div>
 
             <!-- Forgot Password Panel -->
@@ -805,6 +881,11 @@
                         <a class="sidebar-item" onclick="showView('owners')">
                             <span class="sidebar-item-icon"><i data-lucide="shield" style="width: 20px; height: 20px;"></i></span>
                             <span class="sidebar-item-label">Owners</span>
+                        </a>
+                        <a class="sidebar-item" onclick="showView('pendingSignups')" id="sidebarPendingSignups" style="display: none;">
+                            <span class="sidebar-item-icon"><i data-lucide="user-plus" style="width: 20px; height: 20px;"></i></span>
+                            <span class="sidebar-item-label">Pending Signups</span>
+                            <span class="pending-signups-badge" id="pendingSignupsBadge" style="display: none; background: var(--danger, #ef4444); color: white; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 10px; margin-left: auto;"></span>
                         </a>
                         <a class="sidebar-item" onclick="showView('availability')">
                             <span class="sidebar-item-icon"><i data-lucide="calendar-days" style="width: 20px; height: 20px;"></i></span>
@@ -3640,6 +3721,40 @@
             </div>
         </div>
 
+        <!-- Pending Signups View (Admin) -->
+        <div id="pendingSignupsView" class="container hidden">
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="user-plus" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Pending Signups
+                    </h2>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review and approve new property owner registrations</p>
+                </div>
+                <button class="btn btn-secondary" onclick="loadPendingSignups()" style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Refresh
+                </button>
+            </div>
+            <div class="card">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Signed Up</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingSignupsTableBody">
+                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Property Expenses View -->
         <div id="expensesView" class="container hidden">
             <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
@@ -3736,6 +3851,12 @@
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review OTA booking emails before importing as reservations</p>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="importScanPeriod" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary); min-width: 120px;">
+                        <option value="3">Last 3 months</option>
+                        <option value="6" selected>Last 6 months</option>
+                        <option value="12">Last 12 months</option>
+                        <option value="">All time</option>
+                    </select>
                     <select id="importPropertyFilter" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary); min-width: 160px;">
                         <option value="">All Properties</option>
                     </select>
