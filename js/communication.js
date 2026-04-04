@@ -1251,7 +1251,6 @@ function parseAirbnbEmail(body, subject, emailYear) {
     // Guest name: from subject "confirmed - Yash Jain arrives" or "reminder: Hitesh is coming"
     // or body "Hitesh Sharma\nIdentity verified"
     m = subject.match(/confirmed\s*[-–—]\s*(.+?)\s+arrives?/i)
-     || subject.match(/reminder:\s*(.+?)\s+is coming/i)
      || body.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s*\n\s*Identity/m);
     extracted.guestName = m ? m[1].trim() : null;
 
@@ -1560,7 +1559,7 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
     // Detect OTA source and call specific parser
     let extracted = null;
 
-    if (senderLower.includes('airbnb')) {
+    if (senderLower.includes('airbnb') && /reservation confirmed/i.test(subject)) {
         extracted = parseAirbnbEmail(emailBody, subject, emailYear);
     } else if (senderLower.includes('go-mmt') || senderLower.includes('makemytrip') || senderLower.includes('goibibo')) {
         extracted = parseGoibiboMmtEmail(emailBody, subject, sender);
