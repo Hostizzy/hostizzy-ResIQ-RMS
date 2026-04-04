@@ -2055,21 +2055,19 @@ function renderImportReview() {
         html += `<tr style="${rowBg}">`;
         html += `<td><input type="checkbox" ${item.selected ? 'checked' : ''} onchange="toggleImportItem(${idx}, this.checked)"></td>`;
         html += `<td><span style="display:inline-block;padding:2px 8px;background:${sourceColor}15;color:${sourceColor};border-radius:4px;font-size:11px;font-weight:600;">${d.booking_source}</span></td>`;
-        html += `<td><strong>${d.guest_name}</strong><div style="font-size:11px;color:var(--text-secondary);">${item.emailSubject.substring(0, 40)}${item.emailSubject.length > 40 ? '...' : ''}</div></td>`;
-        if (d.property_id) {
-            html += `<td>${d.property_name}</td>`;
-        } else {
-            html += `<td><select onchange="assignImportProperty(${idx}, this.value)" style="font-size:12px; padding:3px 6px; border:1px solid var(--border); border-radius:4px; background:var(--background); color:var(--text-primary);">`;
-            html += `<option value="">-- Assign --</option>`;
-            for (const p of importProperties) {
-                html += `<option value="${p.id}">${p.name}</option>`;
-            }
-            html += `</select></td>`;
+        const inputStyle = 'font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--background);color:var(--text-primary);width:100%;';
+        html += `<td><input type="text" value="${(d.guest_name || '').replace(/"/g, '&quot;')}" onchange="updateImportField(${idx},'guest_name',this.value)" style="${inputStyle}font-weight:600;"/><div style="font-size:11px;color:var(--text-secondary);">${item.emailSubject.substring(0, 40)}${item.emailSubject.length > 40 ? '...' : ''}</div></td>`;
+        html += `<td><select onchange="assignImportProperty(${idx}, this.value)" style="${inputStyle}">`;
+        html += `<option value="">-- Select --</option>`;
+        for (const p of importProperties) {
+            const sel = (String(d.property_id) === String(p.id)) ? 'selected' : '';
+            html += `<option value="${p.id}" ${sel}>${p.name}</option>`;
         }
-        html += `<td>${d.check_in || '-'}</td>`;
-        html += `<td>${d.check_out || '-'}</td>`;
-        html += `<td>${d.nights || '-'}</td>`;
-        html += `<td>${d.total_amount ? '₹' + Math.round(d.total_amount).toLocaleString('en-IN') : '-'}</td>`;
+        html += `</select></td>`;
+        html += `<td><input type="date" value="${d.check_in || ''}" onchange="updateImportField(${idx},'check_in',this.value)" style="${inputStyle}min-width:120px;"/></td>`;
+        html += `<td><input type="date" value="${d.check_out || ''}" onchange="updateImportField(${idx},'check_out',this.value)" style="${inputStyle}min-width:120px;"/></td>`;
+        html += `<td><input type="number" value="${d.nights || ''}" onchange="updateImportField(${idx},'nights',parseInt(this.value))" style="${inputStyle}width:60px;" min="1"/></td>`;
+        html += `<td><input type="number" value="${d.total_amount || ''}" onchange="updateImportField(${idx},'total_amount',parseFloat(this.value))" style="${inputStyle}width:90px;" step="0.01"/></td>`;
         html += `<td>`;
         if (item.isDuplicate) {
             html += `<span style="color:var(--text-secondary);font-size:12px;">${item.duplicateReason}</span>`;
@@ -2128,6 +2126,23 @@ window.assignImportProperty = function(idx, propertyId) {
     } else {
         pendingImportItems[idx].bookingData.property_id = null;
         pendingImportItems[idx].bookingData.property_name = null;
+    }
+};
+
+window.updateImportField = function(idx, field, value) {
+    if (!pendingImportItems[idx]) return;
+    pendingImportItems[idx].bookingData[field] = value;
+    // Auto-recalculate nights when dates change
+    if (field === 'check_in' || field === 'check_out') {
+        const d = pendingImportItems[idx].bookingData;
+        if (d.check_in && d.check_out) {
+            const diff = (new Date(d.check_out) - new Date(d.check_in)) / 86400000;
+            if (diff > 0) {
+                d.nights = diff;
+                const nightsInput = document.querySelector(`input[onchange*="updateImportField(${idx},'nights'"]`);
+                if (nightsInput) nightsInput.value = diff;
+            }
+        }
     }
 };
 
