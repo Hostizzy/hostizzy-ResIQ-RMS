@@ -3851,6 +3851,12 @@
                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review OTA booking emails before importing as reservations</p>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="importScanPeriod" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary); min-width: 120px;">
+                        <option value="3">Last 3 months</option>
+                        <option value="6" selected>Last 6 months</option>
+                        <option value="12">Last 12 months</option>
+                        <option value="">All time</option>
+                    </select>
                     <select id="importPropertyFilter" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary); min-width: 160px;">
                         <option value="">All Properties</option>
                     </select>

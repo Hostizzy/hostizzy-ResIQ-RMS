@@ -791,6 +791,35 @@ async function disconnectGmail() {
 }
 
 /**
+ * Build OTA search queries with date filtering
+ */
+function buildOtaSearchQueries(monthsBack = 6) {
+    let after = '';
+    if (monthsBack) {
+        const afterDate = new Date();
+        afterDate.setMonth(afterDate.getMonth() - monthsBack);
+        after = ` after:${afterDate.getFullYear()}/${afterDate.getMonth() + 1}/${afterDate.getDate()}`;
+    }
+    return [
+        `in:anywhere${after} from:airbnb.com subject:(reservation OR booking OR confirmed)`,
+        `in:anywhere${after} from:booking.com subject:(confirmed OR reservation OR booking)`,
+        `in:anywhere${after} from:agoda.com subject:(booking OR confirmed OR confirmation)`,
+        `in:anywhere${after} from:go-mmt.com subject:(booking OR confirmed)`,
+        `in:anywhere${after} from:makemytrip.com subject:(booking OR confirmed)`,
+        `in:anywhere${after} from:goibibo.com subject:(booking OR confirmed)`,
+        `in:anywhere${after} from:vrbo.com subject:(reservation OR confirmed)`,
+        `in:anywhere${after} from:expedia.com subject:(confirmed OR itinerary)`,
+        `in:anywhere${after} from:hotels.com subject:(confirmed OR reservation)`,
+        `in:anywhere${after} from:cleartrip.com subject:(booking OR confirmed)`,
+        `in:anywhere${after} from:oyorooms.com subject:(booking OR confirmed)`,
+        `in:anywhere${after} subject:"booking confirmed" OR subject:"reservation confirmed"`,
+    ];
+}
+
+// Module-level variable for property list used in import review
+let importProperties = [];
+
+/**
  * Scan Gmail for booking confirmation emails
  */
 async function scanGmailNow() {
@@ -809,17 +838,7 @@ async function scanGmailNow() {
     try {
         showToast('🔍 Scanning Gmail for booking confirmations...', 'info');
 
-        // Search queries for different OTA confirmation emails
-        // "in:anywhere" ensures emails in filtered labels (not just inbox) are found
-        const searchQueries = [
-            'in:anywhere from:airbnb.com subject:(reservation OR booking OR confirmed)',
-            'in:anywhere from:booking.com subject:(confirmed OR reservation OR booking)',
-            'in:anywhere from:agoda.com subject:(booking OR confirmed OR confirmation)',
-            'in:anywhere from:makemytrip.com subject:(booking OR confirmed)',
-            'in:anywhere from:goibibo.com subject:(booking OR confirmed)',
-            'in:anywhere from:vrbo.com subject:(reservation OR confirmed)',
-            'in:anywhere subject:"booking confirmed" OR subject:"reservation confirmed" OR subject:"booking confirmation"'
-        ];
+        const searchQueries = buildOtaSearchQueries(6);
 
         let totalFound = 0;
         let totalCreated = 0;
@@ -835,7 +854,7 @@ async function scanGmailNow() {
                 console.log(`Found ${messages.length} messages for query: ${query}`);
 
                 // Process each message (skip already-processed from earlier queries)
-                for (const message of messages.slice(0, 20)) {
+                for (const message of messages.slice(0, 100)) {
                     if (processedMessageIds.has(message.id)) continue;
                     processedMessageIds.add(message.id);
                     totalFound++;
@@ -887,7 +906,7 @@ async function scanGmailNow() {
  */
 async function searchGmailMessages(query) {
     try {
-        const result = await callGmailProxy('search', { query, maxResults: 20 });
+        const result = await callGmailProxy('search', { query, maxResults: 100 });
         console.log(`[Gmail Search] query="${query}" → ${result ? result.length : 0} results`);
         return result;
     } catch (error) {
@@ -924,11 +943,14 @@ window.diagnoseGmailScan = async function() {
             'in:anywhere from:airbnb.com subject:(reservation OR booking OR confirmed)',
             'in:anywhere from:booking.com subject:(confirmed OR reservation OR booking)',
             'in:anywhere from:agoda.com subject:(booking OR confirmed OR confirmation)',
+            'in:anywhere from:go-mmt.com subject:(booking OR confirmed)',
             'in:anywhere from:makemytrip.com subject:(booking OR confirmed)',
+            'in:anywhere from:goibibo.com subject:(booking OR confirmed)',
             // Broader fallback queries for diagnosis (any email from OTA)
             'in:anywhere from:airbnb.com',
             'in:anywhere from:booking.com',
             'in:anywhere from:agoda.com',
+            'in:anywhere from:go-mmt.com',
             // Without in:anywhere to compare (inbox only)
             'from:airbnb.com',
             'from:booking.com',
@@ -1036,6 +1058,10 @@ async function processGmailBookingEmail(messageId) {
         const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject');
         const subject = subjectHeader ? subjectHeader.value : '';
 
+        // Get date header for year inference
+        const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
+        const emailDate = dateHeader ? dateHeader.value : '';
+
         // Fetch all properties for auto-detection
         const { data: properties } = await supabase
             .from('properties')
@@ -1043,7 +1069,7 @@ async function processGmailBookingEmail(messageId) {
             .eq('is_active', true);
 
         // Parse booking data from email (with property auto-detection)
-        const bookingData = parseBookingEmail(emailBody, sender, subject, properties || []);
+        const bookingData = parseBookingEmail(emailBody, sender, subject, properties || [], emailDate);
 
         if (!bookingData) {
             console.log('[Gmail] Could not parse booking data from email');
@@ -1173,12 +1199,24 @@ function extractEmailBody(message) {
             .replace(/<br\s*\/?>/gi, '\n')
             .replace(/<\/p>/gi, '\n')
             .replace(/<\/div>/gi, '\n')
+            .replace(/<\/tr>/gi, '\n')
+            .replace(/<\/td>/gi, ' ')
+            .replace(/<\/th>/gi, ' ')
             .replace(/<[^>]+>/g, ' ')
             .replace(/&nbsp;/g, ' ')
             .replace(/&amp;/g, '&')
             .replace(/&lt;/g, '<')
             .replace(/&gt;/g, '>')
+            .replace(/&#8377;|&#x20B9;/g, '₹')
+            .replace(/&rsquo;|&#8217;/g, "'")
+            .replace(/&lsquo;|&#8216;/g, "'")
+            .replace(/&rdquo;|&#8221;|&ldquo;|&#8220;/g, '"')
+            .replace(/&mdash;|&#8212;/g, '—')
+            .replace(/&ndash;|&#8211;/g, '–')
+            .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n)))
+            .replace(/&#x([0-9a-fA-F]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
             .replace(/\s{2,}/g, ' ')
+            .replace(/ *\n */g, '\n')
             .trim();
     }
 
@@ -1186,34 +1224,254 @@ function extractEmailBody(message) {
 }
 
 /**
- * Parse booking details from email body
+ * Extract year from email Date header
  */
-function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
-    let bookingSource = 'OTHER';
+function getEmailYear(dateHeader) {
+    if (!dateHeader) return new Date().getFullYear();
+    try {
+        const d = new Date(dateHeader);
+        return !isNaN(d.getTime()) ? d.getFullYear() : new Date().getFullYear();
+    } catch { return new Date().getFullYear(); }
+}
+
+/**
+ * Parse Airbnb confirmation email
+ */
+function parseAirbnbEmail(body, subject, emailYear) {
+    const extracted = {};
+
+    // Booking ID: "Confirmation code\nHMKSK453Q8" or inline
+    let m = body.match(/Confirmation code\s+([A-Z0-9]{6,12})/i)
+         || body.match(/confirmation code[:\s]+([A-Z0-9]{6,12})/i)
+         || body.match(/(HM[A-Z0-9]{6,})/);
+    extracted.bookingId = m ? m[1] : null;
+
+    // Guest name: from subject "confirmed - Yash Jain arrives" or body "Yash Jain\nIdentity verified"
+    m = subject.match(/confirmed\s*[-–—]\s*(.+?)\s+arrives?/i)
+     || body.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\s*\n\s*Identity/m)
+     || body.match(/(?:guest|booked by)[:\s]+([A-Za-z][\w\s]{2,40}?)(?:\n|,|$)/i);
+    extracted.guestName = m ? m[1].trim() : null;
+
+    // Dates: "Check-in\nSun, 26 Apr" — no year, infer from email
+    m = body.match(/Check-?in\s+(?:\w{3},\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
+    extracted.checkIn = m ? m[1].trim() : null;
+
+    m = body.match(/Check-?out\s+(?:\w{3},\s*)?(\d{1,2}\s+\w{3,9}(?:\s+'?\d{2,4})?)/i);
+    extracted.checkOut = m ? m[1].trim() : null;
+
+    // Guests: "6 adults" or "2 guests"
+    m = body.match(/(\d+)\s+(?:adults?|guests?)/i);
+    extracted.guests = m ? m[1] : null;
+
+    // Nights: "₹14,400 x 1 night"
+    m = body.match(/x\s*(\d+)\s*nights?/i) || body.match(/(\d+)\s*nights?/i);
+    extracted.nights = m ? m[1] : null;
+
+    // Total: "Total (INR)\n₹16,992" or "Total\n₹16,992"
+    m = body.match(/Total\s*(?:\(INR\))?\s*₹\s*([0-9,.]+)/i)
+     || body.match(/Total\s*(?:amount|price|cost)?[:\s]*[₹$€£]\s*([0-9,.]+)/i);
+    extracted.total = m ? m[1] : null;
+
+    // Host payout: "You earn\n₹14,760"
+    m = body.match(/You earn\s*₹\s*([0-9,.]+)/i);
+    extracted.hostPayout = m ? m[1] : null;
+
+    // Guest phone/email
+    m = body.match(/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i);
+    extracted.guestPhone = m ? m[1] : null;
+    m = body.match(/([\w.+-]+@[\w-]+\.\w+)/);
+    extracted.guestEmail = m ? m[1] : null;
+
+    if (!extracted.checkIn) return null;
+    return { ...extracted, bookingSource: 'AIRBNB', emailYear };
+}
+
+/**
+ * Parse Goibibo / MakeMyTrip confirmation email (shared format)
+ */
+function parseGoibiboMmtEmail(body, subject, sender) {
+    const extracted = {};
     const senderLower = sender.toLowerCase();
 
-    // Detect source from sender email address
-    if (senderLower.includes('airbnb')) bookingSource = 'AIRBNB';
-    else if (senderLower.includes('booking.com') || senderLower.includes('agoda')) bookingSource = 'AGODA/BOOKING.COM';
-    else if (senderLower.includes('makemytrip') || senderLower.includes('goibibo')) bookingSource = 'MMT/GOIBIBO';
-    else if (senderLower.includes('vrbo') || senderLower.includes('homeaway')) bookingSource = 'VRBO';
+    // Determine specific source
+    const isGoibibo = senderLower.includes('goibibo') || subject.toLowerCase().includes('goibibo');
+    extracted.bookingSource = isGoibibo ? 'GOIBIBO' : 'MAKEMYTRIP';
 
-    // Multiple pattern variants per field for better OTA coverage
+    // Booking ID: from subject "- GH74052265691640" or body "BOOKING ID\nGH740..."
+    let m = subject.match(/[-–]\s*([A-Z]{2}\d{10,16})/)
+         || body.match(/BOOKING ID\s+([A-Z]{2}\d{10,16})/i)
+         || body.match(/Booking ID[:\s]+([A-Z0-9]{8,20})/i);
+    extracted.bookingId = m ? m[1] : null;
+
+    // Guest name: "PRIMARY GUEST DETAILS\nManoj Mishra"
+    m = body.match(/PRIMARY GUEST DETAILS\s+([A-Za-z][\w\s]+?)(?:\n|CHECK|BOOKING)/i)
+     || body.match(/Guest Name[:\s]+([A-Za-z][\w\s]{2,40}?)(?:\n|,|$)/i);
+    extracted.guestName = m ? m[1].trim() : null;
+
+    // Dates: "CHECK-IN\nCHECK-OUT\n29 Mar '26\n2:00 PM\n30 Mar '26"
+    // or "CHECK-IN\n29 Mar '26" ... "CHECK-OUT\n30 Mar '26"
+    const datePattern = /(\d{1,2}\s+\w{3,9}\s+'?\d{2,4})/g;
+    const allDates = [];
+    let dm;
+    while ((dm = datePattern.exec(body)) !== null) {
+        allDates.push(dm[1]);
+    }
+
+    // Try structured extraction first
+    m = body.match(/CHECK-?IN[\s\S]*?(\d{1,2}\s+\w{3,9}\s+'?\d{2,4})/i);
+    extracted.checkIn = m ? m[1].trim() : (allDates[0] || null);
+
+    // Check-out: second date, or date before "(X Night)"
+    m = body.match(/(\d{1,2}\s+\w{3,9}\s+'?\d{2,4})\s*\(?(\d+)\s*Night/i);
+    if (m) {
+        extracted.checkOut = m[1].trim();
+        extracted.nights = m[2];
+    } else {
+        extracted.checkOut = allDates.length >= 2 ? allDates[1] : null;
+    }
+
+    // Nights: "(1 Night)" or "1 Night(s)"
+    if (!extracted.nights) {
+        m = body.match(/\((\d+)\s*Night/i) || body.match(/(\d+)\s*Night\(s\)/i);
+        extracted.nights = m ? m[1] : null;
+    }
+
+    // Guests: "TOTAL NO. OF GUEST(S)\n8 Adults"
+    m = body.match(/TOTAL NO\.\s*OF GUEST\(?S?\)?\s+(\d+)\s*Adults?/i)
+     || body.match(/(\d+)\s+(?:adults?|guests?)/i);
+    extracted.guests = m ? m[1] : null;
+
+    // Rooms: "3 Room(s)"
+    m = body.match(/(\d+)\s*Room\(?s?\)?/i);
+    extracted.rooms = m ? m[1] : null;
+
+    // Financial: "Property Gross Charges\n₹ 11,025.0"
+    m = body.match(/Property Gross Charges[^₹]*₹\s*([0-9,.]+)/i)
+     || body.match(/Total (?:Amount|Charges?)[^₹]*₹\s*([0-9,.]+)/i);
+    extracted.total = m ? m[1] : null;
+
+    // Host payout: "Payable to Property\n₹ 9,475.2"
+    m = body.match(/Payable to Property[^₹]*₹\s*([0-9,.]+)/i);
+    extracted.hostPayout = m ? m[1] : null;
+
+    // Commission: "Go-MMT Commission (including GST)\n(5+6)\n₹ 1,486.8"
+    m = body.match(/Go-?MMT Commission[^₹]*₹\s*([0-9,.]+)/i)
+     || body.match(/Commission[^₹]*₹\s*([0-9,.]+)/i);
+    extracted.commission = m ? m[1] : null;
+
+    // Property name hint from subject: "Received for The Bageecha on GoIbibo"
+    m = subject.match(/Received for\s+(.+?)\s+on\s+(?:GoIbibo|MakeMyTrip)/i);
+    extracted.propertyNameHint = m ? m[1].trim() : null;
+
+    // Guest phone/email
+    m = body.match(/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i);
+    extracted.guestPhone = m ? m[1] : null;
+    m = body.match(/Guest Email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i) || body.match(/([\w.+-]+@[\w-]+\.\w+)/);
+    extracted.guestEmail = m ? m[1] : null;
+
+    if (!extracted.checkIn) return null;
+    return extracted;
+}
+
+/**
+ * Parse Agoda confirmation email
+ */
+function parseAgodaEmail(body, subject) {
+    const extracted = { bookingSource: 'AGODA' };
+
+    // Booking ID: from subject "Agoda Booking ID 1986184436" or body "Booking ID\n1986184436"
+    let m = subject.match(/Agoda Booking ID\s+(\d{8,15})/i)
+         || body.match(/Booking ID\s+(\d{8,15})/i)
+         || body.match(/Booking ID[:\s]+(\d{6,15})/i);
+    extracted.bookingId = m ? m[1] : null;
+
+    // Guest name: combine "Customer First Name\nGAURAV" + "Customer Last Name\nMISHRA"
+    const firstName = body.match(/Customer First Name\s+([A-Z]+)/i);
+    const lastName = body.match(/Customer Last Name\s+([A-Z]+)/i);
+    if (firstName && lastName) {
+        const fn = firstName[1].charAt(0) + firstName[1].slice(1).toLowerCase();
+        const ln = lastName[1].charAt(0) + lastName[1].slice(1).toLowerCase();
+        extracted.guestName = `${fn} ${ln}`;
+    } else {
+        m = body.match(/Guest Name[:\s]+([A-Za-z][\w\s]{2,40}?)(?:\n|,|$)/i)
+         || body.match(/Name:\s*([A-Za-z][\w\s]{2,40}?)(?:,|\n|$)/i);
+        extracted.guestName = m ? m[1].trim() : null;
+    }
+
+    // Dates: "Check-in\nFebruary 28, 2026" or from subject "Check-in February 28, 2026"
+    m = body.match(/Check-?in\s+(\w+\s+\d{1,2},?\s+\d{4})/i)
+     || subject.match(/Check-?in\s+(\w+\s+\d{1,2},?\s+\d{4})/i);
+    extracted.checkIn = m ? m[1].trim() : null;
+
+    m = body.match(/Check-?out\s+(\w+\s+\d{1,2},?\s+\d{4})/i);
+    extracted.checkOut = m ? m[1].trim() : null;
+
+    // Guests: "12 Adults"
+    m = body.match(/(\d+)\s+Adults?/i);
+    extracted.guests = m ? m[1] : null;
+
+    // Rooms: "No. of Rooms\n1" or just a number after rooms label
+    m = body.match(/No\.\s*of Rooms?\s+(\d+)/i) || body.match(/(\d+)\s*Room\(?s?\)?/i);
+    extracted.rooms = m ? m[1] : null;
+
+    // Financial: "INR\n31,468.50" or "INR 32,642.50"
+    // First INR amount is usually room rate, second is net rate
+    const inrAmounts = [];
+    const inrPattern = /INR\s*([0-9,.]+)/gi;
+    let im;
+    while ((im = inrPattern.exec(body)) !== null) {
+        inrAmounts.push(im[1]);
+    }
+
+    // Look for specific labeled amounts
+    m = body.match(/Reference sell rate[^I]*INR\s*([0-9,.]+)/i)
+     || body.match(/Total (?:Amount|Rate|Price)[^I]*INR\s*([0-9,.]+)/i);
+    extracted.total = m ? m[1] : (inrAmounts[0] || null);
+
+    m = body.match(/Net rate[^I]*INR\s*([0-9,.]+)/i);
+    extracted.hostPayout = m ? m[1] : (inrAmounts.length >= 2 ? inrAmounts[inrAmounts.length - 1] : null);
+
+    // Guest phone: "Phone: 91 9871403362" in Customer Info
+    m = body.match(/Phone:\s*(\+?[\d\s]{8,15})/i)
+     || body.match(/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i);
+    extracted.guestPhone = m ? m[1] : null;
+
+    // Guest email
+    m = body.match(/(?:guest\s*)?email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i);
+    extracted.guestEmail = m ? m[1] : null;
+
+    // Nights
+    m = body.match(/(\d+)\s*nights?/i);
+    extracted.nights = m ? m[1] : null;
+
+    if (!extracted.checkIn) return null;
+    return extracted;
+}
+
+/**
+ * Parse generic booking email (improved fallback for unknown OTAs)
+ */
+function parseGenericBookingEmail(body, subject) {
+    // Preprocess: collapse common multi-line "Label\nValue" patterns into "Label: Value"
+    const preprocessed = body
+        .replace(/(Check-?in|Check-?out|Confirmation code|Booking ID|Guest name|Booking Reference)\s*\n\s*/gi, '$1: ')
+        .replace(/(Total|Amount|Price)\s*\n\s*([₹$€£INR])/gi, '$1: $2');
+
     const patternGroups = {
         bookingId: [
-            /(?:confirmation|booking|reservation)\s*(?:code|number|id|#)[:\s#]+([A-Z0-9]{4,20})/i,
+            /(?:confirmation|booking|reservation)\s*(?:code|number|id|#|ref)[:\s#]+([A-Z0-9]{4,20})/i,
             /(?:conf\.?\s*(?:code|no|#)|booking\s*ref)[:\s]+([A-Z0-9]{4,20})/i,
-            /HM[A-Z0-9]{6,}/i, // Airbnb HMXXXXXX format
-            /\b([A-Z0-9]{10,20})\b/ // Generic long alphanumeric code
+            /HM[A-Z0-9]{6,}/i,
+            /\b([A-Z]{2}\d{10,16})\b/,
         ],
         guestName: [
             /(?:guest(?:'s)?\s+name|booked by|name)[:\s]+([A-Za-z][\w\s]{2,40}?)(?:\n|,|$)/i,
             /(?:hi|hello|dear)\s+([A-Za-z][\w\s]{2,30}?)(?:,|!|\n)/i,
-            /^([A-Za-z][\w\s]{2,30}?) has reserved/im
+            /^([A-Za-z][\w\s]{2,30}?) has reserved/im,
         ],
         checkIn: [
             /check[- ]?in[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-            /check[- ]?in[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
+            /check[- ]?in[:\s]+(\d{1,2}\s+\w+\s+'?\d{2,4})/i,
             /check[- ]?in[:\s]+(\w+\s+\d{1,2},?\s+\d{4})/i,
             /check[- ]?in[:\s]+(\d{4}-\d{2}-\d{2})/i,
             /arrives?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
@@ -1223,27 +1481,28 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
         ],
         checkOut: [
             /check[- ]?out[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
-            /check[- ]?out[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
+            /check[- ]?out[:\s]+(\d{1,2}\s+\w+\s+'?\d{2,4})/i,
             /check[- ]?out[:\s]+(\w+\s+\d{1,2},?\s+\d{4})/i,
             /check[- ]?out[:\s]+(\d{4}-\d{2}-\d{2})/i,
             /departs?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
             /departs?[:\s]+(\d{1,2}\s+\w+\s+\d{4})/i,
             /(?:end|until)\s*(?:date)?[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
         ],
-        guests: [/(\d+)\s+(?:guests?|people|persons?)/i],
+        guests: [/(\d+)\s+(?:guests?|adults?|people|persons?)/i],
         nights: [/(\d+)\s+nights?/i],
         total: [
-            /total\s*(?:amount|price|cost)?[:\s]+[₹$€£]?\s*([0-9,]+(?:\.\d{1,2})?)/i,
-            /[₹$€£]\s*([0-9,]+(?:\.\d{1,2})?)\s*(?:total|charge)/i
+            /total\s*(?:amount|price|cost|payable)?[:\s]+(?:INR|Rs\.?|₹|\$|€|£)?\s*([0-9,]+(?:\.\d{1,2})?)/i,
+            /(?:INR|Rs\.?|₹|\$|€|£)\s*([0-9,]+(?:\.\d{1,2})?)\s*(?:total|charge|payable)/i,
+            /(?:INR|Rs\.?)\s+([0-9,]+(?:\.\d{1,2})?)/i,
         ],
         guestPhone: [/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i],
-        guestEmail: [/(?:guest\s*)?email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i]
+        guestEmail: [/(?:guest\s*)?email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i],
     };
 
-    const extracted = {};
+    const extracted = { bookingSource: 'OTHER' };
     for (const [key, patterns] of Object.entries(patternGroups)) {
         for (const pattern of patterns) {
-            const match = emailBody.match(pattern);
+            const match = preprocessed.match(pattern);
             if (match) {
                 extracted[key] = (match[1] || match[0]).trim();
                 break;
@@ -1251,25 +1510,67 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
         }
     }
 
-    // Must have at least a check-in date
-    if (!extracted.checkIn) {
+    // Try date range: "15 Apr - 18 Apr 2026"
+    if (!extracted.checkIn || !extracted.checkOut) {
+        const rangeMatch = preprocessed.match(/(\d{1,2}\s+\w{3,9})\s*[-–—to]+\s*(\d{1,2}\s+\w{3,9}),?\s+(\d{4})/i);
+        if (rangeMatch) {
+            if (!extracted.checkIn) extracted.checkIn = rangeMatch[1] + ' ' + rangeMatch[3];
+            if (!extracted.checkOut) extracted.checkOut = rangeMatch[2] + ' ' + rangeMatch[3];
+        }
+    }
+
+    if (!extracted.checkIn) return null;
+    return extracted;
+}
+
+/**
+ * Parse booking details from email body — OTA dispatcher
+ */
+function parseBookingEmail(emailBody, sender, subject = '', properties = [], dateHeader = '') {
+    const senderLower = sender.toLowerCase();
+    const emailYear = getEmailYear(dateHeader);
+
+    // Detect OTA source and call specific parser
+    let extracted = null;
+
+    if (senderLower.includes('airbnb')) {
+        extracted = parseAirbnbEmail(emailBody, subject, emailYear);
+    } else if (senderLower.includes('go-mmt') || senderLower.includes('makemytrip') || senderLower.includes('goibibo')) {
+        extracted = parseGoibiboMmtEmail(emailBody, subject, sender);
+    } else if (senderLower.includes('agoda')) {
+        extracted = parseAgodaEmail(emailBody, subject);
+    } else if (senderLower.includes('booking.com')) {
+        extracted = parseGenericBookingEmail(emailBody, subject);
+        if (extracted) extracted.bookingSource = 'BOOKING.COM';
+    } else if (senderLower.includes('vrbo') || senderLower.includes('homeaway')) {
+        extracted = parseGenericBookingEmail(emailBody, subject);
+        if (extracted) extracted.bookingSource = 'VRBO';
+    } else if (senderLower.includes('expedia')) {
+        extracted = parseGenericBookingEmail(emailBody, subject);
+        if (extracted) extracted.bookingSource = 'EXPEDIA';
+    } else {
+        extracted = parseGenericBookingEmail(emailBody, subject);
+    }
+
+    if (!extracted || !extracted.checkIn) {
         console.log('[Gmail] Could not extract check-in date from email.');
         console.log('[Gmail] Subject:', subject);
         console.log('[Gmail] Sender:', sender);
-        console.log('[Gmail] Extracted fields:', JSON.stringify(extracted));
         console.log('[Gmail] Body preview (first 500 chars):', emailBody.substring(0, 500));
         return null;
     }
 
-    // Auto-generate booking_id if not extracted (use source + date combo)
+    const bookingSource = extracted.bookingSource || 'OTHER';
+
+    // Auto-generate booking_id if not extracted
     const bookingId = extracted.bookingId
         ? extracted.bookingId.substring(0, 50)
         : `GMAIL-${bookingSource}-${extracted.checkIn.replace(/\D/g, '')}`.substring(0, 50);
     const guestName = (extracted.guestName || 'Guest').substring(0, 50);
 
     // Parse dates
-    const checkIn = parseFlexibleDate(extracted.checkIn);
-    const checkOut = extracted.checkOut ? parseFlexibleDate(extracted.checkOut) : null;
+    const checkIn = parseFlexibleDate(extracted.checkIn, emailYear);
+    const checkOut = extracted.checkOut ? parseFlexibleDate(extracted.checkOut, emailYear) : null;
 
     if (!checkIn) return null;
 
@@ -1287,30 +1588,28 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
     const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 
     // Property Auto-Detection: partial/fuzzy match property name from email content
-    let matchedProperty = null;
-    const searchText = (subject + ' ' + emailBody).toLowerCase();
+    // Use property hint from subject (Goibibo/MMT) if available
+    const hintText = extracted.propertyNameHint ? extracted.propertyNameHint + ' ' : '';
+    const searchText = (hintText + subject + ' ' + emailBody).toLowerCase();
 
-    // Score each property by match quality
+    let matchedProperty = null;
     let bestScore = 0;
     for (const property of properties) {
         const propNameLower = property.name.toLowerCase();
         const locationLower = (property.location || '').toLowerCase();
         let score = 0;
 
-        // Exact full name match (best)
         if (searchText.includes(propNameLower)) {
             score = 100;
         } else {
-            // Partial word match: split property name into words, check each
-            const words = propNameLower.split(/[\s\-_,]+/).filter(w => w.length >= 3);
+            const words = propNameLower.split(/[\s\-_,|]+/).filter(w => w.length >= 3);
             for (const word of words) {
                 if (searchText.includes(word)) {
-                    score += word.length; // Longer word matches score higher
+                    score += word.length;
                 }
             }
         }
 
-        // Location match (secondary)
         if (locationLower && locationLower.length >= 3 && searchText.includes(locationLower)) {
             score += 20;
         } else if (locationLower) {
@@ -1328,7 +1627,6 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
         }
     }
 
-    // Only accept match if score is meaningful (at least one 3+ char word matched)
     if (bestScore < 3) {
         matchedProperty = null;
         console.log('[Gmail] No property match found in email content.');
@@ -1336,6 +1634,9 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
 
     const propertyId = matchedProperty ? matchedProperty.id : null;
     const propertyName = matchedProperty ? matchedProperty.name.substring(0, 50) : null;
+
+    // Parse financial amounts
+    const parseAmount = (val) => val ? parseFloat(String(val).replace(/,/g, '')) : null;
 
     return {
         booking_id: bookingId,
@@ -1349,29 +1650,27 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
         booking_date: new Date().toISOString().split('T')[0],
         month: month,
         number_of_guests: parseInt(extracted.guests) || null,
-        total_amount: extracted.total ? parseFloat(extracted.total.replace(/,/g, '')) : null,
+        total_amount: parseAmount(extracted.total),
         property_id: propertyId,
         property_name: propertyName,
-        // Empty strings for NOT NULL varchar fields
         guest_phone: extracted.guestPhone ? extracted.guestPhone.replace(/\s/g, '') : '',
         guest_email: extracted.guestEmail || '',
         guest_city: '',
-        // Nullable fields
         adults: parseInt(extracted.guests) || null,
         kids: null,
-        number_of_rooms: null,
+        number_of_rooms: parseInt(extracted.rooms) || null,
         stay_amount: null,
         extra_guest_charges: null,
         meals_chef: null,
         bonfire_other: null,
-        ota_service_fee: null,
+        ota_service_fee: parseAmount(extracted.commission),
         taxes: null,
         total_amount_pre_tax: null,
         total_amount_inc_tax: null,
         damages: null,
         hostizzy_revenue: null,
-        host_payout: null,
-        payout_eligible: null,
+        host_payout: parseAmount(extracted.hostPayout),
+        payout_eligible: parseAmount(extracted.hostPayout),
         avg_room_rate: null,
         avg_nightly_rate: null,
         paid_amount: null,
@@ -1383,9 +1682,10 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = []) {
 /**
  * Parse flexible date formats
  */
-function parseFlexibleDate(dateStr) {
+function parseFlexibleDate(dateStr, emailYear) {
     if (!dateStr) return null;
     try {
+        dateStr = dateStr.trim();
         const months = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
             january:0, february:1, march:2, april:3, june:5, july:6, august:7, september:8, october:9, november:10, december:11 };
         const pad = n => String(n).padStart(2, '0');
@@ -1399,8 +1699,6 @@ function parseFlexibleDate(dateStr) {
         // DD/MM/YYYY or DD-MM-YYYY (Indian/European format — day first)
         if ((m = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/))) {
             const day = parseInt(m[1]), month = parseInt(m[2]), year = parseInt(m[3]);
-            // If first number > 12, it's definitely DD/MM/YYYY
-            // Default to DD/MM/YYYY for Indian context
             return `${year}-${pad(month)}-${pad(day)}`;
         }
 
@@ -1410,6 +1708,12 @@ function parseFlexibleDate(dateStr) {
             return `${year}-${pad(month)}-${pad(day)}`;
         }
 
+        // "29 Mar '26" or "29 Mar 26" — abbreviated year (Goibibo/MMT format)
+        if ((m = dateStr.match(/(\d{1,2})\s+(\w{3,9})\s+'?(\d{2})$/))) {
+            const mon = months[m[2].toLowerCase()];
+            if (mon !== undefined) return `20${m[3]}-${pad(mon + 1)}-${pad(m[1])}`;
+        }
+
         // "15 Apr 2026" or "15 April 2026"
         if ((m = dateStr.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/))) {
             const mon = months[m[2].toLowerCase()];
@@ -1417,6 +1721,21 @@ function parseFlexibleDate(dateStr) {
         }
 
         // "Apr 15, 2026" or "April 15 2026"
+        if ((m = dateStr.match(/(\w+)\s+(\d{1,2}),?\s+(\d{4})/))) {
+            const mon = months[m[1].toLowerCase()];
+            if (mon !== undefined) return `${m[3]}-${pad(mon + 1)}-${pad(m[2])}`;
+        }
+
+        // "26 Apr" or "26 April" — no year (Airbnb format), infer from email date or current year
+        if ((m = dateStr.match(/^(\d{1,2})\s+(\w{3,9})$/))) {
+            const mon = months[m[2].toLowerCase()];
+            if (mon !== undefined) {
+                const year = emailYear || new Date().getFullYear();
+                return `${year}-${pad(mon + 1)}-${pad(m[1])}`;
+            }
+        }
+
+        // "February 28, 2026" or "March 1, 2026" (Agoda full month name)
         if ((m = dateStr.match(/(\w+)\s+(\d{1,2}),?\s+(\d{4})/))) {
             const mon = months[m[1].toLowerCase()];
             if (mon !== undefined) return `${m[3]}-${pad(mon + 1)}-${pad(m[2])}`;
@@ -1535,14 +1854,10 @@ window.scanGmailForReview = async function() {
         const filterPropertyId = document.getElementById('importPropertyFilter')?.value || '';
         showToast(filterPropertyId ? 'Scanning Gmail for selected property...' : 'Scanning Gmail for OTA booking emails...', 'info');
 
-        const searchQueries = [
-            'in:anywhere from:airbnb.com subject:(reservation OR booking OR confirmed)',
-            'in:anywhere from:booking.com subject:(confirmed OR reservation OR booking)',
-            'in:anywhere from:agoda.com subject:(booking OR confirmed OR confirmation)',
-            'in:anywhere from:makemytrip.com subject:(booking OR confirmed)',
-            'in:anywhere from:goibibo.com subject:(booking OR confirmed)',
-            'in:anywhere from:vrbo.com subject:(reservation OR confirmed)',
-        ];
+        // Read scan period from dropdown (defaults to 6 months)
+        const scanPeriodEl = document.getElementById('importScanPeriod');
+        const monthsBack = scanPeriodEl ? (scanPeriodEl.value === '' ? 0 : parseInt(scanPeriodEl.value) || 6) : 6;
+        const searchQueries = buildOtaSearchQueries(monthsBack);
 
         const processedIds = new Set();
         pendingImportItems = [];
@@ -1552,6 +1867,7 @@ window.scanGmailForReview = async function() {
             .from('properties')
             .select('id, name, location')
             .eq('is_active', true);
+        importProperties = properties || [];
 
         // Fetch existing reservations for duplicate detection
         const { data: existingRes } = await supabase
@@ -1570,7 +1886,7 @@ window.scanGmailForReview = async function() {
             const messages = await searchGmailMessages(query);
             if (!messages || messages.length === 0) continue;
 
-            for (const message of messages.slice(0, 30)) {
+            for (const message of messages.slice(0, 100)) {
                 if (processedIds.has(message.id)) continue;
                 processedIds.add(message.id);
 
@@ -1582,7 +1898,7 @@ window.scanGmailForReview = async function() {
                     const subject = headers.find(h => h.name.toLowerCase() === 'subject')?.value || '';
                     const dateHeader = headers.find(h => h.name.toLowerCase() === 'date')?.value || '';
 
-                    const bookingData = parseBookingEmail(emailBody, from, subject, properties || []);
+                    const bookingData = parseBookingEmail(emailBody, from, subject, properties || [], dateHeader);
                     if (!bookingData) continue;
 
                     // If property filter is set, skip emails that don't match
@@ -1705,7 +2021,16 @@ function renderImportReview() {
         html += `<td><input type="checkbox" ${item.selected ? 'checked' : ''} onchange="toggleImportItem(${idx}, this.checked)"></td>`;
         html += `<td><span style="display:inline-block;padding:2px 8px;background:${sourceColor}15;color:${sourceColor};border-radius:4px;font-size:11px;font-weight:600;">${d.booking_source}</span></td>`;
         html += `<td><strong>${d.guest_name}</strong><div style="font-size:11px;color:var(--text-secondary);">${item.emailSubject.substring(0, 40)}${item.emailSubject.length > 40 ? '...' : ''}</div></td>`;
-        html += `<td>${d.property_name || '<span style="color:var(--danger);">No match</span>'}</td>`;
+        if (d.property_id) {
+            html += `<td>${d.property_name}</td>`;
+        } else {
+            html += `<td><select onchange="assignImportProperty(${idx}, this.value)" style="font-size:12px; padding:3px 6px; border:1px solid var(--border); border-radius:4px; background:var(--background); color:var(--text-primary);">`;
+            html += `<option value="">-- Assign --</option>`;
+            for (const p of importProperties) {
+                html += `<option value="${p.id}">${p.name}</option>`;
+            }
+            html += `</select></td>`;
+        }
         html += `<td>${d.check_in || '-'}</td>`;
         html += `<td>${d.check_out || '-'}</td>`;
         html += `<td>${d.nights || '-'}</td>`;
@@ -1728,13 +2053,21 @@ function renderImportReview() {
 }
 
 function getSourceColor(source) {
-    switch (source) {
-        case 'AIRBNB': return '#FF5A5F';
-        case 'AGODA/BOOKING.COM': return '#003580';
-        case 'MMT/GOIBIBO': return '#eb2026';
-        case 'VRBO': return '#3b5cad';
-        default: return '#6b7280';
-    }
+    const colors = {
+        'AIRBNB': '#FF5A5F',
+        'BOOKING.COM': '#003580',
+        'AGODA': '#5c2d91',
+        'MAKEMYTRIP': '#eb2026',
+        'GOIBIBO': '#ec5b24',
+        'VRBO': '#3b5cad',
+        'EXPEDIA': '#00355f',
+        'CLEARTRIP': '#e74c3c',
+        'OYO': '#ee2e24',
+        // Legacy combined source names (backwards compat)
+        'AGODA/BOOKING.COM': '#003580',
+        'MMT/GOIBIBO': '#eb2026',
+    };
+    return colors[source] || '#6b7280';
 }
 
 window.toggleImportItem = function(idx, checked) {
@@ -1749,6 +2082,18 @@ window.toggleAllImportItems = function(selectNew) {
         item.selected = selectNew ? !item.isDuplicate : false;
     });
     renderImportReview();
+};
+
+window.assignImportProperty = function(idx, propertyId) {
+    if (!pendingImportItems[idx]) return;
+    if (propertyId) {
+        const prop = importProperties.find(p => p.id === propertyId);
+        pendingImportItems[idx].bookingData.property_id = propertyId;
+        pendingImportItems[idx].bookingData.property_name = prop ? prop.name : '';
+    } else {
+        pendingImportItems[idx].bookingData.property_id = null;
+        pendingImportItems[idx].bookingData.property_name = null;
+    }
 };
 
 function updateImportSelectedBtn() {
