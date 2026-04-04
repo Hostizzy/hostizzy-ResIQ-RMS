@@ -1277,20 +1277,18 @@ function parseAirbnbEmail(body, subject, emailYear) {
     m = body.match(/(\d+)\s+(?:adults?|guests?)/i);
     extracted.guests = m ? m[1] : null;
 
-    // Nights: "₹14,400 x 1 night" — handle both ₹ and â¹ (UTF-8 garbled rupee)
-    m = body.match(/(?:₹|â¹)\s*[0-9,.]+\s*x\s*(\d+)\s*nights?/i)
-     || body.match(/x\s*(\d+)\s*nights?/i)
+    // Nights: "₹14,400 x 1 night" — encoding-agnostic currency match
+    m = body.match(/[0-9,.]+\s*x\s*(\d+)\s*nights?/i)
      || body.match(/(\d+)\s*nights?/i);
     extracted.nights = m ? m[1] : null;
 
-    // Total: "TOTAL (INR)   â¹51,330" — handle both ₹ and â¹
-    m = body.match(/TOTAL\s*\(INR\)\s*(?:₹|â¹)\s*([0-9,.]+)/i)
-     || body.match(/Total\s*(?:\(INR\))?\s*(?:₹|â¹)\s*([0-9,.]+)/i);
+    // Total: "TOTAL (INR)   ₹51,330" — use [^\d\n]*? to skip any currency chars
+    m = body.match(/TOTAL\s*\(INR\)\s*[^\d\n]*?([0-9][0-9,.]+)/i)
+     || body.match(/Total\s*(?:\(INR\))?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
     extracted.total = m ? m[1] : null;
 
-    // Host payout: "YOU EARN   â¹44,587.5"
-    m = body.match(/YOU EARN\s*(?:₹|â¹)\s*([0-9,.]+)/i)
-     || body.match(/You earn\s*(?:₹|â¹)\s*([0-9,.]+)/i);
+    // Host payout: "YOU EARN   ₹44,587.5"
+    m = body.match(/YOU EARN\s*[^\d\n]*?([0-9][0-9,.]+)/i);
     extracted.hostPayout = m ? m[1] : null;
 
     // Guest phone (Airbnb rarely includes this)
@@ -2044,7 +2042,7 @@ function renderImportReview() {
 
     html += '<div class="card"><div class="table-container"><table class="data-table"><thead><tr>';
     html += '<th style="width:40px;"><input type="checkbox" onchange="toggleAllImportItems(this.checked)" id="importSelectAll"></th>';
-    html += '<th>Source</th><th>Guest</th><th>Property</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Amount</th><th>Status</th>';
+    html += '<th>Source</th><th>Guest</th><th>Property</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Guests</th><th>Amount</th><th>Status</th>';
     html += '</tr></thead><tbody>';
 
     pendingImportItems.forEach((item, idx) => {
@@ -2067,13 +2065,15 @@ function renderImportReview() {
         html += `<td><input type="date" value="${d.check_in || ''}" onchange="updateImportField(${idx},'check_in',this.value)" style="${inputStyle}min-width:120px;"/></td>`;
         html += `<td><input type="date" value="${d.check_out || ''}" onchange="updateImportField(${idx},'check_out',this.value)" style="${inputStyle}min-width:120px;"/></td>`;
         html += `<td><input type="number" value="${d.nights || ''}" onchange="updateImportField(${idx},'nights',parseInt(this.value))" style="${inputStyle}width:60px;" min="1"/></td>`;
+        html += `<td><input type="number" value="${d.number_of_guests || ''}" onchange="updateImportField(${idx},'number_of_guests',parseInt(this.value))" style="${inputStyle}width:60px;" min="1"/></td>`;
         html += `<td><input type="number" value="${d.total_amount || ''}" onchange="updateImportField(${idx},'total_amount',parseFloat(this.value))" style="${inputStyle}width:90px;" step="0.01"/></td>`;
-        html += `<td>`;
+        html += `<td style="white-space:nowrap;">`;
         if (item.isDuplicate) {
             html += `<span style="color:var(--text-secondary);font-size:12px;">${item.duplicateReason}</span>`;
         } else {
             html += `<span style="color:var(--success);font-size:12px;font-weight:600;">New</span>`;
         }
+        html += ` <button onclick="importSingleItem(${idx})" style="margin-left:6px;padding:2px 10px;font-size:11px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">Add</button>`;
         html += `</td>`;
         html += `</tr>`;
     });
@@ -2143,6 +2143,36 @@ window.updateImportField = function(idx, field, value) {
                 if (nightsInput) nightsInput.value = diff;
             }
         }
+    }
+};
+
+window.importSingleItem = async function(idx) {
+    const item = pendingImportItems[idx];
+    if (!item) return;
+    const d = item.bookingData;
+
+    if (!d.property_id) {
+        showToast('Please select a property first', 'error');
+        return;
+    }
+
+    if (!confirm(`Import reservation for ${d.guest_name || 'Guest'}?`)) return;
+
+    try {
+        const { error } = await supabase.from('reservations').insert([d]);
+        if (error) {
+            console.error('[OTA Import] Insert error:', error);
+            showToast('Failed to import: ' + error.message, 'error');
+        } else {
+            showToast(`Imported reservation for ${d.guest_name}`, 'success');
+            pendingImportItems.splice(idx, 1);
+            await loadReservations();
+            await loadDashboard();
+            renderImportReview();
+        }
+    } catch (e) {
+        console.error('[OTA Import] Error:', e);
+        showToast('Import failed', 'error');
     }
 };
 
