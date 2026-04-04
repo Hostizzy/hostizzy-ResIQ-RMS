@@ -53,10 +53,10 @@ CREATE TABLE IF NOT EXISTS guest_documents (
 -- INDEXES for Performance
 -- =====================================================
 
-CREATE INDEX idx_guest_docs_booking ON guest_documents(booking_id);
-CREATE INDEX idx_guest_docs_status ON guest_documents(status);
-CREATE INDEX idx_guest_docs_retention ON guest_documents(retention_date);
-CREATE INDEX idx_guest_docs_submission ON guest_documents(submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_guest_docs_booking ON guest_documents(booking_id);
+CREATE INDEX IF NOT EXISTS idx_guest_docs_status ON guest_documents(status);
+CREATE INDEX IF NOT EXISTS idx_guest_docs_retention ON guest_documents(retention_date);
+CREATE INDEX IF NOT EXISTS idx_guest_docs_submission ON guest_documents(submitted_at DESC);
 
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -66,12 +66,14 @@ ALTER TABLE guest_documents ENABLE ROW LEVEL SECURITY;
 
 -- Policy 1: Guests can INSERT their own documents
 -- Guest authenticates via booking_id + phone verification
+DROP POLICY IF EXISTS "Guests can insert their documents" ON guest_documents;
 CREATE POLICY "Guests can insert their documents"
     ON guest_documents
     FOR INSERT
     WITH CHECK (true); -- Open insert, validated by app logic
 
 -- Policy 2: Guests can VIEW their own booking's documents
+DROP POLICY IF EXISTS "Guests can view own booking documents" ON guest_documents;
 CREATE POLICY "Guests can view own booking documents"
     ON guest_documents
     FOR SELECT
@@ -83,12 +85,14 @@ CREATE POLICY "Guests can view own booking documents"
     );
 
 -- Policy 3: Guests can UPDATE their own documents (before submission)
+DROP POLICY IF EXISTS "Guests can update pending documents" ON guest_documents;
 CREATE POLICY "Guests can update pending documents"
     ON guest_documents
     FOR UPDATE
     USING (status = 'pending' OR status = 'incomplete');
 
 -- Policy 4: Staff can VIEW all documents
+DROP POLICY IF EXISTS "Staff can view all documents" ON guest_documents;
 CREATE POLICY "Staff can view all documents"
     ON guest_documents
     FOR SELECT
@@ -101,6 +105,7 @@ CREATE POLICY "Staff can view all documents"
     );
 
 -- Policy 5: Staff can UPDATE documents (verify/reject)
+DROP POLICY IF EXISTS "Staff can update document status" ON guest_documents;
 CREATE POLICY "Staff can update document status"
     ON guest_documents
     FOR UPDATE
@@ -113,6 +118,7 @@ CREATE POLICY "Staff can update document status"
     );
 
 -- Policy 6: Staff can DELETE documents
+DROP POLICY IF EXISTS "Staff can delete documents" ON guest_documents;
 CREATE POLICY "Staff can delete documents"
     ON guest_documents
     FOR DELETE
@@ -147,6 +153,7 @@ ON CONFLICT (id) DO NOTHING;
 -- =====================================================
 
 -- Policy 1: Guests can upload to their booking folder
+DROP POLICY IF EXISTS "Guests can upload documents" ON storage.objects;
 CREATE POLICY "Guests can upload documents"
     ON storage.objects
     FOR INSERT
@@ -158,6 +165,7 @@ CREATE POLICY "Guests can upload documents"
     );
 
 -- Policy 2: Guests can view their own booking's documents
+DROP POLICY IF EXISTS "Guests can view own booking documents" ON storage.objects;
 CREATE POLICY "Guests can view own booking documents"
     ON storage.objects
     FOR SELECT
@@ -169,6 +177,7 @@ CREATE POLICY "Guests can view own booking documents"
     );
 
 -- Policy 3: Staff can view all documents
+DROP POLICY IF EXISTS "Staff can view all documents" ON storage.objects;
 CREATE POLICY "Staff can view all documents"
     ON storage.objects
     FOR SELECT
@@ -182,6 +191,7 @@ CREATE POLICY "Staff can view all documents"
     );
 
 -- Policy 4: Staff can delete documents (for data retention)
+DROP POLICY IF EXISTS "Staff can delete documents" ON storage.objects;
 CREATE POLICY "Staff can delete documents"
     ON storage.objects
     FOR DELETE
@@ -297,6 +307,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_guest_documents_updated_at ON guest_documents;
 CREATE TRIGGER update_guest_documents_updated_at
     BEFORE UPDATE ON guest_documents
     FOR EACH ROW

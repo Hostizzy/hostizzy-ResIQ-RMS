@@ -58,6 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_enquiries_property ON enquiries(property_id);
 -- RLS Policies (optional, adjust based on your auth setup)
 ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Authenticated users can manage enquiries" ON enquiries;
 CREATE POLICY "Authenticated users can manage enquiries"
     ON enquiries FOR ALL
     USING (true)
