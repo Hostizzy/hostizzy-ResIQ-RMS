@@ -45,12 +45,33 @@ async function saveTeamMember() {
             role: document.getElementById('teamMemberRole').value,
             is_active: true
         };
-        
+
         if (!member.name || !member.email || !member.password) {
             showToast('Validation Error', 'Please fill in all required fields', '❌');
             return;
         }
-        
+
+        // Set owner_id if current user is an external owner
+        if (currentUser?.userType === 'owner' && currentUser?.is_external) {
+            member.owner_id = currentUser.id;
+        }
+
+        // Create Firebase Auth account for the new team member
+        try {
+            const authResp = await fetch('/api/auth-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'create-user', email: member.email, password: member.password, displayName: member.name })
+            });
+            const authResult = await authResp.json();
+            if (!authResp.ok) throw new Error(authResult.error || 'Failed to create auth account');
+        } catch (authErr) {
+            // If error is NOT "user already exists", fail
+            if (!authErr.message.includes('already exists') && !authErr.message.includes('email-already-exists')) {
+                throw authErr;
+            }
+        }
+
         await db.saveTeamMember(member);
         closeTeamModal();
         await loadTeam();
@@ -63,9 +84,25 @@ async function saveTeamMember() {
 
 async function deleteTeamMember(id) {
     if (!confirm('Remove this team member?')) return;
-    
+
     try {
+        // Get member email before deleting (for Firebase cleanup)
+        const members = await db.getTeamMembers();
+        const member = members.find(m => m.id === id);
+
         await db.deleteTeamMember(id);
+
+        // Also delete Firebase Auth account
+        if (member?.email) {
+            try {
+                await fetch('/api/auth-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete-user', email: member.email })
+                });
+            } catch (e) { /* best effort */ }
+        }
+
         await loadTeam();
         showToast('Removed', 'Team member removed successfully', '✅');
     } catch (error) {
@@ -949,4 +986,91 @@ window.viewExpenseReceipt = async function(receiptPath) {
         showToast('Error', 'Failed to load receipt image', '❌');
     }
 };
+
+// ========== PENDING SIGNUPS (Admin Approval) ==========
+
+async function loadPendingSignups() {
+    try {
+        const { data: pending, error } = await db.getPendingOwners();
+        if (error) throw error;
+
+        const tbody = document.getElementById('pendingSignupsTableBody');
+        if (!pending || pending.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color: var(--text-secondary);">No pending signups.</td></tr>';
+            updatePendingBadge(0);
+            return;
+        }
+
+        updatePendingBadge(pending.length);
+
+        tbody.innerHTML = pending.map(owner => {
+            const signupDate = owner.created_at ? new Date(owner.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+            return `
+                <tr>
+                    <td>${owner.name}</td>
+                    <td>${owner.email}</td>
+                    <td>${owner.phone || '-'}</td>
+                    <td>${signupDate}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="approveOwnerSignup('${owner.id}')" style="margin-right: 4px;">Approve</button>
+                        <button class="btn btn-danger btn-sm" onclick="rejectOwnerSignup('${owner.id}', '${owner.email}')">Reject</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Load pending signups error:', error);
+        showToast('Error', 'Failed to load pending signups', '❌');
+    }
+}
+
+function updatePendingBadge(count) {
+    const badge = document.getElementById('pendingSignupsBadge');
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+async function approveOwnerSignup(ownerId) {
+    if (!confirm('Approve this owner? They will be able to log in and manage properties.')) return;
+
+    try {
+        const { error } = await db.approveOwner(ownerId);
+        if (error) throw error;
+        showToast('Approved', 'Owner account activated successfully', '✅');
+        await loadPendingSignups();
+    } catch (error) {
+        console.error('Approve owner error:', error);
+        showToast('Error', 'Failed to approve owner', '❌');
+    }
+}
+
+async function rejectOwnerSignup(ownerId, email) {
+    if (!confirm('Reject this registration? The owner will not be able to log in.')) return;
+
+    try {
+        const { error } = await db.rejectOwner(ownerId);
+        if (error) throw error;
+
+        // Optionally delete Firebase Auth account
+        try {
+            await fetch('/api/auth-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete-user', email })
+            });
+        } catch (e) { /* best effort */ }
+
+        showToast('Rejected', 'Owner registration rejected', '✅');
+        await loadPendingSignups();
+    } catch (error) {
+        console.error('Reject owner error:', error);
+        showToast('Error', 'Failed to reject owner', '❌');
+    }
+}
 

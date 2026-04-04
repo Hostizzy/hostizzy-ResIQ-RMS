@@ -33,15 +33,134 @@
         function showLoginPanel() {
             document.getElementById('forgotPasswordPanel').classList.add('hidden');
             document.getElementById('resetPasswordPanel').classList.add('hidden');
-            document.querySelector('.login-card').classList.remove('hidden');
+            document.getElementById('signupPanel')?.classList.add('hidden');
+            document.getElementById('pendingApprovalPanel')?.classList.add('hidden');
+            document.getElementById('rejectedPanel')?.classList.add('hidden');
+            document.querySelector('.login-form-side > .login-card')?.classList.remove('hidden');
+        }
+
+        function showSignupPanel() {
+            document.querySelector('.login-form-side > .login-card')?.classList.add('hidden');
+            document.getElementById('forgotPasswordPanel').classList.add('hidden');
+            document.getElementById('resetPasswordPanel').classList.add('hidden');
+            document.getElementById('pendingApprovalPanel')?.classList.add('hidden');
+            document.getElementById('rejectedPanel')?.classList.add('hidden');
+            document.getElementById('signupPanel')?.classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function showPendingApprovalScreen() {
+            document.querySelector('.login-form-side > .login-card')?.classList.add('hidden');
+            document.getElementById('forgotPasswordPanel').classList.add('hidden');
+            document.getElementById('resetPasswordPanel').classList.add('hidden');
+            document.getElementById('signupPanel')?.classList.add('hidden');
+            document.getElementById('rejectedPanel')?.classList.add('hidden');
+            document.getElementById('pendingApprovalPanel')?.classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function showRejectedScreen() {
+            document.querySelector('.login-form-side > .login-card')?.classList.add('hidden');
+            document.getElementById('forgotPasswordPanel').classList.add('hidden');
+            document.getElementById('resetPasswordPanel').classList.add('hidden');
+            document.getElementById('signupPanel')?.classList.add('hidden');
+            document.getElementById('pendingApprovalPanel')?.classList.add('hidden');
+            document.getElementById('rejectedPanel')?.classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         function showForgotPassword() {
-            document.querySelector('.login-card').classList.add('hidden');
+            document.querySelector('.login-form-side > .login-card')?.classList.add('hidden');
             document.getElementById('resetPasswordPanel').classList.add('hidden');
+            document.getElementById('signupPanel')?.classList.add('hidden');
             document.getElementById('forgotPasswordPanel').classList.remove('hidden');
             const stored = localStorage.getItem('rememberedEmail') || document.getElementById('loginEmail').value.trim();
             if (stored) document.getElementById('forgotPasswordEmail').value = stored;
+        }
+
+        async function signup() {
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const phone = document.getElementById('signupPhone').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            const msgEl = document.getElementById('signupMessage');
+            const btn = document.getElementById('signupButton');
+
+            msgEl.style.display = 'none';
+
+            if (!name || !email || !password) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2'; msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Please fill in all required fields.';
+                return;
+            }
+            if (password.length < 8) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2'; msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Password must be at least 8 characters.';
+                return;
+            }
+            if (password !== confirmPassword) {
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2'; msgEl.style.color = '#dc2626';
+                msgEl.textContent = 'Passwords do not match.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
+
+            let firebaseCreated = false;
+            try {
+                // Step 1: Create Firebase Auth account via server proxy
+                const authResp = await fetch('/api/auth-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'create-user', email, password, displayName: name })
+                });
+                const authResult = await authResp.json();
+                if (!authResp.ok) throw new Error(authResult.error || 'Failed to create account');
+                firebaseCreated = true;
+
+                // Step 2: Insert owner record with pending status
+                const ownerData = {
+                    name,
+                    email,
+                    phone: phone || null,
+                    is_active: false,
+                    is_external: true,
+                    status: 'pending'
+                };
+                await db.createOwner(ownerData);
+
+                // Step 3: Show pending approval screen
+                showPendingApprovalScreen();
+                showToast('Account Created', 'Your registration is pending admin approval.', '✅');
+
+            } catch (error) {
+                console.error('Signup error:', error);
+                // Rollback: delete Firebase user if DB insert failed
+                if (firebaseCreated) {
+                    try {
+                        await fetch('/api/auth-proxy', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'delete-user', email })
+                        });
+                    } catch (e) { /* best effort cleanup */ }
+                }
+                msgEl.style.display = 'block';
+                msgEl.style.background = '#fee2e2'; msgEl.style.color = '#dc2626';
+                if (error.message.includes('already exists') || error.message.includes('email-already-exists')) {
+                    msgEl.textContent = 'An account with this email already exists.';
+                } else {
+                    msgEl.textContent = error.message || 'Failed to create account. Please try again.';
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
         }
 
         async function login() {
@@ -85,7 +204,9 @@
                         }
                         currentUser = { ...profile, userType: 'staff' };
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        await db.initScope(currentUser);
                         showMainApp(currentUser);
+                        showAdminOnlyNav();
                         await loadDashboard();
                         showToast('Welcome!', `Logged in as ${profile.name}`, '👋');
                         const lastView = (typeof getInitialView === 'function') ? getInitialView() : (localStorage.getItem('lastView') || 'home');
@@ -98,6 +219,34 @@
                     const owners = await db.getOwners();
                     const ownerProfile = owners.find(o => o.email === email);
                     if (ownerProfile) {
+                        // External owner: check approval status
+                        if (ownerProfile.is_external) {
+                            if (ownerProfile.status === 'pending') {
+                                await authService.signOut();
+                                showPendingApprovalScreen();
+                                return;
+                            }
+                            if (ownerProfile.status === 'rejected') {
+                                await authService.signOut();
+                                showRejectedScreen();
+                                return;
+                            }
+                            // Approved external owner → log into main app
+                            currentUser = { ...ownerProfile, userType: 'owner' };
+                            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                            await db.initScope(currentUser);
+                            showMainApp(currentUser);
+                            await loadDashboard();
+                            showToast('Welcome!', `Logged in as ${ownerProfile.name}`, '👋');
+                            const lastView = (typeof getInitialView === 'function') ? getInitialView() : (localStorage.getItem('lastView') || 'home');
+                            showView(lastView);
+                            if (lastView === 'home') setTimeout(() => updateHomeScreenStats(), 500);
+                            // Show/hide admin-only nav items
+                            hideSidebarForOwners();
+                            return;
+                        }
+
+                        // Internal (Hostizzy-managed) owner → redirect to owner-portal
                         if (!ownerProfile.is_active) {
                             await authService.signOut();
                             showToast('Account Inactive', 'Your account has been deactivated', '❌');
@@ -129,13 +278,46 @@
                     link.style.display = 'none';
                 }
             });
+        }
 
+        function hideSidebarForOwners() {
+            // Owners don't see admin-only views: Team, Owners, Pending Signups, OTA Import
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                const label = item.querySelector('.sidebar-item-label')?.textContent?.trim();
+                if (['Team', 'Owners', 'OTA Import'].includes(label)) {
+                    item.style.display = 'none';
+                }
+            });
+            const pendingNav = document.getElementById('sidebarPendingSignups');
+            if (pendingNav) pendingNav.style.display = 'none';
+        }
+
+        function showAdminOnlyNav() {
+            // Show pending signups nav for admins and load count
+            const pendingNav = document.getElementById('sidebarPendingSignups');
+            if (pendingNav && currentUser?.userType === 'staff' && currentUser?.role === 'admin') {
+                pendingNav.style.display = '';
+                // Load pending count in background
+                db.getPendingOwners().then(({ data }) => {
+                    const count = data?.length || 0;
+                    const badge = document.getElementById('pendingSignupsBadge');
+                    if (badge) {
+                        if (count > 0) {
+                            badge.textContent = count;
+                            badge.style.display = '';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                }).catch(() => {});
+            }
         }
 
         async function logout() {
             try { await authService.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
             currentUser = null;
+            db.clearScope();
 
             // Detect if running as PWA / installed app
             const isPWA = window.matchMedia('(display-mode: standalone)').matches

@@ -378,6 +378,11 @@ async function saveProperty() {
             return;
         }
 
+        // Auto-set owner_id for external owners
+        if (currentUser?.userType === 'owner' && currentUser?.is_external) {
+            property.owner_id = currentUser.id;
+        }
+
         // Get all existing properties to determine next ID
         const { data: existingProperties, error: fetchError } = await supabase
             .from('properties')
@@ -401,6 +406,9 @@ async function saveProperty() {
             .select();
 
         if (error) throw error;
+
+        // Refresh scoped property IDs after adding a new property
+        await db.refreshPropertyScope();
 
         closePropertyModal();
         await loadProperties(); // Refresh the properties list
