@@ -5,7 +5,9 @@
       "schedule": "30 1 * * *"
     }
   ],
-  "buildCommand": null,
+  "buildCommand": "node scripts/build.js --inplace",
+  "outputDirectory": ".",
+  "framework": null,
   "redirects": [],
   "rewrites": [
     {
