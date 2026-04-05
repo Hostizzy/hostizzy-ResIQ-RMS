@@ -6,23 +6,25 @@
  *   1. Terser — minification + strip console.log/warn/info
  *   2. javascript-obfuscator — makes code hard to read/copy
  *
- * Source files stay untouched. Minified output goes to dist/.
- * HTML files are copied to dist/ with script paths updated to dist/ versions.
+ * Modes:
+ *   --inplace    Overwrite source files (for Vercel deploy — builds from a copy)
+ *   --fast       Minify only, skip obfuscation (for testing)
+ *   (default)    Output to dist/ with updated HTML files
  *
  * Usage:
- *   node scripts/build.js          # full build (minify + obfuscate)
- *   node scripts/build.js --fast   # minify only (skip obfuscation, for testing)
+ *   node scripts/build.js              # full build → dist/
+ *   node scripts/build.js --fast       # minify only → dist/
+ *   node scripts/build.js --inplace    # full build, overwrite in-place (Vercel)
  */
 
 const fs = require('fs');
 const path = require('path');
 const { minify } = require('terser');
-const JavaScriptObfuscator = require('javascript-obfuscator');
 
 const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 
-// JS files to process (order doesn't matter for build — just need all of them)
+// JS files to process
 const JS_DIRS = [
     { src: 'js', dest: 'js' },
     { src: 'modules', dest: 'modules' },
@@ -42,17 +44,18 @@ const ROOT_JS_FILES = [
 // Terser options — strips console.log/warn/info, keeps errors
 const TERSER_OPTIONS = {
     compress: {
-        drop_console: false,     // We handle console selectively below
+        drop_console: false,
         pure_funcs: ['console.log', 'console.info', 'console.warn', 'console.debug'],
         passes: 2,
         dead_code: true,
         drop_debugger: true
     },
     mangle: {
-        toplevel: false  // Don't mangle top-level names (they're shared across files)
+        toplevel: false
     },
     format: {
-        comments: false
+        comments: false,
+        preamble: '/* (c) Hostsphere India Pvt Ltd. All rights reserved. */'
     }
 };
 
@@ -64,19 +67,29 @@ const OBFUSCATOR_OPTIONS = {
     deadCodeInjection: true,
     deadCodeInjectionThreshold: 0.2,
     identifierNamesGenerator: 'hexadecimal',
-    renameGlobals: false,       // Don't rename globals (shared across script tags)
-    selfDefending: false,       // Can break in strict mode
+    renameGlobals: false,
+    selfDefending: false,
     splitStrings: true,
     splitStringsChunkLength: 10,
     stringArray: true,
     stringArrayCallsTransform: true,
     stringArrayEncoding: ['base64'],
     stringArrayThreshold: 0.5,
-    transformObjectKeys: false,  // Don't break object key references
+    transformObjectKeys: false,
     unicodeEscapeSequence: false
 };
 
 const fastMode = process.argv.includes('--fast');
+const inplaceMode = process.argv.includes('--inplace');
+
+let JavaScriptObfuscator;
+if (!fastMode) {
+    try {
+        JavaScriptObfuscator = require('javascript-obfuscator');
+    } catch (e) {
+        console.warn('javascript-obfuscator not found, falling back to minify-only');
+    }
+}
 
 async function processFile(srcPath, destPath) {
     const code = fs.readFileSync(srcPath, 'utf8');
@@ -92,14 +105,13 @@ async function processFile(srcPath, destPath) {
 
         let output = terserResult.code;
 
-        // Step 2: Obfuscate (unless --fast)
-        if (!fastMode && output.length > 50) {
+        // Step 2: Obfuscate (unless --fast or obfuscator unavailable)
+        if (!fastMode && JavaScriptObfuscator && output.length > 50) {
             try {
                 const obfResult = JavaScriptObfuscator.obfuscate(output, OBFUSCATOR_OPTIONS);
                 output = obfResult.getObfuscatedCode();
             } catch (obfErr) {
                 console.warn(`  OBFUSCATOR SKIP [${fileName}]: ${obfErr.message}`);
-                // Fall back to just the minified version
             }
         }
 
@@ -122,13 +134,16 @@ async function processFile(srcPath, destPath) {
 
 async function build() {
     const startTime = Date.now();
-    console.log(`\n🔨 ResIQ Production Build ${fastMode ? '(fast mode — no obfuscation)' : ''}\n`);
+    const modeLabel = inplaceMode ? 'in-place (Vercel)' : fastMode ? 'fast (no obfuscation)' : 'full';
+    console.log(`\nResIQ Production Build [${modeLabel}]\n`);
 
-    // Clean dist
-    if (fs.existsSync(DIST)) {
-        fs.rmSync(DIST, { recursive: true });
+    if (!inplaceMode) {
+        // Clean dist
+        if (fs.existsSync(DIST)) {
+            fs.rmSync(DIST, { recursive: true });
+        }
+        fs.mkdirSync(DIST, { recursive: true });
     }
-    fs.mkdirSync(DIST, { recursive: true });
 
     let processed = 0;
     let failed = 0;
@@ -144,9 +159,9 @@ async function build() {
         console.log(`Processing ${dir.src}/`);
         for (const file of files) {
             const srcPath = path.join(srcDir, file);
-            // Check it's a file, not a directory
             if (!fs.statSync(srcPath).isFile()) continue;
-            const destPath = path.join(DIST, dir.dest, file);
+            // In-place: overwrite source. Otherwise: write to dist/
+            const destPath = inplaceMode ? srcPath : path.join(DIST, dir.dest, file);
             const ok = await processFile(srcPath, destPath);
             if (ok) processed++; else failed++;
         }
@@ -157,34 +172,32 @@ async function build() {
     for (const file of ROOT_JS_FILES) {
         const srcPath = path.join(ROOT, file);
         if (!fs.existsSync(srcPath)) continue;
-        const destPath = path.join(DIST, file);
+        const destPath = inplaceMode ? srcPath : path.join(DIST, file);
         const ok = await processFile(srcPath, destPath);
         if (ok) processed++; else failed++;
     }
 
-    // Copy HTML files to dist with updated script paths
-    console.log(`\nUpdating HTML files`);
-    const htmlFiles = ['app.html', 'owner-portal.html', 'guest-portal.html'];
-    for (const htmlFile of htmlFiles) {
-        const srcPath = path.join(ROOT, htmlFile);
-        if (!fs.existsSync(srcPath)) continue;
+    // For dist mode: copy HTML files with updated script paths
+    if (!inplaceMode) {
+        console.log(`\nUpdating HTML files`);
+        const htmlFiles = ['app.html', 'owner-portal.html', 'guest-portal.html'];
+        for (const htmlFile of htmlFiles) {
+            const srcPath = path.join(ROOT, htmlFile);
+            if (!fs.existsSync(srcPath)) continue;
 
-        let html = fs.readFileSync(srcPath, 'utf8');
+            let html = fs.readFileSync(srcPath, 'utf8');
+            html = html.replace(
+                /(<script\s+src=")((?:js\/|modules\/|views\/|supabase-proxy\.js|native-app-utils\.js|onboarding\.js|owner-portal-functions\.js))/g,
+                '$1dist/$2'
+            );
 
-        // Rewrite local script src paths to dist/ versions
-        // e.g. src="js/config.js" → src="dist/js/config.js"
-        // e.g. src="supabase-proxy.js" → src="dist/supabase-proxy.js"
-        html = html.replace(
-            /(<script\s+src=")((?:js\/|modules\/|views\/|supabase-proxy\.js|native-app-utils\.js|onboarding\.js|owner-portal-functions\.js))/g,
-            '$1dist/$2'
-        );
-
-        fs.writeFileSync(path.join(DIST, htmlFile), html, 'utf8');
-        console.log(`  ${htmlFile}: script paths updated → dist/${htmlFile}`);
+            fs.writeFileSync(path.join(DIST, htmlFile), html, 'utf8');
+            console.log(`  ${htmlFile}: script paths updated`);
+        }
     }
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`\n✅ Build complete: ${processed} files processed, ${failed} failed (${elapsed}s)\n`);
+    console.log(`\nBuild complete: ${processed} files processed, ${failed} failed (${elapsed}s)\n`);
 
     if (failed > 0) process.exit(1);
 }
