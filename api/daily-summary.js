@@ -314,7 +314,7 @@ export default async function handler(req, res) {
             const adminHTML = buildEmailHTML(today, checkIns, checkOuts, pendingPayments, null);
             await sendEmail(accessToken, {
                 to: DAILY_SUMMARY_EMAIL,
-                subject: `ResIQ Daily Summary — ${formatDateDisplay(today)}`,
+                subject: `ResIQ Daily Summary - ${formatDateDisplay(today)}`,
                 body: adminHTML,
                 fromEmail,
                 businessName: 'ResIQ'
@@ -340,7 +340,7 @@ export default async function handler(req, res) {
             await sendEmail(accessToken, {
                 to: owner.email,
                 toName: owner.name,
-                subject: `ResIQ Daily Summary — ${formatDateDisplay(today)}`,
+                subject: `ResIQ Daily Summary - ${formatDateDisplay(today)}`,
                 body: ownerHTML,
                 fromEmail,
                 businessName: 'ResIQ'

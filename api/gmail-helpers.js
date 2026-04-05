@@ -198,7 +198,7 @@ export async function sendEmail(accessToken, { to, toName, subject, body, fromEm
     const emailLines = [
         `From: ${from} <${fromEmail}>`,
         `To: ${toName || ''} <${to}>`,
-        `Subject: ${subject}`,
+        `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
         'MIME-Version: 1.0',
         'Content-Type: text/html; charset=UTF-8',
         '',
