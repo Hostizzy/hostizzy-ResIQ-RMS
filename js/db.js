@@ -294,13 +294,25 @@
             async getOwnerPendingPayout(ownerId) {
                 const { data: reservations } = await supabase
                     .from('reservations')
-                    .select('total_amount, hostizzy_revenue, ota_service_fee, payout_eligible')
+                    .select('total_amount, taxes, hostizzy_revenue, ota_service_fee, payout_eligible, host_payout')
                     .eq('owner_id', ownerId)
                     .eq('payment_status', 'paid')
                     .in('status', ['confirmed', 'checked_in', 'completed']);
+                // totalEarned = SUM(host_payout) — post-Round-4 canonical "net to owner".
+                // Legacy rows (host_payout still null) fall back to
+                // payout_eligible − hostizzy_revenue, then to derived-from-total.
+                // Uses `!= null` so a legitimate zero is preferred over the fallback.
                 const totalEarned = reservations.reduce((sum, r) => {
-                    const payoutEligible = parseFloat(r.payout_eligible) || ((parseFloat(r.total_amount) || 0) - (parseFloat(r.ota_service_fee) || 0));
-                    return sum + (payoutEligible - (parseFloat(r.hostizzy_revenue) || 0));
+                    if (r.host_payout != null) {
+                        return sum + (parseFloat(r.host_payout) || 0);
+                    }
+                    let payoutEligible = (r.payout_eligible != null) ? parseFloat(r.payout_eligible) : null;
+                    if (payoutEligible == null || isNaN(payoutEligible)) {
+                        payoutEligible = (parseFloat(r.total_amount) || 0)
+                                       - (parseFloat(r.taxes) || 0)
+                                       - (parseFloat(r.ota_service_fee) || 0);
+                    }
+                    return sum + Math.max(payoutEligible - (parseFloat(r.hostizzy_revenue) || 0), 0);
                 }, 0);
                 const { data: payouts } = await supabase
                     .from('payout_requests')

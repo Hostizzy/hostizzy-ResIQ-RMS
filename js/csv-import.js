@@ -460,10 +460,13 @@ function transformCSVRow(row, propertyByName = {}) {
         // Snapshot the property's commission rate at import time so the row stays
         // in sync with properties.revenue_share_percent.
         revenue_share_percent: propertyRate,
-        // Owner share excludes taxes (GST is collected for the government, never paid out)
-        // and OTA service fee. Damages and meals/bonfire flow through to the owner.
-        host_payout: totalAmount - taxes - otaServiceFee,
+        // payout_eligible = gross owner-eligible (before commission). Excludes taxes
+        // (GST is collected for the government, never paid out) and OTA service fee.
+        // Damages and meals/bonfire flow through to the owner.
         payout_eligible: totalAmount - taxes - otaServiceFee,
+        // host_payout = NET rupees Hostizzy pays the owner after taking commission.
+        //             = payout_eligible - hostizzy_revenue
+        host_payout: totalAmount - taxes - otaServiceFee - (parseFloat(row.hostizzy_revenue) || 0),
         is_legacy: false,
         avg_room_rate: avgRoomRate,
         avg_nightly_rate: avgNightlyRate,

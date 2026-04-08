@@ -27,6 +27,34 @@ let calendarBookings = [];
 // to support the new home view and sidebar navigation
 
 // =====================================================
+// OWNER SHARE / PAYOUT HELPERS
+// =====================================================
+
+// Return the NET rupees Hostizzy pays the owner for a single booking row.
+//
+// Post-Round-4 model: reservations.host_payout is the canonical "net to owner
+// after commission" value. If the stored value is present (including 0), use
+// it. For legacy rows where the SQL backfill hasn't run yet, fall back to the
+// derived expression: payout_eligible - hostizzy_revenue (and if
+// payout_eligible is also missing, reconstruct it from total - taxes - ota_fee).
+//
+// Uses `!= null` so a legitimate zero is preferred over the fallback.
+function getHostPayout(b) {
+    if (!b) return 0;
+    if (b.host_payout != null) {
+        return parseFloat(b.host_payout) || 0;
+    }
+    let payoutEligible = (b.payout_eligible != null) ? parseFloat(b.payout_eligible) : null;
+    if (payoutEligible == null || isNaN(payoutEligible)) {
+        payoutEligible = (parseFloat(b.total_amount) || 0)
+                       - (parseFloat(b.taxes) || 0)
+                       - (parseFloat(b.ota_service_fee) || 0);
+    }
+    const commission = parseFloat(b.hostizzy_revenue) || 0;
+    return Math.max(payoutEligible - commission, 0);
+}
+
+// =====================================================
 // IST TIMEZONE UTILITIES
 // =====================================================
 
@@ -135,15 +163,11 @@ async function loadOwnerDashboard() {
             return sum + adults + children;
         }, 0);
 
-        // Calculate Hostizzy commission and host payout
+        // Calculate Hostizzy commission and host payout.
+        // netEarnings = SUM(host_payout) — the canonical "net to owner" field
+        // (post-Round-4). Falls back to derived formula for legacy rows.
         const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
-        const totalPayoutEligible = confirmedBookings.reduce((sum, b) => {
-            const total = parseFloat(b.total_amount) || 0;
-            const otaFee = parseFloat(b.ota_service_fee) || 0;
-            return sum + (total - otaFee);
-        }, 0);
-
-        const netEarnings = totalPayoutEligible - totalHostizzyShare;
+        const netEarnings = confirmedBookings.reduce((sum, b) => sum + getHostPayout(b), 0);
 
         // Get pending payout
         const pendingPayout = await db.getOwnerPendingPayout(ownerId);
@@ -402,13 +426,10 @@ function loadRevenueCharts() {
         if (revenuePieChart) revenuePieChart.destroy();
 
         const confirmedBookings = ownerData.bookings.filter(b => b.status !== 'cancelled');
-        const totalPayoutEligible = confirmedBookings.reduce((sum, b) => {
-            const total = parseFloat(b.total_amount) || 0;
-            const otaFee = parseFloat(b.ota_service_fee) || 0;
-            return sum + (total - otaFee);
-        }, 0);
+        // ownerEarnings = SUM(host_payout) — post-Round-4 canonical field.
+        const ownerEarnings = confirmedBookings.reduce((sum, b) => sum + getHostPayout(b), 0);
         const totalHostizzyShare = confirmedBookings.reduce((sum, b) => sum + (parseFloat(b.hostizzy_revenue) || 0), 0);
-        const ownerEarnings = totalPayoutEligible - totalHostizzyShare;
+        const pieTotal = ownerEarnings + totalHostizzyShare;
 
         revenuePieChart = new Chart(pieCtx, {
             type: 'doughnut',
@@ -433,7 +454,7 @@ function loadRevenueCharts() {
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.parsed || 0;
-                                const percentage = totalPayoutEligible > 0 ? ((value / totalPayoutEligible) * 100).toFixed(1) : '0.0';
+                                const percentage = pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(1) : '0.0';
                                 return `${label}: ₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })} (${percentage}%)`;
                             }
                         }
@@ -1122,10 +1143,10 @@ function renderOwnerBookingsList(bookings) {
             // Mobile card layout
             let html = '<div class="mobile-card-list">';
             bookings.forEach(booking => {
-                // Use payout_eligible (host_payout) minus commission
+                // "Your Earnings" = host_payout (post-Round-4 canonical field,
+                // = payout_eligible − commission). Helper falls back for legacy rows.
                 const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
-                const payoutEligible = (parseFloat(booking.total_amount) || 0) - (parseFloat(booking.ota_service_fee) || 0);
-                const yourEarnings = payoutEligible - hostizzyShare;
+                const yourEarnings = getHostPayout(booking);
                 const stayAmount = parseFloat(booking.stay_amount) || 0;
                 const mealsChef = parseFloat(booking.meals_chef) || 0;
                 const bonfireOther = parseFloat(booking.bonfire_other) || 0;
@@ -1208,11 +1229,10 @@ function renderOwnerBookingsList(bookings) {
             html += '</tr></thead><tbody>';
 
             bookings.forEach(booking => {
-                // Use payout_eligible (host_payout) minus commission
+                // "Your Earnings" = host_payout (post-Round-4 canonical field).
                 const hostizzyShare = parseFloat(booking.hostizzy_revenue) || 0;
                 const totalAmount = parseFloat(booking.total_amount) || 0;
-                const payoutEligible = totalAmount - (parseFloat(booking.ota_service_fee) || 0);
-                const yourEarnings = payoutEligible - hostizzyShare;
+                const yourEarnings = getHostPayout(booking);
                 const stayAmount = parseFloat(booking.stay_amount) || 0;
                 const mealsChef = parseFloat(booking.meals_chef) || 0;
                 const bonfireOther = parseFloat(booking.bonfire_other) || 0;
@@ -1299,16 +1319,23 @@ async function loadOwnerPayouts() {
                     return checkInYear === year && checkInMonth === month && booking.status !== 'cancelled';
                 });
 
-                // Calculate total commission and payout eligible from bookings
+                // Calculate total commission and payout eligible from bookings.
+                // propertyShare = SUM(host_payout) — post-Round-4 canonical field
+                // (= payout_eligible − commission for each row). Helper falls back
+                // for legacy rows where the SQL backfill hasn't run yet.
                 const totalCommission = monthBookings.reduce((sum, booking) => {
                     return sum + (parseFloat(booking.hostizzy_revenue) || 0);
                 }, 0);
                 const totalPayoutEligible = monthBookings.reduce((sum, booking) => {
+                    // payout_eligible stays as the gross (pre-commission) figure for
+                    // the settlement card. Excludes taxes + ota_fee.
+                    if (booking.payout_eligible != null) return sum + (parseFloat(booking.payout_eligible) || 0);
                     const total = parseFloat(booking.total_amount) || 0;
+                    const taxes = parseFloat(booking.taxes) || 0;
                     const otaFee = parseFloat(booking.ota_service_fee) || 0;
-                    return sum + (total - otaFee);
+                    return sum + (total - taxes - otaFee);
                 }, 0);
-                const propertyShare = totalPayoutEligible - totalCommission;
+                const propertyShare = monthBookings.reduce((sum, booking) => sum + getHostPayout(booking), 0);
 
                 // Get ALL payments for these bookings (regardless of payment date)
                 // Example: Oct payment for Nov reservation counts in Nov settlement

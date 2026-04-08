@@ -1719,8 +1719,12 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
         total_amount_inc_tax: null,
         damages: null,
         hostizzy_revenue: null,
-        host_payout: parseAmount(extracted.hostPayout),
+        // Email/iMessage import captures the gross owner-eligible figure only.
+        // host_payout (net to owner after commission) is left null and will be
+        // computed when the staff opens the reservation in the form and saves,
+        // or by the sql/fix-reservation-financials.sql backfill.
         payout_eligible: parseAmount(extracted.hostPayout),
+        host_payout: null,
         avg_room_rate: null,
         avg_nightly_rate: null,
         paid_amount: null,

@@ -5,7 +5,8 @@
 --   Single SQL that corrects everything in one transaction:
 --     (1) Sync reservations.revenue_share_percent from properties
 --     (2) Recompute hostizzy_revenue from the canonical formula
---     (3) Recompute payout_eligible / host_payout (excluding taxes)
+--     (3) Recompute payout_eligible (gross owner-eligible) and
+--         host_payout (net to owner after commission)
 --   Then surface verification counts and per-property totals.
 --
 -- Replaces the previous preview-gated scripts:
@@ -15,8 +16,12 @@
 -- Formulas (match js/utils.js + js/reservations.js):
 --   commission_base  = stay_amount - ota_service_fee + extra_guest_charges
 --   hostizzy_revenue = ROUND(commission_base * rate / 100, 2)
---   payout_eligible  = host_payout
---                    = ROUND(total_amount - taxes - ota_service_fee, 2)
+--   payout_eligible  = ROUND(total_amount - taxes - ota_service_fee, 2)
+--                      (gross owner-eligible — before commission)
+--   host_payout      = ROUND(payout_eligible - hostizzy_revenue, 2)
+--                    = ROUND(total_amount - taxes - ota_service_fee
+--                             - hostizzy_revenue, 2)
+--                      (NET rupees Hostizzy pays the owner after commission)
 --
 -- Active reservations only — cancelled rows are skipped (their financial
 -- fields are nulled by the JS cleanup at js/reservations.js:1869+).
@@ -85,11 +90,14 @@ WHERE r.property_id = p.id
   AND r.status <> 'cancelled';
 
 -- ----------------------------------------------------
--- 3. RECOMPUTE payout_eligible / host_payout to exclude
---    taxes (round-1 fix in js/reservations.js:1860 — this
---    rewrites stored history to match).
---      payout_eligible = host_payout
---                      = total_amount - taxes - ota_service_fee
+-- 3. RECOMPUTE payout_eligible and host_payout.
+--    payout_eligible = gross owner-eligible (before commission)
+--                    = total_amount - taxes - ota_service_fee
+--    host_payout     = NET rupees paid to owner (after commission)
+--                    = payout_eligible - hostizzy_revenue
+--
+--    Must run AFTER step 2 so hostizzy_revenue on the row is
+--    already canonical. Cancelled rows are skipped.
 -- ----------------------------------------------------
 UPDATE reservations
 SET payout_eligible = ROUND(
@@ -101,6 +109,7 @@ SET payout_eligible = ROUND(
         COALESCE(total_amount, 0)
       - COALESCE(taxes, 0)
       - COALESCE(ota_service_fee, 0)
+      - COALESCE(hostizzy_revenue, 0)
     , 2)
 WHERE status <> 'cancelled';
 
@@ -125,13 +134,27 @@ JOIN properties p ON p.id = r.property_id
 WHERE r.status <> 'cancelled'
   AND p.revenue_share_percent IS NULL;
 
--- 4c. Per-property totals after the rewrite. Sanity-check
+-- 4c. Identity check: host_payout must equal
+--     payout_eligible - hostizzy_revenue for every active row.
+--     Expected: 0 (any non-zero result is a round-4 bug).
+SELECT COUNT(*) AS rows_with_drifted_host_payout
+FROM reservations
+WHERE status <> 'cancelled'
+  AND ROUND(
+          COALESCE(payout_eligible, 0)
+        - COALESCE(hostizzy_revenue, 0)
+      , 2)
+      IS DISTINCT FROM ROUND(COALESCE(host_payout, 0), 2);
+
+-- 4d. Per-property totals after the rewrite. Sanity-check
 --     these against the owner dashboard / settlement view.
+--     total_host_payout is the new "net to owner" figure.
 SELECT
     property_name,
     COUNT(*) AS bookings,
     ROUND(SUM(hostizzy_revenue), 2) AS total_commission,
     ROUND(SUM(payout_eligible), 2) AS total_payout_eligible,
+    ROUND(SUM(host_payout), 2) AS total_host_payout,
     ROUND(SUM(taxes), 2) AS total_taxes_excluded
 FROM reservations
 WHERE status <> 'cancelled'

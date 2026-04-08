@@ -1874,10 +1874,15 @@ async function saveReservation() {
             // in sync with properties.revenue_share_percent. The orphaned column had
             // been silently drifting; this and the SQL backfill keep it accurate.
             revenue_share_percent: propertyRate,
-            // Owner share excludes taxes (GST is collected for the government, never paid out)
-            // and OTA service fee. Damages and meals/bonfire flow through to the owner.
-            host_payout: totalAmount - taxes - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
+            // payout_eligible = gross owner-eligible (before commission). Excludes taxes
+            // (GST is collected for the government, never paid out) and OTA service fee.
+            // Damages and meals/bonfire flow through to the owner.
             payout_eligible: totalAmount - taxes - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
+            // host_payout = NET rupees Hostizzy pays the owner after taking commission.
+            //             = payout_eligible - hostizzy_revenue
+            host_payout: totalAmount - taxes
+                - (parseFloat(document.getElementById('otaServiceFee').value) || 0)
+                - (parseFloat(document.getElementById('hostizzyRevenue').value) || 0),
             is_legacy: false,
             avg_room_rate: avgRoomRate,
             avg_nightly_rate: avgNightlyRate,
@@ -2595,10 +2600,15 @@ async function saveQuickEdit() {
             // Snapshot the property's commission rate at save time so the row stays
             // in sync with properties.revenue_share_percent.
             revenue_share_percent: propertyRate,
-            // Owner share excludes taxes (GST is collected for the government, never paid out)
-            // and OTA service fee. Damages and meals/bonfire flow through to the owner.
-            host_payout: totalAmount - taxes - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
+            // payout_eligible = gross owner-eligible (before commission). Excludes taxes
+            // (GST is collected for the government, never paid out) and OTA service fee.
+            // Damages and meals/bonfire flow through to the owner.
             payout_eligible: totalAmount - taxes - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
+            // host_payout = NET rupees Hostizzy pays the owner after taking commission.
+            //             = payout_eligible - hostizzy_revenue
+            host_payout: totalAmount - taxes
+                - (parseFloat(document.getElementById('qeOtaFee').value) || 0)
+                - (parseFloat(document.getElementById('qeHostizzyRevenue').value) || 0),
             is_legacy: false,
             avg_room_rate: nights > 0 ? stayAmount / nights : 0,
             avg_nightly_rate: nights > 0 ? totalAmount / nights : 0
