@@ -14,14 +14,20 @@
 --   meals_chef and bonfire_other are intentionally EXCLUDED from
 --   the commission base (per product decision — see plan §Money Model).
 --
+-- This script ALSO refreshes reservations.revenue_share_percent from the
+-- canonical properties.revenue_share_percent (step 2.5). The reservations
+-- column exists in Supabase but no JS save path currently maintains it,
+-- so it drifts. Step 2.5 brings it back into sync before step 3 recomputes
+-- hostizzy_revenue.
+--
 -- Safety:
 --   * Only updates non-cancelled reservations.
 --   * Skips reservations whose property has NULL revenue_share_percent
 --     (these surface in the audit query at the top — fix the property
 --     first, then re-run).
 --   * Wrapped in BEGIN; ... COMMIT; for review/rollback.
---   * UPDATE is commented out by default; uncomment after spot-checking
---     the PREVIEW query.
+--   * UPDATE statements (steps 2.5 and 3) are commented out by default;
+--     uncomment after spot-checking the PREVIEW query.
 --
 -- Run via the Supabase SQL editor (service-role).
 -- =====================================================
@@ -91,6 +97,24 @@ ORDER BY r.check_in DESC
 LIMIT 50;
 
 -- ----------------------------------------------------
+-- 2.5. SYNC reservations.revenue_share_percent
+--      from the canonical properties.revenue_share_percent.
+--      This column exists in Supabase but is not maintained
+--      by any JS save path, so it drifts. We refresh it now
+--      before recomputing hostizzy_revenue in step 3.
+--      The IS DISTINCT FROM predicate makes the UPDATE
+--      idempotent — only rows actually out of sync are touched.
+--      Uncomment to apply.
+-- ----------------------------------------------------
+-- UPDATE reservations r
+-- SET revenue_share_percent = p.revenue_share_percent
+-- FROM properties p
+-- WHERE r.property_id = p.id
+--   AND p.revenue_share_percent IS NOT NULL
+--   AND r.status <> 'cancelled'
+--   AND (r.revenue_share_percent IS DISTINCT FROM p.revenue_share_percent);
+
+-- ----------------------------------------------------
 -- 3. UPDATE: recompute hostizzy_revenue for every
 --            active reservation. Uncomment to apply.
 -- ----------------------------------------------------
@@ -108,8 +132,18 @@ LIMIT 50;
 
 -- ----------------------------------------------------
 -- 4. POST-UPDATE VERIFICATION:
---    per-property commission totals after the rewrite.
+--    (a) Confirm every active reservation's stored rate
+--        now matches its property. Expected: 0.
+--    (b) Per-property commission totals after the rewrite.
 -- ----------------------------------------------------
+-- SELECT COUNT(*) AS rows_out_of_sync
+-- FROM reservations r
+-- JOIN properties p ON p.id = r.property_id
+-- WHERE r.status <> 'cancelled'
+--   AND p.revenue_share_percent IS NOT NULL
+--   AND r.revenue_share_percent IS DISTINCT FROM p.revenue_share_percent;
+-- -- Expected: 0
+
 -- SELECT
 --     property_name,
 --     COUNT(*) AS bookings,

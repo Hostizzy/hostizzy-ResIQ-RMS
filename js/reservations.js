@@ -1768,7 +1768,22 @@ async function saveReservation() {
             showToast('Error', 'Property not found', '❌');
             return;
         }
-        
+
+        // Snapshot the canonical commission rate from the property record so it
+        // can be persisted on the reservation row. Required — no silent default.
+        // (Cancelled reservations skip this check; their commission fields are
+        // nulled out by the cleanup block below.)
+        const propertyRate = property.revenue_share_percent;
+        const cancelledNow = document.getElementById('bookingStatus').value === 'cancelled';
+        if (!cancelledNow && (propertyRate == null || propertyRate === '')) {
+            showToast(
+                'Validation Error',
+                `Property "${property.name}" has no commission rate set. Please configure revenue_share_percent in Property Settings before saving.`,
+                '❌'
+            );
+            return;
+        }
+
         const checkIn = document.getElementById('checkInDate').value;
         const checkOut = document.getElementById('checkOutDate').value;
         
@@ -1855,6 +1870,10 @@ async function saveReservation() {
             total_amount: totalAmount,
             damages: damages,
             hostizzy_revenue: parseFloat(document.getElementById('hostizzyRevenue').value) || 0,
+            // Snapshot the property's commission rate at save time so the row stays
+            // in sync with properties.revenue_share_percent. The orphaned column had
+            // been silently drifting; this and the SQL backfill keep it accurate.
+            revenue_share_percent: propertyRate,
             // Owner share excludes taxes (GST is collected for the government, never paid out)
             // and OTA service fee. Damages and meals/bonfire flow through to the owner.
             host_payout: totalAmount - taxes - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
@@ -1893,6 +1912,7 @@ async function saveReservation() {
             reservation.total_amount = null;
             reservation.damages = null;
             reservation.hostizzy_revenue = null;
+            reservation.revenue_share_percent = null;
             reservation.host_payout = null;
             reservation.payout_eligible = null;
             reservation.avg_room_rate = null;
@@ -2504,6 +2524,23 @@ async function saveQuickEdit() {
         const properties = state.properties || [];
         const property = properties.find(p => p.id === propertyId);
 
+        // Snapshot the canonical commission rate from the property record so it
+        // can be persisted on the reservation row. Required — no silent default.
+        // (Cancelled reservations skip this check; their commission fields are
+        // nulled out by the cleanup block below.)
+        const propertyRate = property ? property.revenue_share_percent : null;
+        const cancelledNow = document.getElementById('qeStatus').value === 'cancelled';
+        if (!cancelledNow && (propertyRate == null || propertyRate === '')) {
+            showToast(
+                'Validation Error',
+                `Property "${property ? property.name : propertyId}" has no commission rate set. Please configure revenue_share_percent in Property Settings before saving.`,
+                '❌'
+            );
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px; margin-right: 6px;"></i>Save Changes';
+            return;
+        }
+
         const stayAmount = parseFloat(document.getElementById('qeStayAmount').value) || 0;
         const extraGuestCharges = parseFloat(document.getElementById('qeExtraGuest').value) || 0;
         const mealsChef = parseFloat(document.getElementById('qeMeals').value) || 0;
@@ -2555,6 +2592,9 @@ async function saveQuickEdit() {
             total_amount: totalAmount,
             damages: damages,
             hostizzy_revenue: parseFloat(document.getElementById('qeHostizzyRevenue').value) || 0,
+            // Snapshot the property's commission rate at save time so the row stays
+            // in sync with properties.revenue_share_percent.
+            revenue_share_percent: propertyRate,
             // Owner share excludes taxes (GST is collected for the government, never paid out)
             // and OTA service fee. Damages and meals/bonfire flow through to the owner.
             host_payout: totalAmount - taxes - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
@@ -2576,7 +2616,8 @@ async function saveQuickEdit() {
                 'kids', 'number_of_guests', 'stay_amount', 'extra_guest_charges', 'meals_chef',
                 'bonfire_other', 'ota_service_fee', 'taxes', 'total_amount_pre_tax',
                 'total_amount_inc_tax', 'total_amount', 'damages', 'hostizzy_revenue',
-                'host_payout', 'payout_eligible', 'avg_room_rate', 'avg_nightly_rate',
+                'revenue_share_percent', 'host_payout', 'payout_eligible',
+                'avg_room_rate', 'avg_nightly_rate',
                 'paid_amount', 'payment_status', 'last_reminder_date'];
             nullFields.forEach(f => reservation[f] = null);
         }

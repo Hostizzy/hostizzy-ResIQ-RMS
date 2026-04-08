@@ -573,6 +573,16 @@ async function savePropertySettings() {
         saveButton.innerHTML = '⏳ Saving...';
         saveButton.disabled = true;
 
+        // Capture the previous commission rate so we can detect changes and
+        // resync existing reservations only when the rate actually changed.
+        const { data: existing, error: fetchError } = await supabase
+            .from('properties')
+            .select('revenue_share_percent')
+            .eq('id', propertyId)
+            .single();
+        if (fetchError) throw fetchError;
+        const previousRate = existing ? parseFloat(existing.revenue_share_percent) : null;
+
         // Update property with new settings
         const isManaged = document.getElementById('settingsIsManaged')?.checked || false;
         const updateData = {
@@ -595,9 +605,39 @@ async function savePropertySettings() {
 
         if (error) throw error;
 
+        // If the commission rate changed, resync every active reservation on
+        // this property so revenue_share_percent and hostizzy_revenue reflect
+        // the new rate immediately. The RPC runs server-side in a single
+        // transaction (see sql/resync-property-commissions.sql).
+        let resyncCount = null;
+        let resyncError = null;
+        const rateChanged = previousRate == null || previousRate !== commissionRate;
+        if (rateChanged) {
+            const { data: count, error: rpcError } = await supabase
+                .rpc('resync_property_commissions', { p_property_id: parseInt(propertyId) });
+            if (rpcError) {
+                console.error('resync_property_commissions failed:', rpcError);
+                resyncError = rpcError;
+            } else {
+                resyncCount = count;
+            }
+        }
+
         // Success
-        showToast('✅ Property settings saved successfully!', 'success');
-        
+        if (rateChanged && resyncError) {
+            showToast(
+                `Property saved, but failed to resync existing reservations: ${resyncError.message}`,
+                'warning'
+            );
+        } else if (rateChanged && resyncCount != null) {
+            showToast(
+                `✅ Property saved. Resynced ${resyncCount} reservation(s) to the new commission rate.`,
+                'success'
+            );
+        } else {
+            showToast('✅ Property settings saved successfully!', 'success');
+        }
+
         // Close modal
         closePropertySettings();
 
