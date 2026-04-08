@@ -359,24 +359,26 @@ async function saveProperty() {
     try {
         const commissionRate = parseFloat(document.getElementById('propertyCommissionRate').value);
 
+        if (!document.getElementById('propertyName').value || !document.getElementById('propertyLocation').value) {
+            showToast('Validation Error', 'Please fill in all required fields', '❌');
+            return;
+        }
+
+        // Commission rate is required — no silent default. Without it we cannot
+        // compute hostizzy_revenue correctly for any reservation on this property.
+        if (isNaN(commissionRate) || commissionRate < 0 || commissionRate > 100) {
+            showToast('Validation Error', 'Commission rate is required and must be between 0 and 100%', '❌');
+            return;
+        }
+
         const property = {
             name: document.getElementById('propertyName').value,
             location: document.getElementById('propertyLocation').value,
             type: document.getElementById('propertyType').value,
             capacity: parseInt(document.getElementById('propertyCapacity').value),
-            revenue_share_percent: commissionRate || 15,
+            revenue_share_percent: commissionRate,
             is_managed: document.getElementById('propertyIsManaged')?.checked || false
         };
-
-        if (!property.name || !property.location) {
-            showToast('Validation Error', 'Please fill in all required fields', '❌');
-            return;
-        }
-
-        if (commissionRate < 0 || commissionRate > 100) {
-            showToast('Validation Error', 'Commission rate must be between 0 and 100%', '❌');
-            return;
-        }
 
         // Auto-set owner_id for external owners
         if (currentUser?.userType === 'owner' && currentUser?.is_external) {
@@ -465,8 +467,10 @@ async function openPropertySettings(propertyId) {
         };
         document.getElementById('settingsPropertyIcon').textContent = iconMap[property.type] || '🏠';
 
-        // Populate commission rate
-        document.getElementById('settingsCommissionRate').value = property.revenue_share_percent || 15;
+        // Populate commission rate. Show empty (not a fake default) when missing so
+        // the user must explicitly enter a value before saving.
+        document.getElementById('settingsCommissionRate').value =
+            property.revenue_share_percent != null ? property.revenue_share_percent : '';
 
         // Populate managed toggle
         const managedCheckbox = document.getElementById('settingsIsManaged');

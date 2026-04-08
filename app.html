@@ -2197,6 +2197,20 @@
                     </div>
                 </div>
 
+                <!-- 6b. Net Earnings (Hostizzy Revenue minus managed-property expenses) -->
+                <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: 10px; right: 10px; opacity: 0.15;">
+                        <i data-lucide="trending-up" style="width: 60px; height: 60px;"></i>
+                    </div>
+                    <div style="position: relative; z-index: 1;">
+                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9; margin-bottom: 8px;">
+                            <i data-lucide="piggy-bank" style="width: 14px; height: 14px; margin-right: 4px;"></i>Net Earnings
+                        </div>
+                        <div style="font-size: 28px; font-weight: 800; margin-bottom: 8px;" id="coreNetEarnings">₹0</div>
+                        <div style="font-size: 11px; opacity: 0.85;" id="coreNetEarningsSub">After managed expenses</div>
+                    </div>
+                </div>
+
                 <!-- 7. Avg Booking Value -->
                 <div class="stat-card" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; border: none; position: relative; overflow: hidden;">
                     <div style="position: absolute; top: 10px; right: 10px; opacity: 0.15;">
@@ -5539,8 +5553,8 @@
             </div>
             <div class="form-group">
                 <label>Hostizzy Commission Rate (%) *</label>
-                <input type="number" id="propertyCommissionRate" min="0" max="100" step="0.1" value="15" required>
-                <small style="color: var(--text-secondary);">Percentage of revenue retained by Hostizzy (0-100%). Default: 15%</small>
+                <input type="number" id="propertyCommissionRate" min="0" max="100" step="0.1" placeholder="e.g. 15" required>
+                <small style="color: var(--text-secondary);">Percentage of revenue retained by Hostizzy (0-100%). Required — no default.</small>
             </div>
             <div class="form-group" style="padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #93c5fd;">
                 <div style="display: flex; align-items: center; justify-content: space-between;">

@@ -1367,9 +1367,11 @@ async function loadOwnerPayouts() {
 
                 // Settlement calculation:
                 // Property Share = payout_eligible - commission (commission already deducted)
-                // Net Settlement = Property Share - Paid to Owner + Paid to Hostizzy - Expenses
+                // Net Settlement = Property Share - Paid to Owner + Paid to Hostizzy
+                // Expenses are P&L only — they never reduce a payout. monthExpenses is
+                // still surfaced in the settlement card for transparency.
                 // Positive = Hostizzy owes Owner, Negative = Owner owes Hostizzy
-                const netSettlement = propertyShare - totalToOwner + totalToHostizzy - monthExpenses;
+                const netSettlement = propertyShare - totalToOwner + totalToHostizzy;
 
                 monthlySettlements.push({
                     year,
@@ -1693,7 +1695,12 @@ async function loadOwnerProperties() {
         let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">';
 
         ownerData.properties.forEach(property => {
-            const commissionRate = parseFloat(property.revenue_share_percent) || 15;
+            // Show the stored revenue_share_percent directly. No silent fallback —
+            // a missing rate is a configuration issue and should be visible.
+            const rawRate = property.revenue_share_percent;
+            const commissionRateDisplay = rawRate != null && !isNaN(parseFloat(rawRate))
+                ? `${parseFloat(rawRate)}%`
+                : '<span style="color: var(--danger); font-size: 13px;">Not set</span>';
             html += `
                 <div class="card">
                     <h4 style="margin: 0 0 12px 0;">${property.name}</h4>
@@ -1701,7 +1708,7 @@ async function loadOwnerProperties() {
                     <p style="color: var(--text-secondary); margin: 0 0 12px 0; font-size: 13px;">${property.type || 'Property'} • ${property.capacity || 0} guests</p>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border);">
                         <span style="font-size: 13px; color: var(--text-secondary);">Hostizzy Commission</span>
-                        <strong style="color: var(--warning); font-size: 18px;">${commissionRate}%</strong>
+                        <strong style="color: var(--warning); font-size: 18px;">${commissionRateDisplay}</strong>
                     </div>
                 </div>
             `;

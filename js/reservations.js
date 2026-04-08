@@ -1727,6 +1727,12 @@ async function calculateHostizzyRevenue(stayAmount, extraGuestCharges) {
         }
 
         const revenueSharePercent = await db.getRevenueSharePercent(propertyId);
+        // No silent default — if the property has no rate set, leave the field blank
+        // and surface a warning. The user must fix the property before saving.
+        if (revenueSharePercent == null) {
+            document.getElementById('hostizzyRevenue').value = '';
+            return;
+        }
         const otaServiceFee = parseFloat(document.getElementById('otaServiceFee').value) || 0;
         // Revenue base: (stay - OTA fee + extra guest charges) * rev%
         // Don't earn commission on OTA's cut
@@ -1849,8 +1855,10 @@ async function saveReservation() {
             total_amount: totalAmount,
             damages: damages,
             hostizzy_revenue: parseFloat(document.getElementById('hostizzyRevenue').value) || 0,
-            host_payout: totalAmount - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
-            payout_eligible: totalAmount - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
+            // Owner share excludes taxes (GST is collected for the government, never paid out)
+            // and OTA service fee. Damages and meals/bonfire flow through to the owner.
+            host_payout: totalAmount - taxes - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
+            payout_eligible: totalAmount - taxes - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
             is_legacy: false,
             avg_room_rate: avgRoomRate,
             avg_nightly_rate: avgNightlyRate,
@@ -2547,8 +2555,10 @@ async function saveQuickEdit() {
             total_amount: totalAmount,
             damages: damages,
             hostizzy_revenue: parseFloat(document.getElementById('qeHostizzyRevenue').value) || 0,
-            host_payout: totalAmount - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
-            payout_eligible: totalAmount - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
+            // Owner share excludes taxes (GST is collected for the government, never paid out)
+            // and OTA service fee. Damages and meals/bonfire flow through to the owner.
+            host_payout: totalAmount - taxes - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
+            payout_eligible: totalAmount - taxes - (parseFloat(document.getElementById('qeOtaFee').value) || 0),
             is_legacy: false,
             avg_room_rate: nights > 0 ? stayAmount / nights : 0,
             avg_nightly_rate: nights > 0 ? totalAmount / nights : 0

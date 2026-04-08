@@ -438,8 +438,10 @@ function transformCSVRow(row) {
         total_amount_inc_tax: totalAmountIncTax,
         total_amount: totalAmount,
         hostizzy_revenue: parseFloat(row.hostizzy_revenue) || 0,
-        host_payout: totalAmount - otaServiceFee,
-        payout_eligible: totalAmount - otaServiceFee,
+        // Owner share excludes taxes (GST is collected for the government, never paid out)
+        // and OTA service fee. Damages and meals/bonfire flow through to the owner.
+        host_payout: totalAmount - taxes - otaServiceFee,
+        payout_eligible: totalAmount - taxes - otaServiceFee,
         is_legacy: false,
         avg_room_rate: avgRoomRate,
         avg_nightly_rate: avgNightlyRate,

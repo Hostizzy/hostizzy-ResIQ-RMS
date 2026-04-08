@@ -65,11 +65,20 @@
             },
             async getRevenueSharePercent(propertyId) {
                 const { data, error } = await supabase
-                .from('properties')
-                .select('revenue_share_percent')
-                .eq('id', propertyId)
-                .single();
-            return data?.revenue_share_percent || 20; // Default 20% if not set
+                    .from('properties')
+                    .select('revenue_share_percent, name')
+                    .eq('id', propertyId)
+                    .single();
+                if (error) throw error;
+                // No silent default. A missing rate is a configuration bug — surface it
+                // loudly so the property gets fixed instead of fabricating a 20% commission.
+                if (data?.revenue_share_percent == null) {
+                    const msg = `Property "${data?.name || propertyId}" has no revenue_share_percent set. Commission cannot be computed — please set a rate on the property before saving reservations.`;
+                    console.error(msg);
+                    if (typeof showToast === 'function') showToast(msg, 'error');
+                    return null;
+                }
+                return data.revenue_share_percent;
             },
 
             async saveReservation(reservation) {
