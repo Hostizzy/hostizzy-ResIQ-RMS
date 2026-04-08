@@ -700,19 +700,27 @@ async function loadPnL() {
         });
     }
 
-    // Get date range from period filter
+    // Get date range from period filter.
+    // Both startDate and endDate are bounded (inclusive) so the report does not
+    // silently include future-dated bookings or expenses.
     const period = document.getElementById('pnlPeriodFilter')?.value || 'year';
     const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
     let startDate = null;
+    let endDate = todayStr;
 
     if (period === 'current') {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
     } else if (period === 'last') {
         startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+        endDate = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
     } else if (period === 'quarter') {
         startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString().split('T')[0];
+        endDate = todayStr;
     } else if (period === 'year') {
         startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+        endDate = todayStr;
     }
 
     const selectedProperty = document.getElementById('pnlPropertyFilter')?.value;
@@ -721,17 +729,20 @@ async function loadPnL() {
     // Fetch reservations
     let reservations = allReservations || [];
     if (startDate) {
-        reservations = reservations.filter(r => r.check_in >= startDate);
+        reservations = reservations.filter(r => r.check_in >= startDate && r.check_in <= endDate);
     }
+    // Filter cancelled reservations using the canonical `status` field.
+    // (The previous `r.booking_status` field does not exist on the schema, so the
+    //  old filter was a no-op and silently included cancelled bookings in P&L.)
     reservations = reservations.filter(r =>
         propertyIds.includes(r.property_id) &&
-        r.booking_status !== 'cancelled'
+        r.status !== 'cancelled'
     );
 
     // Fetch expenses
     let expenses = await db.getAllExpenses(propertyIds);
     if (startDate) {
-        expenses = expenses.filter(e => e.expense_date >= startDate);
+        expenses = expenses.filter(e => e.expense_date >= startDate && e.expense_date <= endDate);
     }
 
     // Build property lookup (including is_managed flag)

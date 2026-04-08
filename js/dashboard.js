@@ -260,16 +260,26 @@ async function loadDashboard() {
         allReservations = dataCache.get('reservations') || await db.getReservations();
         allPayments = dataCache.get('payments') || await db.getAllPayments();
         const properties = dataCache.get('properties') || await db.getProperties();
+        // Expenses are needed for the "Net Earnings" KPI (managed-property expenses).
+        // db.getAllExpenses() may throw if the property_expenses table doesn't yet exist
+        // on this tenant — fall back to an empty array so the dashboard still loads.
+        let allExpenses = dataCache.get('expenses');
+        if (!allExpenses) {
+            try { allExpenses = await db.getAllExpenses(); }
+            catch (e) { console.warn('getAllExpenses failed, defaulting to []:', e?.message); allExpenses = []; }
+        }
 
         // Ensure cache is populated for next load
         if (!dataCache.get('reservations')) dataCache.set('reservations', allReservations);
         if (!dataCache.get('payments')) dataCache.set('payments', allPayments);
         if (!dataCache.get('properties')) dataCache.set('properties', properties);
+        if (!dataCache.get('expenses')) dataCache.set('expenses', allExpenses);
 
         // Update global state for home screen
         state.reservations = allReservations;
         state.properties = properties;
         state.payments = allPayments;
+        state.expenses = allExpenses;
 
         // Apply default "This Month" filter — this populates Core Metrics,
         // Activity Widgets, Revenue Split, and Action Center
@@ -366,7 +376,7 @@ function getDashboardDateRange(range) {
 }
 
 // Render all 8 Core Metric cards with correct period comparison
-function renderCoreMetrics(currentRes, prevRes, allPaymentsData, targetNights, periodLabel) {
+function renderCoreMetrics(currentRes, prevRes, allPaymentsData, targetNights, periodLabel, managedExpensesInPeriod = 0) {
     const cur = currentRes.filter(r => r.status !== 'cancelled');
     const prev = prevRes.filter(r => r.status !== 'cancelled');
 
@@ -411,6 +421,23 @@ function renderCoreMetrics(currentRes, prevRes, allPaymentsData, targetNights, p
     animateValue(document.getElementById('coreCollectionRate'), collectionRate, 700, '', '%');
     document.getElementById('coreCollectionAmount').textContent = formatCurrency(collected) + ' collected';
     animateValue(document.getElementById('coreHostizzyRevenue'), hostizzyRev, 900, '₹');
+
+    // Net Earnings = Hostizzy Revenue − managed-property expenses for this period.
+    // Managed properties absorb their operational expenses out of Hostizzy's commission;
+    // non-managed property expenses are P&L for the owner only and are not subtracted here.
+    const netEarnings = hostizzyRev - (managedExpensesInPeriod || 0);
+    const netEarningsEl = document.getElementById('coreNetEarnings');
+    if (netEarningsEl) animateValue(netEarningsEl, netEarnings, 900, '₹');
+    const netEarningsSubEl = document.getElementById('coreNetEarningsSub');
+    if (netEarningsSubEl) {
+        if (managedExpensesInPeriod > 0) {
+            netEarningsSubEl.textContent =
+                `₹${Math.round(hostizzyRev).toLocaleString('en-IN')} − ₹${Math.round(managedExpensesInPeriod).toLocaleString('en-IN')} mgd. exp.`;
+        } else {
+            netEarningsSubEl.textContent = 'No managed expenses this period';
+        }
+    }
+
     animateValue(document.getElementById('coreAvgBooking'), avgBooking, 800, '₹');
     document.getElementById('coreBookingCount').textContent     = `From ${cur.length} bookings`;
     animateValue(document.getElementById('coreTotalNights'), totalNights, 700);
@@ -448,7 +475,19 @@ async function applyDashboardDateFilter(range) {
     const properties = state.properties || await db.getProperties();
     const targetNights = properties.length * (typeof TARGET_OCCUPANCY_NIGHTS !== 'undefined' ? TARGET_OCCUPANCY_NIGHTS : 30);
 
-    renderCoreMetrics(currentRes, prevRes, allPayments, targetNights, label);
+    // Compute managed-property expenses within the active period for the Net Earnings KPI.
+    // For all-time (start === null) we sum every managed expense; otherwise bound by [start, end].
+    const managedPropertyIds = new Set((properties || []).filter(p => p.is_managed).map(p => p.id));
+    const managedExpensesInPeriod = (state.expenses || [])
+        .filter(e => managedPropertyIds.has(e.property_id))
+        .filter(e => {
+            if (!start) return true;
+            const d = new Date(e.expense_date);
+            return d >= start && d <= end;
+        })
+        .reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+
+    renderCoreMetrics(currentRes, prevRes, allPayments, targetNights, label, managedExpensesInPeriod);
 
     // Also update activity widgets and action center with filtered scope
     populateDashboardWidgets(allReservations, allPayments); // widgets always show today regardless of period

@@ -359,24 +359,26 @@ async function saveProperty() {
     try {
         const commissionRate = parseFloat(document.getElementById('propertyCommissionRate').value);
 
+        if (!document.getElementById('propertyName').value || !document.getElementById('propertyLocation').value) {
+            showToast('Validation Error', 'Please fill in all required fields', '❌');
+            return;
+        }
+
+        // Commission rate is required — no silent default. Without it we cannot
+        // compute hostizzy_revenue correctly for any reservation on this property.
+        if (isNaN(commissionRate) || commissionRate < 0 || commissionRate > 100) {
+            showToast('Validation Error', 'Commission rate is required and must be between 0 and 100%', '❌');
+            return;
+        }
+
         const property = {
             name: document.getElementById('propertyName').value,
             location: document.getElementById('propertyLocation').value,
             type: document.getElementById('propertyType').value,
             capacity: parseInt(document.getElementById('propertyCapacity').value),
-            revenue_share_percent: commissionRate || 15,
+            revenue_share_percent: commissionRate,
             is_managed: document.getElementById('propertyIsManaged')?.checked || false
         };
-
-        if (!property.name || !property.location) {
-            showToast('Validation Error', 'Please fill in all required fields', '❌');
-            return;
-        }
-
-        if (commissionRate < 0 || commissionRate > 100) {
-            showToast('Validation Error', 'Commission rate must be between 0 and 100%', '❌');
-            return;
-        }
 
         // Auto-set owner_id for external owners
         if (currentUser?.userType === 'owner' && currentUser?.is_external) {
@@ -465,8 +467,10 @@ async function openPropertySettings(propertyId) {
         };
         document.getElementById('settingsPropertyIcon').textContent = iconMap[property.type] || '🏠';
 
-        // Populate commission rate
-        document.getElementById('settingsCommissionRate').value = property.revenue_share_percent || 15;
+        // Populate commission rate. Show empty (not a fake default) when missing so
+        // the user must explicitly enter a value before saving.
+        document.getElementById('settingsCommissionRate').value =
+            property.revenue_share_percent != null ? property.revenue_share_percent : '';
 
         // Populate managed toggle
         const managedCheckbox = document.getElementById('settingsIsManaged');
@@ -569,6 +573,16 @@ async function savePropertySettings() {
         saveButton.innerHTML = '⏳ Saving...';
         saveButton.disabled = true;
 
+        // Capture the previous commission rate so we can detect changes and
+        // resync existing reservations only when the rate actually changed.
+        const { data: existing, error: fetchError } = await supabase
+            .from('properties')
+            .select('revenue_share_percent')
+            .eq('id', propertyId)
+            .single();
+        if (fetchError) throw fetchError;
+        const previousRate = existing ? parseFloat(existing.revenue_share_percent) : null;
+
         // Update property with new settings
         const isManaged = document.getElementById('settingsIsManaged')?.checked || false;
         const updateData = {
@@ -591,9 +605,39 @@ async function savePropertySettings() {
 
         if (error) throw error;
 
+        // If the commission rate changed, resync every active reservation on
+        // this property so revenue_share_percent and hostizzy_revenue reflect
+        // the new rate immediately. The RPC runs server-side in a single
+        // transaction (see sql/resync-property-commissions.sql).
+        let resyncCount = null;
+        let resyncError = null;
+        const rateChanged = previousRate == null || previousRate !== commissionRate;
+        if (rateChanged) {
+            const { data: count, error: rpcError } = await supabase
+                .rpc('resync_property_commissions', { p_property_id: parseInt(propertyId) });
+            if (rpcError) {
+                console.error('resync_property_commissions failed:', rpcError);
+                resyncError = rpcError;
+            } else {
+                resyncCount = count;
+            }
+        }
+
         // Success
-        showToast('✅ Property settings saved successfully!', 'success');
-        
+        if (rateChanged && resyncError) {
+            showToast(
+                `Property saved, but failed to resync existing reservations: ${resyncError.message}`,
+                'warning'
+            );
+        } else if (rateChanged && resyncCount != null) {
+            showToast(
+                `✅ Property saved. Resynced ${resyncCount} reservation(s) to the new commission rate.`,
+                'success'
+            );
+        } else {
+            showToast('✅ Property settings saved successfully!', 'success');
+        }
+
         // Close modal
         closePropertySettings();
 

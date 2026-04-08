@@ -365,9 +365,15 @@ function renderPreview() {
 }
 
 /**
- * Transform a raw CSV row into a proper reservation object for the database
+ * Transform a raw CSV row into a proper reservation object for the database.
+ *
+ * propertyByName (optional): { [lowercased trimmed name]: propertyRecord }
+ *   Used to snapshot revenue_share_percent into the new reservation row,
+ *   matching the saveReservation / saveQuickEdit behavior. If a non-cancelled
+ *   row references a property whose rate is null/missing, this throws so the
+ *   caller can surface the row as a failure (no silent default).
  */
-function transformCSVRow(row) {
+function transformCSVRow(row, propertyByName = {}) {
     const stayAmount = parseFloat(row.stay_amount) || 0;
     const extraGuestCharges = parseFloat(row.extra_guest_charges) || 0;
     const mealsChef = parseFloat(row.meals_chef) || 0;
@@ -393,6 +399,19 @@ function transformCSVRow(row) {
 
     const avgRoomRate = nights > 0 ? stayAmount / nights : 0;
     const avgNightlyRate = nights > 0 ? totalAmount / nights : 0;
+
+    // Resolve the property record so we can snapshot its commission rate.
+    // No silent default — if a non-cancelled row references a property without
+    // a configured rate, fail loud (caught upstream and reported per row).
+    const status = (row.status || 'confirmed').toLowerCase();
+    const propertyKey = (row.property_name || '').toLowerCase().trim();
+    const propertyRecord = propertyByName[propertyKey] || null;
+    const propertyRate = propertyRecord ? propertyRecord.revenue_share_percent : null;
+    if (status !== 'cancelled' && (propertyRate == null || propertyRate === '')) {
+        throw new Error(
+            `Property "${row.property_name || '(missing)'}" has no commission rate set; configure revenue_share_percent before importing`
+        );
+    }
 
     // Generate booking_id if not provided
     let bookingId = row.booking_id;
@@ -438,8 +457,13 @@ function transformCSVRow(row) {
         total_amount_inc_tax: totalAmountIncTax,
         total_amount: totalAmount,
         hostizzy_revenue: parseFloat(row.hostizzy_revenue) || 0,
-        host_payout: totalAmount - otaServiceFee,
-        payout_eligible: totalAmount - otaServiceFee,
+        // Snapshot the property's commission rate at import time so the row stays
+        // in sync with properties.revenue_share_percent.
+        revenue_share_percent: propertyRate,
+        // Owner share excludes taxes (GST is collected for the government, never paid out)
+        // and OTA service fee. Damages and meals/bonfire flow through to the owner.
+        host_payout: totalAmount - taxes - otaServiceFee,
+        payout_eligible: totalAmount - taxes - otaServiceFee,
         is_legacy: false,
         avg_room_rate: avgRoomRate,
         avg_nightly_rate: avgNightlyRate,
@@ -462,17 +486,22 @@ async function startImport() {
     let imported = 0;
     let errors = [];
 
-    // Build property name → id lookup map
+    // Build property name → id lookup map AND name → full record lookup
+    // (the second is used by transformCSVRow to snapshot revenue_share_percent
+    // onto each new reservation row).
     const properties = state.properties || await db.getProperties();
     const propertyMap = {};
+    const propertyByName = {};
     properties.forEach(p => {
-        propertyMap[p.name.toLowerCase().trim()] = p.id;
+        const key = p.name.toLowerCase().trim();
+        propertyMap[key] = p.id;
+        propertyByName[key] = p;
     });
 
     // Transform all rows before import
     const transformedRows = validRows.map((row, idx) => {
         try {
-            const transformed = transformCSVRow(row);
+            const transformed = transformCSVRow(row, propertyByName);
             // Look up property_id from property_name
             if (transformed.property_name) {
                 const pid = propertyMap[transformed.property_name.toLowerCase().trim()];
