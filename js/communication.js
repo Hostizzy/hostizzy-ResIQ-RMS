@@ -1105,11 +1105,22 @@ async function processGmailBookingEmail(messageId) {
             return { created: false, updated: true, skipped: false };
         }
 
-        // Check 2: Duplicate by (check_in OR check_out), scoped to property if matched
+        // Check 2: Duplicate by (check_in OR check_out), scoped to property if matched.
+        //
+        // Round 5 change: if the matching row is an un-enriched iCal SHELL
+        // (created by createReservationsFromIcal — has ical_uid set and all
+        // financial fields null), MERGE this email's data into it instead of
+        // skipping. Overwrite booking_id with the human-readable OTA code the
+        // email carries, fill in the financials, but PRESERVE ical_uid so the
+        // next iCal sync can still match this row and diff it.
+        //
+        // If the row is NOT a shell (financial data already present, either
+        // from manual entry or a prior email merge), still skip — manual
+        // entries must not be clobbered.
         if (bookingData.check_in || bookingData.check_out) {
             let query = supabase
                 .from('reservations')
-                .select('id, booking_id, guest_name, property_name, check_in, check_out');
+                .select('id, booking_id, guest_name, property_name, property_id, check_in, check_out, ical_uid, stay_amount, total_amount, payout_eligible');
 
             // Scope to property if we matched one
             if (bookingData.property_id) {
@@ -1126,7 +1137,40 @@ async function processGmailBookingEmail(messageId) {
 
             const { data: dupes } = await query;
             if (dupes && dupes.length > 0) {
-                console.log(`[Gmail] Duplicate skipped: dates match existing reservation(s):`, dupes.map(r => `${r.booking_id} (${r.check_in}→${r.check_out})`));
+                // Prefer an exact date pair if one exists (tighter match)
+                const exactMatch = dupes.find(d =>
+                    d.check_in === bookingData.check_in && d.check_out === bookingData.check_out
+                );
+                const target = exactMatch || dupes[0];
+
+                const isShell = target.ical_uid != null
+                    && target.stay_amount == null
+                    && target.total_amount == null
+                    && target.payout_eligible == null;
+
+                if (isShell) {
+                    // Merge into the shell. Copy every financial/guest field
+                    // the email carries, but KEEP ical_uid intact.
+                    const merge = { ...bookingData };
+                    delete merge.ical_uid;          // never overwrite
+                    delete merge.property_id;       // keep the shell's property
+                    delete merge.property_name;
+                    merge.updated_at = new Date().toISOString();
+
+                    const { error: mergeError } = await supabase
+                        .from('reservations')
+                        .update(merge)
+                        .eq('id', target.id);
+
+                    if (mergeError) {
+                        console.error('[Gmail] Failed to merge into iCal shell:', mergeError);
+                        return { created: false, updated: false, skipped: true };
+                    }
+                    console.log(`[Gmail] ✓ Merged into iCal shell id=${target.id}, booking_id ${target.booking_id} → ${bookingData.booking_id}`);
+                    return { created: false, updated: true, skipped: false };
+                }
+
+                console.log(`[Gmail] Duplicate skipped (existing row already enriched):`, dupes.map(r => `${r.booking_id} (${r.check_in}→${r.check_out})`));
                 return { created: false, updated: false, skipped: true };
             }
         }

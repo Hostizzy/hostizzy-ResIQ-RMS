@@ -708,141 +708,63 @@ async function fetchAndParseIcal(icalUrl) {
 }
 
 /**
- * Parse iCal data and extract blocked dates + reservation events
+ * Parse iCal data and extract blocked dates + reservation events.
+ *
+ * Round 5: delegates to IcalParser.parseICS() (js/ical-parser.js), which
+ * is a proper RFC 5545 line-based parser with line-unfolding and
+ * parameter-safe extraction. This function exists as a thin adapter to
+ * preserve the return shape the rest of js/properties.js (saveSyncedDates,
+ * syncPropertyNow) expects: a unique sorted date list with a
+ * `.reservationEvents` side-channel.
  */
 function parseIcalData(icalText) {
+    if (typeof IcalParser === 'undefined') {
+        console.error('[iCal] IcalParser not loaded — check js/ical-parser.js script tag');
+        return Object.assign([], { reservationEvents: [] });
+    }
+
+    const { events, errors } = IcalParser.parseICS(icalText);
+    if (errors.length > 0) {
+        console.warn('[iCal] Parser warnings:', errors);
+    }
+    console.log(`[iCal] Feed contains ${events.length} valid VEVENT blocks`);
+
+    const reservationEvents = [];
     const blockedDates = [];
-    const reservationEvents = []; // NEW: Store full event data for reservation creation
 
-    try {
-        // Split by VEVENT blocks
-        const events = icalText.split('BEGIN:VEVENT');
-        console.log(`[iCal] Feed contains ${events.length - 1} VEVENT blocks`);
+    for (const ev of events) {
+        console.log(`[iCal] Event: "${ev.summary}" | ${ev.dtstart} → ${ev.dtend} | UID=${ev.uid?.substring(0, 30)}... | class=${ev.classification}`);
 
-        for (let i = 1; i < events.length; i++) {
-            const eventBlock = events[i].split('END:VEVENT')[0];
+        reservationEvents.push({
+            uid: ev.uid,
+            summary: ev.summary || 'Blocked by OTA',
+            description: ev.description || '',
+            check_in: ev.dtstart,
+            check_out: ev.dtend,
+            lastModified: ev.lastModified,
+            classification: ev.classification,
+        });
 
-            // Extract DTSTART and DTEND
-            const dtstart = extractIcalField(eventBlock, 'DTSTART');
-            const dtend = extractIcalField(eventBlock, 'DTEND');
-            const summary = extractIcalField(eventBlock, 'SUMMARY') || 'Blocked by OTA';
-            const uid = extractIcalField(eventBlock, 'UID') || `event_${i}`;
-            const description = extractIcalField(eventBlock, 'DESCRIPTION') || '';
-
-            console.log(`[iCal] Event ${i}: SUMMARY="${summary}", DTSTART="${dtstart}", DTEND="${dtend}", UID="${uid?.substring(0,30)}..."`);
-
-            if (dtstart && dtend) {
-                // Parse dates
-                const startDate = parseIcalDate(dtstart);
-                const endDate = parseIcalDate(dtend);
-
-                console.log(`[iCal] Event ${i}: Parsed check_in=${startDate}, check_out=${endDate}`);
-
-                if (startDate && endDate) {
-                    // Store full event data for reservation creation
-                    reservationEvents.push({
-                        uid: uid,
-                        summary: summary,
-                        description: description,
-                        check_in: startDate,
-                        check_out: endDate
-                    });
-
-                    // Get all dates in the range (inclusive start, exclusive end as per iCal spec)
-                    const dateRange = getDateRange(startDate, endDate);
-
-                    dateRange.forEach(date => {
-                        blockedDates.push({
-                            date: date,
-                            summary: summary,
-                            uid: uid,
-                            eventData: { check_in: startDate, check_out: endDate, description }
-                        });
-                    });
-                }
-            }
+        // Expand the date range for the synced_availability rows.
+        const dateRange = getDateRange(ev.dtstart, ev.dtend);
+        for (const date of dateRange) {
+            blockedDates.push({
+                date: date,
+                summary: ev.summary || 'Blocked by OTA',
+                uid: ev.uid,
+                eventData: {
+                    check_in: ev.dtstart,
+                    check_out: ev.dtend,
+                    description: ev.description,
+                },
+            });
         }
-
-        // Remove duplicates and sort
-        const uniqueDates = Array.from(new Map(blockedDates.map(d => [d.date, d])).values());
-        uniqueDates.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        // Attach reservation events to return object
-        uniqueDates.reservationEvents = reservationEvents;
-
-        return uniqueDates;
-
-    } catch (error) {
-        console.error('Error parsing iCal data:', error);
-        return [];
     }
-}
 
-/**
- * Extract field value from iCal event block
- */
-function extractIcalField(eventBlock, fieldName) {
-    // Match field with possible parameters (e.g., DTSTART;VALUE=DATE:20250101)
-    const regex = new RegExp(`${fieldName}[^:]*:(.+)`, 'i');
-    const match = eventBlock.match(regex);
-    
-    if (match && match[1]) {
-        return match[1].trim();
-    }
-    
-    return null;
-}
-
-/**
- * Parse iCal date format to YYYY-MM-DD with timezone handling
- * Supports: YYYYMMDD, YYYYMMDDTHHMMSS, YYYYMMDDTHHMMSSZ (UTC),
- *           and TZID parameter (e.g., DTSTART;TZID=Asia/Kolkata:20250105T100000)
- */
-function parseIcalDate(icalDate, eventBlock) {
-    try {
-        if (!icalDate) return null;
-        const cleanDate = icalDate.trim();
-
-        // Date-only format: YYYYMMDD (no time component, no timezone conversion needed)
-        if (/^\d{8}$/.test(cleanDate)) {
-            return `${cleanDate.substring(0, 4)}-${cleanDate.substring(4, 6)}-${cleanDate.substring(6, 8)}`;
-        }
-
-        // Extract YYYYMMDD and HHMMSS parts
-        const match = cleanDate.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$/);
-        if (!match) {
-            // Fallback: just take first 8 digits
-            const digits = cleanDate.replace(/\D/g, '');
-            if (digits.length >= 8) {
-                return `${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}`;
-            }
-            return null;
-        }
-
-        const [, year, month, day, hour, minute, second, isUTC] = match;
-
-        // If no time component matters (check-in/check-out are dates only),
-        // and it's a local time or has TZID, just use the date as-is
-        // Only convert if it's UTC (Z suffix) — convert to IST (UTC+5:30) for Indian properties
-        if (isUTC === 'Z') {
-            const utcDate = new Date(Date.UTC(
-                parseInt(year), parseInt(month) - 1, parseInt(day),
-                parseInt(hour), parseInt(minute), parseInt(second)
-            ));
-            // Convert to IST (UTC+5:30) — most properties are in India
-            utcDate.setMinutes(utcDate.getMinutes() + 330);
-            const y = utcDate.getUTCFullYear();
-            const m = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
-            const d = String(utcDate.getUTCDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-
-        // Local time or TZID — use the date as-is (already in local timezone)
-        return `${year}-${month}-${day}`;
-    } catch (error) {
-        console.error('Error parsing iCal date:', icalDate, error);
-        return null;
-    }
+    const uniqueDates = Array.from(new Map(blockedDates.map(d => [d.date, d])).values());
+    uniqueDates.sort((a, b) => new Date(a.date) - new Date(b.date));
+    uniqueDates.reservationEvents = reservationEvents;
+    return uniqueDates;
 }
 
 // UTC-safe date range: inclusive start, exclusive end (iCal spec)
@@ -915,210 +837,189 @@ async function saveSyncedDates(propertyId, blockedDates, source = 'ical') {
     }
 }
 
-/**
- * Create or update reservations from iCal events (AUTO-IMPORT)
- */
-/**
- * Detect iCal events that are OWNER blocks or maintenance — NOT real reservations.
- *
- * IMPORTANT: Airbnb/Booking.com use "Not available" or "Airbnb (Not available)"
- * for ACTUAL guest reservations in iCal (they don't share guest names for privacy).
- * So we must NOT block these. Only block events with explicit owner/maintenance terms.
- */
-function isBlockedEvent(event) {
-    if (!event.summary) return false;
-    const s = event.summary.toUpperCase().trim();
+// =====================================================
+// ROUND 5 — iCal sync (diff-based)
+// =====================================================
+// New flow vs. the old per-event INSERT/UPDATE loop:
+//
+//   1. Query existing reservations for this property that have an
+//      ical_uid set and aren't cancelled. That's our "previous sync"
+//      snapshot — no separate snapshot table needed.
+//
+//   2. Walk the parsed feed once and diff against the snapshot:
+//        newUIDs       → INSERT a fresh shell
+//        modifiedUIDs  → UPDATE if feed.lastModified newer than stored
+//        cancelledUIDs → mark status='cancelled' + applyCancellationCleanup
+//                        (existing UIDs no longer present in the feed)
+//
+//   3. Events whose classification is 'blocked' (owner/maintenance
+//      holds) never become reservations — they only show up in the
+//      synced_availability table via saveSyncedDates.
+//
+//   4. Full UID is stored in ical_uid (TEXT). booking_id starts out as
+//      the UID too, but gets overwritten to the human-readable OTA
+//      reference later when processGmailBookingEmail merges the
+//      confirmation email into the shell. Email merge preserves
+//      ical_uid so future syncs can still diff-match this row.
+// =====================================================
 
-    // Only block events that are CLEARLY owner actions or maintenance
-    // NOT "Not available" / "Unavailable" — OTAs use these for real bookings!
-    const blockedPatterns = [
-        'OWNER BLOCK',
-        'OWNER STAY',
-        'OWNER HOLD',
-        'MAINTENANCE',
-        'PROPERTY CLOSED',
-    ];
+// Derive guest_name + booking_source from the event SUMMARY.
+// Airbnb uses privacy strings ("Not available", "Reserved") for real
+// bookings; booking.com / direct feeds may include an actual name.
+function deriveGuestNameAndSource(event) {
+    let guestName = 'Guest';
+    let bookingSource = 'OTHER';
+    if (!event.summary) return { guestName, bookingSource };
 
-    return blockedPatterns.some(pattern => s.includes(pattern));
+    const summaryUpper = event.summary.toUpperCase();
+    if (summaryUpper.includes('AIRBNB')) {
+        bookingSource = 'AIRBNB';
+    } else if (summaryUpper.includes('BOOKING') || summaryUpper.includes('AGODA')) {
+        bookingSource = 'AGODA/BOOKING.COM';
+    } else if (summaryUpper.includes('MMT') || summaryUpper.includes('GOIBIBO') || summaryUpper.includes('MAKEMYTRIP')) {
+        bookingSource = 'MMT/GOIBIBO';
+    } else if (summaryUpper.includes('DIRECT')) {
+        bookingSource = 'DIRECT';
+    } else if (summaryUpper === 'RESERVED' || summaryUpper === 'BOOKED') {
+        bookingSource = 'AIRBNB';
+    }
+
+    const privacySummaries = ['NOT AVAILABLE', 'UNAVAILABLE', 'RESERVED', 'BOOKED', 'CLOSED'];
+    const isPrivacySummary = privacySummaries.some(p => summaryUpper.includes(p));
+    if (isPrivacySummary) {
+        guestName = `${bookingSource} Guest`;
+    } else {
+        const nameMatch = event.summary.match(/^([^(]+)/);
+        if (nameMatch) guestName = nameMatch[1].trim();
+    }
+    return { guestName, bookingSource };
+}
+
+// Pick a sensible reservation.status from the check-in/check-out dates.
+function deriveStatusFromDates(checkIn, checkOut) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const ci = new Date(checkIn);
+    const co = new Date(checkOut);
+    if (co <= today) return 'checked-out';
+    if (ci <= today && co > today) return 'checked-in';
+    return 'confirmed';
 }
 
 async function createReservationsFromIcal(propertyId, reservationEvents, property) {
     if (!reservationEvents || reservationEvents.length === 0) {
-        return { created: 0, updated: 0, skipped: 0 };
+        return { created: 0, updated: 0, skipped: 0, cancelled: 0 };
     }
 
     let created = 0;
     let updated = 0;
     let skipped = 0;
+    let cancelled = 0;
 
     try {
-        console.log(`[iCal] Processing ${reservationEvents.length} reservation events for property ${propertyId}`);
+        console.log(`[iCal] Processing ${reservationEvents.length} events for property ${propertyId}`);
+
+        // ----------------------------------------------------------
+        // 1. Load the "previous sync" snapshot: every active
+        //    reservation on this property that has an ical_uid.
+        // ----------------------------------------------------------
+        const { data: existingRows, error: loadError } = await supabase
+            .from('reservations')
+            .select('id, ical_uid, ical_last_modified, check_in, check_out, status, guest_name, booking_source, stay_amount, total_amount')
+            .eq('property_id', propertyId)
+            .not('ical_uid', 'is', null)
+            .neq('status', 'cancelled');
+
+        if (loadError) {
+            console.error('[iCal] Failed to load existing reservations for diff:', loadError);
+            return { created: 0, updated: 0, skipped: 0, cancelled: 0, error: loadError.message };
+        }
+
+        const existingByUid = new Map();
+        for (const row of (existingRows || [])) {
+            if (row.ical_uid) existingByUid.set(row.ical_uid, row);
+        }
+        console.log(`[iCal] Previous sync snapshot: ${existingByUid.size} reservation(s) with ical_uid`);
+
+        // ----------------------------------------------------------
+        // 2. Walk the feed. Track which UIDs we saw so we can compute
+        //    the cancelled set after the loop.
+        // ----------------------------------------------------------
+        const seenUids = new Set();
+        const truncatedPropertyName = property.name ? property.name.substring(0, 50) : '';
+
         for (const event of reservationEvents) {
-            console.log(`[iCal] → Event: "${event.summary}" | ${event.check_in} → ${event.check_out} | UID: ${event.uid?.substring(0,30)}`);
+            if (!event.uid || !event.check_in || !event.check_out) {
+                console.log(`[iCal]   ✗ Skipping event missing uid/dates`);
+                skipped++;
+                continue;
+            }
+            seenUids.add(event.uid);
 
-            // Skip blocked/unavailable dates — not real guest reservations
-            if (isBlockedEvent(event)) {
-                console.log(`[iCal]   ✗ BLOCKED (matched blocked pattern)`);
+            // Blocked events (owner holds / maintenance) do not become
+            // reservations. They still drive synced_availability via
+            // saveSyncedDates. Skip here.
+            if (event.classification === 'blocked') {
+                console.log(`[iCal]   · BLOCKED (owner/maintenance) "${event.summary}" — not creating reservation`);
                 skipped++;
                 continue;
             }
 
-            // Parse guest name and booking source from SUMMARY
-            // Airbnb iCal: "Airbnb (Not available)" or "Reserved" (no guest name shared)
-            // Booking.com: "CLOSED - Guest Name" or "Guest Name"
-            // Other OTAs: "Guest Name (AIRBNB)", "HMXXXXXXXXXX"
-            let guestName = 'Guest';
-            let bookingSource = 'OTHER';
-
-            if (event.summary) {
-                const summaryUpper = event.summary.toUpperCase();
-
-                // Detect booking source FIRST (needed for guest name logic)
-                if (summaryUpper.includes('AIRBNB')) {
-                    bookingSource = 'AIRBNB';
-                } else if (summaryUpper.includes('BOOKING') || summaryUpper.includes('AGODA')) {
-                    bookingSource = 'AGODA/BOOKING.COM';
-                } else if (summaryUpper.includes('MMT') || summaryUpper.includes('GOIBIBO') || summaryUpper.includes('MAKEMYTRIP')) {
-                    bookingSource = 'MMT/GOIBIBO';
-                } else if (summaryUpper.includes('DIRECT')) {
-                    bookingSource = 'DIRECT';
-                } else if (summaryUpper === 'RESERVED' || summaryUpper === 'BOOKED') {
-                    bookingSource = 'AIRBNB'; // Airbnb uses "Reserved" in their own feeds
-                }
-
-                // Extract guest name — handle OTA privacy summaries
-                const privacySummaries = ['NOT AVAILABLE', 'UNAVAILABLE', 'RESERVED', 'BOOKED', 'CLOSED'];
-                const isPrivacySummary = privacySummaries.some(p => summaryUpper.includes(p));
-
-                if (isPrivacySummary) {
-                    // OTA didn't share guest name — use source-based placeholder
-                    guestName = `${bookingSource} Guest`;
-                } else {
-                    // Extract guest name (text before parentheses or entire summary)
-                    const nameMatch = event.summary.match(/^([^(]+)/);
-                    if (nameMatch) {
-                        guestName = nameMatch[1].trim();
-                    }
-                }
-            }
-
-            // Use UID as booking_id (truncate to 50 chars to fit DB constraint)
-            const bookingId = event.uid.substring(0, 50);
-
-            // Calculate nights
+            const { guestName, bookingSource } = deriveGuestNameAndSource(event);
+            const truncatedGuestName = guestName.substring(0, 50);
             const nights = Math.ceil((new Date(event.check_out) - new Date(event.check_in)) / (1000 * 60 * 60 * 24));
-
-            // Check 1: Duplicate by booking_id (iCal UID)
-            const { data: existing, error: checkError } = await supabase
-                .from('reservations')
-                .select('*')
-                .eq('booking_id', bookingId)
-                .maybeSingle();
-
-            if (checkError && checkError.code !== 'PGRST116') {
-                console.error('Error checking existing reservation:', checkError);
-                skipped++;
-                continue;
-            }
-
-            if (existing) {
-                console.log(`[iCal]   ↻ UID match found → will UPDATE existing reservation (id: ${existing.id})`);
-            }
-
-            // Check 2: Duplicate by property + check_in AND check_out (both must match)
-            // Using AND prevents back-to-back reservations from being falsely flagged
-            // (e.g., Res A checkout=Jan5 should NOT block Res B checkin=Jan5)
-            if (!existing && event.check_in && event.check_out) {
-                const { data: dupes } = await supabase
-                    .from('reservations')
-                    .select('id, booking_id')
-                    .eq('property_id', propertyId)
-                    .eq('check_in', event.check_in)
-                    .eq('check_out', event.check_out);
-
-                if (dupes && dupes.length > 0) {
-                    console.log(`[iCal]   ✗ DUPLICATE by dates: check_in=${event.check_in} AND check_out=${event.check_out} match`, dupes.map(r => r.booking_id));
-                    skipped++;
-                    continue;
-                }
-            }
-
             const monthDate = new Date(event.check_in);
             const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+            const reservationStatus = deriveStatusFromDates(event.check_in, event.check_out);
 
-            // Truncate long fields to fit database VARCHAR(50) constraints
-            const truncatedGuestName = guestName.substring(0, 50);
-            const truncatedPropertyName = property.name.substring(0, 50);
-
-            // Determine status based on dates — past reservations should be 'checked-out'
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const checkOutDate = new Date(event.check_out);
-            const checkInDate = new Date(event.check_in);
-            let reservationStatus = 'confirmed';
-            if (checkOutDate <= today) {
-                reservationStatus = 'checked-out';
-            } else if (checkInDate <= today && checkOutDate > today) {
-                reservationStatus = 'checked-in';
-            }
-
-            // Prepare reservation data (partial - financial fields are null as per user request)
-            const reservationData = {
-                booking_id: bookingId,
-                property_id: propertyId,
-                property_name: truncatedPropertyName,
-                guest_name: truncatedGuestName,
-                guest_phone: '', // Not available in iCal - use empty string for NOT NULL constraint
-                guest_email: '', // Not available in iCal - use empty string for NOT NULL constraint
-                guest_city: '', // Not available in iCal - use empty string
-                check_in: event.check_in,
-                check_out: event.check_out,
-                booking_date: new Date().toISOString().split('T')[0],
-                month: month,
-                nights: nights,
-                booking_type: 'STAYCATION', // Default
-                booking_source: bookingSource,
-                status: reservationStatus,
-                // Financial fields - all null as requested
-                number_of_rooms: null,
-                adults: null,
-                kids: null,
-                number_of_guests: null,
-                stay_amount: null,
-                extra_guest_charges: null,
-                meals_chef: null,
-                bonfire_other: null,
-                ota_service_fee: null,
-                taxes: null,
-                total_amount_pre_tax: null,
-                total_amount_inc_tax: null,
-                total_amount: null,
-                damages: null,
-                hostizzy_revenue: null,
-                host_payout: null,
-                payout_eligible: null,
-                avg_room_rate: null,
-                avg_nightly_rate: null,
-                paid_amount: null,
-                payment_status: null,
-                gst_status: null
-            };
+            const existing = existingByUid.get(event.uid);
 
             if (existing) {
-                // UPDATE existing reservation (only dates and guest name, preserve financial data if entered)
+                // ------------------------------------------------------
+                // MODIFIED? Only update if something meaningful changed.
+                // We compare LAST-MODIFIED first (cheap); fall back to
+                // date comparison if the feed didn't provide it.
+                // ------------------------------------------------------
+                const feedTs = event.lastModified ? new Date(event.lastModified).getTime() : null;
+                const storedTs = existing.ical_last_modified ? new Date(existing.ical_last_modified).getTime() : null;
+
+                const lastModifiedChanged = feedTs && storedTs && feedTs > storedTs;
+                const datesChanged =
+                    existing.check_in !== event.check_in ||
+                    existing.check_out !== event.check_out;
+
+                if (!lastModifiedChanged && !datesChanged) {
+                    // Nothing meaningful changed — leave the row alone.
+                    // (Don't touch financial data; email-merge may have
+                    // populated it already.)
+                    console.log(`[iCal]   = UNCHANGED uid=${event.uid.substring(0, 30)}`);
+                    continue;
+                }
+
                 const updateData = {
                     check_in: event.check_in,
                     check_out: event.check_out,
                     nights: nights,
                     month: month,
-                    guest_name: truncatedGuestName, // Update name if changed (truncated)
-                    booking_source: bookingSource,
-                    updated_at: new Date().toISOString()
+                    ical_last_modified: event.lastModified || new Date().toISOString(),
+                    ical_classification: event.classification || null,
+                    updated_at: new Date().toISOString(),
                 };
-                // Auto-correct status for past reservations still marked as 'confirmed'
+
+                // Only bump guest_name / booking_source if the shell is
+                // still un-enriched. Once an email-merge has filled in
+                // real financial data we leave the enriched name alone.
+                const enriched = (existing.stay_amount != null || existing.total_amount != null);
+                if (!enriched) {
+                    updateData.guest_name = truncatedGuestName;
+                    updateData.booking_source = bookingSource;
+                }
+
+                // Auto-correct past reservations still sitting on 'confirmed'
                 if (existing.status === 'confirmed' && reservationStatus !== 'confirmed') {
                     updateData.status = reservationStatus;
                 }
+
                 const { error: updateError } = await supabase
                     .from('reservations')
                     .update(updateData)
@@ -1128,11 +1029,62 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                     console.error('[iCal]   ✗ UPDATE failed:', updateError);
                     skipped++;
                 } else {
-                    console.log(`[iCal]   ✓ UPDATED: ${event.check_in} → ${event.check_out} (${guestName})`);
+                    console.log(`[iCal]   ↻ UPDATED uid=${event.uid.substring(0, 30)} ${event.check_in} → ${event.check_out}`);
                     updated++;
                 }
             } else {
-                // CREATE new reservation
+                // ------------------------------------------------------
+                // NEW — insert a shell. Full UID stored in both
+                // ical_uid (sync key) and booking_id (display key;
+                // later overwritten by email-merge).
+                // ------------------------------------------------------
+                const reservationData = {
+                    booking_id: event.uid,
+                    ical_uid: event.uid,
+                    ical_last_modified: event.lastModified || new Date().toISOString(),
+                    ical_classification: event.classification || 'booked',
+                    property_id: propertyId,
+                    property_name: truncatedPropertyName,
+                    guest_name: truncatedGuestName,
+                    guest_phone: '',
+                    guest_email: '',
+                    guest_city: '',
+                    check_in: event.check_in,
+                    check_out: event.check_out,
+                    booking_date: new Date().toISOString().split('T')[0],
+                    month: month,
+                    nights: nights,
+                    booking_type: 'STAYCATION',
+                    booking_source: bookingSource,
+                    status: reservationStatus,
+                    // Financial fields intentionally null — will be
+                    // populated when the OTA confirmation email arrives
+                    // and processGmailBookingEmail merges into this shell.
+                    number_of_rooms: null,
+                    adults: null,
+                    kids: null,
+                    number_of_guests: null,
+                    stay_amount: null,
+                    extra_guest_charges: null,
+                    meals_chef: null,
+                    bonfire_other: null,
+                    ota_service_fee: null,
+                    taxes: null,
+                    total_amount_pre_tax: null,
+                    total_amount_inc_tax: null,
+                    total_amount: null,
+                    damages: null,
+                    hostizzy_revenue: null,
+                    host_payout: null,
+                    payout_eligible: null,
+                    revenue_share_percent: null,
+                    avg_room_rate: null,
+                    avg_nightly_rate: null,
+                    paid_amount: null,
+                    payment_status: null,
+                    gst_status: null,
+                };
+
                 const { error: insertError } = await supabase
                     .from('reservations')
                     .insert([reservationData]);
@@ -1141,17 +1093,47 @@ async function createReservationsFromIcal(propertyId, reservationEvents, propert
                     console.error('[iCal]   ✗ CREATE failed:', insertError);
                     skipped++;
                 } else {
-                    console.log(`[iCal]   ✓ CREATED: ${event.check_in} → ${event.check_out} (${guestName}) [status: ${reservationStatus}]`);
+                    console.log(`[iCal]   + CREATED uid=${event.uid.substring(0, 30)} ${event.check_in} → ${event.check_out} (${guestName}) [${reservationStatus}]`);
                     created++;
                 }
             }
         }
 
-        return { created, updated, skipped };
+        // ----------------------------------------------------------
+        // 3. CANCELLED = snapshot UIDs that did NOT appear in this
+        //    feed sync. Mark each one cancelled and purge financial
+        //    fields via the shared cleanup helper.
+        // ----------------------------------------------------------
+        for (const [uid, row] of existingByUid.entries()) {
+            if (seenUids.has(uid)) continue;
+
+            // applyCancellationCleanup lives in js/reservations.js and
+            // is loaded globally on the browser side. We pass a fresh
+            // object and let it null every non-essential field, then
+            // write the subset of columns we're actually touching.
+            const scrub = applyCancellationCleanup({});
+            scrub.status = 'cancelled';
+            scrub.updated_at = new Date().toISOString();
+
+            const { error: cancelError } = await supabase
+                .from('reservations')
+                .update(scrub)
+                .eq('id', row.id);
+
+            if (cancelError) {
+                console.error(`[iCal]   ✗ CANCEL failed uid=${uid.substring(0, 30)}:`, cancelError);
+                skipped++;
+            } else {
+                console.log(`[iCal]   × CANCELLED uid=${uid.substring(0, 30)} (vanished from feed)`);
+                cancelled++;
+            }
+        }
+
+        return { created, updated, skipped, cancelled };
 
     } catch (error) {
         console.error('Error creating reservations from iCal:', error);
-        return { created, updated, skipped, error: error.message };
+        return { created, updated, skipped, cancelled, error: error.message };
     }
 }
 
@@ -1265,6 +1247,7 @@ async function syncPropertyNow(propertyId, event) {
             const importMsg = [];
             if (importResult.created > 0) importMsg.push(`${importResult.created} created`);
             if (importResult.updated > 0) importMsg.push(`${importResult.updated} updated`);
+            if (importResult.cancelled > 0) importMsg.push(`${importResult.cancelled} cancelled`);
             if (importResult.skipped > 0) importMsg.push(`${importResult.skipped} skipped`);
 
             if (importMsg.length > 0) {

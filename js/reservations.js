@@ -1,5 +1,39 @@
 // ResIQ Reservations — View routing, home screen, search, reservation CRUD, wizard, bulk ops, automation
 
+// =====================================================
+// CANCELLATION CLEANUP
+// =====================================================
+// When a reservation is cancelled, purge every non-essential field.
+// Kept fields: booking_id, guest_name, guest_email, guest_phone,
+//              check_in, check_out, status, property_id, property_name,
+//              ical_uid, ical_last_modified (needed so future iCal syncs
+//              can still diff-match the cancelled row).
+//
+// Called by:
+//   - saveReservation (form save with status=cancelled)
+//   - saveQuickEdit   (inline quick-edit with status=cancelled)
+//   - createReservationsFromIcal (when a UID vanishes from an OTA feed)
+//
+// Mutates and returns the reservation object.
+function applyCancellationCleanup(reservation) {
+    const fieldsToNull = [
+        'booking_type', 'booking_date', 'month', 'nights',
+        'gst_status', 'gst_rate_mode', 'guest_city', 'booking_source',
+        'number_of_rooms', 'adults', 'kids', 'number_of_guests',
+        'stay_amount', 'extra_guest_charges', 'meals_chef', 'bonfire_other',
+        'ota_service_fee', 'taxes', 'total_amount_pre_tax',
+        'total_amount_inc_tax', 'total_amount', 'damages',
+        'hostizzy_revenue', 'revenue_share_percent',
+        'host_payout', 'payout_eligible',
+        'avg_room_rate', 'avg_nightly_rate',
+        'paid_amount', 'payment_status', 'last_reminder_date',
+    ];
+    for (const f of fieldsToNull) {
+        reservation[f] = null;
+    }
+    return reservation;
+}
+
 // Smart Automation Engine
 let automationIntervalId = null;
 
@@ -1890,41 +1924,11 @@ async function saveReservation() {
             payment_status: 'pending'
         };
 
-        // CANCELLED RESERVATION CLEANUP: Purge all data except essential fields
+        // CANCELLED RESERVATION CLEANUP: purge all non-essential fields.
+        // Keeps booking_id, guest contact, dates, status, property, and
+        // (post-Round-5) ical_uid so future iCal syncs can still match.
         if (bookingStatus === 'cancelled') {
-            // Keep only: booking_id, guest_name, guest_email, guest_phone,
-            //            check_in, check_out, status, property_id, property_name
-            reservation.booking_type = null;
-            reservation.booking_date = null;
-            reservation.month = null;
-            reservation.nights = null;
-            reservation.gst_status = null;
-            reservation.gst_rate_mode = null;
-            reservation.guest_city = null;
-            reservation.booking_source = null;
-            reservation.number_of_rooms = null;
-            reservation.adults = null;
-            reservation.kids = null;
-            reservation.number_of_guests = null;
-            reservation.stay_amount = null;
-            reservation.extra_guest_charges = null;
-            reservation.meals_chef = null;
-            reservation.bonfire_other = null;
-            reservation.ota_service_fee = null;
-            reservation.taxes = null;
-            reservation.total_amount_pre_tax = null;
-            reservation.total_amount_inc_tax = null;
-            reservation.total_amount = null;
-            reservation.damages = null;
-            reservation.hostizzy_revenue = null;
-            reservation.revenue_share_percent = null;
-            reservation.host_payout = null;
-            reservation.payout_eligible = null;
-            reservation.avg_room_rate = null;
-            reservation.avg_nightly_rate = null;
-            reservation.paid_amount = null;
-            reservation.payment_status = null;
-            reservation.last_reminder_date = null;
+            applyCancellationCleanup(reservation);
         }
         
         // Handle booking_id for both new and edited reservations
@@ -2619,17 +2623,10 @@ async function saveQuickEdit() {
             reservation.booking_id = reservationCode;
         }
 
-        // Cancelled reservation cleanup
+        // Cancelled reservation cleanup — shared with saveReservation and
+        // the iCal diff-based cancellation detection.
         if (bookingStatus === 'cancelled') {
-            const nullFields = ['booking_type', 'booking_date', 'month', 'nights', 'gst_status',
-                'gst_rate_mode', 'guest_city', 'booking_source', 'number_of_rooms', 'adults',
-                'kids', 'number_of_guests', 'stay_amount', 'extra_guest_charges', 'meals_chef',
-                'bonfire_other', 'ota_service_fee', 'taxes', 'total_amount_pre_tax',
-                'total_amount_inc_tax', 'total_amount', 'damages', 'hostizzy_revenue',
-                'revenue_share_percent', 'host_payout', 'payout_eligible',
-                'avg_room_rate', 'avg_nightly_rate',
-                'paid_amount', 'payment_status', 'last_reminder_date'];
-            nullFields.forEach(f => reservation[f] = null);
+            applyCancellationCleanup(reservation);
         }
 
         if (navigator.onLine) {
