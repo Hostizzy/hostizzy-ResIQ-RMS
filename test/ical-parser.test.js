@@ -154,6 +154,40 @@ const r2 = parseICS(ownerBlockFeed);
 assertEq('owner block classified as blocked (via DESCRIPTION)', r2.events[0]?.classification, 'blocked');
 
 // --------------------------------------------------
+section('6b. Owner block — empty DESCRIPTION (Airbnb privacy summary)');
+
+const emptyDescBlockFeed = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'BEGIN:VEVENT',
+    'DTSTART;VALUE=DATE:20250210',
+    'DTEND;VALUE=DATE:20250212',
+    'SUMMARY:Not available',
+    'UID:empty-desc-block@airbnb.com',
+    'DESCRIPTION:',
+    'END:VEVENT',
+    'END:VCALENDAR',
+].join('\r\n');
+
+const r2b = parseICS(emptyDescBlockFeed);
+assertEq('privacy summary + empty desc → blocked', r2b.events[0]?.classification, 'blocked');
+
+const noDescBlockFeed = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'BEGIN:VEVENT',
+    'DTSTART;VALUE=DATE:20250215',
+    'DTEND;VALUE=DATE:20250217',
+    'SUMMARY:Reserved',
+    'UID:no-desc-block@airbnb.com',
+    'END:VEVENT',
+    'END:VCALENDAR',
+].join('\r\n');
+
+const r2c = parseICS(noDescBlockFeed);
+assertEq('"Reserved" + no desc → blocked', r2c.events[0]?.classification, 'blocked');
+
+// --------------------------------------------------
 section('7. Multi-event feed with literal "BEGIN:VEVENT" inside DESCRIPTION');
 
 const trickyFeed = [

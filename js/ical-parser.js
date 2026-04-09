@@ -218,15 +218,39 @@
             if (summary.includes(kw) || desc.includes(kw)) return 'blocked';
         }
 
-        // Airbnb-specific: real reservations always have a reservation URL
-        // or an HM-prefixed confirmation code in the description.
-        if (desc.includes('RESERVATION URL') || /\bHM[A-Z0-9]{8,}\b/.test(desc)) {
+        // Reservation-indicator keywords in the DESCRIPTION prove
+        // this is a real guest booking (Airbnb, Booking.com, etc.).
+        const hasReservationIndicator =
+            desc.includes('RESERVATION URL') ||
+            /\bHM[A-Z0-9]{8,}\b/.test(desc) ||          // Airbnb HM code
+            desc.includes('PHONE') ||                     // "Phone (Last 4 Digits)"
+            desc.includes('CHECKIN') ||                   // Airbnb structured desc
+            desc.includes('CHECKOUT') ||
+            desc.includes('CONFIRMATION') ||              // OTA confirmation #
+            desc.includes('BOOKING NUMBER') ||
+            desc.includes('GUEST');                        // "Guest name"
+
+        if (hasReservationIndicator) {
             return 'booked';
         }
 
-        // Default: treat as booked. This matches Airbnb's privacy-mode
-        // summaries ("Not available", "Reserved", "CLOSED - ...") which
-        // are the norm for real guest stays.
+        // Airbnb-style privacy summaries ("Not available", "Reserved",
+        // "Airbnb (Not available)") WITHOUT any reservation indicator
+        // in the DESCRIPTION → this is an owner-blocked date, not a
+        // real booking. Airbnb always populates DESCRIPTION with phone
+        // digits / email / reservation URL for real guest stays.
+        const privacySummary = /\b(NOT AVAILABLE|UNAVAILABLE|RESERVED)\b/.test(summary);
+        if (privacySummary && desc.trim().length === 0) {
+            return 'blocked';
+        }
+        // Even with a non-empty description, if it's a privacy summary
+        // and lacks any reservation indicator, treat as blocked.
+        if (privacySummary && !hasReservationIndicator) {
+            return 'blocked';
+        }
+
+        // Default: non-privacy summaries (actual guest names, OTA
+        // booking references like "CLOSED - John Doe") → booked.
         return 'booked';
     }
 
