@@ -1569,22 +1569,66 @@ function parseAgodaEmail(body, subject) {
     m = body.match(/No\.\s*of Rooms?\s+(\d+)/i) || body.match(/(\d+)\s*Room\(?s?\)?/i);
     extracted.rooms = m ? m[1] : null;
 
-    // Financial: "INR\n31,468.50" or "INR 32,642.50"
-    // First INR amount is usually room rate, second is net rate
-    const inrAmounts = [];
-    const inrPattern = /INR\s*([0-9,.]+)/gi;
-    let im;
-    while ((im = inrPattern.exec(body)) !== null) {
-        inrAmounts.push(im[1]);
+    // -------------------------------------------------------
+    // Financial fields — Agoda host emails have a detailed
+    // breakdown. Example:
+    //
+    //   February 28, 2026      INR 31,468.50   (room rate)
+    //   Cleaning Service Fee   INR 1,174.00    (extra charge)
+    //   Reference sell rate    INR 38,350.00   (total incl tax)
+    //   Commission             INR -5,512.50   (OTA fee)
+    //   TDS                    INR -32.50
+    //   TCS                    INR -162.50
+    //   Net rate               INR 32,642.50   (host payout)
+    // -------------------------------------------------------
+
+    // Total: "Reference sell rate (incl. taxes & fees) INR 38,350.00"
+    m = body.match(/Reference sell rate[^I]*?INR\s*([0-9,.]+)/i)
+     || body.match(/Total (?:Amount|Rate|Price)[^I]*?INR\s*([0-9,.]+)/i);
+    extracted.total = m ? m[1] : null;
+
+    // Net rate (host payout): "Net rate (incl. taxes & fees) INR 32,642.50"
+    m = body.match(/Net rate[^I]*?INR\s*([0-9,.]+)/i);
+    extracted.hostPayout = m ? m[1] : null;
+
+    // Room rate (stay amount): the first INR amount on a date-line
+    // "February 28, 2026   INR 31,468.50" — but not "Reference sell"
+    // or "Net rate" or "Cleaning". Grab all date-line amounts and sum.
+    const dateRatePattern = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\s+INR\s*([0-9,.]+)/gi;
+    let dateRateMatch;
+    let roomRateSum = 0;
+    let roomRateCount = 0;
+    while ((dateRateMatch = dateRatePattern.exec(body)) !== null) {
+        roomRateSum += parseFloat(dateRateMatch[1].replace(/,/g, ''));
+        roomRateCount++;
+    }
+    if (roomRateSum > 0) {
+        extracted.stayAmount = String(roomRateSum);
     }
 
-    // Look for specific labeled amounts
-    m = body.match(/Reference sell rate[^I]*INR\s*([0-9,.]+)/i)
-     || body.match(/Total (?:Amount|Rate|Price)[^I]*INR\s*([0-9,.]+)/i);
-    extracted.total = m ? m[1] : (inrAmounts[0] || null);
+    // Commission: "Commission INR -5,512.50" (note the negative sign)
+    m = body.match(/Commission\s*\n?\s*INR\s*-?\s*([0-9,.]+)/i);
+    extracted.commission = m ? m[1] : null;
 
-    m = body.match(/Net rate[^I]*INR\s*([0-9,.]+)/i);
-    extracted.hostPayout = m ? m[1] : (inrAmounts.length >= 2 ? inrAmounts[inrAmounts.length - 1] : null);
+    // Extra charges: "Cleaning Service Fee INR 1,174.00"
+    m = body.match(/Cleaning Service Fee\s*INR\s*([0-9,.]+)/i)
+     || body.match(/(?:Service|Extra)\s*(?:Fee|Charge)\s*INR\s*([0-9,.]+)/i);
+    extracted.extraCharges = m ? m[1] : null;
+
+    // Derive taxes: total − room rate − extra charges (Agoda doesn't
+    // list taxes separately — they're bundled in "incl. taxes & fees")
+    if (extracted.total && roomRateSum > 0) {
+        const totalVal = parseFloat(extracted.total.replace(/,/g, ''));
+        const extraVal = extracted.extraCharges ? parseFloat(extracted.extraCharges.replace(/,/g, '')) : 0;
+        const impliedTax = totalVal - roomRateSum - extraVal;
+        if (impliedTax > 0) {
+            extracted.taxes = String(Math.round(impliedTax * 100) / 100);
+        }
+    }
+
+    // Nights: derive from date-line count if no explicit "X nights" text
+    m = body.match(/(\d+)\s*nights?/i);
+    extracted.nights = m ? m[1] : (roomRateCount > 0 ? String(roomRateCount) : null);
 
     // Guest phone: "Phone: 91 9871403362" in Customer Info
     m = body.match(/Phone:\s*(\+?[\d\s]{8,15})/i)
@@ -1594,10 +1638,6 @@ function parseAgodaEmail(body, subject) {
     // Guest email
     m = body.match(/(?:guest\s*)?email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i);
     extracted.guestEmail = m ? m[1] : null;
-
-    // Nights
-    m = body.match(/(\d+)\s*nights?/i);
-    extracted.nights = m ? m[1] : null;
 
     if (!extracted.checkIn) return null;
     return extracted;
@@ -1865,7 +1905,7 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
         kids: null,
         number_of_rooms: parseInt(extracted.rooms) || null,
         stay_amount: stayAmount,
-        extra_guest_charges: null,
+        extra_guest_charges: parseAmount(extracted.extraCharges),
         meals_chef: null,
         bonfire_other: null,
         ota_service_fee: otaServiceFee,
