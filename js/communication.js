@@ -800,19 +800,24 @@ function buildOtaSearchQueries(monthsBack = 6) {
         afterDate.setMonth(afterDate.getMonth() - monthsBack);
         after = ` after:${afterDate.getFullYear()}/${afterDate.getMonth() + 1}/${afterDate.getDate()}`;
     }
+    // -subject: excludes cancellation/modification/refund emails at the
+    // Gmail API level so they never enter processGmailBookingEmail.
+    // parseBookingEmail has a second-layer check for anything that slips
+    // through (e.g. cancellation notice buried in the body).
+    const exclude = ' -subject:cancelled -subject:cancellation -subject:refund -subject:refunded -subject:"no longer" -subject:withdrawn';
     return [
-        `in:anywhere${after} from:airbnb.com subject:(reservation OR booking OR confirmed)`,
-        `in:anywhere${after} from:booking.com subject:(confirmed OR reservation OR booking)`,
-        `in:anywhere${after} from:agoda.com subject:(booking OR confirmed OR confirmation)`,
-        `in:anywhere${after} from:go-mmt.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} from:makemytrip.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} from:goibibo.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} from:vrbo.com subject:(reservation OR confirmed)`,
-        `in:anywhere${after} from:expedia.com subject:(confirmed OR itinerary)`,
-        `in:anywhere${after} from:hotels.com subject:(confirmed OR reservation)`,
-        `in:anywhere${after} from:cleartrip.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} from:oyorooms.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} subject:"booking confirmed" OR subject:"reservation confirmed"`,
+        `in:anywhere${after}${exclude} from:airbnb.com subject:(reservation OR booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:booking.com subject:(confirmed OR reservation OR booking)`,
+        `in:anywhere${after}${exclude} from:agoda.com subject:(booking OR confirmed OR confirmation)`,
+        `in:anywhere${after}${exclude} from:go-mmt.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:makemytrip.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:goibibo.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:vrbo.com subject:(reservation OR confirmed)`,
+        `in:anywhere${after}${exclude} from:expedia.com subject:(confirmed OR itinerary)`,
+        `in:anywhere${after}${exclude} from:hotels.com subject:(confirmed OR reservation)`,
+        `in:anywhere${after}${exclude} from:cleartrip.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:oyorooms.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} subject:"booking confirmed" OR subject:"reservation confirmed"`,
     ];
 }
 
@@ -1612,13 +1617,27 @@ function parseGenericBookingEmail(body, subject) {
  * Parse booking details from email body — OTA dispatcher
  */
 function parseBookingEmail(emailBody, sender, subject = '', properties = [], dateHeader = '') {
-    // Skip cancellation/refund emails
+    // Skip cancellation / modification / refund emails.
+    // Layer 2 defence (layer 1 is the Gmail query -subject: exclusions).
+    // Check both subject and the first 1500 chars of body because some
+    // OTAs bury the cancellation notice below a header block.
     const subjectLower = subject.toLowerCase();
-    const bodyStart = emailBody.substring(0, 500).toLowerCase();
-    if (subjectLower.match(/\b(cancell?ed|cancellation|refunded?)\b/) ||
-        bodyStart.match(/\b(your (?:booking|reservation) (?:has been |was )?cancell?ed)\b/)) {
-        console.log('[Gmail] Skipping cancellation email:', subject);
-        return null;
+    const bodyLower = emailBody.substring(0, 1500).toLowerCase();
+    const cancelPatterns = [
+        /\bcancell?ed\b/,
+        /\bcancellation\b/,
+        /\brefunded?\b/,
+        /\bno longer (?:valid|active|available)\b/,
+        /\bwithdrawn\b/,
+        /\brejected\b/,
+        /\bbooking (?:has been |was )?(?:removed|deleted)\b/,
+        /\breservation (?:has been |was )?(?:removed|deleted)\b/,
+    ];
+    for (const pat of cancelPatterns) {
+        if (pat.test(subjectLower) || pat.test(bodyLower)) {
+            console.log('[Gmail] Skipping cancellation/refund email:', subject);
+            return null;
+        }
     }
 
     const senderLower = sender.toLowerCase();
