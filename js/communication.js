@@ -2318,7 +2318,8 @@ function renderImportReview() {
             <div style="display: flex; gap: 8px;">
                 <button class="btn btn-sm" onclick="toggleAllImportItems(true)" style="font-size: 12px;">Select All New</button>
                 <button class="btn btn-sm" onclick="toggleAllImportItems(false)" style="font-size: 12px;">Deselect All</button>
-                <button class="btn btn-sm" onclick="clearImportDrafts()" style="font-size: 12px; color: var(--danger);">Clear</button>
+                <button class="btn btn-sm" onclick="dismissSelectedImports()" style="font-size: 12px; color: var(--danger);">Remove Selected</button>
+                <button class="btn btn-sm" onclick="clearImportDrafts()" style="font-size: 12px; color: var(--danger);">Clear All</button>
             </div>
         </div>
     `;
@@ -2357,6 +2358,7 @@ function renderImportReview() {
             html += `<span style="color:var(--success);font-size:12px;font-weight:600;">New</span>`;
         }
         html += ` <button onclick="importSingleItem(${idx})" style="margin-left:6px;padding:2px 10px;font-size:11px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">Add</button>`;
+        html += ` <button onclick="dismissImportItem(${idx})" style="margin-left:4px;padding:2px 10px;font-size:11px;background:transparent;color:var(--danger);border:1px solid var(--danger);border-radius:4px;cursor:pointer;" title="Remove from list">✕</button>`;
         html += `</td>`;
         html += `</tr>`;
     });
@@ -2453,6 +2455,45 @@ window.clearImportDrafts = async function() {
     }
     pendingImportItems = [];
     renderImportReview();
+};
+
+// Remove a single item from the import review list (dismiss without importing)
+window.dismissImportItem = async function(idx) {
+    const item = pendingImportItems[idx];
+    if (!item) return;
+    // Remove the draft from Supabase if it was persisted
+    if (item.messageId) {
+        try {
+            await supabase.from('ota_import_drafts').delete().eq('message_id', item.messageId);
+        } catch (e) {
+            console.error('[OTA Import] Failed to delete draft:', e);
+        }
+    }
+    pendingImportItems.splice(idx, 1);
+    renderImportReview();
+};
+
+// Remove all selected items from the import review list
+window.dismissSelectedImports = async function() {
+    const selected = pendingImportItems.filter(i => i.selected);
+    if (selected.length === 0) {
+        showToast('No items selected', 'error');
+        return;
+    }
+    if (!confirm(`Remove ${selected.length} selected item(s) from list?`)) return;
+    // Delete drafts from Supabase
+    for (const item of selected) {
+        if (item.messageId) {
+            try {
+                await supabase.from('ota_import_drafts').delete().eq('message_id', item.messageId);
+            } catch (e) {
+                console.error('[OTA Import] Failed to delete draft:', e);
+            }
+        }
+    }
+    pendingImportItems = pendingImportItems.filter(i => !i.selected);
+    renderImportReview();
+    showToast(`Removed ${selected.length} item(s)`, 'success');
 };
 
 window.importSingleItem = async function(idx) {
