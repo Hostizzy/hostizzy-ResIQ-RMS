@@ -1449,15 +1449,25 @@ function parseGoibiboMmtEmail(body, subject, sender) {
     m = body.match(/(\d+)\s*Room\(?s?\)?/i);
     extracted.rooms = m ? m[1] : null;
 
-    // Financial: "Property Gross Charges\n₹ 11,025.0" or "Total Amount\nINR 11,025"
-    // MMT/Goibibo emails vary in format — try multiple patterns
+    // -------------------------------------------------------
+    // Financial fields — MMT/Goibibo host voucher emails have
+    // a detailed breakdown. Example:
+    //
+    //   Room Charges                    ₹ 8,800.0
+    //   Property Taxes                  ₹ 440.0
+    //   Property Gross Charges (1+2+3+4)₹ 9,240.0
+    //   Go-MMT Commission              ₹ 1,056.0
+    //   GST on Commission @ 18.0%      ₹ 190.08
+    //   Go-MMT Commission (including GST) ₹ 1,246.08
+    //   Payable to Property (A-B-C)    ₹ 7,941.12
+    // -------------------------------------------------------
+
+    // Total (Property Gross Charges): "₹ 9,240.0"
     m = body.match(/Property Gross Charges[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/Total\s*(?:Amount|Charges?|Payable|Price)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/Booking\s*(?:Amount|Value|Total)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/Amount\s*Payable[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/Stay\s*(?:Amount|Charges?)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/Room\s*(?:Charges?|Rate|Price|Cost)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/Gross\s*(?:Amount|Value)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+     || body.match(/Gross\s*(?:Amount|Value|Charges?)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)\s*(?:Total|Gross|Payable)/i);
     extracted.total = m ? m[1] : null;
 
@@ -1470,23 +1480,38 @@ function parseGoibiboMmtEmail(body, subject, sender) {
             const val = parseFloat(am[1].replace(/,/g, ''));
             if (val >= 500) amounts.push({ raw: am[1], val });
         }
-        // Pick the largest amount (usually the total/gross)
         if (amounts.length > 0) {
             amounts.sort((a, b) => b.val - a.val);
             extracted.total = amounts[0].raw;
         }
     }
 
-    // Host payout: "Payable to Property\n₹ 9,475.2" or "Host Payout" or "Net Amount"
+    // Stay amount (Room Charges): "Room Charges ₹ 8,800.0"
+    m = body.match(/Room\s*Charges[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+     || body.match(/Stay\s*(?:Amount|Charges?)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    extracted.stayAmount = m ? m[1] : null;
+
+    // Property Taxes: "Property Taxes ₹ 440.0"
+    m = body.match(/Property\s*Taxes[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+     || body.match(/Taxes?\s*\(\*?inclusive[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    extracted.taxes = m ? m[1] : null;
+
+    // Host payout: "Payable to Property ₹ 7,941.12"
     m = body.match(/Payable to Property[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/(?:Host|Property)\s*Payout[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/Net\s*(?:Amount|Payable|Rate)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
     extracted.hostPayout = m ? m[1] : null;
 
-    // Commission: "Go-MMT Commission (including GST)\n₹ 1,486.8" or "OTA Commission"
-    m = body.match(/Go-?MMT Commission[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/Commission[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)\s*(?:Commission)/i);
+    // Commission: prefer "Go-MMT Commission (including GST)" (₹1,246.08)
+    // over the base "Go-MMT Commission" (₹1,056.0) — the inclusive
+    // figure is what the host actually pays.
+    m = body.match(/Go-?MMT Commission\s*\(incl[^)]*\)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+     || body.match(/Commission\s*\(incl[^)]*\)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    if (!m) {
+        // Fall back to base commission if inclusive version not found
+        m = body.match(/Go-?MMT Commission[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+         || body.match(/Commission[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    }
     extracted.commission = m ? m[1] : null;
 
     // Property name hint from subject: "Received for The Bageecha on GoIbibo"
