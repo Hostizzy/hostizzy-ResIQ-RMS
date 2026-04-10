@@ -1067,10 +1067,11 @@ async function processGmailBookingEmail(messageId) {
         const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
         const emailDate = dateHeader ? dateHeader.value : '';
 
-        // Fetch all properties for auto-detection
+        // Fetch all properties for auto-detection (include revenue_share_percent
+        // so parseBookingEmail can compute hostizzy_revenue + host_payout)
         const { data: properties } = await supabase
             .from('properties')
-            .select('id, name, location')
+            .select('id, name, location, revenue_share_percent')
             .eq('is_active', true);
 
         // Parse booking data from email (with property auto-detection)
@@ -1312,15 +1313,18 @@ function parseAirbnbEmail(body, subject, emailYear) {
          || subject.match(/arrives?\s+(?:\w+,?\s+)?(\w{3,9}\s+\d{1,2})\b/i);
     }
     if (!m) {
-        // Strategy 3: structured section — "Check-in ... Checkout" then "Day, DD Mon   Day, DD Mon"
-        // Match "Day, DD Mon" pattern after Check-in label
+        // Strategy 3: structured section — "Check-in ... Day, DD Mon"
         m = body.match(/Check[-–—]?in[\s\S]*?(?:\w{3},?\s+)(\d{1,2}\s+\w{3,9})(?:\s|$)/i);
     }
     extracted.checkIn = m ? m[1].trim() : null;
 
-    // Check-out: "Sat, 11 Apr   Sun, 12 Apr" — two Day-DD-Mon dates on same line
-    const dateLine = body.match(/\w{3},\s+\d{1,2}\s+\w{3,9}\s+\w{3},\s+(\d{1,2}\s+\w{3,9})/i);
-    extracted.checkOut = dateLine ? dateLine[1].trim() : null;
+    // Check-out: try same-line first ("Wed, 8 Apr  Sat, 11 Apr"),
+    // then multi-line "Checkout ... Day, DD Mon" (the common format).
+    m = body.match(/\w{3},\s+\d{1,2}\s+\w{3,9}\s+\w{3},\s+(\d{1,2}\s+\w{3,9})/i);
+    if (!m) {
+        m = body.match(/Check[-–—]?\s*out[\s\S]*?(?:\w{3},?\s+)(\d{1,2}\s+\w{3,9})(?:\s|$)/i);
+    }
+    extracted.checkOut = m ? m[1].trim() : null;
 
     // Guests: "6 adults" or "2 guests"
     m = body.match(/(\d+)\s+(?:adults?|guests?)/i);
@@ -1331,13 +1335,49 @@ function parseAirbnbEmail(body, subject, emailYear) {
      || body.match(/(\d+)\s*nights?/i);
     extracted.nights = m ? m[1] : null;
 
-    // Total: "TOTAL (INR)   ₹51,330" — use [^\d\n]*? to skip any currency chars
+    // -------------------------------------------------------
+    // Financial fields — Airbnb confirmation emails contain a
+    // full breakdown. Example:
+    //
+    //   Guest paid
+    //   ₹7,160 x 3 nights           ₹21,480
+    //   Occupancy taxes              ₹1,074
+    //   Total (INR)                  ₹22,554
+    //   Host payout
+    //   3-night room fee             ₹21,480
+    //   Host service fee (15.5%)     -₹3,329.4
+    //   You earn                     ₹18,150.6
+    // -------------------------------------------------------
+
+    // Total: "TOTAL (INR)  ₹22,554"
     m = body.match(/TOTAL\s*\(INR\)\s*[^\d\n]*?([0-9][0-9,.]+)/i)
      || body.match(/Total\s*(?:\(INR\))?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
     extracted.total = m ? m[1] : null;
 
-    // Host payout: "YOU EARN   ₹44,587.5"
-    m = body.match(/YOU EARN\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+    // Stay amount (room fee): "₹7,160 x 3 nights  ₹21,480" (line total)
+    // or "3-night room fee  ₹21,480"
+    m = body.match(/\d+-night room fee\s*[^\d\n]*?([0-9][0-9,.]+)/i)
+     || body.match(/[0-9,.]+\s*x\s*\d+\s*nights?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+    extracted.stayAmount = m ? m[1] : null;
+
+    // Taxes: "Occupancy taxes  ₹1,074" or "Taxes  ₹1,074"
+    m = body.match(/(?:Occupancy\s+)?taxes?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+    extracted.taxes = m ? m[1] : null;
+
+    // Host service fee (OTA commission): "Host service fee (15.5%)  -₹3,329.4"
+    m = body.match(/Host service fee\s*\(([0-9.]+)%\)\s*-?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+    if (m) {
+        extracted.commissionRate = m[1];
+        extracted.commission = m[2];
+    } else {
+        // Fallback without percentage: "Host service fee  -₹3,329.4"
+        m = body.match(/Host service fee\s*-?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+        extracted.commission = m ? m[1] : null;
+    }
+
+    // Host payout: "YOU EARN  ₹18,150.6"
+    m = body.match(/YOU EARN\s*[^\d\n]*?([0-9][0-9,.]+)/i)
+     || body.match(/You earn\s*[^\d\n]*?([0-9][0-9,.]+)/i);
     extracted.hostPayout = m ? m[1] : null;
 
     // Guest phone (Airbnb rarely includes this)
@@ -1751,6 +1791,33 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
     // Parse financial amounts
     const parseAmount = (val) => val ? parseFloat(String(val).replace(/,/g, '')) : null;
 
+    const totalAmount = parseAmount(extracted.total);
+    const stayAmount = parseAmount(extracted.stayAmount);
+    const taxes = parseAmount(extracted.taxes);
+    const otaServiceFee = parseAmount(extracted.commission);
+    const payoutEligible = parseAmount(extracted.hostPayout);
+
+    // Derive fields the email doesn't state explicitly
+    const totalPreTax = stayAmount || (totalAmount && taxes ? totalAmount - taxes : null);
+    const totalIncTax = totalAmount;
+    // avg_nightly_rate = stay_amount / nights (if both available)
+    const avgNightlyRate = (stayAmount && nights > 0) ? Math.round(stayAmount / nights * 100) / 100 : null;
+
+    // host_payout (net to owner after Hostizzy commission) requires the
+    // property's revenue_share_percent. If the property was matched we
+    // can compute it now; otherwise it stays null for the save-form /
+    // backfill SQL to fill in.
+    let hostizzyRevenue = null;
+    let hostPayout = null;
+    if (matchedProperty && payoutEligible) {
+        // Look up the property's revenue_share_percent (fetched with select *)
+        const revShare = matchedProperty.revenue_share_percent;
+        if (revShare != null && revShare > 0) {
+            hostizzyRevenue = Math.round(payoutEligible * (revShare / 100) * 100) / 100;
+            hostPayout = Math.round((payoutEligible - hostizzyRevenue) * 100) / 100;
+        }
+    }
+
     return {
         booking_id: bookingId,
         guest_name: guestName,
@@ -1763,7 +1830,7 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
         booking_date: new Date().toISOString().split('T')[0],
         month: month,
         number_of_guests: parseInt(extracted.guests) || null,
-        total_amount: parseAmount(extracted.total),
+        total_amount: totalAmount,
         property_id: propertyId,
         property_name: propertyName,
         guest_phone: extracted.guestPhone ? extracted.guestPhone.replace(/\s/g, '') : '',
@@ -1772,24 +1839,20 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
         adults: parseInt(extracted.guests) || null,
         kids: null,
         number_of_rooms: parseInt(extracted.rooms) || null,
-        stay_amount: null,
+        stay_amount: stayAmount,
         extra_guest_charges: null,
         meals_chef: null,
         bonfire_other: null,
-        ota_service_fee: parseAmount(extracted.commission),
-        taxes: null,
-        total_amount_pre_tax: null,
-        total_amount_inc_tax: null,
+        ota_service_fee: otaServiceFee,
+        taxes: taxes,
+        total_amount_pre_tax: totalPreTax,
+        total_amount_inc_tax: totalIncTax,
         damages: null,
-        hostizzy_revenue: null,
-        // Email/iMessage import captures the gross owner-eligible figure only.
-        // host_payout (net to owner after commission) is left null and will be
-        // computed when the staff opens the reservation in the form and saves,
-        // or by the sql/fix-reservation-financials.sql backfill.
-        payout_eligible: parseAmount(extracted.hostPayout),
-        host_payout: null,
-        avg_room_rate: null,
-        avg_nightly_rate: null,
+        hostizzy_revenue: hostizzyRevenue,
+        payout_eligible: payoutEligible,
+        host_payout: hostPayout,
+        avg_room_rate: avgNightlyRate,
+        avg_nightly_rate: avgNightlyRate,
         paid_amount: null,
         payment_status: null,
         gst_status: null
