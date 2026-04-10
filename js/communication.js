@@ -1048,6 +1048,19 @@ window.diagnoseGmailScan = async function() {
  */
 async function processGmailBookingEmail(messageId) {
     try {
+        // Check 0: Skip if this Gmail message was already imported.
+        // This survives draft clearing and re-scans.
+        const { data: alreadyImported } = await supabase
+            .from('reservations')
+            .select('id, booking_id')
+            .eq('gmail_message_id', messageId)
+            .maybeSingle();
+
+        if (alreadyImported) {
+            console.log(`[Gmail] Message ${messageId} already imported as ${alreadyImported.booking_id}`);
+            return { created: false, updated: false, skipped: true };
+        }
+
         // Fetch full message via server proxy
         const message = await callGmailProxy('getMessage', { messageId });
 
@@ -1100,6 +1113,7 @@ async function processGmailBookingEmail(messageId) {
             if (bookingData.guest_phone) safeUpdate.guest_phone = bookingData.guest_phone;
             if (bookingData.guest_email) safeUpdate.guest_email = bookingData.guest_email;
             if (bookingData.booking_source && bookingData.booking_source !== 'OTHER') safeUpdate.booking_source = bookingData.booking_source;
+            safeUpdate.gmail_message_id = messageId;
             safeUpdate.updated_at = new Date().toISOString();
 
             if (Object.keys(safeUpdate).length > 1) { // More than just updated_at
@@ -1161,6 +1175,7 @@ async function processGmailBookingEmail(messageId) {
                     delete merge.ical_uid;          // never overwrite
                     delete merge.property_id;       // keep the shell's property
                     delete merge.property_name;
+                    merge.gmail_message_id = messageId;
                     merge.updated_at = new Date().toISOString();
 
                     const { error: mergeError } = await supabase
@@ -1181,7 +1196,8 @@ async function processGmailBookingEmail(messageId) {
             }
         }
 
-        // Create new reservation
+        // Create new reservation — stamp with Gmail message ID for dedup
+        bookingData.gmail_message_id = messageId;
         const { error: insertError } = await supabase
             .from('reservations')
             .insert([bookingData]);
@@ -1386,6 +1402,9 @@ function parseAirbnbEmail(body, subject, emailYear) {
     // Airbnb emails don't include guest email — skip bare email match to avoid matching automated@airbnb.com
     extracted.guestEmail = null;
 
+    // Airbnb always collects payment from the guest — bookings are prepaid
+    extracted.paymentStatus = 'paid';
+
     if (!extracted.checkIn) return null;
     return { ...extracted, bookingSource: 'AIRBNB', emailYear };
 }
@@ -1518,6 +1537,11 @@ function parseGoibiboMmtEmail(body, subject, sender) {
     m = subject.match(/Received for\s+(.+?)\s+on\s+(?:GoIbibo|MakeMyTrip)/i);
     extracted.propertyNameHint = m ? m[1].trim() : null;
 
+    // Payment status: "Payment Status\nPaid Online" or "PREPAID"
+    if (/Payment Status\s+Paid Online/i.test(body) || /\bPREPAID\b/i.test(body)) {
+        extracted.paymentStatus = 'paid';
+    }
+
     // Guest phone/email
     m = body.match(/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i);
     extracted.guestPhone = m ? m[1] : null;
@@ -1638,6 +1662,11 @@ function parseAgodaEmail(body, subject) {
     // Guest email
     m = body.match(/(?:guest\s*)?email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i);
     extracted.guestEmail = m ? m[1] : null;
+
+    // Payment status: Agoda emails say "PREPAID" for pre-collected bookings
+    if (/\bPREPAID\b/i.test(body)) {
+        extracted.paymentStatus = 'paid';
+    }
 
     if (!extracted.checkIn) return null;
     return extracted;
@@ -1918,8 +1947,8 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
         host_payout: hostPayout,
         avg_room_rate: avgNightlyRate,
         avg_nightly_rate: avgNightlyRate,
-        paid_amount: null,
-        payment_status: null,
+        paid_amount: extracted.paymentStatus === 'paid' ? (payoutEligible || totalAmount) : null,
+        payment_status: extracted.paymentStatus || null,
         gst_status: null
     };
 }
@@ -2169,9 +2198,11 @@ window.scanGmailForReview = async function() {
         // Fetch existing reservations for duplicate detection
         const { data: existingRes } = await supabase
             .from('reservations')
-            .select('booking_id, property_id, check_in, check_out');
+            .select('booking_id, property_id, check_in, check_out, gmail_message_id');
 
         const existingBookingIds = new Set((existingRes || []).map(r => r.booking_id));
+        // Gmail message IDs already imported as reservations
+        const importedMessageIds = new Set((existingRes || []).filter(r => r.gmail_message_id).map(r => r.gmail_message_id));
         // Property-scoped date keys: "propertyId_checkIn" and "propertyId_checkOut"
         const existingPropCheckIns = new Set((existingRes || []).map(r => `${r.property_id}_${r.check_in}`));
         const existingPropCheckOuts = new Set((existingRes || []).map(r => `${r.property_id}_${r.check_out}`));
@@ -2185,6 +2216,8 @@ window.scanGmailForReview = async function() {
 
             for (const message of messages.slice(0, 100)) {
                 if (processedIds.has(message.id)) continue;
+                // Skip if this message was already imported as a reservation
+                if (importedMessageIds.has(message.id)) continue;
                 processedIds.add(message.id);
 
                 try {
@@ -2509,6 +2542,8 @@ window.importSingleItem = async function(idx) {
     if (!confirm(`Import reservation for ${d.guest_name || 'Guest'}?`)) return;
 
     try {
+        // Stamp the Gmail message ID for dedup protection
+        if (item.messageId) d.gmail_message_id = item.messageId;
         const { error } = await supabase.from('reservations').insert([d]);
         if (error) {
             console.error('[OTA Import] Insert error:', error);
@@ -2563,6 +2598,8 @@ window.importSelectedBookings = async function() {
 
     for (const item of selected) {
         try {
+            // Stamp the Gmail message ID for dedup protection
+            if (item.messageId) item.bookingData.gmail_message_id = item.messageId;
             const { error } = await supabase
                 .from('reservations')
                 .insert([item.bookingData]);
