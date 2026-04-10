@@ -2200,6 +2200,40 @@ async function applyBulkEdit() {
     }
 }
 
+async function bulkDeleteReservations() {
+    if (selectedReservations.size === 0) {
+        showToast('No Selection', 'Please select at least one reservation', '⚠️');
+        return;
+    }
+    const count = selectedReservations.size;
+    if (!confirm(`Permanently delete ${count} reservation(s)? This cannot be undone.`)) return;
+
+    try {
+        const bookingIds = Array.from(selectedReservations);
+        let deleted = 0;
+        for (const bid of bookingIds) {
+            const { error } = await supabase.from('reservations').delete().eq('booking_id', bid);
+            if (error) {
+                console.error(`[Bulk Delete] Failed to delete ${bid}:`, error);
+            } else {
+                deleted++;
+            }
+        }
+        clearBulkSelection();
+        dataCache.invalidate('reservations');
+        loadedViews.delete('reservations');
+        loadedViews.delete('dashboard');
+        loadedViews.delete('home');
+        _filterListenersAttached = false;
+        await loadReservations();
+        await loadDashboard();
+        showToast('Deleted', `${deleted} reservation(s) deleted`, '✅');
+    } catch (error) {
+        console.error('Bulk delete error:', error);
+        showToast('Error', 'Failed to delete: ' + error.message, '❌');
+    }
+}
+
 // Export Functions with Payment Recipient
 async function exportCSV() {
     // Use filtered data if filters are active, otherwise use all reservations

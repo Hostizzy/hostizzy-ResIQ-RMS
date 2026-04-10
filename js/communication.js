@@ -800,19 +800,24 @@ function buildOtaSearchQueries(monthsBack = 6) {
         afterDate.setMonth(afterDate.getMonth() - monthsBack);
         after = ` after:${afterDate.getFullYear()}/${afterDate.getMonth() + 1}/${afterDate.getDate()}`;
     }
+    // -subject: excludes cancellation/modification/refund emails at the
+    // Gmail API level so they never enter processGmailBookingEmail.
+    // parseBookingEmail has a second-layer check for anything that slips
+    // through (e.g. cancellation notice buried in the body).
+    const exclude = ' -subject:cancelled -subject:cancellation -subject:refund -subject:refunded -subject:"no longer" -subject:withdrawn';
     return [
-        `in:anywhere${after} from:airbnb.com subject:(reservation OR booking OR confirmed)`,
-        `in:anywhere${after} from:booking.com subject:(confirmed OR reservation OR booking)`,
-        `in:anywhere${after} from:agoda.com subject:(booking OR confirmed OR confirmation)`,
-        `in:anywhere${after} from:go-mmt.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} from:makemytrip.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} from:goibibo.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} from:vrbo.com subject:(reservation OR confirmed)`,
-        `in:anywhere${after} from:expedia.com subject:(confirmed OR itinerary)`,
-        `in:anywhere${after} from:hotels.com subject:(confirmed OR reservation)`,
-        `in:anywhere${after} from:cleartrip.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} from:oyorooms.com subject:(booking OR confirmed)`,
-        `in:anywhere${after} subject:"booking confirmed" OR subject:"reservation confirmed"`,
+        `in:anywhere${after}${exclude} from:airbnb.com subject:(reservation OR booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:booking.com subject:(confirmed OR reservation OR booking)`,
+        `in:anywhere${after}${exclude} from:agoda.com subject:(booking OR confirmed OR confirmation)`,
+        `in:anywhere${after}${exclude} from:go-mmt.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:makemytrip.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:goibibo.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:vrbo.com subject:(reservation OR confirmed)`,
+        `in:anywhere${after}${exclude} from:expedia.com subject:(confirmed OR itinerary)`,
+        `in:anywhere${after}${exclude} from:hotels.com subject:(confirmed OR reservation)`,
+        `in:anywhere${after}${exclude} from:cleartrip.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} from:oyorooms.com subject:(booking OR confirmed)`,
+        `in:anywhere${after}${exclude} subject:"booking confirmed" OR subject:"reservation confirmed"`,
     ];
 }
 
@@ -1043,6 +1048,19 @@ window.diagnoseGmailScan = async function() {
  */
 async function processGmailBookingEmail(messageId) {
     try {
+        // Check 0: Skip if this Gmail message was already imported.
+        // This survives draft clearing and re-scans.
+        const { data: alreadyImported } = await supabase
+            .from('reservations')
+            .select('id, booking_id')
+            .eq('gmail_message_id', messageId)
+            .maybeSingle();
+
+        if (alreadyImported) {
+            console.log(`[Gmail] Message ${messageId} already imported as ${alreadyImported.booking_id}`);
+            return { created: false, updated: false, skipped: true };
+        }
+
         // Fetch full message via server proxy
         const message = await callGmailProxy('getMessage', { messageId });
 
@@ -1062,10 +1080,11 @@ async function processGmailBookingEmail(messageId) {
         const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
         const emailDate = dateHeader ? dateHeader.value : '';
 
-        // Fetch all properties for auto-detection
+        // Fetch all properties for auto-detection (include revenue_share_percent
+        // so parseBookingEmail can compute hostizzy_revenue + host_payout)
         const { data: properties } = await supabase
             .from('properties')
-            .select('id, name, location')
+            .select('id, name, location, revenue_share_percent')
             .eq('is_active', true);
 
         // Parse booking data from email (with property auto-detection)
@@ -1094,6 +1113,7 @@ async function processGmailBookingEmail(messageId) {
             if (bookingData.guest_phone) safeUpdate.guest_phone = bookingData.guest_phone;
             if (bookingData.guest_email) safeUpdate.guest_email = bookingData.guest_email;
             if (bookingData.booking_source && bookingData.booking_source !== 'OTHER') safeUpdate.booking_source = bookingData.booking_source;
+            safeUpdate.gmail_message_id = messageId;
             safeUpdate.updated_at = new Date().toISOString();
 
             if (Object.keys(safeUpdate).length > 1) { // More than just updated_at
@@ -1155,6 +1175,7 @@ async function processGmailBookingEmail(messageId) {
                     delete merge.ical_uid;          // never overwrite
                     delete merge.property_id;       // keep the shell's property
                     delete merge.property_name;
+                    merge.gmail_message_id = messageId;
                     merge.updated_at = new Date().toISOString();
 
                     const { error: mergeError } = await supabase
@@ -1175,7 +1196,8 @@ async function processGmailBookingEmail(messageId) {
             }
         }
 
-        // Create new reservation
+        // Create new reservation — stamp with Gmail message ID for dedup
+        bookingData.gmail_message_id = messageId;
         const { error: insertError } = await supabase
             .from('reservations')
             .insert([bookingData]);
@@ -1307,15 +1329,18 @@ function parseAirbnbEmail(body, subject, emailYear) {
          || subject.match(/arrives?\s+(?:\w+,?\s+)?(\w{3,9}\s+\d{1,2})\b/i);
     }
     if (!m) {
-        // Strategy 3: structured section — "Check-in ... Checkout" then "Day, DD Mon   Day, DD Mon"
-        // Match "Day, DD Mon" pattern after Check-in label
+        // Strategy 3: structured section — "Check-in ... Day, DD Mon"
         m = body.match(/Check[-–—]?in[\s\S]*?(?:\w{3},?\s+)(\d{1,2}\s+\w{3,9})(?:\s|$)/i);
     }
     extracted.checkIn = m ? m[1].trim() : null;
 
-    // Check-out: "Sat, 11 Apr   Sun, 12 Apr" — two Day-DD-Mon dates on same line
-    const dateLine = body.match(/\w{3},\s+\d{1,2}\s+\w{3,9}\s+\w{3},\s+(\d{1,2}\s+\w{3,9})/i);
-    extracted.checkOut = dateLine ? dateLine[1].trim() : null;
+    // Check-out: try same-line first ("Wed, 8 Apr  Sat, 11 Apr"),
+    // then multi-line "Checkout ... Day, DD Mon" (the common format).
+    m = body.match(/\w{3},\s+\d{1,2}\s+\w{3,9}\s+\w{3},\s+(\d{1,2}\s+\w{3,9})/i);
+    if (!m) {
+        m = body.match(/Check[-–—]?\s*out[\s\S]*?(?:\w{3},?\s+)(\d{1,2}\s+\w{3,9})(?:\s|$)/i);
+    }
+    extracted.checkOut = m ? m[1].trim() : null;
 
     // Guests: "6 adults" or "2 guests"
     m = body.match(/(\d+)\s+(?:adults?|guests?)/i);
@@ -1326,13 +1351,49 @@ function parseAirbnbEmail(body, subject, emailYear) {
      || body.match(/(\d+)\s*nights?/i);
     extracted.nights = m ? m[1] : null;
 
-    // Total: "TOTAL (INR)   ₹51,330" — use [^\d\n]*? to skip any currency chars
+    // -------------------------------------------------------
+    // Financial fields — Airbnb confirmation emails contain a
+    // full breakdown. Example:
+    //
+    //   Guest paid
+    //   ₹7,160 x 3 nights           ₹21,480
+    //   Occupancy taxes              ₹1,074
+    //   Total (INR)                  ₹22,554
+    //   Host payout
+    //   3-night room fee             ₹21,480
+    //   Host service fee (15.5%)     -₹3,329.4
+    //   You earn                     ₹18,150.6
+    // -------------------------------------------------------
+
+    // Total: "TOTAL (INR)  ₹22,554"
     m = body.match(/TOTAL\s*\(INR\)\s*[^\d\n]*?([0-9][0-9,.]+)/i)
      || body.match(/Total\s*(?:\(INR\))?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
     extracted.total = m ? m[1] : null;
 
-    // Host payout: "YOU EARN   ₹44,587.5"
-    m = body.match(/YOU EARN\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+    // Stay amount (room fee): "₹7,160 x 3 nights  ₹21,480" (line total)
+    // or "3-night room fee  ₹21,480"
+    m = body.match(/\d+-night room fee\s*[^\d\n]*?([0-9][0-9,.]+)/i)
+     || body.match(/[0-9,.]+\s*x\s*\d+\s*nights?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+    extracted.stayAmount = m ? m[1] : null;
+
+    // Taxes: "Occupancy taxes  ₹1,074" or "Taxes  ₹1,074"
+    m = body.match(/(?:Occupancy\s+)?taxes?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+    extracted.taxes = m ? m[1] : null;
+
+    // Host service fee (OTA commission): "Host service fee (15.5%)  -₹3,329.4"
+    m = body.match(/Host service fee\s*\(([0-9.]+)%\)\s*-?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+    if (m) {
+        extracted.commissionRate = m[1];
+        extracted.commission = m[2];
+    } else {
+        // Fallback without percentage: "Host service fee  -₹3,329.4"
+        m = body.match(/Host service fee\s*-?\s*[^\d\n]*?([0-9][0-9,.]+)/i);
+        extracted.commission = m ? m[1] : null;
+    }
+
+    // Host payout: "YOU EARN  ₹18,150.6"
+    m = body.match(/YOU EARN\s*[^\d\n]*?([0-9][0-9,.]+)/i)
+     || body.match(/You earn\s*[^\d\n]*?([0-9][0-9,.]+)/i);
     extracted.hostPayout = m ? m[1] : null;
 
     // Guest phone (Airbnb rarely includes this)
@@ -1340,6 +1401,9 @@ function parseAirbnbEmail(body, subject, emailYear) {
     extracted.guestPhone = m ? m[1] : null;
     // Airbnb emails don't include guest email — skip bare email match to avoid matching automated@airbnb.com
     extracted.guestEmail = null;
+
+    // Airbnb always collects payment from the guest — bookings are prepaid
+    extracted.paymentStatus = 'paid';
 
     if (!extracted.checkIn) return null;
     return { ...extracted, bookingSource: 'AIRBNB', emailYear };
@@ -1404,15 +1468,25 @@ function parseGoibiboMmtEmail(body, subject, sender) {
     m = body.match(/(\d+)\s*Room\(?s?\)?/i);
     extracted.rooms = m ? m[1] : null;
 
-    // Financial: "Property Gross Charges\n₹ 11,025.0" or "Total Amount\nINR 11,025"
-    // MMT/Goibibo emails vary in format — try multiple patterns
+    // -------------------------------------------------------
+    // Financial fields — MMT/Goibibo host voucher emails have
+    // a detailed breakdown. Example:
+    //
+    //   Room Charges                    ₹ 8,800.0
+    //   Property Taxes                  ₹ 440.0
+    //   Property Gross Charges (1+2+3+4)₹ 9,240.0
+    //   Go-MMT Commission              ₹ 1,056.0
+    //   GST on Commission @ 18.0%      ₹ 190.08
+    //   Go-MMT Commission (including GST) ₹ 1,246.08
+    //   Payable to Property (A-B-C)    ₹ 7,941.12
+    // -------------------------------------------------------
+
+    // Total (Property Gross Charges): "₹ 9,240.0"
     m = body.match(/Property Gross Charges[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/Total\s*(?:Amount|Charges?|Payable|Price)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/Booking\s*(?:Amount|Value|Total)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/Amount\s*Payable[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/Stay\s*(?:Amount|Charges?)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/Room\s*(?:Charges?|Rate|Price|Cost)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/Gross\s*(?:Amount|Value)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+     || body.match(/Gross\s*(?:Amount|Value|Charges?)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)\s*(?:Total|Gross|Payable)/i);
     extracted.total = m ? m[1] : null;
 
@@ -1425,28 +1499,48 @@ function parseGoibiboMmtEmail(body, subject, sender) {
             const val = parseFloat(am[1].replace(/,/g, ''));
             if (val >= 500) amounts.push({ raw: am[1], val });
         }
-        // Pick the largest amount (usually the total/gross)
         if (amounts.length > 0) {
             amounts.sort((a, b) => b.val - a.val);
             extracted.total = amounts[0].raw;
         }
     }
 
-    // Host payout: "Payable to Property\n₹ 9,475.2" or "Host Payout" or "Net Amount"
+    // Stay amount (Room Charges): "Room Charges ₹ 8,800.0"
+    m = body.match(/Room\s*Charges[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+     || body.match(/Stay\s*(?:Amount|Charges?)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    extracted.stayAmount = m ? m[1] : null;
+
+    // Property Taxes: "Property Taxes ₹ 440.0"
+    m = body.match(/Property\s*Taxes[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+     || body.match(/Taxes?\s*\(\*?inclusive[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    extracted.taxes = m ? m[1] : null;
+
+    // Host payout: "Payable to Property ₹ 7,941.12"
     m = body.match(/Payable to Property[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/(?:Host|Property)\s*Payout[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
      || body.match(/Net\s*(?:Amount|Payable|Rate)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
     extracted.hostPayout = m ? m[1] : null;
 
-    // Commission: "Go-MMT Commission (including GST)\n₹ 1,486.8" or "OTA Commission"
-    m = body.match(/Go-?MMT Commission[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/Commission[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
-     || body.match(/(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)\s*(?:Commission)/i);
+    // Commission: prefer "Go-MMT Commission (including GST)" (₹1,246.08)
+    // over the base "Go-MMT Commission" (₹1,056.0) — the inclusive
+    // figure is what the host actually pays.
+    m = body.match(/Go-?MMT Commission\s*\(incl[^)]*\)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+     || body.match(/Commission\s*\(incl[^)]*\)[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    if (!m) {
+        // Fall back to base commission if inclusive version not found
+        m = body.match(/Go-?MMT Commission[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i)
+         || body.match(/Commission[\s\S]{0,30}?(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.\d{1,2})?)/i);
+    }
     extracted.commission = m ? m[1] : null;
 
     // Property name hint from subject: "Received for The Bageecha on GoIbibo"
     m = subject.match(/Received for\s+(.+?)\s+on\s+(?:GoIbibo|MakeMyTrip)/i);
     extracted.propertyNameHint = m ? m[1].trim() : null;
+
+    // Payment status: "Payment Status\nPaid Online" or "PREPAID"
+    if (/Payment Status\s+Paid Online/i.test(body) || /\bPREPAID\b/i.test(body)) {
+        extracted.paymentStatus = 'paid';
+    }
 
     // Guest phone/email
     m = body.match(/(?:phone|mobile|contact)[:\s]+(\+?[\d\s\-()]{8,15})/i);
@@ -1499,22 +1593,66 @@ function parseAgodaEmail(body, subject) {
     m = body.match(/No\.\s*of Rooms?\s+(\d+)/i) || body.match(/(\d+)\s*Room\(?s?\)?/i);
     extracted.rooms = m ? m[1] : null;
 
-    // Financial: "INR\n31,468.50" or "INR 32,642.50"
-    // First INR amount is usually room rate, second is net rate
-    const inrAmounts = [];
-    const inrPattern = /INR\s*([0-9,.]+)/gi;
-    let im;
-    while ((im = inrPattern.exec(body)) !== null) {
-        inrAmounts.push(im[1]);
+    // -------------------------------------------------------
+    // Financial fields — Agoda host emails have a detailed
+    // breakdown. Example:
+    //
+    //   February 28, 2026      INR 31,468.50   (room rate)
+    //   Cleaning Service Fee   INR 1,174.00    (extra charge)
+    //   Reference sell rate    INR 38,350.00   (total incl tax)
+    //   Commission             INR -5,512.50   (OTA fee)
+    //   TDS                    INR -32.50
+    //   TCS                    INR -162.50
+    //   Net rate               INR 32,642.50   (host payout)
+    // -------------------------------------------------------
+
+    // Total: "Reference sell rate (incl. taxes & fees) INR 38,350.00"
+    m = body.match(/Reference sell rate[^I]*?INR\s*([0-9,.]+)/i)
+     || body.match(/Total (?:Amount|Rate|Price)[^I]*?INR\s*([0-9,.]+)/i);
+    extracted.total = m ? m[1] : null;
+
+    // Net rate (host payout): "Net rate (incl. taxes & fees) INR 32,642.50"
+    m = body.match(/Net rate[^I]*?INR\s*([0-9,.]+)/i);
+    extracted.hostPayout = m ? m[1] : null;
+
+    // Room rate (stay amount): the first INR amount on a date-line
+    // "February 28, 2026   INR 31,468.50" — but not "Reference sell"
+    // or "Net rate" or "Cleaning". Grab all date-line amounts and sum.
+    const dateRatePattern = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\s+INR\s*([0-9,.]+)/gi;
+    let dateRateMatch;
+    let roomRateSum = 0;
+    let roomRateCount = 0;
+    while ((dateRateMatch = dateRatePattern.exec(body)) !== null) {
+        roomRateSum += parseFloat(dateRateMatch[1].replace(/,/g, ''));
+        roomRateCount++;
+    }
+    if (roomRateSum > 0) {
+        extracted.stayAmount = String(roomRateSum);
     }
 
-    // Look for specific labeled amounts
-    m = body.match(/Reference sell rate[^I]*INR\s*([0-9,.]+)/i)
-     || body.match(/Total (?:Amount|Rate|Price)[^I]*INR\s*([0-9,.]+)/i);
-    extracted.total = m ? m[1] : (inrAmounts[0] || null);
+    // Commission: "Commission INR -5,512.50" (note the negative sign)
+    m = body.match(/Commission\s*\n?\s*INR\s*-?\s*([0-9,.]+)/i);
+    extracted.commission = m ? m[1] : null;
 
-    m = body.match(/Net rate[^I]*INR\s*([0-9,.]+)/i);
-    extracted.hostPayout = m ? m[1] : (inrAmounts.length >= 2 ? inrAmounts[inrAmounts.length - 1] : null);
+    // Extra charges: "Cleaning Service Fee INR 1,174.00"
+    m = body.match(/Cleaning Service Fee\s*INR\s*([0-9,.]+)/i)
+     || body.match(/(?:Service|Extra)\s*(?:Fee|Charge)\s*INR\s*([0-9,.]+)/i);
+    extracted.extraCharges = m ? m[1] : null;
+
+    // Derive taxes: total − room rate − extra charges (Agoda doesn't
+    // list taxes separately — they're bundled in "incl. taxes & fees")
+    if (extracted.total && roomRateSum > 0) {
+        const totalVal = parseFloat(extracted.total.replace(/,/g, ''));
+        const extraVal = extracted.extraCharges ? parseFloat(extracted.extraCharges.replace(/,/g, '')) : 0;
+        const impliedTax = totalVal - roomRateSum - extraVal;
+        if (impliedTax > 0) {
+            extracted.taxes = String(Math.round(impliedTax * 100) / 100);
+        }
+    }
+
+    // Nights: derive from date-line count if no explicit "X nights" text
+    m = body.match(/(\d+)\s*nights?/i);
+    extracted.nights = m ? m[1] : (roomRateCount > 0 ? String(roomRateCount) : null);
 
     // Guest phone: "Phone: 91 9871403362" in Customer Info
     m = body.match(/Phone:\s*(\+?[\d\s]{8,15})/i)
@@ -1525,9 +1663,10 @@ function parseAgodaEmail(body, subject) {
     m = body.match(/(?:guest\s*)?email[:\s]+([\w.+-]+@[\w-]+\.\w+)/i);
     extracted.guestEmail = m ? m[1] : null;
 
-    // Nights
-    m = body.match(/(\d+)\s*nights?/i);
-    extracted.nights = m ? m[1] : null;
+    // Payment status: Agoda emails say "PREPAID" for pre-collected bookings
+    if (/\bPREPAID\b/i.test(body)) {
+        extracted.paymentStatus = 'paid';
+    }
 
     if (!extracted.checkIn) return null;
     return extracted;
@@ -1612,13 +1751,27 @@ function parseGenericBookingEmail(body, subject) {
  * Parse booking details from email body — OTA dispatcher
  */
 function parseBookingEmail(emailBody, sender, subject = '', properties = [], dateHeader = '') {
-    // Skip cancellation/refund emails
+    // Skip cancellation / modification / refund emails.
+    // Layer 2 defence (layer 1 is the Gmail query -subject: exclusions).
+    // Check both subject and the first 1500 chars of body because some
+    // OTAs bury the cancellation notice below a header block.
     const subjectLower = subject.toLowerCase();
-    const bodyStart = emailBody.substring(0, 500).toLowerCase();
-    if (subjectLower.match(/\b(cancell?ed|cancellation|refunded?)\b/) ||
-        bodyStart.match(/\b(your (?:booking|reservation) (?:has been |was )?cancell?ed)\b/)) {
-        console.log('[Gmail] Skipping cancellation email:', subject);
-        return null;
+    const bodyLower = emailBody.substring(0, 1500).toLowerCase();
+    const cancelPatterns = [
+        /\bcancell?ed\b/,
+        /\bcancellation\b/,
+        /\brefunded?\b/,
+        /\bno longer (?:valid|active|available)\b/,
+        /\bwithdrawn\b/,
+        /\brejected\b/,
+        /\bbooking (?:has been |was )?(?:removed|deleted)\b/,
+        /\breservation (?:has been |was )?(?:removed|deleted)\b/,
+    ];
+    for (const pat of cancelPatterns) {
+        if (pat.test(subjectLower) || pat.test(bodyLower)) {
+            console.log('[Gmail] Skipping cancellation/refund email:', subject);
+            return null;
+        }
     }
 
     const senderLower = sender.toLowerCase();
@@ -1732,6 +1885,33 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
     // Parse financial amounts
     const parseAmount = (val) => val ? parseFloat(String(val).replace(/,/g, '')) : null;
 
+    const totalAmount = parseAmount(extracted.total);
+    const stayAmount = parseAmount(extracted.stayAmount);
+    const taxes = parseAmount(extracted.taxes);
+    const otaServiceFee = parseAmount(extracted.commission);
+    const payoutEligible = parseAmount(extracted.hostPayout);
+
+    // Derive fields the email doesn't state explicitly
+    const totalPreTax = stayAmount || (totalAmount && taxes ? totalAmount - taxes : null);
+    const totalIncTax = totalAmount;
+    // avg_nightly_rate = stay_amount / nights (if both available)
+    const avgNightlyRate = (stayAmount && nights > 0) ? Math.round(stayAmount / nights * 100) / 100 : null;
+
+    // host_payout (net to owner after Hostizzy commission) requires the
+    // property's revenue_share_percent. If the property was matched we
+    // can compute it now; otherwise it stays null for the save-form /
+    // backfill SQL to fill in.
+    let hostizzyRevenue = null;
+    let hostPayout = null;
+    if (matchedProperty && payoutEligible) {
+        // Look up the property's revenue_share_percent (fetched with select *)
+        const revShare = matchedProperty.revenue_share_percent;
+        if (revShare != null && revShare > 0) {
+            hostizzyRevenue = Math.round(payoutEligible * (revShare / 100) * 100) / 100;
+            hostPayout = Math.round((payoutEligible - hostizzyRevenue) * 100) / 100;
+        }
+    }
+
     return {
         booking_id: bookingId,
         guest_name: guestName,
@@ -1744,7 +1924,7 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
         booking_date: new Date().toISOString().split('T')[0],
         month: month,
         number_of_guests: parseInt(extracted.guests) || null,
-        total_amount: parseAmount(extracted.total),
+        total_amount: totalAmount,
         property_id: propertyId,
         property_name: propertyName,
         guest_phone: extracted.guestPhone ? extracted.guestPhone.replace(/\s/g, '') : '',
@@ -1753,26 +1933,22 @@ function parseBookingEmail(emailBody, sender, subject = '', properties = [], dat
         adults: parseInt(extracted.guests) || null,
         kids: null,
         number_of_rooms: parseInt(extracted.rooms) || null,
-        stay_amount: null,
-        extra_guest_charges: null,
+        stay_amount: stayAmount,
+        extra_guest_charges: parseAmount(extracted.extraCharges),
         meals_chef: null,
         bonfire_other: null,
-        ota_service_fee: parseAmount(extracted.commission),
-        taxes: null,
-        total_amount_pre_tax: null,
-        total_amount_inc_tax: null,
+        ota_service_fee: otaServiceFee,
+        taxes: taxes,
+        total_amount_pre_tax: totalPreTax,
+        total_amount_inc_tax: totalIncTax,
         damages: null,
-        hostizzy_revenue: null,
-        // Email/iMessage import captures the gross owner-eligible figure only.
-        // host_payout (net to owner after commission) is left null and will be
-        // computed when the staff opens the reservation in the form and saves,
-        // or by the sql/fix-reservation-financials.sql backfill.
-        payout_eligible: parseAmount(extracted.hostPayout),
-        host_payout: null,
-        avg_room_rate: null,
-        avg_nightly_rate: null,
-        paid_amount: null,
-        payment_status: null,
+        hostizzy_revenue: hostizzyRevenue,
+        payout_eligible: payoutEligible,
+        host_payout: hostPayout,
+        avg_room_rate: avgNightlyRate,
+        avg_nightly_rate: avgNightlyRate,
+        paid_amount: extracted.paymentStatus === 'paid' ? (payoutEligible || totalAmount) : null,
+        payment_status: extracted.paymentStatus || null,
         gst_status: null
     };
 }
@@ -2022,9 +2198,11 @@ window.scanGmailForReview = async function() {
         // Fetch existing reservations for duplicate detection
         const { data: existingRes } = await supabase
             .from('reservations')
-            .select('booking_id, property_id, check_in, check_out');
+            .select('booking_id, property_id, check_in, check_out, gmail_message_id');
 
         const existingBookingIds = new Set((existingRes || []).map(r => r.booking_id));
+        // Gmail message IDs already imported as reservations
+        const importedMessageIds = new Set((existingRes || []).filter(r => r.gmail_message_id).map(r => r.gmail_message_id));
         // Property-scoped date keys: "propertyId_checkIn" and "propertyId_checkOut"
         const existingPropCheckIns = new Set((existingRes || []).map(r => `${r.property_id}_${r.check_in}`));
         const existingPropCheckOuts = new Set((existingRes || []).map(r => `${r.property_id}_${r.check_out}`));
@@ -2038,6 +2216,8 @@ window.scanGmailForReview = async function() {
 
             for (const message of messages.slice(0, 100)) {
                 if (processedIds.has(message.id)) continue;
+                // Skip if this message was already imported as a reservation
+                if (importedMessageIds.has(message.id)) continue;
                 processedIds.add(message.id);
 
                 try {
@@ -2171,7 +2351,8 @@ function renderImportReview() {
             <div style="display: flex; gap: 8px;">
                 <button class="btn btn-sm" onclick="toggleAllImportItems(true)" style="font-size: 12px;">Select All New</button>
                 <button class="btn btn-sm" onclick="toggleAllImportItems(false)" style="font-size: 12px;">Deselect All</button>
-                <button class="btn btn-sm" onclick="clearImportDrafts()" style="font-size: 12px; color: var(--danger);">Clear</button>
+                <button class="btn btn-sm" onclick="dismissSelectedImports()" style="font-size: 12px; color: var(--danger);">Remove Selected</button>
+                <button class="btn btn-sm" onclick="clearImportDrafts()" style="font-size: 12px; color: var(--danger);">Clear All</button>
             </div>
         </div>
     `;
@@ -2210,6 +2391,7 @@ function renderImportReview() {
             html += `<span style="color:var(--success);font-size:12px;font-weight:600;">New</span>`;
         }
         html += ` <button onclick="importSingleItem(${idx})" style="margin-left:6px;padding:2px 10px;font-size:11px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">Add</button>`;
+        html += ` <button onclick="dismissImportItem(${idx})" style="margin-left:4px;padding:2px 10px;font-size:11px;background:transparent;color:var(--danger);border:1px solid var(--danger);border-radius:4px;cursor:pointer;" title="Remove from list">✕</button>`;
         html += `</td>`;
         html += `</tr>`;
     });
@@ -2308,6 +2490,45 @@ window.clearImportDrafts = async function() {
     renderImportReview();
 };
 
+// Remove a single item from the import review list (dismiss without importing)
+window.dismissImportItem = async function(idx) {
+    const item = pendingImportItems[idx];
+    if (!item) return;
+    // Remove the draft from Supabase if it was persisted
+    if (item.messageId) {
+        try {
+            await supabase.from('ota_import_drafts').delete().eq('message_id', item.messageId);
+        } catch (e) {
+            console.error('[OTA Import] Failed to delete draft:', e);
+        }
+    }
+    pendingImportItems.splice(idx, 1);
+    renderImportReview();
+};
+
+// Remove all selected items from the import review list
+window.dismissSelectedImports = async function() {
+    const selected = pendingImportItems.filter(i => i.selected);
+    if (selected.length === 0) {
+        showToast('No items selected', 'error');
+        return;
+    }
+    if (!confirm(`Remove ${selected.length} selected item(s) from list?`)) return;
+    // Delete drafts from Supabase
+    for (const item of selected) {
+        if (item.messageId) {
+            try {
+                await supabase.from('ota_import_drafts').delete().eq('message_id', item.messageId);
+            } catch (e) {
+                console.error('[OTA Import] Failed to delete draft:', e);
+            }
+        }
+    }
+    pendingImportItems = pendingImportItems.filter(i => !i.selected);
+    renderImportReview();
+    showToast(`Removed ${selected.length} item(s)`, 'success');
+};
+
 window.importSingleItem = async function(idx) {
     const item = pendingImportItems[idx];
     if (!item) return;
@@ -2321,6 +2542,8 @@ window.importSingleItem = async function(idx) {
     if (!confirm(`Import reservation for ${d.guest_name || 'Guest'}?`)) return;
 
     try {
+        // Stamp the Gmail message ID for dedup protection
+        if (item.messageId) d.gmail_message_id = item.messageId;
         const { error } = await supabase.from('reservations').insert([d]);
         if (error) {
             console.error('[OTA Import] Insert error:', error);
@@ -2375,6 +2598,8 @@ window.importSelectedBookings = async function() {
 
     for (const item of selected) {
         try {
+            // Stamp the Gmail message ID for dedup protection
+            if (item.messageId) item.bookingData.gmail_message_id = item.messageId;
             const { error } = await supabase
                 .from('reservations')
                 .insert([item.bookingData]);
