@@ -12,16 +12,29 @@
  *   - delete-old-ids       → GET (Vercel Cron / CRON_SECRET protected)
  *                            deletes resources under guest-ids/ older than 90 days and
  *                            nulls the corresponding guest_documents URL columns.
+ *   - backfill             → GET or POST (CRON_SECRET protected)
+ *                            one-shot migration of existing Supabase Storage assets to
+ *                            Cloudinary. Query params: ?kind=guest-ids|expenses|all
+ *                            &limit=N&dryRun=1. Processes N rows per call; idempotent —
+ *                            rows already using Cloudinary are skipped. Call repeatedly
+ *                            until `remaining: 0`.
  *
  * Env vars required:
  *   CLOUDINARY_CLOUD_NAME
  *   CLOUDINARY_API_KEY
  *   CLOUDINARY_API_SECRET
- *   CRON_SECRET  (for delete-old-ids — same secret used by /api/daily-summary)
- *   SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (for the delete cron to null DB rows)
+ *   CRON_SECRET  (for delete-old-ids + backfill — same secret used by /api/daily-summary)
+ *   SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
  */
 
 import crypto from 'crypto';
+
+export const config = {
+    api: {
+        bodyParser: { sizeLimit: '10mb' }
+    },
+    maxDuration: 300 // seconds — needed for backfill batches
+};
 
 const CLOUD_NAME    = process.env.CLOUDINARY_CLOUD_NAME;
 const API_KEY       = process.env.CLOUDINARY_API_KEY;
@@ -309,6 +322,295 @@ async function handleDeleteOldIds(req, res) {
 }
 
 // ---------------------------------------------------------------
+// Action: backfill  (one-shot Supabase → Cloudinary migration)
+// ---------------------------------------------------------------
+//
+// Processes up to `limit` rows per call. Call it repeatedly until
+// the response returns `remaining: 0`. Idempotent: rows whose stored
+// value already references Cloudinary are skipped.
+//
+// Query params:
+//   kind    'guest-ids' | 'expenses' | 'all'  (default 'all')
+//   limit   integer, default 10 (keep small to avoid Vercel timeout)
+//   dryRun  '1' to list what would be migrated without writing
+//
+// Auth: Authorization: Bearer <CRON_SECRET>
+
+function supabaseHeaders() {
+    return {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json'
+    };
+}
+
+async function supabaseGet(path) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: supabaseHeaders() });
+    if (!r.ok) throw new Error(`Supabase GET ${path} → ${r.status} ${await r.text()}`);
+    return r.json();
+}
+
+async function supabasePatch(table, filter, body) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+        method: 'PATCH',
+        headers: { ...supabaseHeaders(), Prefer: 'return=minimal' },
+        body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(`Supabase PATCH ${table} → ${r.status} ${await r.text()}`);
+}
+
+async function downloadFromSupabaseStorage(bucket, path) {
+    const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${encodeURI(path)}`;
+    const r = await fetch(url, {
+        headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+    });
+    if (!r.ok) throw new Error(`Supabase Storage GET ${bucket}/${path} → ${r.status}`);
+    const buf = Buffer.from(await r.arrayBuffer());
+    return buf;
+}
+
+async function downloadHttp(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP GET ${url} → ${r.status}`);
+    return Buffer.from(await r.arrayBuffer());
+}
+
+async function uploadBufferToCloudinary(buffer, { publicId, type, tags }) {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signed = { public_id: publicId, tags, timestamp, type, overwrite: 'true' };
+    const signature = signParams(signed);
+
+    // Node 18+ has global FormData + Blob
+    const form = new FormData();
+    form.append('file', new Blob([buffer]));
+    form.append('public_id', publicId);
+    form.append('tags', tags);
+    form.append('timestamp', String(timestamp));
+    form.append('type', type);
+    form.append('overwrite', 'true');
+    form.append('api_key', API_KEY);
+    form.append('signature', signature);
+
+    const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: form
+    });
+    const json = await r.json();
+    if (!r.ok || json.error) {
+        throw new Error(`Cloudinary upload failed: ${json.error?.message || r.status}`);
+    }
+    return json;
+}
+
+function buildGuestIdPublicId(row, field) {
+    const prop = row.property_id || 'unknown-property';
+    const bid = row.booking_id || 'unknown-booking';
+    const seq = row.guest_sequence || 1;
+    return `guest-ids/property-${prop}/guest-${bid}-${seq}/${field}-migrated-${row.id}`;
+}
+
+function buildExpensePublicId(row) {
+    const prop = row.property_id || 'unknown';
+    return `expenses/property-${prop}/expense-${row.id}-migrated`;
+}
+
+function isCloudinaryRef(v) {
+    return typeof v === 'string' && (v.startsWith('cloudinary:') || v.includes('res.cloudinary.com'));
+}
+
+function needsMigration(v) {
+    return typeof v === 'string' && v.length > 0 && !isCloudinaryRef(v);
+}
+
+// Fetch up to `scanLimit` rows and filter unmigrated ones in JS. Simple and
+// avoids PostgREST filter-syntax gotchas for nested NOT LIKE across multiple
+// columns. Scale is low (hundreds of rows), so full-scan is fine.
+const SCAN_LIMIT = 2000;
+
+async function backfillGuestDocuments({ limit, dryRun }) {
+    const all = await supabaseGet(
+        `guest_documents?select=id,booking_id,guest_sequence,document_front_url,document_back_url,selfie_url&order=id.desc&limit=${SCAN_LIMIT}`
+    );
+
+    const unmigrated = all.filter(r =>
+        needsMigration(r.document_front_url) ||
+        needsMigration(r.document_back_url) ||
+        needsMigration(r.selfie_url)
+    );
+
+    const batch = unmigrated.slice(0, limit);
+
+    // Look up property_id from reservations for this batch
+    const bookingIds = [...new Set(batch.map(r => r.booking_id).filter(Boolean))];
+    const bookingToProperty = new Map();
+    if (bookingIds.length) {
+        const list = bookingIds.map(b => `"${b.replace(/"/g, '\\"')}"`).join(',');
+        const reservations = await supabaseGet(
+            `reservations?select=booking_id,property_id&booking_id=in.(${encodeURIComponent(list)})`
+        );
+        for (const r of reservations) bookingToProperty.set(r.booking_id, r.property_id);
+    }
+
+    let migrated = 0, skipped = 0, failed = 0;
+    const failures = [];
+
+    for (const row of batch) {
+        row.property_id = bookingToProperty.get(row.booking_id) || null;
+        const updates = {};
+        const fields = [
+            ['document_front_url', 'front'],
+            ['document_back_url', 'back'],
+            ['selfie_url', 'selfie']
+        ];
+
+        for (const [col, field] of fields) {
+            const val = row[col];
+            if (!val) continue;
+            if (isCloudinaryRef(val)) { skipped++; continue; }
+            try {
+                if (dryRun) { migrated++; continue; }
+                let buffer;
+                if (val.startsWith('http')) {
+                    buffer = await downloadHttp(val);
+                } else {
+                    buffer = await downloadFromSupabaseStorage('guest-id-documents', val);
+                }
+                const publicId = buildGuestIdPublicId(row, field);
+                const result = await uploadBufferToCloudinary(buffer, {
+                    publicId,
+                    type: 'authenticated',
+                    tags: 'guest-id,migrated'
+                });
+                updates[col] = `cloudinary:authenticated/${result.public_id}`;
+                migrated++;
+            } catch (err) {
+                failed++;
+                failures.push({ id: row.id, col, error: err.message });
+                console.error(`guest_documents id=${row.id} ${col}: ${err.message}`);
+            }
+        }
+
+        if (!dryRun && Object.keys(updates).length > 0) {
+            try {
+                await supabasePatch('guest_documents', `id=eq.${row.id}`, updates);
+            } catch (err) {
+                failed++;
+                failures.push({ id: row.id, error: `DB update: ${err.message}` });
+            }
+        }
+    }
+
+    return {
+        kind: 'guest-ids',
+        scanned: all.length,
+        totalUnmigrated: unmigrated.length,
+        batchSize: batch.length,
+        migrated,
+        skipped,
+        failed,
+        failures: failures.slice(0, 10),
+        remaining: Math.max(0, unmigrated.length - batch.length),
+        mayHaveMoreBeyondScan: all.length === SCAN_LIMIT
+    };
+}
+
+async function backfillExpenseReceipts({ limit, dryRun }) {
+    const all = await supabaseGet(
+        `property_expenses?select=id,property_id,receipt_url&order=id.desc&limit=${SCAN_LIMIT}`
+    );
+
+    const unmigrated = all.filter(r => needsMigration(r.receipt_url));
+    const batch = unmigrated.slice(0, limit);
+
+    let migrated = 0, skipped = 0, failed = 0;
+    const failures = [];
+
+    for (const row of batch) {
+        const val = row.receipt_url;
+        if (!val) continue;
+        if (isCloudinaryRef(val)) { skipped++; continue; }
+        try {
+            if (dryRun) { migrated++; continue; }
+            let buffer;
+            if (val.startsWith('http')) {
+                buffer = await downloadHttp(val);
+            } else {
+                buffer = await downloadFromSupabaseStorage('expense-receipts', val);
+            }
+            const publicId = buildExpensePublicId(row);
+            const result = await uploadBufferToCloudinary(buffer, {
+                publicId,
+                type: 'upload',
+                tags: 'expense,migrated'
+            });
+            await supabasePatch('property_expenses', `id=eq.${row.id}`, { receipt_url: result.secure_url });
+            migrated++;
+        } catch (err) {
+            failed++;
+            failures.push({ id: row.id, error: err.message });
+            console.error(`property_expenses id=${row.id}: ${err.message}`);
+        }
+    }
+
+    return {
+        kind: 'expenses',
+        scanned: all.length,
+        totalUnmigrated: unmigrated.length,
+        batchSize: batch.length,
+        migrated,
+        skipped,
+        failed,
+        failures: failures.slice(0, 10),
+        remaining: Math.max(0, unmigrated.length - batch.length),
+        mayHaveMoreBeyondScan: all.length === SCAN_LIMIT
+    };
+}
+
+async function handleBackfill(req, res) {
+    // Cron secret check (required)
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) return jsonError(res, 500, 'CRON_SECRET not set');
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${cronSecret}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const missing = getConfigErrors();
+    if (missing.length) return jsonError(res, 500, `Cloudinary not configured: missing ${missing.join(', ')}`);
+    if (!SUPABASE_URL || !SUPABASE_KEY) return jsonError(res, 500, 'Supabase env not configured');
+
+    const kind = (req.query?.kind || 'all').toLowerCase();
+    const limit = Math.max(1, Math.min(50, parseInt(req.query?.limit || '10', 10) || 10));
+    const dryRun = req.query?.dryRun === '1' || req.query?.dryRun === 'true';
+
+    const results = {};
+    if (kind === 'guest-ids' || kind === 'all') {
+        results['guest-ids'] = await backfillGuestDocuments({ limit, dryRun });
+    }
+    if (kind === 'expenses' || kind === 'all') {
+        results['expenses'] = await backfillExpenseReceipts({ limit, dryRun });
+    }
+
+    const totalRemaining =
+        (results['guest-ids']?.remaining || 0) +
+        (results['expenses']?.remaining || 0);
+
+    return res.status(200).json({
+        data: {
+            dryRun,
+            limit,
+            results,
+            totalRemaining,
+            done: totalRemaining === 0
+        },
+        error: null
+    });
+}
+
+// ---------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------
 export default async function handler(req, res) {
@@ -333,6 +635,9 @@ export default async function handler(req, res) {
         if (action === 'delete-old-ids') {
             if (req.method !== 'GET') return jsonError(res, 405, 'GET required');
             return await handleDeleteOldIds(req, res);
+        }
+        if (action === 'backfill') {
+            return await handleBackfill(req, res);
         }
         return jsonError(res, 400, `Unknown action: ${action}`);
     } catch (err) {
