@@ -33,7 +33,7 @@ export const config = {
     api: {
         bodyParser: { sizeLimit: '10mb' }
     },
-    maxDuration: 300 // seconds — needed for backfill batches
+    maxDuration: 60 // seconds — Vercel Hobby plan caps at 60
 };
 
 const CLOUD_NAME    = process.env.CLOUDINARY_CLOUD_NAME;
@@ -583,7 +583,10 @@ async function handleBackfill(req, res) {
     if (!SUPABASE_URL || !SUPABASE_KEY) return jsonError(res, 500, 'Supabase env not configured');
 
     const kind = (req.query?.kind || 'all').toLowerCase();
-    const limit = Math.max(1, Math.min(50, parseInt(req.query?.limit || '10', 10) || 10));
+    // Hobby plan caps the whole request at 60s. Each Cloudinary upload is ~2-3s,
+    // and guest_documents rows can have up to 3 images each. Cap at 15 rows and
+    // default to 5 so we always stay comfortably under the ceiling.
+    const limit = Math.max(1, Math.min(15, parseInt(req.query?.limit || '5', 10) || 5));
     const dryRun = req.query?.dryRun === '1' || req.query?.dryRun === 'true';
 
     const results = {};
