@@ -286,14 +286,22 @@ export default async function handler(req, res) {
         console.log(`[daily-summary] Running for date: ${today}`);
 
         // 3. Query data from Supabase
+        //    Note: we deliberately filter by date only (not workflow status).
+        //    iCal-imported reservations get their status derived from the dates
+        //    (see js/properties.js deriveStatusFromDates), so on the arrival day
+        //    they are already 'checked-in' and on the departure day they are
+        //    already 'checked-out'. Manual reservations, on the other hand,
+        //    usually stay at 'confirmed' the entire stay because nobody clicks
+        //    a workflow button. Filtering by a specific status therefore misses
+        //    most real bookings. Excluding 'cancelled' is all we need.
         const [checkIns, checkOuts, pendingPayments, externalOwners] = await Promise.all([
             // Today's check-ins
             querySupabase('reservations',
-                `check_in=eq.${today}&status=in.(confirmed)&select=guest_name,guest_phone,property_name,total_amount,paid_amount,owner_id&order=property_name`
+                `check_in=eq.${today}&status=not.in.(cancelled)&select=guest_name,guest_phone,property_name,total_amount,paid_amount,owner_id&order=property_name`
             ),
             // Today's check-outs
             querySupabase('reservations',
-                `check_out=eq.${today}&status=in.(checked-in)&select=guest_name,guest_phone,property_name,owner_id&order=property_name`
+                `check_out=eq.${today}&status=not.in.(cancelled)&select=guest_name,guest_phone,property_name,owner_id&order=property_name`
             ),
             // Pending payments (active reservations only)
             querySupabase('reservations',
