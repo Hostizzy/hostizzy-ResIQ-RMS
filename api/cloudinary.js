@@ -193,33 +193,37 @@ function handleSignView(req, res) {
     const missing = getConfigErrors();
     if (missing.length) return jsonError(res, 500, `Cloudinary not configured: missing ${missing.join(', ')}`);
 
-    const { publicId, resourceType = 'image', deliveryType = 'authenticated', format = 'jpg' } = req.body || {};
+    const { publicId, resourceType = 'image', deliveryType = 'authenticated', format } = req.body || {};
     if (!publicId) return jsonError(res, 400, 'publicId is required');
 
-    // Signed URL valid for 30 minutes
-    const expiresAt = Math.floor(Date.now() / 1000) + 1800;
+    // Cloudinary authenticated delivery uses a PATH-EMBEDDED signature
+    // (query-string signatures are for API calls, not delivery). Format:
+    //
+    //   https://res.cloudinary.com/<cloud>/image/authenticated/s--<8-char-sig>--/<public_id>[.<format>]
+    //
+    // where sig = first 8 chars of url-safe base64( sha1( <source_to_sign> + api_secret ) )
+    // and source_to_sign is exactly the path segment that appears after `s--SIG--/`
+    // in the final URL.
+    //
+    // We omit the format extension — Cloudinary then serves the asset in its
+    // native format, which is safer than hard-coding .jpg (we lost the source
+    // format during the backfill because the DB sentinel doesn't track it).
+    //
+    // These path signatures don't expire on their own, but since the client
+    // fetches a fresh URL via /api/cloudinary?action=sign-view on every view,
+    // effective lifetime = the sign-view response is requested per-render.
+    const sourceToSign = format ? `${publicId}.${format}` : publicId;
+    const hash = crypto.createHash('sha1').update(sourceToSign + API_SECRET).digest();
+    const sig = hash.toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '')
+        .substring(0, 8);
 
-    // Cloudinary signed delivery URL format:
-    //   https://res.cloudinary.com/<cloud>/<resource>/<type>/s--<sig>--/<public_id>.<fmt>
-    // where sig = first 8 chars of SHA-1(public_id + api_secret) — but this is the
-    // legacy form. We use the timestamp-based signed URL via the Admin utility:
-    //   sign = SHA-1("public_id=<id>&timestamp=<t>" + api_secret)
-    // This matches the documented pattern used by the SDKs.
-
-    const toSign = {
-        public_id: publicId,
-        timestamp: expiresAt
-    };
-    const sig = signParams(toSign);
-
-    // Build the URL. For `authenticated` delivery we include the signature as
-    // ?api_key=...&timestamp=...&signature=... (query form), which Cloudinary
-    // accepts and validates.
-    const url = `https://res.cloudinary.com/${CLOUD_NAME}/${resourceType}/${deliveryType}/${publicId}.${format}`
-        + `?api_key=${API_KEY}&timestamp=${expiresAt}&signature=${sig}`;
+    const url = `https://res.cloudinary.com/${CLOUD_NAME}/${resourceType}/${deliveryType}/s--${sig}--/${sourceToSign}`;
 
     return res.status(200).json({
-        data: { signedUrl: url, expiresAt },
+        data: { signedUrl: url, expiresAt: null },
         error: null
     });
 }
