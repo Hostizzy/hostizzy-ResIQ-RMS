@@ -18,6 +18,12 @@
  *                            &limit=N&dryRun=1. Processes N rows per call; idempotent —
  *                            rows already using Cloudinary are skipped. Call repeatedly
  *                            until `remaining: 0`.
+ *   - reorganize           → GET (CRON_SECRET protected)
+ *                            one-shot media library cleanup: walks all resources under
+ *                            `guest-ids/` and `expenses/` prefixes and sets their
+ *                            `asset_folder` so they show under ResIQ/... in the media
+ *                            library tree. public_ids are NOT changed — DB references
+ *                            keep working. Idempotent; call repeatedly until `done: true`.
  *
  * Env vars required:
  *   CLOUDINARY_CLOUD_NAME
@@ -44,6 +50,14 @@ const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const GUEST_ID_RETENTION_DAYS = 90;
 
+// Top-level Cloudinary folder all ResIQ assets live under. The media library
+// tree becomes: ResIQ/guest-ids/property-X/guest-Y/... and ResIQ/expenses/...
+// This is set via the `asset_folder` parameter on uploads (fixed-folders mode).
+// Note: `public_id`s still start with `guest-ids/` / `expenses/` (unchanged) —
+// that keeps the DB sentinel format stable and the delete-old-ids retention
+// cron continues to match resources by `prefix=guest-ids/`.
+const ROOT_FOLDER = 'ResIQ';
+
 // Allowed resource kinds and their delivery settings
 const KIND_CONFIG = {
     'guest-id': {
@@ -59,6 +73,18 @@ const KIND_CONFIG = {
         resourceType: 'image'
     }
 };
+
+/**
+ * Given a public_id like 'guest-ids/property-123/guest-HST-1/front-abc',
+ * return 'ResIQ/guest-ids/property-123/guest-HST-1' — the folder part with
+ * the ROOT_FOLDER prefix and the filename segment stripped.
+ */
+function buildAssetFolder(publicId) {
+    if (!publicId) return ROOT_FOLDER;
+    const lastSlash = publicId.lastIndexOf('/');
+    const folderPart = lastSlash > -1 ? publicId.slice(0, lastSlash) : '';
+    return folderPart ? `${ROOT_FOLDER}/${folderPart}` : ROOT_FOLDER;
+}
 
 /**
  * Sign Cloudinary params per their spec:
@@ -132,11 +158,14 @@ function handleSignUpload(req, res) {
     const cfg = KIND_CONFIG[kind];
 
     const public_id = explicitPublicId || buildPublicId({ kind, propertyId, ownerId, guestId, guestSequence, expenseId, fieldName });
+    const asset_folder = buildAssetFolder(public_id);
     const timestamp = Math.floor(Date.now() / 1000);
 
     // Params that the client will POST to Cloudinary; every param included here
     // (except api_key, resource_type and file) must be in the signature.
+    // `asset_folder` places the asset under ResIQ/... in the media library tree.
     const signed = {
+        asset_folder,
         public_id,
         tags: cfg.tags,
         timestamp,
@@ -396,12 +425,14 @@ async function downloadHttp(url) {
 
 async function uploadBufferToCloudinary(buffer, { publicId, type, tags }) {
     const timestamp = Math.floor(Date.now() / 1000);
-    const signed = { public_id: publicId, tags, timestamp, type, overwrite: 'true' };
+    const asset_folder = buildAssetFolder(publicId);
+    const signed = { asset_folder, public_id: publicId, tags, timestamp, type, overwrite: 'true' };
     const signature = signParams(signed);
 
     // Node 18+ has global FormData + Blob
     const form = new FormData();
     form.append('file', new Blob([buffer]));
+    form.append('asset_folder', asset_folder);
     form.append('public_id', publicId);
     form.append('tags', tags);
     form.append('timestamp', String(timestamp));
@@ -655,6 +686,169 @@ async function handleBackfill(req, res) {
 }
 
 // ---------------------------------------------------------------
+// Action: reorganize  (one-shot media library cleanup)
+// ---------------------------------------------------------------
+//
+// Walks all Cloudinary resources under prefix `guest-ids/` (authenticated)
+// and `expenses/` (upload) and updates each asset's `asset_folder` so it
+// shows under `ResIQ/guest-ids/...` / `ResIQ/expenses/...` in the media
+// library tree. public_ids are NOT changed — DB references keep working.
+//
+// Idempotent: assets already sitting in the correct folder are skipped.
+// Hobby plan has a 60s timeout, so we budget ~55s and return early with
+// a `done: false` flag if there's more work. Caller just re-runs until
+// `done: true`.
+//
+// Query params:
+//   kind    'guest-ids' | 'expenses' | 'all'  (default 'all')
+//
+// Auth: Authorization: Bearer <CRON_SECRET>
+
+async function updateAssetFolder(resourceType, deliveryType, publicId, assetFolder, basicAuth) {
+    // Cloudinary expects slashes within public_id in the path to stay un-encoded;
+    // only segment characters get percent-encoded.
+    const encodedId = publicId.split('/').map(encodeURIComponent).join('/');
+    const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/resources/${resourceType}/${deliveryType}/${encodedId}`;
+    const body = new URLSearchParams();
+    body.set('asset_folder', assetFolder);
+    const r = await fetch(url, {
+        method: 'POST',
+        headers: {
+            Authorization: basicAuth,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body.toString()
+    });
+    if (!r.ok) {
+        const t = await r.text();
+        throw new Error(`update asset_folder → ${r.status} ${t}`);
+    }
+    return r.json();
+}
+
+async function reorganizeKind({ prefix, resourceType, deliveryType, basicAuth, timeBudgetMs, startedAt }) {
+    let scanned = 0, updated = 0, skipped = 0, failed = 0;
+    const failures = [];
+    let nextCursor = null;
+    let loopGuard = 0;
+    let timedOut = false;
+
+    do {
+        loopGuard++;
+        if (loopGuard > 20) break;
+        if (Date.now() - startedAt > timeBudgetMs) { timedOut = true; break; }
+
+        const params = new URLSearchParams({
+            type: deliveryType,
+            prefix,
+            max_results: '100'
+        });
+        if (nextCursor) params.set('next_cursor', nextCursor);
+
+        const listResp = await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/resources/${resourceType}?${params.toString()}`,
+            { headers: { Authorization: basicAuth } }
+        );
+        if (!listResp.ok) {
+            const t = await listResp.text();
+            throw new Error(`list resources failed: ${t}`);
+        }
+        const listJson = await listResp.json();
+        const resources = listJson.resources || [];
+
+        for (const r of resources) {
+            if (Date.now() - startedAt > timeBudgetMs) { timedOut = true; break; }
+            scanned++;
+            const targetFolder = buildAssetFolder(r.public_id);
+            if (r.asset_folder === targetFolder) {
+                skipped++;
+                continue;
+            }
+            try {
+                await updateAssetFolder(resourceType, deliveryType, r.public_id, targetFolder, basicAuth);
+                updated++;
+            } catch (err) {
+                failed++;
+                failures.push({ public_id: r.public_id, error: err.message });
+                console.error(`reorganize ${r.public_id}: ${err.message}`);
+            }
+        }
+
+        if (timedOut) break;
+        nextCursor = listJson.next_cursor || null;
+    } while (nextCursor);
+
+    return {
+        scanned,
+        updated,
+        skipped,
+        failed,
+        failures: failures.slice(0, 10),
+        timedOut,
+        hasMore: timedOut || !!nextCursor
+    };
+}
+
+async function handleReorganize(req, res) {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) return jsonError(res, 500, 'CRON_SECRET not set');
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${cronSecret}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const missing = getConfigErrors();
+    if (missing.length) return jsonError(res, 500, `Cloudinary not configured: missing ${missing.join(', ')}`);
+
+    const kind = (req.query?.kind || 'all').toLowerCase();
+    const basicAuth = 'Basic ' + Buffer.from(`${API_KEY}:${API_SECRET}`).toString('base64');
+    const startedAt = Date.now();
+    const timeBudgetMs = 50000; // leave 10s headroom under Hobby's 60s cap
+
+    const results = {};
+
+    if (kind === 'guest-ids' || kind === 'all') {
+        results['guest-ids'] = await reorganizeKind({
+            prefix: 'guest-ids/',
+            resourceType: 'image',
+            deliveryType: 'authenticated',
+            basicAuth,
+            timeBudgetMs,
+            startedAt
+        });
+    }
+
+    if (kind === 'expenses' || kind === 'all') {
+        // If guest-ids already consumed most of the budget, skip expenses this call
+        if (Date.now() - startedAt < timeBudgetMs - 5000) {
+            results['expenses'] = await reorganizeKind({
+                prefix: 'expenses/',
+                resourceType: 'image',
+                deliveryType: 'upload',
+                basicAuth,
+                timeBudgetMs,
+                startedAt
+            });
+        } else {
+            results['expenses'] = { skipped: 0, updated: 0, scanned: 0, failed: 0, failures: [], timedOut: true, hasMore: true, note: 'guest-ids consumed the budget; run again to process expenses' };
+        }
+    }
+
+    const hasMore =
+        (results['guest-ids']?.hasMore || false) ||
+        (results['expenses']?.hasMore || false);
+
+    return res.status(200).json({
+        data: {
+            results,
+            elapsedMs: Date.now() - startedAt,
+            done: !hasMore
+        },
+        error: null
+    });
+}
+
+// ---------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------
 export default async function handler(req, res) {
@@ -682,6 +876,9 @@ export default async function handler(req, res) {
         }
         if (action === 'backfill') {
             return await handleBackfill(req, res);
+        }
+        if (action === 'reorganize') {
+            return await handleReorganize(req, res);
         }
         return jsonError(res, 400, `Unknown action: ${action}`);
     } catch (err) {
