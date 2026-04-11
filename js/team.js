@@ -563,48 +563,33 @@ window.clearAdminExpReceipt = function() {
 };
 
 async function uploadExpenseReceipt(file, propertyId) {
-    const reader = new FileReader();
-    const base64 = await new Promise((resolve, reject) => {
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-
-    const ext = file.name.split('.').pop() || 'jpg';
-    const path = `property-${propertyId}/${Date.now()}.${ext}`;
-
-    const res = await fetch('/api/storage-proxy', {
+    // 1. Get signed upload payload from our Cloudinary serverless function
+    const signRes = await fetch('/api/cloudinary?action=sign-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            action: 'upload',
-            bucket: 'expense-receipts',
-            path: path,
-            fileBase64: base64,
-            contentType: file.type,
-            upsert: true
+            kind: 'expense-receipt',
+            propertyId,
+            fieldName: 'receipt'
         })
     });
+    const signJson = await signRes.json();
+    if (signJson.error) throw new Error(signJson.error.message || 'sign-upload failed');
+    const { uploadUrl, params } = signJson.data;
 
-    const json = await res.json();
-    if (json.error) throw new Error(json.error.message || 'Upload failed');
+    // 2. POST multipart form to Cloudinary directly from the browser
+    const form = new FormData();
+    form.append('file', file);
+    Object.entries(params).forEach(([k, v]) => form.append(k, String(v)));
 
-    // Get a signed URL for viewing
-    const urlRes = await fetch('/api/storage-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            action: 'signed-url',
-            bucket: 'expense-receipts',
-            path: path,
-            expiresIn: 31536000 // 1 year
-        })
-    });
+    const upRes = await fetch(uploadUrl, { method: 'POST', body: form });
+    const upJson = await upRes.json();
+    if (!upRes.ok || upJson.error) {
+        throw new Error(upJson.error?.message || 'Cloudinary upload failed');
+    }
 
-    const urlJson = await urlRes.json();
-    if (urlJson.error) throw new Error(urlJson.error.message || 'Failed to get URL');
-
-    return { path: path, signedUrl: urlJson.data.signedUrl };
+    // Expense receipts are type=upload (public CDN). Store the secure_url directly.
+    return { path: upJson.secure_url, signedUrl: upJson.secure_url };
 }
 
 async function saveAdminExpense(expenseId) {
@@ -969,13 +954,14 @@ function renderPnLTable(pnlByProperty, totals) {
 window.viewExpenseReceipt = async function(receiptPath) {
     if (!receiptPath) return;
 
-    // If it's already a full URL, open directly
+    // Cloudinary public URL (new expense receipts) — open directly.
+    // Legacy http(s) URLs (old Supabase signed URLs baked into the DB) — also open directly.
     if (receiptPath.startsWith('http')) {
         window.open(receiptPath, '_blank');
         return;
     }
 
-    // Get signed URL from storage proxy
+    // Legacy Supabase storage path — fall back to storage proxy for a signed URL.
     try {
         const res = await fetch('/api/storage-proxy', {
             method: 'POST',
