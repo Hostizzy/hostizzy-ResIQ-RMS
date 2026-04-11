@@ -48,11 +48,27 @@ async function querySupabase(table, params = '') {
  * Get today's date in YYYY-MM-DD format (IST)
  */
 function getTodayIST() {
+    return getDateIST(0);
+}
+
+/**
+ * Get a date in IST offset by `daysOffset` days from today (YYYY-MM-DD)
+ */
+function getDateIST(daysOffset = 0) {
     const now = new Date();
     // IST is UTC+5:30
     const istOffset = 5.5 * 60 * 60 * 1000;
-    const istDate = new Date(now.getTime() + istOffset);
+    const istDate = new Date(now.getTime() + istOffset + daysOffset * 24 * 60 * 60 * 1000);
     return istDate.toISOString().split('T')[0];
+}
+
+/**
+ * Format a YYYY-MM-DD date as a short display string (e.g., "12 Apr")
+ */
+function formatShortDate(dateStr) {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
 /**
@@ -84,7 +100,7 @@ function daysOverdue(checkInDate) {
 /**
  * Build HTML email body
  */
-function buildEmailHTML(date, checkIns, checkOuts, pendingPayments, ownerName) {
+function buildEmailHTML(date, checkIns, checkOuts, upcomingCheckIns, upcomingCheckOuts, pendingPayments, ownerName) {
     const displayDate = formatDateDisplay(date);
     const greeting = ownerName ? `Hi ${ownerName},` : 'Good morning,';
     const scopeLabel = ownerName ? 'your properties' : 'all properties';
@@ -132,16 +148,22 @@ function buildEmailHTML(date, checkIns, checkOuts, pendingPayments, ownerName) {
         `;
     }
 
-    // Check-outs table
+    // Check-outs table (with balance — outstanding amounts should be collected before departure)
     let checkOutsHTML = '';
     if (checkOuts.length > 0) {
-        const rows = checkOuts.map(r => `
+        const rows = checkOuts.map(r => {
+            const balance = (r.total_amount || 0) - (r.paid_amount || 0);
+            return `
             <tr>
                 <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.guest_name || '-'}</td>
                 <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.property_name || '-'}</td>
                 <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.guest_phone || '-'}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatAmount(r.total_amount)}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatAmount(r.paid_amount)}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600; color: ${balance > 0 ? '#dc2626' : '#059669'};">${formatAmount(balance)}</td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
 
         checkOutsHTML = `
             <div style="margin-bottom: 32px;">
@@ -154,6 +176,9 @@ function buildEmailHTML(date, checkIns, checkOuts, pendingPayments, ownerName) {
                             <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Guest</th>
                             <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Property</th>
                             <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Phone</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Total</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Paid</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Balance</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
@@ -165,6 +190,88 @@ function buildEmailHTML(date, checkIns, checkOuts, pendingPayments, ownerName) {
             <div style="margin-bottom: 32px;">
                 <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">🚪 Today's Check-outs</h2>
                 <p style="color: #64748b; font-size: 14px;">No check-outs scheduled for today.</p>
+            </div>
+        `;
+    }
+
+    // Upcoming check-ins table (next few days)
+    let upcomingCheckInsHTML = '';
+    if (upcomingCheckIns.length > 0) {
+        const rows = upcomingCheckIns.map(r => {
+            const balance = (r.total_amount || 0) - (r.paid_amount || 0);
+            return `
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; white-space: nowrap;">${formatShortDate(r.check_in)}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.guest_name || '-'}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.property_name || '-'}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.guest_phone || '-'}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatAmount(r.total_amount)}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatAmount(r.paid_amount)}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600; color: ${balance > 0 ? '#dc2626' : '#059669'};">${formatAmount(balance)}</td>
+            </tr>
+            `;
+        }).join('');
+
+        upcomingCheckInsHTML = `
+            <div style="margin-bottom: 32px;">
+                <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #6366f1;">
+                    📅 Upcoming Check-ins — Next 3 Days (${upcomingCheckIns.length})
+                </h2>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #f1f5f9;">
+                            <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Date</th>
+                            <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Guest</th>
+                            <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Property</th>
+                            <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Phone</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Total</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Paid</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Upcoming check-outs table (next few days)
+    let upcomingCheckOutsHTML = '';
+    if (upcomingCheckOuts.length > 0) {
+        const rows = upcomingCheckOuts.map(r => {
+            const balance = (r.total_amount || 0) - (r.paid_amount || 0);
+            return `
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; white-space: nowrap;">${formatShortDate(r.check_out)}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.guest_name || '-'}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.property_name || '-'}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${r.guest_phone || '-'}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatAmount(r.total_amount)}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatAmount(r.paid_amount)}</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600; color: ${balance > 0 ? '#dc2626' : '#059669'};">${formatAmount(balance)}</td>
+            </tr>
+            `;
+        }).join('');
+
+        upcomingCheckOutsHTML = `
+            <div style="margin-bottom: 32px;">
+                <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #f59e0b;">
+                    🧳 Upcoming Check-outs — Next 3 Days (${upcomingCheckOuts.length})
+                </h2>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #f1f5f9;">
+                            <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Date</th>
+                            <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Guest</th>
+                            <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Property</th>
+                            <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Phone</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Total</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Paid</th>
+                            <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
             </div>
         `;
     }
@@ -236,6 +343,8 @@ function buildEmailHTML(date, checkIns, checkOuts, pendingPayments, ownerName) {
 
             ${checkInsHTML}
             ${checkOutsHTML}
+            ${upcomingCheckInsHTML}
+            ${upcomingCheckOutsHTML}
             ${paymentsHTML}
 
             <!-- Quick Link -->
@@ -281,9 +390,10 @@ export default async function handler(req, res) {
         const accessToken = await ensureTokenFresh(tokenRecord);
         const fromEmail = tokenRecord.gmail_email;
 
-        // 2. Get today's date in IST
+        // 2. Get today's date in IST and the upcoming window end (next 3 days)
         const today = getTodayIST();
-        console.log(`[daily-summary] Running for date: ${today}`);
+        const upcomingWindowEnd = getDateIST(3);
+        console.log(`[daily-summary] Running for date: ${today}, upcoming window: ${today} → ${upcomingWindowEnd}`);
 
         // 3. Query data from Supabase
         //    Note: we deliberately filter by date only (not workflow status).
@@ -294,14 +404,22 @@ export default async function handler(req, res) {
         //    usually stay at 'confirmed' the entire stay because nobody clicks
         //    a workflow button. Filtering by a specific status therefore misses
         //    most real bookings. Excluding 'cancelled' is all we need.
-        const [checkIns, checkOuts, pendingPayments, externalOwners] = await Promise.all([
+        const [checkIns, checkOuts, upcomingCheckIns, upcomingCheckOuts, pendingPayments, externalOwners] = await Promise.all([
             // Today's check-ins
             querySupabase('reservations',
                 `check_in=eq.${today}&status=not.in.(cancelled)&select=guest_name,guest_phone,property_name,total_amount,paid_amount,owner_id&order=property_name`
             ),
             // Today's check-outs
             querySupabase('reservations',
-                `check_out=eq.${today}&status=not.in.(cancelled)&select=guest_name,guest_phone,property_name,owner_id&order=property_name`
+                `check_out=eq.${today}&status=not.in.(cancelled)&select=guest_name,guest_phone,property_name,total_amount,paid_amount,owner_id&order=property_name`
+            ),
+            // Upcoming check-ins (tomorrow through the next 3 days)
+            querySupabase('reservations',
+                `check_in=gt.${today}&check_in=lte.${upcomingWindowEnd}&status=not.in.(cancelled)&select=guest_name,guest_phone,property_name,check_in,total_amount,paid_amount,owner_id&order=check_in`
+            ),
+            // Upcoming check-outs (tomorrow through the next 3 days)
+            querySupabase('reservations',
+                `check_out=gt.${today}&check_out=lte.${upcomingWindowEnd}&status=not.in.(cancelled)&select=guest_name,guest_phone,property_name,check_out,total_amount,paid_amount,owner_id&order=check_out`
             ),
             // Pending payments (active reservations only)
             querySupabase('reservations',
@@ -313,13 +431,13 @@ export default async function handler(req, res) {
             )
         ]);
 
-        console.log(`[daily-summary] Check-ins: ${checkIns.length}, Check-outs: ${checkOuts.length}, Pending: ${pendingPayments.length}, Owners: ${externalOwners.length}`);
+        console.log(`[daily-summary] Today — Check-ins: ${checkIns.length}, Check-outs: ${checkOuts.length} | Upcoming — Check-ins: ${upcomingCheckIns.length}, Check-outs: ${upcomingCheckOuts.length} | Pending: ${pendingPayments.length}, Owners: ${externalOwners.length}`);
 
         const sentTo = [];
 
         // 4. Send admin summary (all properties)
         if (DAILY_SUMMARY_EMAIL) {
-            const adminHTML = buildEmailHTML(today, checkIns, checkOuts, pendingPayments, null);
+            const adminHTML = buildEmailHTML(today, checkIns, checkOuts, upcomingCheckIns, upcomingCheckOuts, pendingPayments, null);
             await sendEmail(accessToken, {
                 to: DAILY_SUMMARY_EMAIL,
                 subject: `ResIQ Daily Summary - ${formatDateDisplay(today)}`,
@@ -337,14 +455,22 @@ export default async function handler(req, res) {
             // Filter data for this owner's properties
             const ownerCheckIns = checkIns.filter(r => r.owner_id === owner.id);
             const ownerCheckOuts = checkOuts.filter(r => r.owner_id === owner.id);
+            const ownerUpcomingCheckIns = upcomingCheckIns.filter(r => r.owner_id === owner.id);
+            const ownerUpcomingCheckOuts = upcomingCheckOuts.filter(r => r.owner_id === owner.id);
             const ownerPayments = pendingPayments.filter(r => r.owner_id === owner.id);
 
             // Skip if owner has no activity at all
-            if (ownerCheckIns.length === 0 && ownerCheckOuts.length === 0 && ownerPayments.length === 0) {
+            if (
+                ownerCheckIns.length === 0 &&
+                ownerCheckOuts.length === 0 &&
+                ownerUpcomingCheckIns.length === 0 &&
+                ownerUpcomingCheckOuts.length === 0 &&
+                ownerPayments.length === 0
+            ) {
                 continue;
             }
 
-            const ownerHTML = buildEmailHTML(today, ownerCheckIns, ownerCheckOuts, ownerPayments, owner.name);
+            const ownerHTML = buildEmailHTML(today, ownerCheckIns, ownerCheckOuts, ownerUpcomingCheckIns, ownerUpcomingCheckOuts, ownerPayments, owner.name);
             await sendEmail(accessToken, {
                 to: owner.email,
                 toName: owner.name,
@@ -364,6 +490,8 @@ export default async function handler(req, res) {
             stats: {
                 checkIns: checkIns.length,
                 checkOuts: checkOuts.length,
+                upcomingCheckIns: upcomingCheckIns.length,
+                upcomingCheckOuts: upcomingCheckOuts.length,
                 pendingPayments: pendingPayments.length
             }
         });
