@@ -1312,15 +1312,42 @@ const DB = {
     }
   },
   
-  uploadFile: async (folder, filename, file) => {
+  // Upload a guest ID image to Cloudinary (type=authenticated, 90-day retention).
+  // Returns a sentinel string in the form `cloudinary:authenticated/<publicId>`
+  // which the admin documents viewer recognises and resolves to a signed URL.
+  // Legacy Supabase paths are still supported by the viewer for older rows.
+  uploadFile: async ({ kind, propertyId, bookingId, guestSequence, fieldName, file }) => {
     try {
-      const path = `${folder}/${Date.now()}_${filename}.jpg`;
-      const { error, data } = await client.storage
-        .from(CONFIG.STORAGE_BUCKET)
-        .upload(path, file, { upsert: true });
-      
-      if (error) throw new Error(`Upload failed: ${error.message}`);
-      return path;
+      // 1. Get a signed upload payload from our serverless function
+      const signRes = await fetch('/api/cloudinary?action=sign-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: kind || 'guest-id',
+          propertyId,
+          guestId: bookingId,
+          guestSequence,
+          fieldName
+        })
+      });
+      const signJson = await signRes.json();
+      if (signJson.error) throw new Error(signJson.error.message || 'sign-upload failed');
+      const { uploadUrl, params } = signJson.data;
+
+      // 2. POST multipart form to Cloudinary directly from the browser
+      const form = new FormData();
+      form.append('file', file);
+      Object.entries(params).forEach(([k, v]) => form.append(k, String(v)));
+
+      const upRes = await fetch(uploadUrl, { method: 'POST', body: form });
+      const upJson = await upRes.json();
+      if (!upRes.ok || upJson.error) {
+        throw new Error(upJson.error?.message || 'Cloudinary upload failed');
+      }
+
+      // 3. Return a sentinel that encodes the delivery type + public_id so the
+      //    viewer can request a signed URL later.
+      return `cloudinary:${upJson.type || 'authenticated'}/${upJson.public_id}`;
     } catch (err) {
       throw new Error(err.message || 'File upload failed');
     }
@@ -2011,11 +2038,17 @@ DOM.q('#formGuest').addEventListener('submit', async (e) => {
 
   try {
     let front_url = null, back_url = null, selfie_url = null;
-    const folder = `${S.reservation.booking_id}/guest_${seq}_${name.replace(/\s+/g, '_').toLowerCase()}`;
 
-    const upload = async (filename, file) => {
+    const upload = async (fieldName, file) => {
       if (!file) return null;
-      return await DB.uploadFile(folder, filename, file);
+      return await DB.uploadFile({
+        kind: 'guest-id',
+        propertyId: S.reservation.property_id,
+        bookingId: S.reservation.booking_id,
+        guestSequence: seq,
+        fieldName,
+        file
+      });
     };
 
     if (!isMinor) {

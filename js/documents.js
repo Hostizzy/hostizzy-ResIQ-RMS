@@ -347,6 +347,51 @@ async function openDocumentReview(documentId) {
 // ============================================
 // LOAD DOCUMENT IMAGES
 // ============================================
+// Resolves any of the three stored URL formats to a displayable URL:
+//   1. `cloudinary:<deliveryType>/<publicId>`  → ask serverless for a signed view URL
+//   2. plain https://res.cloudinary.com/...    → use directly (public delivery)
+//   3. legacy Supabase storage path            → generate a Supabase signed URL
+async function resolveGuestIdImageUrl(stored) {
+    if (!stored) return null;
+
+    // Cloudinary sentinel produced by the guest portal uploader
+    if (typeof stored === 'string' && stored.startsWith('cloudinary:')) {
+        const rest = stored.slice('cloudinary:'.length);
+        const slash = rest.indexOf('/');
+        const deliveryType = slash > -1 ? rest.slice(0, slash) : 'authenticated';
+        const publicId = slash > -1 ? rest.slice(slash + 1) : rest;
+        try {
+            const res = await fetch('/api/cloudinary?action=sign-view', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ publicId, deliveryType, resourceType: 'image' })
+            });
+            const json = await res.json();
+            if (json.error) throw new Error(json.error.message);
+            return json.data?.signedUrl || null;
+        } catch (err) {
+            console.error('Cloudinary sign-view failed:', err);
+            return null;
+        }
+    }
+
+    // Direct Cloudinary CDN URL (shouldn't happen for guest IDs, but handle it)
+    if (typeof stored === 'string' && stored.startsWith('http')) {
+        return stored;
+    }
+
+    // Legacy Supabase storage path
+    try {
+        const { data } = await supabase.storage
+            .from('guest-id-documents')
+            .createSignedUrl(stored, 3600);
+        return data?.signedUrl || null;
+    } catch (err) {
+        console.error('Supabase signed URL failed:', err);
+        return null;
+    }
+}
+
 async function loadDocumentImages(doc) {
     const frontImg = document.getElementById('modalFrontImage');
     const backImg = document.getElementById('modalBackImage');
@@ -358,13 +403,12 @@ async function loadDocumentImages(doc) {
 
     // Load front image
     if (doc.document_front_url) {
-        const { data } = await supabase.storage
-            .from('guest-id-documents')
-            .createSignedUrl(doc.document_front_url, 3600);
-
-        if (data?.signedUrl) {
-            frontImg.src = data.signedUrl;
+        const url = await resolveGuestIdImageUrl(doc.document_front_url);
+        if (url) {
+            frontImg.src = url;
             frontContainer.style.display = 'block';
+        } else {
+            frontContainer.style.display = 'none';
         }
     } else {
         frontContainer.style.display = 'none';
@@ -372,13 +416,12 @@ async function loadDocumentImages(doc) {
 
     // Load back image
     if (doc.document_back_url) {
-        const { data } = await supabase.storage
-            .from('guest-id-documents')
-            .createSignedUrl(doc.document_back_url, 3600);
-
-        if (data?.signedUrl) {
-            backImg.src = data.signedUrl;
+        const url = await resolveGuestIdImageUrl(doc.document_back_url);
+        if (url) {
+            backImg.src = url;
             backContainer.style.display = 'block';
+        } else {
+            backContainer.style.display = 'none';
         }
     } else {
         backContainer.style.display = 'none';
@@ -386,13 +429,12 @@ async function loadDocumentImages(doc) {
 
     // Load selfie
     if (doc.selfie_url) {
-        const { data } = await supabase.storage
-            .from('guest-id-documents')
-            .createSignedUrl(doc.selfie_url, 3600);
-
-        if (data?.signedUrl) {
-            selfieImg.src = data.signedUrl;
+        const url = await resolveGuestIdImageUrl(doc.selfie_url);
+        if (url) {
+            selfieImg.src = url;
             selfieContainer.style.display = 'block';
+        } else {
+            selfieContainer.style.display = 'none';
         }
     } else {
         selfieContainer.style.display = 'none';

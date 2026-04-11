@@ -1926,31 +1926,33 @@ async function saveExpense() {
         const receiptFile = document.getElementById('ownerExpReceipt')?.files[0];
         if (receiptFile) {
             try {
-                const reader = new FileReader();
-                const base64 = await new Promise((resolve, reject) => {
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(receiptFile);
-                });
-
-                const ext = receiptFile.name.split('.').pop() || 'jpg';
-                const path = `property-${propertyId}/${Date.now()}.${ext}`;
-
-                const uploadRes = await fetch('/api/storage-proxy', {
+                // 1. Get signed upload payload from our Cloudinary serverless function
+                const signRes = await fetch('/api/cloudinary?action=sign-upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'upload',
-                        bucket: 'expense-receipts',
-                        path: path,
-                        fileBase64: base64,
-                        contentType: receiptFile.type,
-                        upsert: true
+                        kind: 'expense-receipt',
+                        propertyId,
+                        ownerId: currentUser?.id || null,
+                        fieldName: 'receipt'
                     })
                 });
-                const uploadJson = await uploadRes.json();
-                if (uploadJson.error) throw new Error(uploadJson.error.message || 'Upload failed');
-                receiptUrl = path;
+                const signJson = await signRes.json();
+                if (signJson.error) throw new Error(signJson.error.message || 'sign-upload failed');
+                const { uploadUrl, params } = signJson.data;
+
+                // 2. POST multipart form directly to Cloudinary
+                const form = new FormData();
+                form.append('file', receiptFile);
+                Object.entries(params).forEach(([k, v]) => form.append(k, String(v)));
+
+                const upRes = await fetch(uploadUrl, { method: 'POST', body: form });
+                const upJson = await upRes.json();
+                if (!upRes.ok || upJson.error) {
+                    throw new Error(upJson.error?.message || 'Cloudinary upload failed');
+                }
+                // Public Cloudinary URL — store directly
+                receiptUrl = upJson.secure_url;
             } catch (uploadErr) {
                 console.error('Receipt upload failed:', uploadErr);
                 showToast('Upload Error', 'Failed to upload receipt: ' + uploadErr.message, '❌');
@@ -2013,10 +2015,12 @@ async function deleteExpense(expenseId) {
 
 window.viewExpenseReceipt = async function(receiptPath) {
     if (!receiptPath) return;
+    // Cloudinary public URL OR legacy baked-in Supabase signed URL — open directly.
     if (receiptPath.startsWith('http')) {
         window.open(receiptPath, '_blank');
         return;
     }
+    // Legacy Supabase storage path — fall back to storage proxy for a signed URL.
     try {
         const res = await fetch('/api/storage-proxy', {
             method: 'POST',
