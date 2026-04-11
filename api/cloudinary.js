@@ -359,6 +359,12 @@ async function supabasePatch(table, filter, body) {
     if (!r.ok) throw new Error(`Supabase PATCH ${table} → ${r.status} ${await r.text()}`);
 }
 
+// Error thrown when the source object is permanently missing (4xx). Callers
+// should null out the corresponding DB column rather than retrying forever.
+class MissingSourceError extends Error {
+    constructor(msg) { super(msg); this.code = 'MISSING_SOURCE'; }
+}
+
 async function downloadFromSupabaseStorage(bucket, path) {
     const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${encodeURI(path)}`;
     const r = await fetch(url, {
@@ -367,14 +373,24 @@ async function downloadFromSupabaseStorage(bucket, path) {
             Authorization: `Bearer ${SUPABASE_KEY}`
         }
     });
-    if (!r.ok) throw new Error(`Supabase Storage GET ${bucket}/${path} → ${r.status}`);
+    if (!r.ok) {
+        if (r.status >= 400 && r.status < 500) {
+            throw new MissingSourceError(`Supabase Storage GET ${bucket}/${path} → ${r.status} (file gone)`);
+        }
+        throw new Error(`Supabase Storage GET ${bucket}/${path} → ${r.status}`);
+    }
     const buf = Buffer.from(await r.arrayBuffer());
     return buf;
 }
 
 async function downloadHttp(url) {
     const r = await fetch(url);
-    if (!r.ok) throw new Error(`HTTP GET ${url} → ${r.status}`);
+    if (!r.ok) {
+        if (r.status >= 400 && r.status < 500) {
+            throw new MissingSourceError(`HTTP GET ${url} → ${r.status} (file gone)`);
+        }
+        throw new Error(`HTTP GET ${url} → ${r.status}`);
+    }
     return Buffer.from(await r.arrayBuffer());
 }
 
@@ -454,7 +470,7 @@ async function backfillGuestDocuments({ limit, dryRun }) {
         for (const r of reservations) bookingToProperty.set(r.booking_id, r.property_id);
     }
 
-    let migrated = 0, skipped = 0, failed = 0;
+    let migrated = 0, skipped = 0, failed = 0, orphanedNulled = 0;
     const failures = [];
 
     for (const row of batch) {
@@ -487,9 +503,18 @@ async function backfillGuestDocuments({ limit, dryRun }) {
                 updates[col] = `cloudinary:authenticated/${result.public_id}`;
                 migrated++;
             } catch (err) {
-                failed++;
-                failures.push({ id: row.id, col, error: err.message });
-                console.error(`guest_documents id=${row.id} ${col}: ${err.message}`);
+                if (err.code === 'MISSING_SOURCE') {
+                    // Source file is gone (deleted/cleaned up). Null the column so
+                    // the row drops out of the unmigrated set and stops blocking
+                    // the backfill loop on subsequent runs.
+                    updates[col] = null;
+                    orphanedNulled++;
+                    console.warn(`guest_documents id=${row.id} ${col}: nulling orphaned reference (${err.message})`);
+                } else {
+                    failed++;
+                    failures.push({ id: row.id, col, error: err.message });
+                    console.error(`guest_documents id=${row.id} ${col}: ${err.message}`);
+                }
             }
         }
 
@@ -510,6 +535,7 @@ async function backfillGuestDocuments({ limit, dryRun }) {
         batchSize: batch.length,
         migrated,
         skipped,
+        orphanedNulled,
         failed,
         failures: failures.slice(0, 10),
         remaining: Math.max(0, unmigrated.length - batch.length),
@@ -525,7 +551,7 @@ async function backfillExpenseReceipts({ limit, dryRun }) {
     const unmigrated = all.filter(r => needsMigration(r.receipt_url));
     const batch = unmigrated.slice(0, limit);
 
-    let migrated = 0, skipped = 0, failed = 0;
+    let migrated = 0, skipped = 0, failed = 0, orphanedNulled = 0;
     const failures = [];
 
     for (const row of batch) {
@@ -549,9 +575,23 @@ async function backfillExpenseReceipts({ limit, dryRun }) {
             await supabasePatch('property_expenses', `id=eq.${row.id}`, { receipt_url: result.secure_url });
             migrated++;
         } catch (err) {
-            failed++;
-            failures.push({ id: row.id, error: err.message });
-            console.error(`property_expenses id=${row.id}: ${err.message}`);
+            if (err.code === 'MISSING_SOURCE') {
+                // Source file is gone (deleted/cleaned up). Null the column so
+                // the row drops out of the unmigrated set and stops blocking
+                // the backfill loop on subsequent runs.
+                try {
+                    await supabasePatch('property_expenses', `id=eq.${row.id}`, { receipt_url: null });
+                    orphanedNulled++;
+                    console.warn(`property_expenses id=${row.id}: nulled orphaned receipt_url (${err.message})`);
+                } catch (patchErr) {
+                    failed++;
+                    failures.push({ id: row.id, error: `null receipt_url: ${patchErr.message}` });
+                }
+            } else {
+                failed++;
+                failures.push({ id: row.id, error: err.message });
+                console.error(`property_expenses id=${row.id}: ${err.message}`);
+            }
         }
     }
 
@@ -562,6 +602,7 @@ async function backfillExpenseReceipts({ limit, dryRun }) {
         batchSize: batch.length,
         migrated,
         skipped,
+        orphanedNulled,
         failed,
         failures: failures.slice(0, 10),
         remaining: Math.max(0, unmigrated.length - batch.length),
