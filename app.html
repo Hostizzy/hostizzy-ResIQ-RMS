@@ -5895,6 +5895,9 @@
                                 <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Source: DIRECT, AIRBNB, AGODA/BOOKING.COM, MMT/GOIBIBO<br>
                                 <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>If booking_id is empty, one will be auto-generated
                             </div>
+                            <div style="margin-top: 10px; padding: 10px 12px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; font-size: 12px; color: #1e40af; line-height: 1.6;">
+                                <strong>Legacy spreadsheets supported:</strong> Google Sheets exports with human-readable headers (e.g. "Property Name", "Check In"), DD-Mon-YYYY dates (e.g. 01-Apr-2022), and ₹-prefixed amounts are auto-detected and transformed.
+                            </div>
                         </div>
                     </div>
 
@@ -5913,6 +5916,11 @@
 
                 <!-- Step 2: Preview -->
                 <div id="importStep2" class="import-step" style="display: none;">
+                    <!-- Legacy format banner (shown/hidden by JS) -->
+                    <div id="legacyFormatBanner" style="display: none; margin-bottom: 16px; padding: 12px 16px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #93c5fd; border-radius: 8px; font-size: 13px; color: #1e40af;">
+                        <i data-lucide="wand-2" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: middle;"></i>
+                        <strong>Legacy format auto-detected</strong> — dates, amounts, statuses, and booking sources have been normalised. Review the preview below before importing.
+                    </div>
                     <!-- Stats -->
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
                         <div style="padding: 16px; background: #f8fafc; border-radius: 8px; text-align: center;">
