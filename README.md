@@ -38,6 +38,7 @@
 ### Main RMS Portal (Admin/Staff)
 
 - **Dashboard** — Today's overview with key metrics, quick actions, and real-time KPIs
+- **Monthly Revenue Targets** — Configurable 3-tier target (₹40L/₹50L/₹60L), progress card on Home + Dashboard with linear projection and per-tier "projected hit day". Daily email to stay@ + WhatsApp broadcast to the team at 7 AM IST. Manual share-as-image and "Send WA Now" buttons. Auto-celebration when a tier is crossed for the first time in a month. See [`docs/REVENUE_TARGETS_SETUP.md`](docs/REVENUE_TARGETS_SETUP.md).
 - **Reservations** — Dual view (table + kanban), advanced filters, booking lifecycle management, auto status updates
 - **Payments** — Complete payment tracking with method, recipient, and reference tracking
 - **Guest Management** — Guest directory, KYC document review, bulk approve/reject
@@ -49,6 +50,7 @@
 - **Owner Management** — Owner profiles, commission tracking, payout management
 - **Availability** — Calendar view with iCal sync (Airbnb, Booking.com), date blocking
 - **Communication** — Template messaging, SMS/email notifications, automated alerts
+- **Push Notifications** — Opt-in web push for daily target updates and tier milestones. Works in Chrome/Edge/Firefox (desktop + Android); iOS requires the PWA to be installed to Home Screen (Safari 16.4+).
 - **Smart Automation** — Auto check-in/check-out based on dates (configurable intervals)
 - **Settings** — Theme toggle (light/dark), automation config, notification preferences
 
@@ -97,7 +99,7 @@
 
 ### Database Tables
 
-`reservations` · `payments` · `properties` · `property_owners` · `guest_documents` · `guest_meal_preferences` · `synced_availability` · `payout_requests` · `team_members`
+`reservations` · `payments` · `properties` · `property_owners` · `guest_documents` · `guest_meal_preferences` · `synced_availability` · `payout_requests` · `team_members` · `revenue_targets` · `push_subscriptions`
 
 ---
 
@@ -126,6 +128,7 @@
 - Offline mode with service worker caching
 - App-like experience (no browser chrome)
 - Background sync when connection restored
+- **Web Push notifications** (opt-in) for daily target updates and milestones — see [`docs/REVENUE_TARGETS_SETUP.md`](docs/REVENUE_TARGETS_SETUP.md) for VAPID key setup
 - Dark mode support
 - Responsive across phones, tablets, and desktops
 
