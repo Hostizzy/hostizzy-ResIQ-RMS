@@ -17,6 +17,7 @@ import {
     ensureTokenFresh,
     sendEmail
 } from './gmail-helpers.js';
+import { broadcastToAllSubscribers } from './send-push.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -669,13 +670,13 @@ function buildTargetWaComponents(progress) {
 
 /**
  * Load targets + current-month reservations + active team members and compute
- * progress. Returns { progress, teamMembers }. Safe to call on its own so the
- * daily-summary email can embed the target section without also dispatching
- * the separate stay@ email or WhatsApp broadcast.
+ * progress. Returns { progress, teamMembers, targetRow }. Safe to call on its
+ * own so the daily-summary email can embed the target section without also
+ * dispatching the separate stay@ email or WhatsApp broadcast.
  */
 async function loadTargetProgress() {
     const [targetRows, monthReservations, teamMembers] = await Promise.all([
-        querySupabase('revenue_targets', 'id=eq.1&select=tier_1,tier_2,tier_3'),
+        querySupabase('revenue_targets', 'id=eq.1&select=tier_1,tier_2,tier_3,last_tier_crossed_level,last_tier_crossed_month'),
         (async () => {
             const now = new Date();
             const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
@@ -692,10 +693,174 @@ async function loadTargetProgress() {
         querySupabase('team_members', 'is_active=eq.true&select=id,name,phone,role')
     ]);
 
-    const targets = targetRows?.[0] || { tier_1: 4000000, tier_2: 5000000, tier_3: 6000000 };
-    const progress = computeTargetProgress(monthReservations, targets);
+    const targetRow = targetRows?.[0] || { tier_1: 4000000, tier_2: 5000000, tier_3: 6000000 };
+    const progress = computeTargetProgress(monthReservations, targetRow);
     console.log(`[daily-summary][target] MTD: ${formatInr(progress.monthRevenue)} | Day ${progress.dayOfMonth}/${progress.daysInMonth} | T1: ${progress.tiers[0].percentAchieved.toFixed(1)}%`);
-    return { progress, teamMembers };
+    return { progress, teamMembers, targetRow };
+}
+
+/**
+ * Detect the highest tier crossed this month by MTD revenue.
+ * Returns 0 if nothing crossed yet, 1/2/3 otherwise.
+ */
+function highestTierCrossed(progress) {
+    let highest = 0;
+    progress.tiers.forEach((t, i) => {
+        if (progress.monthRevenue >= t.target) highest = i + 1;
+    });
+    return highest;
+}
+
+/**
+ * Build the celebratory HTML email sent to STAY_EMAIL_RECIPIENT when a
+ * new tier is crossed for the first time this month.
+ */
+function buildMilestoneEmailHTML(progress, newTierLevel) {
+    const t = progress.tiers[newTierLevel - 1];
+    const tierColors = ['#0891b2', '#f59e0b', '#dc2626'];
+    const color = tierColors[newTierLevel - 1];
+    const celebrationText = newTierLevel === 3
+        ? '🏆 Top tier smashed — outstanding month!'
+        : newTierLevel === 2
+        ? '🚀 Stretch target hit — keep pushing!'
+        : '🎯 Baseline cleared — onwards!';
+
+    return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:640px;margin:0 auto;padding:24px 16px;">
+        <div style="background:linear-gradient(135deg, ${color} 0%, #1B3A5C 100%);border-radius:12px 12px 0 0;padding:40px 28px;text-align:center;">
+            <div style="font-size:48px;margin-bottom:8px;">🎉</div>
+            <h1 style="color:white;font-size:24px;font-weight:800;margin:0 0 4px 0;">Milestone Reached!</h1>
+            <p style="color:rgba(255,255,255,0.9);font-size:15px;margin:0;">Tier ${newTierLevel} crossed — ${formatShortInr(t.target)}</p>
+        </div>
+        <div style="background:white;padding:28px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <p style="text-align:center;font-size:16px;color:#0f172a;font-weight:600;margin:0 0 20px 0;">${celebrationText}</p>
+            <div style="text-align:center;padding:20px;background:#f8fafc;border-radius:10px;margin-bottom:20px;">
+                <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">Month-to-Date</div>
+                <div style="font-size:32px;font-weight:800;color:${color};">${formatInr(progress.monthRevenue)}</div>
+                <div style="font-size:13px;color:#64748b;margin-top:6px;">Day ${progress.dayOfMonth} of ${progress.daysInMonth} · ${progress.daysRemaining}d to go</div>
+            </div>
+            ${newTierLevel < 3 ? `
+                <p style="text-align:center;font-size:13px;color:#475569;margin:0;">
+                    Next target: <strong>Tier ${newTierLevel + 1} — ${formatShortInr(progress.tiers[newTierLevel].target)}</strong>
+                    · Gap: ${formatInr(progress.tiers[newTierLevel].gap)}
+                </p>
+            ` : ''}
+        </div>
+        <div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px;">
+            <p>Automated milestone alert from ResIQ by Hostizzy.</p>
+        </div>
+    </div>
+</body>
+</html>`.trim();
+}
+
+/**
+ * Check for a newly-crossed tier. If one is crossed, dispatch celebration
+ * (separate email + optional WA template) and update revenue_targets so
+ * it only fires once per crossing per month.
+ *
+ * WhatsApp template is optional — controlled by WA_MILESTONE_TEMPLATE env
+ * var. If unset, we only send email.
+ */
+async function dispatchMilestoneIfCrossed(accessToken, fromEmail, progress, teamMembers, targetRow) {
+    const currentMonthKey = `${new Date(new Date().getTime() + 5.5 * 3600 * 1000).toISOString().slice(0, 7)}`; // 'YYYY-MM' IST
+    const previousCrossed = (targetRow.last_tier_crossed_month === currentMonthKey)
+        ? Number(targetRow.last_tier_crossed_level || 0)
+        : 0;
+    const currentCrossed = highestTierCrossed(progress);
+
+    if (currentCrossed <= previousCrossed) {
+        return { crossed: false, previous: previousCrossed, current: currentCrossed };
+    }
+
+    // Fire celebration for each newly-crossed tier (could be multiple if the
+    // cron missed a day). In practice we fire one email per level to keep
+    // the message focused.
+    const result = { crossed: true, previous: previousCrossed, current: currentCrossed, fires: [] };
+    for (let level = previousCrossed + 1; level <= currentCrossed; level++) {
+        console.log(`[daily-summary][milestone] Firing Tier ${level} celebration`);
+
+        // 1. Celebration email
+        try {
+            const html = buildMilestoneEmailHTML(progress, level);
+            await sendEmail(accessToken, {
+                to: STAY_EMAIL_RECIPIENT,
+                subject: `🎉 Tier ${level} crossed — ${formatShortInr(progress.tiers[level - 1].target)} milestone!`,
+                body: html,
+                fromEmail,
+                businessName: 'ResIQ'
+            });
+            result.fires.push({ level, email: 'sent' });
+        } catch (err) {
+            console.error(`[daily-summary][milestone] Email failed:`, err.message);
+            result.fires.push({ level, email: `failed: ${err.message}` });
+        }
+
+        // 2a. Web Push celebration (if any subscribers opted in)
+        try {
+            const tierMark = progress.tiers[level - 1];
+            const pushResult = await broadcastToAllSubscribers({
+                title: `🎉 Tier ${level} Smashed — ${formatShortInr(tierMark.target)}!`,
+                body: `MTD ${formatShortInr(progress.monthRevenue)} on day ${progress.dayOfMonth}/${progress.daysInMonth}. Keep going!`,
+                url: '/app',
+                tag: `resiq-milestone-${level}`
+            });
+            result.fires[result.fires.length - 1].push = pushResult;
+        } catch (err) {
+            console.error('[daily-summary][milestone][push] failed:', err.message);
+        }
+
+        // 2b. Optional WhatsApp milestone template
+        const milestoneTemplate = process.env.WA_MILESTONE_TEMPLATE;
+        if (milestoneTemplate && WHATSAPP_ACCESS_TOKEN && WHATSAPP_PHONE_ID) {
+            // Template vars: {{1}} level, {{2}} target, {{3}} MTD, {{4}} day, {{5}} daysInMonth
+            const components = [{
+                type: 'body',
+                parameters: [
+                    { type: 'text', text: String(level) },
+                    { type: 'text', text: formatShortInr(progress.tiers[level - 1].target) },
+                    { type: 'text', text: formatShortInr(progress.monthRevenue) },
+                    { type: 'text', text: String(progress.dayOfMonth) },
+                    { type: 'text', text: String(progress.daysInMonth) }
+                ]
+            }];
+            let sent = 0, failed = 0;
+            for (const m of teamMembers) {
+                const phone = normalisePhone(m.phone);
+                if (!phone) continue;
+                const r = await sendWaTemplate(phone, milestoneTemplate, WA_DAILY_TARGET_LANGUAGE, components);
+                if (r.ok) sent++; else failed++;
+            }
+            result.fires[result.fires.length - 1].wa = { sent, failed };
+        }
+    }
+
+    // 3. Persist so we don't fire again next cron
+    try {
+        await fetch(`${SUPABASE_URL}/rest/v1/revenue_targets?id=eq.1`, {
+            method: 'PATCH',
+            headers: {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+                last_tier_crossed_level: currentCrossed,
+                last_tier_crossed_month: currentMonthKey
+            })
+        });
+    } catch (err) {
+        console.error('[daily-summary][milestone] Failed to persist crossed state:', err.message);
+        result.persisted = false;
+        return result;
+    }
+    result.persisted = true;
+    return result;
 }
 
 /**
@@ -754,7 +919,26 @@ async function dispatchTargetUpdate(accessToken, fromEmail, progress, teamMember
     }
 
     console.log(`[daily-summary][target] WA sent: ${waResult.sent}, skipped: ${waResult.skipped}, failed: ${waResult.failed}`);
-    return { email: emailStatus, wa: waResult, progress };
+
+    // 4. Web Push broadcast to opted-in PWA installs.
+    // Skips cleanly if VAPID keys aren't configured.
+    let pushResult = null;
+    try {
+        const t1 = progress.tiers[0];
+        const title = `📊 Sales Update — Day ${progress.dayOfMonth}/${progress.daysInMonth}`;
+        const body = `MTD: ${formatShortInr(progress.monthRevenue)} · T1: ${t1.percentAchieved.toFixed(1)}% · Projected: ${formatShortInr(progress.projectedMonthEnd)}`;
+        pushResult = await broadcastToAllSubscribers({
+            title, body,
+            url: '/app',
+            tag: 'resiq-target-daily'
+        });
+        console.log(`[daily-summary][push] sent: ${pushResult.sent}, pruned: ${pushResult.pruned}, failed: ${pushResult.failed}`);
+    } catch (err) {
+        console.error('[daily-summary][push] failed:', err.message);
+        pushResult = { error: err.message };
+    }
+
+    return { email: emailStatus, wa: waResult, push: pushResult, progress };
 }
 
 // ============================================================
@@ -833,11 +1017,13 @@ export default async function handler(req, res) {
         // stay@ email + WA broadcast using the same numbers.
         let targetProgress = null;
         let targetTeamMembers = [];
+        let targetRow = null;
         let targetInlineHTML = '';
         try {
             const loaded = await loadTargetProgress();
             targetProgress = loaded.progress;
             targetTeamMembers = loaded.teamMembers;
+            targetRow = loaded.targetRow;
             targetInlineHTML = buildTargetInlineSection(targetProgress);
         } catch (err) {
             console.error('[daily-summary][target] Preload failed (continuing without inline section):', err.message);
@@ -898,12 +1084,26 @@ export default async function handler(req, res) {
         // Runs after the summary emails so any failure here doesn't block the
         // existing summary. Uses the already-loaded progress + team_members.
         let targetUpdate = null;
+        let milestone = null;
         if (targetProgress) {
             try {
                 targetUpdate = await dispatchTargetUpdate(accessToken, fromEmail, targetProgress, targetTeamMembers);
             } catch (err) {
                 console.error('[daily-summary][target] Dispatch crashed:', err.message);
                 targetUpdate = { error: err.message };
+            }
+
+            // Round 6b — milestone celebration. Fires exactly once per tier
+            // per month, keyed by `last_tier_crossed_{level,month}` on
+            // revenue_targets so a missed cron day still catches up.
+            try {
+                milestone = await dispatchMilestoneIfCrossed(accessToken, fromEmail, targetProgress, targetTeamMembers, targetRow || {});
+                if (milestone?.crossed) {
+                    console.log(`[daily-summary][milestone] Fired for tier(s) ${milestone.previous + 1}→${milestone.current}`);
+                }
+            } catch (err) {
+                console.error('[daily-summary][milestone] Dispatch crashed:', err.message);
+                milestone = { error: err.message };
             }
         } else {
             targetUpdate = { error: 'Target progress unavailable — see earlier log' };
@@ -920,7 +1120,8 @@ export default async function handler(req, res) {
                 upcomingCheckOuts: upcomingCheckOuts.length,
                 pendingPayments: pendingPayments.length
             },
-            targetUpdate
+            targetUpdate,
+            milestone
         });
 
     } catch (err) {
