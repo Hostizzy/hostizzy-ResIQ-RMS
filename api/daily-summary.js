@@ -409,12 +409,24 @@ function computeTargetProgress(reservations, targets, now = new Date()) {
         })
         .reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0);
 
+    const dailyAverage = dayOfMonth > 0 ? (monthRevenue / dayOfMonth) : 0;
+    const projectedMonthEnd = dailyAverage * daysInMonth;
+
     const tierAmounts = [targets.tier_1, targets.tier_2, targets.tier_3].map(Number);
     const tiers = tierAmounts.map((target, i) => {
         const expectedByToday = (target * dayOfMonth) / daysInMonth;
         const gap = Math.max(target - monthRevenue, 0);
         const dailyPaceNeeded = daysRemaining > 0 ? gap / daysRemaining : gap;
         const percentAchieved = target > 0 ? (monthRevenue / target) * 100 : 0;
+
+        let projectedHitDay = null;
+        if (monthRevenue >= target) {
+            projectedHitDay = null; // already crossed
+        } else if (dailyAverage > 0) {
+            const day = Math.ceil(target / dailyAverage);
+            projectedHitDay = day <= daysInMonth ? day : Infinity;
+        }
+
         return {
             label: `Tier ${i + 1}`,
             target,
@@ -423,7 +435,8 @@ function computeTargetProgress(reservations, targets, now = new Date()) {
             expectedByToday,
             onPace: monthRevenue >= expectedByToday,
             gap,
-            dailyPaceNeeded
+            dailyPaceNeeded,
+            projectedHitDay
         };
     });
 
@@ -431,7 +444,7 @@ function computeTargetProgress(reservations, targets, now = new Date()) {
         month: 'long', year: 'numeric', timeZone: 'UTC'
     });
 
-    return { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel };
+    return { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, dailyAverage, projectedMonthEnd, tiers, monthLabel };
 }
 
 /**
@@ -468,12 +481,17 @@ function normalisePhone(raw) {
  * existing daily-summary email (so the admin sees target progress inline
  * alongside today's check-ins, check-outs, and pending payments).
  */
+function projectedHitLabel(t) {
+    if (t.projectedHitDay === null) return '<span style="color:#059669;">✅ Achieved</span>';
+    if (t.projectedHitDay === Infinity) return '<span style="color:#dc2626;">⚠️ Will miss</span>';
+    return `Day ${t.projectedHitDay}`;
+}
+
 function buildTargetInlineSection(progress) {
-    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel } = progress;
+    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, dailyAverage, projectedMonthEnd, tiers, monthLabel } = progress;
     const tierColors = ['#0891b2', '#f59e0b', '#dc2626'];
 
     const tierRows = tiers.map((t, i) => {
-        const pct = Math.min(t.percentAchieved, 100);
         const color = tierColors[i];
         const paceIcon = t.onPace ? '🟢' : '🟡';
         return `
@@ -483,9 +501,16 @@ function buildTargetInlineSection(progress) {
             <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatInr(t.gap)}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatInr(t.dailyPaceNeeded)}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: center;">${paceIcon}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: center; font-size: 12px;">${projectedHitLabel(t)}</td>
         </tr>
         `;
     }).join('');
+
+    const projectionBanner = monthRevenue > 0 ? `
+        <div style="background: #eff6ff; border-left: 3px solid #3b82f6; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; color: #1e40af;">
+            <strong>At current pace:</strong> ${formatShortInr(projectedMonthEnd)} projected month-end · daily avg ${formatInr(dailyAverage)}
+        </div>
+    ` : '';
 
     return `
         <div style="margin-bottom: 32px;">
@@ -496,14 +521,16 @@ function buildTargetInlineSection(progress) {
                 <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">MTD Gross Revenue:</span>
                 <span style="font-size: 20px; font-weight: 800; color: #0f172a; margin-left: 8px;">${formatInr(monthRevenue)}</span>
             </div>
+            ${projectionBanner}
             <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                 <thead>
                     <tr style="background: #f1f5f9;">
                         <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Tier</th>
                         <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Achieved</th>
                         <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Gap</th>
-                        <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Daily Pace Needed</th>
+                        <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Needed/day</th>
                         <th style="padding: 8px 12px; text-align: center; font-weight: 600; color: #475569;">Pace</th>
+                        <th style="padding: 8px 12px; text-align: center; font-weight: 600; color: #475569;">Projected</th>
                     </tr>
                 </thead>
                 <tbody>${tierRows}</tbody>

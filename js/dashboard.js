@@ -328,18 +328,37 @@ function _targetComputeProgress(reservations, targets, now = new Date()) {
         })
         .reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0);
 
+    // Linear projection: current daily average × total days in month.
+    // Only meaningful after day 1 (we need some actual data to extrapolate).
+    const dailyAverage = dayOfMonth > 0 ? (monthRevenue / dayOfMonth) : 0;
+    const projectedMonthEnd = dailyAverage * daysInMonth;
+
     const tierAmounts = [targets.tier_1, targets.tier_2, targets.tier_3].map(Number);
     const tiers = tierAmounts.map((target, i) => {
         const expectedByToday = (target * dayOfMonth) / daysInMonth;
         const gap = Math.max(target - monthRevenue, 0);
         const dailyPaceNeeded = daysRemaining > 0 ? gap / daysRemaining : gap;
         const percentAchieved = target > 0 ? (monthRevenue / target) * 100 : 0;
+
+        // Day at which we'll cross this tier at current pace.
+        // - Already achieved → null (no projection needed).
+        // - Daily average is 0 → null (can't project from zero).
+        // - Projected crossing is after month-end → Infinity (will miss).
+        let projectedHitDay = null;
+        if (monthRevenue >= target) {
+            projectedHitDay = null;
+        } else if (dailyAverage > 0) {
+            const day = Math.ceil(target / dailyAverage);
+            projectedHitDay = day <= daysInMonth ? day : Infinity;
+        }
+
         return { label: `Tier ${i + 1}`, target, achieved: monthRevenue, percentAchieved,
-                 expectedByToday, onPace: monthRevenue >= expectedByToday, gap, dailyPaceNeeded };
+                 expectedByToday, onPace: monthRevenue >= expectedByToday, gap, dailyPaceNeeded,
+                 projectedHitDay };
     });
 
     const monthLabel = ist.toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-    return { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel };
+    return { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, dailyAverage, projectedMonthEnd, tiers, monthLabel };
 }
 
 function _targetFormatInr(amount) {
@@ -352,8 +371,14 @@ function _targetFormatShortInr(amount) {
     return '₹' + Math.round(n).toLocaleString('en-IN');
 }
 
+function _targetProjectedHitLabel(t) {
+    if (t.projectedHitDay === null) return '✅ Achieved';
+    if (t.projectedHitDay === Infinity) return '⚠️ Will miss at current pace';
+    return `Projected hit: day ${t.projectedHitDay}`;
+}
+
 function _targetBuildCardHTML(progress, { isAdmin, variant }) {
-    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel } = progress;
+    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, projectedMonthEnd, tiers, monthLabel } = progress;
 
     const tierRows = tiers.map((t, i) => {
         const pct = Math.min(t.percentAchieved, 100);
@@ -369,9 +394,18 @@ function _targetBuildCardHTML(progress, { isAdmin, variant }) {
             <div class="target-tier-meta">
                 <span>${paceIcon} ${paceText} · Expected: ${_targetFormatShortInr(t.expectedByToday)}</span>
                 <span>Gap: ${_targetFormatInr(t.gap)} · Needed/day: ${_targetFormatInr(t.dailyPaceNeeded)}</span>
+                <span style="color:var(--text-tertiary);">${_targetProjectedHitLabel(t)}</span>
             </div>
         </div>`;
     }).join('');
+
+    // Linear-projection summary (only after day 1 to avoid 0-based chaos).
+    const projectionLine = dayOfMonth > 0 && monthRevenue > 0 ? `
+        <div style="margin-top: -4px; margin-bottom: 16px; text-align: center; font-size: 12px; color: var(--text-secondary);">
+            At current pace: <strong style="color: var(--text-primary);">${_targetFormatShortInr(projectedMonthEnd)}</strong> projected month-end
+            · daily avg <strong>${_targetFormatInr(progress.dailyAverage)}</strong>
+        </div>
+    ` : '';
 
     // Share button is always visible (on Home and Dashboard, for all users).
     // Opens wa.me with a pre-filled plain-text version so the user can
@@ -405,6 +439,7 @@ function _targetBuildCardHTML(progress, { isAdmin, variant }) {
             <div class="target-card-mtd-label">Month-to-Date Gross Revenue</div>
             <div class="target-card-mtd-value">${_targetFormatInr(monthRevenue)}</div>
         </div>
+        ${projectionLine}
         ${tierRows}
     `;
 }
