@@ -488,55 +488,92 @@ async function saveRevenueTargets() {
     }
 }
 
-// -- Manual share via WhatsApp (plain-text, any chat) -----------------------
-// Opens wa.me with a pre-filled plain-text version of the card so the user
-// can forward it to any WhatsApp chat (group, individual). This is NOT a
-// template message and does NOT require Meta approval — it just drops the
-// text into WhatsApp's compose window.
+// -- Manual share via WhatsApp: captures the visible card as an image -------
+// 1. Find the currently-visible target card element.
+// 2. Render it to a PNG via html2canvas.
+// 3. Prefer the native share sheet with a file attachment (mobile: WhatsApp,
+//    Telegram, etc.); fall back to downloading the PNG so the user can
+//    attach it manually.
 async function shareTargetToWhatsApp() {
+    if (typeof html2canvas !== 'function') {
+        showToast('Error', 'Image capture library not loaded. Refresh the page.', '❌');
+        return;
+    }
+
+    // Pick whichever card is currently on-screen (Home or Dashboard).
+    const homeCard = document.getElementById('homeTargetCard');
+    const dashCard = document.getElementById('dashboardTargetCard');
+    const isVisible = (el) => {
+        if (!el) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+    };
+    const cardEl = isVisible(dashCard) ? dashCard : (isVisible(homeCard) ? homeCard : (dashCard || homeCard));
+    if (!cardEl) {
+        showToast('Error', 'Target card not found on screen', '❌');
+        return;
+    }
+
+    // Hide the header action buttons during capture — they're not meaningful
+    // in a shared image.
+    const controlsEl = cardEl.querySelector('.target-card-admin-controls');
+    const prevControlsDisplay = controlsEl ? controlsEl.style.display : null;
+    if (controlsEl) controlsEl.style.display = 'none';
+
     try {
-        const targets = await db.getRevenueTargets();
-        let reservations = (typeof state !== 'undefined' && state.reservations) ? state.reservations : null;
-        if (!reservations || reservations.length === 0) {
-            reservations = await db.getReservations();
-        }
-        const progress = _targetComputeProgress(reservations, targets);
-        const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel } = progress;
-
-        const lines = [
-            `*Hostizzy — Monthly Revenue Target*`,
-            `${monthLabel}`,
-            `Day ${dayOfMonth} of ${daysInMonth} · ${daysRemaining} day(s) remaining`,
-            ``,
-            `*MTD Revenue: ${_targetFormatInr(monthRevenue)}*`,
-            ``
-        ];
-        tiers.forEach((t, i) => {
-            const icon = t.onPace ? '🟢' : '🟡';
-            lines.push(`${icon} *Tier ${i + 1} — ${_targetFormatShortInr(t.target)}:* ${t.percentAchieved.toFixed(1)}% · gap ${_targetFormatInr(t.gap)}`);
+        const canvas = await html2canvas(cardEl, {
+            backgroundColor: '#ffffff',
+            scale: window.devicePixelRatio > 1 ? 2 : 1.5,
+            useCORS: true,
+            logging: false
         });
-        lines.push('');
-        lines.push(`Daily pace needed for Tier 1: ${_targetFormatInr(tiers[0].dailyPaceNeeded)}/day`);
 
-        const text = lines.join('\n');
-        const url = 'https://wa.me/?text=' + encodeURIComponent(text);
+        const blob = await new Promise((resolve) =>
+            canvas.toBlob(resolve, 'image/png', 0.95)
+        );
+        if (!blob) throw new Error('Failed to encode image');
 
-        // Prefer the native share sheet on mobile (lets user pick WhatsApp or
-        // any other target). Fall back to wa.me in a new tab.
-        if (navigator.share) {
+        const filename = `hostizzy-target-${new Date().toISOString().slice(0, 10)}.png`;
+        const file = new File([blob], filename, { type: 'image/png' });
+
+        // Try native share-sheet with the file first (supported on mobile
+        // Chrome/Safari and some desktop browsers).
+        const canShareFile = navigator.canShare && navigator.canShare({ files: [file] });
+        if (canShareFile) {
             try {
-                await navigator.share({ title: 'Monthly Revenue Target', text });
+                await navigator.share({
+                    title: 'Monthly Revenue Target',
+                    text: 'Hostizzy — Monthly Revenue Target',
+                    files: [file]
+                });
                 return;
             } catch (e) {
-                // User cancelled share sheet — do nothing.
-                if (e?.name === 'AbortError') return;
-                // Any other error, fall through to wa.me.
+                if (e?.name === 'AbortError') return; // user cancelled
+                // Otherwise fall through to download fallback
+                console.warn('navigator.share failed, falling back to download:', e?.message);
             }
         }
-        window.open(url, '_blank', 'noopener');
+
+        // Fallback: download the PNG. User can then attach it manually
+        // via WhatsApp Web or the mobile app.
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        // Also open WhatsApp Web in a new tab so the user can paste/attach
+        // immediately. No `phone` specified → picks any chat.
+        window.open('https://web.whatsapp.com/', '_blank', 'noopener');
+        showToast('Ready to share', 'Image downloaded. Attach it in WhatsApp.', '📥');
     } catch (err) {
         console.error('shareTargetToWhatsApp error:', err);
-        showToast('Error', 'Could not prepare share text: ' + (err.message || err), '❌');
+        showToast('Error', 'Could not capture card: ' + (err.message || err), '❌');
+    } finally {
+        if (controlsEl) controlsEl.style.display = prevControlsDisplay || '';
     }
 }
 
