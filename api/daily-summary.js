@@ -22,6 +22,14 @@ const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const DAILY_SUMMARY_EMAIL = process.env.DAILY_SUMMARY_EMAIL;
 
+// Round 6 — monthly revenue target notifications
+const STAY_EMAIL_RECIPIENT = process.env.STAY_EMAIL_RECIPIENT || 'stay@hostizzy.com';
+const WA_DAILY_TARGET_TEMPLATE = process.env.WA_DAILY_TARGET_TEMPLATE || null;
+const WA_DAILY_TARGET_LANGUAGE = process.env.WA_DAILY_TARGET_LANGUAGE || 'en';
+const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_ID;
+const WHATSAPP_API_VERSION = 'v21.0';
+
 /**
  * Query Supabase REST API
  */
@@ -364,6 +372,307 @@ function buildEmailHTML(date, checkIns, checkOuts, upcomingCheckIns, upcomingChe
     `.trim();
 }
 
+// ============================================================
+// Round 6 — Monthly Revenue Target helpers
+// ============================================================
+
+/**
+ * Compute month-to-date revenue + tier progress.
+ *
+ * Revenue metric: SUM(total_amount) over reservations whose check_in falls
+ * in the current IST calendar month and whose status is not 'cancelled'.
+ *
+ * @param {Array} reservations — current-month reservations (pre-filtered is fine)
+ * @param {{tier_1:number,tier_2:number,tier_3:number}} targets
+ * @param {Date} now — defaults to "right now"
+ */
+function computeTargetProgress(reservations, targets, now = new Date()) {
+    // Work in IST for day-of-month math
+    const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
+    const ist = new Date(istMs);
+    const year = ist.getUTCFullYear();
+    const month = ist.getUTCMonth(); // 0-based
+    const dayOfMonth = ist.getUTCDate();
+    const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    const daysRemaining = Math.max(daysInMonth - dayOfMonth, 0);
+
+    const monthRevenue = (reservations || [])
+        .filter(r => r.status !== 'cancelled')
+        .filter(r => {
+            if (!r.check_in) return false;
+            const d = new Date(r.check_in);
+            // r.check_in is typically a date string like '2026-04-12' which
+            // parses as midnight UTC. Shift into IST to match dayOfMonth logic.
+            const dIst = new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
+            return dIst.getUTCFullYear() === year && dIst.getUTCMonth() === month;
+        })
+        .reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0);
+
+    const tierAmounts = [targets.tier_1, targets.tier_2, targets.tier_3].map(Number);
+    const tiers = tierAmounts.map((target, i) => {
+        const expectedByToday = (target * dayOfMonth) / daysInMonth;
+        const gap = Math.max(target - monthRevenue, 0);
+        const dailyPaceNeeded = daysRemaining > 0 ? gap / daysRemaining : gap;
+        const percentAchieved = target > 0 ? (monthRevenue / target) * 100 : 0;
+        return {
+            label: `Tier ${i + 1}`,
+            target,
+            achieved: monthRevenue,
+            percentAchieved,
+            expectedByToday,
+            onPace: monthRevenue >= expectedByToday,
+            gap,
+            dailyPaceNeeded
+        };
+    });
+
+    const monthLabel = ist.toLocaleDateString('en-IN', {
+        month: 'long', year: 'numeric', timeZone: 'UTC'
+    });
+
+    return { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel };
+}
+
+/**
+ * Format a number as ₹xx,xx,xxx (Indian grouping).
+ */
+function formatInr(amount) {
+    return '₹' + Math.round(Number(amount) || 0).toLocaleString('en-IN');
+}
+
+/**
+ * Format a number as a short lakh/crore string (e.g. "₹42.3L", "₹1.05Cr").
+ */
+function formatShortInr(amount) {
+    const n = Number(amount) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2) + 'Cr';
+    if (n >= 100000) return '₹' + (n / 100000).toFixed(1) + 'L';
+    return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+/**
+ * Normalise a phone number to E.164 digits (no +, no spaces, no dashes).
+ * If the number has no country code and is 10 digits, assume India (91).
+ */
+function normalisePhone(raw) {
+    if (!raw) return null;
+    let digits = String(raw).replace(/[^\d]/g, '');
+    if (digits.length === 10) digits = '91' + digits;
+    if (digits.length < 11 || digits.length > 15) return null;
+    return digits;
+}
+
+/**
+ * Build the HTML body for the target-progress email sent to stay@hostizzy.com.
+ */
+function buildTargetEmailHTML(progress) {
+    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel } = progress;
+    const tierColors = ['#0891b2', '#f59e0b', '#dc2626'];
+
+    const tierRows = tiers.map((t, i) => {
+        const pct = Math.min(t.percentAchieved, 100);
+        const color = tierColors[i];
+        const paceIcon = t.onPace ? '🟢' : '🟡';
+        const paceText = t.onPace ? 'On pace' : 'Behind pace';
+        return `
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                <strong style="font-size: 14px; color: #0f172a;">${t.label} — ${formatShortInr(t.target)}</strong>
+                <span style="font-size: 13px; color: ${color}; font-weight: 700;">${t.percentAchieved.toFixed(1)}%</span>
+            </div>
+            <div style="background: #f1f5f9; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 6px;">
+                <div style="width: ${pct}%; height: 100%; background: ${color};"></div>
+            </div>
+            <div style="font-size: 12px; color: #475569; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <span>${paceIcon} ${paceText} · Expected by today: ${formatShortInr(t.expectedByToday)}</span>
+                <span>Gap: ${formatInr(t.gap)} · Needed/day: ${formatInr(t.dailyPaceNeeded)}</span>
+            </div>
+        </div>
+        `;
+    }).join('');
+
+    return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <div style="max-width: 640px; margin: 0 auto; padding: 24px 16px;">
+        <div style="background: linear-gradient(135deg, #1B3A5C 0%, #0891b2 100%); border-radius: 12px 12px 0 0; padding: 24px 28px; text-align: center;">
+            <h1 style="color: white; font-size: 22px; font-weight: 800; margin: 0 0 4px 0;">Monthly Revenue Target</h1>
+            <p style="color: rgba(255,255,255,0.85); font-size: 14px; margin: 0;">${monthLabel} · Day ${dayOfMonth} of ${daysInMonth} · ${daysRemaining} day(s) remaining</p>
+        </div>
+        <div style="background: white; padding: 28px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <div style="text-align: center; margin-bottom: 28px; padding: 20px; background: #f8fafc; border-radius: 10px;">
+                <div style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Month-to-Date Gross Revenue</div>
+                <div style="font-size: 34px; font-weight: 800; color: #0f172a;">${formatInr(monthRevenue)}</div>
+            </div>
+            ${tierRows}
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+                <a href="https://resiq.hostizzy.com/app" style="display: inline-block; padding: 10px 24px; background: #0891b2; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">Open ResIQ Dashboard →</a>
+            </div>
+        </div>
+        <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 12px;">
+            <p>Automated daily target update from ResIQ by Hostizzy.</p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+}
+
+/**
+ * Send one approved WhatsApp template message.
+ * Resolves `{ ok: true, msgId }` or `{ ok: false, error }`.
+ */
+async function sendWaTemplate(toPhone, templateName, languageCode, components) {
+    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_ID) {
+        return { ok: false, error: 'WhatsApp credentials not configured' };
+    }
+    const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_ID}/messages`;
+    const body = {
+        messaging_product: 'whatsapp',
+        to: toPhone,
+        type: 'template',
+        template: {
+            name: templateName,
+            language: { code: languageCode },
+            components
+        }
+    };
+    try {
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+            const msg = data?.error?.message || `HTTP ${resp.status}`;
+            return { ok: false, error: msg };
+        }
+        const msgId = data?.messages?.[0]?.id || null;
+        return { ok: true, msgId };
+    } catch (err) {
+        return { ok: false, error: err.message };
+    }
+}
+
+/**
+ * Build the 7-variable component list for the `daily_sales_target_update`
+ * WhatsApp template. Keep this in sync with the approved template body
+ * (see plan file for the exact text).
+ *
+ * Variables:
+ *   {{1}} day of month
+ *   {{2}} days in month
+ *   {{3}} MTD revenue (short, e.g. "₹42.3L")
+ *   {{4}} Tier 1 % achieved (e.g. "95.5")
+ *   {{5}} Tier 2 % achieved
+ *   {{6}} Tier 3 % achieved
+ *   {{7}} Daily pace needed for Tier 1 (short, e.g. "₹50K")
+ */
+function buildTargetWaComponents(progress) {
+    const { dayOfMonth, daysInMonth, monthRevenue, tiers } = progress;
+    return [{
+        type: 'body',
+        parameters: [
+            { type: 'text', text: String(dayOfMonth) },
+            { type: 'text', text: String(daysInMonth) },
+            { type: 'text', text: formatShortInr(monthRevenue) },
+            { type: 'text', text: tiers[0].percentAchieved.toFixed(1) },
+            { type: 'text', text: tiers[1].percentAchieved.toFixed(1) },
+            { type: 'text', text: tiers[2].percentAchieved.toFixed(1) },
+            { type: 'text', text: formatShortInr(tiers[0].dailyPaceNeeded) }
+        ]
+    }];
+}
+
+/**
+ * Run the target-update dispatch: email to STAY_EMAIL_RECIPIENT +
+ * WhatsApp template to each active team member with a phone.
+ * Safe to call even if WA env vars are missing (logs + skips WA).
+ */
+async function dispatchTargetUpdate(accessToken, fromEmail) {
+    // 1. Fetch targets + current-month reservations + team members in parallel
+    const [targetRows, monthReservations, teamMembers] = await Promise.all([
+        querySupabase('revenue_targets', 'id=eq.1&select=tier_1,tier_2,tier_3'),
+        (async () => {
+            // Pull anything with check_in in current IST month
+            const now = new Date();
+            const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+            const year = ist.getUTCFullYear();
+            const month = ist.getUTCMonth();
+            const monthStart = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+            const nextMonthStart = month === 11
+                ? `${year + 1}-01-01`
+                : `${year}-${String(month + 2).padStart(2, '0')}-01`;
+            return querySupabase('reservations',
+                `check_in=gte.${monthStart}&check_in=lt.${nextMonthStart}&status=not.in.(cancelled)&select=total_amount,status,check_in`
+            );
+        })(),
+        querySupabase('team_members', 'is_active=eq.true&select=id,name,phone,role')
+    ]);
+
+    const targets = targetRows?.[0] || { tier_1: 4000000, tier_2: 5000000, tier_3: 6000000 };
+    const progress = computeTargetProgress(monthReservations, targets);
+    console.log(`[daily-summary][target] MTD: ${formatInr(progress.monthRevenue)} | Day ${progress.dayOfMonth}/${progress.daysInMonth} | T1: ${progress.tiers[0].percentAchieved.toFixed(1)}%`);
+
+    // 2. Email to stay@hostizzy.com
+    let emailStatus = 'skipped';
+    try {
+        const html = buildTargetEmailHTML(progress);
+        await sendEmail(accessToken, {
+            to: STAY_EMAIL_RECIPIENT,
+            subject: `Monthly Target Update — Day ${progress.dayOfMonth}/${progress.daysInMonth} — ${formatShortInr(progress.monthRevenue)} MTD`,
+            body: html,
+            fromEmail,
+            businessName: 'ResIQ'
+        });
+        emailStatus = 'sent';
+        console.log(`[daily-summary][target] Email sent to ${STAY_EMAIL_RECIPIENT}`);
+    } catch (err) {
+        emailStatus = `failed: ${err.message}`;
+        console.error(`[daily-summary][target] Email failed:`, err.message);
+    }
+
+    // 3. WhatsApp to active team members
+    const waResult = { sent: 0, skipped: 0, failed: 0, details: [] };
+    if (!WA_DAILY_TARGET_TEMPLATE) {
+        console.warn('[daily-summary][target] WA_DAILY_TARGET_TEMPLATE not set — skipping WhatsApp dispatch');
+        return { email: emailStatus, wa: { ...waResult, skippedReason: 'template-not-configured' }, progress };
+    }
+    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_ID) {
+        console.warn('[daily-summary][target] WhatsApp credentials missing — skipping WhatsApp dispatch');
+        return { email: emailStatus, wa: { ...waResult, skippedReason: 'no-wa-credentials' }, progress };
+    }
+
+    const components = buildTargetWaComponents(progress);
+    for (const m of teamMembers) {
+        const phone = normalisePhone(m.phone);
+        if (!phone) {
+            waResult.skipped++;
+            waResult.details.push({ name: m.name, status: 'skipped', reason: 'no-phone' });
+            continue;
+        }
+        const result = await sendWaTemplate(phone, WA_DAILY_TARGET_TEMPLATE, WA_DAILY_TARGET_LANGUAGE, components);
+        if (result.ok) {
+            waResult.sent++;
+            waResult.details.push({ name: m.name, status: 'sent', msgId: result.msgId });
+        } else {
+            waResult.failed++;
+            waResult.details.push({ name: m.name, status: 'failed', error: result.error });
+        }
+    }
+
+    console.log(`[daily-summary][target] WA sent: ${waResult.sent}, skipped: ${waResult.skipped}, failed: ${waResult.failed}`);
+    return { email: emailStatus, wa: waResult, progress };
+}
+
+// ============================================================
+
 export default async function handler(req, res) {
     // Only allow GET (Vercel Cron sends GET requests)
     if (req.method !== 'GET') {
@@ -483,6 +792,18 @@ export default async function handler(req, res) {
         }
 
         console.log(`[daily-summary] Sent to: ${sentTo.join(', ') || 'nobody'}`);
+
+        // Round 6 — monthly revenue target dispatch (email + WA).
+        // Runs after the summary emails so any failure here doesn't block the
+        // existing summary. Failures inside are caught and reported.
+        let targetUpdate = null;
+        try {
+            targetUpdate = await dispatchTargetUpdate(accessToken, fromEmail);
+        } catch (err) {
+            console.error('[daily-summary][target] Dispatch crashed:', err.message);
+            targetUpdate = { error: err.message };
+        }
+
         return res.status(200).json({
             message: 'Daily summary sent',
             date: today,
@@ -493,7 +814,8 @@ export default async function handler(req, res) {
                 upcomingCheckIns: upcomingCheckIns.length,
                 upcomingCheckOuts: upcomingCheckOuts.length,
                 pendingPayments: pendingPayments.length
-            }
+            },
+            targetUpdate
         });
 
     } catch (err) {

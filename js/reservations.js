@@ -323,6 +323,11 @@ async function updateHomeScreenStats() {
         // Update app launcher badges (mobile)
         updateAppLauncherBadges(pendingPayments);
 
+        // Round 6 — Monthly Revenue Target card on Home
+        if (typeof renderRevenueTargets === 'function') {
+            renderRevenueTargets();
+        }
+
     } catch (error) {
         console.error('Error updating home screen:', error);
         // Set default values on error

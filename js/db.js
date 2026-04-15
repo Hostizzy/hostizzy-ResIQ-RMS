@@ -191,6 +191,32 @@
                 const { error} = await supabase.from('team_members').delete().eq('id', id);
                 if (error) throw error;
             },
+            // Round 6 — monthly revenue targets (singleton row id=1)
+            async getRevenueTargets() {
+                const { data, error } = await supabase
+                    .from('revenue_targets')
+                    .select('tier_1, tier_2, tier_3, updated_at, updated_by_email')
+                    .eq('id', 1)
+                    .maybeSingle();
+                if (error) throw error;
+                // Fallback defaults if the row was never seeded
+                return data || { tier_1: 4000000, tier_2: 5000000, tier_3: 6000000 };
+            },
+            async updateRevenueTargets({ tier_1, tier_2, tier_3, updated_by_email }) {
+                const payload = {
+                    tier_1: Number(tier_1),
+                    tier_2: Number(tier_2),
+                    tier_3: Number(tier_3)
+                };
+                if (updated_by_email) payload.updated_by_email = updated_by_email;
+                const { data, error } = await supabase
+                    .from('revenue_targets')
+                    .update(payload)
+                    .eq('id', 1)
+                    .select();
+                if (error) throw error;
+                return data?.[0];
+            },
             async bulkUpdateReservations(bookingIds, updates) {
                 const { error } = await supabase
                     .from('reservations')

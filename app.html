@@ -956,6 +956,16 @@
                 </div>
             </div>
 
+            <!-- Round 6 — Monthly Revenue Target card (read-only on Home) -->
+            <div class="home-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">Monthly Revenue Target</h2>
+                </div>
+                <div id="homeTargetCard" class="target-card" data-target-card="home">
+                    <div class="target-card-loading" style="text-align:center;padding:24px;color:var(--text-secondary);">Loading target progress…</div>
+                </div>
+            </div>
+
             <!-- App Launcher Grid (Mobile & Tablet) -->
             <div class="app-launcher-grid">
                 <!-- Quick Actions -->
@@ -1377,6 +1387,63 @@
             overflow: hidden;
             transition: box-shadow 0.2s ease;
         }
+
+        /* ========== Round 6 — Monthly Revenue Target card ========== */
+        .target-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 22px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .target-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .target-card-title-group { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+        .target-card-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0; }
+        .target-card-day-pill {
+            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+            color: var(--primary); background: rgba(8,145,178,0.1); padding: 4px 10px; border-radius: 999px;
+        }
+        .target-card-admin-controls { display: flex; gap: 8px; }
+        .target-card-mtd {
+            text-align: center; padding: 16px; background: var(--background);
+            border-radius: 10px; margin-bottom: 18px;
+        }
+        .target-card-mtd-label {
+            font-size: 11px; color: var(--text-secondary); text-transform: uppercase;
+            letter-spacing: 0.05em; font-weight: 600; margin-bottom: 4px;
+        }
+        .target-card-mtd-value {
+            font-size: 28px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;
+        }
+        .target-tier-row { margin-bottom: 14px; }
+        .target-tier-row:last-child { margin-bottom: 0; }
+        .target-tier-header {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 6px; font-size: 13px;
+        }
+        .target-tier-label { font-weight: 600; color: var(--text-primary); }
+        .target-tier-pct { font-weight: 700; font-size: 14px; }
+        .target-tier-bar {
+            background: var(--background); height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 6px;
+        }
+        .target-tier-bar-fill { height: 100%; transition: width 0.5s ease; }
+        .target-tier-meta {
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+            font-size: 11px; color: var(--text-secondary);
+        }
+        .target-tier-row[data-tier="1"] .target-tier-pct { color: #0891b2; }
+        .target-tier-row[data-tier="1"] .target-tier-bar-fill { background-color: #0891b2; }
+        .target-tier-row[data-tier="2"] .target-tier-pct { color: #f59e0b; }
+        .target-tier-row[data-tier="2"] .target-tier-bar-fill { background-color: #f59e0b; }
+        .target-tier-row[data-tier="3"] .target-tier-pct { color: #dc2626; }
+        .target-tier-row[data-tier="3"] .target-tier-bar-fill { background-color: #dc2626; }
 
         .today-stat-card:nth-child(1) { border-left-color: #0891b2; }
         .today-stat-card:nth-child(2) { border-left-color: #d97706; }
@@ -2097,6 +2164,13 @@
                     <button class="dash-period-btn" data-range="all-time" onclick="applyDashboardDateFilter('all-time')">All Time</button>
                 </div>
                 <div class="dash-period-label" style="margin-left: auto; font-size: 12px; color: var(--text-tertiary); white-space: nowrap;" id="dashboardPeriodLabel">Showing: This Month</div>
+            </div>
+
+            <!-- Round 6 — Monthly Revenue Target card (with admin controls) -->
+            <div style="margin-bottom: 24px;">
+                <div id="dashboardTargetCard" class="target-card" data-target-card="dashboard">
+                    <div class="target-card-loading" style="text-align:center;padding:24px;color:var(--text-secondary);">Loading target progress…</div>
+                </div>
             </div>
 
             <!-- Core Metrics - Essential KPIs -->
@@ -3646,13 +3720,14 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Phone</th>
                                 <th>Role</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="teamTableBody">
-                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                            <tr><td colspan="6" class="text-center">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -5572,6 +5647,36 @@
         </div>
     </div>
 
+    <!-- Round 6 — Edit Revenue Targets Modal (admin only) -->
+    <div id="revenueTargetsModal" class="modal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Monthly Revenue Targets</h3>
+                <button class="close-btn" onclick="closeRevenueTargetsModal()">&times;</button>
+            </div>
+            <p style="margin: 0 0 16px 0; font-size: 13px; color: var(--text-secondary);">
+                Targets are shown on the Home and Dashboard as progress bars, and are broadcast daily at 7 AM IST.
+                Enter amounts in rupees (e.g. 4000000 for ₹40 Lakh).
+            </p>
+            <div class="form-group">
+                <label>Tier 1 (baseline target) *</label>
+                <input type="number" id="revenueTargetTier1" min="0" step="10000" required>
+                <small style="color: var(--text-secondary);">Default: 4,000,000 (₹40L)</small>
+            </div>
+            <div class="form-group">
+                <label>Tier 2 (stretch target) *</label>
+                <input type="number" id="revenueTargetTier2" min="0" step="10000" required>
+                <small style="color: var(--text-secondary);">Default: 5,000,000 (₹50L)</small>
+            </div>
+            <div class="form-group">
+                <label>Tier 3 (ambitious target) *</label>
+                <input type="number" id="revenueTargetTier3" min="0" step="10000" required>
+                <small style="color: var(--text-secondary);">Default: 6,000,000 (₹60L)</small>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="saveRevenueTargets()">Save Targets</button>
+        </div>
+    </div>
+
     <!-- Team Modal -->
     <div id="teamModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
@@ -5590,6 +5695,11 @@
             <div class="form-group">
                 <label>Password *</label>
                 <input type="password" id="teamMemberPassword" required>
+            </div>
+            <div class="form-group">
+                <label>Phone (WhatsApp)</label>
+                <input type="tel" id="teamMemberPhone" placeholder="+91 98765 43210">
+                <small style="color: var(--text-secondary);">Used for daily sales target WhatsApp updates. Must be WhatsApp-active.</small>
             </div>
             <div class="form-group">
                 <label>Role</label>
@@ -5895,6 +6005,9 @@
                                 <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>Source: DIRECT, AIRBNB, AGODA/BOOKING.COM, MMT/GOIBIBO<br>
                                 <i data-lucide="info" style="width: 12px; height: 12px; margin-right: 3px; vertical-align: middle;"></i>If booking_id is empty, one will be auto-generated
                             </div>
+                            <div style="margin-top: 10px; padding: 10px 12px; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; font-size: 12px; color: #1e40af; line-height: 1.6;">
+                                <strong>Legacy spreadsheets supported:</strong> Google Sheets exports with human-readable headers (e.g. "Property Name", "Check In"), DD-Mon-YYYY dates (e.g. 01-Apr-2022), and ₹-prefixed amounts are auto-detected and transformed.
+                            </div>
                         </div>
                     </div>
 
@@ -5913,6 +6026,11 @@
 
                 <!-- Step 2: Preview -->
                 <div id="importStep2" class="import-step" style="display: none;">
+                    <!-- Legacy format banner (shown/hidden by JS) -->
+                    <div id="legacyFormatBanner" style="display: none; margin-bottom: 16px; padding: 12px 16px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #93c5fd; border-radius: 8px; font-size: 13px; color: #1e40af;">
+                        <i data-lucide="wand-2" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: middle;"></i>
+                        <strong>Legacy format auto-detected</strong> — dates, amounts, statuses, and booking sources have been normalised. Review the preview below before importing.
+                    </div>
                     <!-- Stats -->
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
                         <div style="padding: 16px; background: #f8fafc; border-radius: 8px; text-align: center;">

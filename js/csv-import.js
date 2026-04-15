@@ -7,6 +7,316 @@
 let csvData = [];
 let validRows = [];
 let skippedRows = [];
+let _isLegacyImport = false;
+
+// ============================================
+// LEGACY SPREADSHEET FORMAT SUPPORT
+// ============================================
+// Auto-detects human-readable spreadsheet exports (DD-Mon-YYYY dates,
+// ₹-prefixed amounts, Title Case headers) and transforms them into the
+// standard column format before validation and import.
+
+const LEGACY_HEADER_MAP = (() => {
+    // Keys are lowercased for case-insensitive lookup.
+    // Value '_skip_' means "informational column, don't import".
+    const map = {
+        // Skip columns
+        's.no': '_skip_', 's. no': '_skip_', 'sr no': '_skip_',
+        'sr. no': '_skip_', 'sr.no': '_skip_', 'serial': '_skip_', '#': '_skip_',
+
+        // FY — kept for the exclude filter, not stored
+        'fy': 'FY', 'fiscal year': 'FY',
+
+        // Core fields
+        'property name': 'property_name', 'property': 'property_name',
+        'villa name': 'property_name', 'villa': 'property_name',
+
+        'booking id': 'booking_id', 'reservation id': 'booking_id',
+        'confirmation': 'booking_id', 'confirmation code': 'booking_id',
+        'booking ref': 'booking_id',
+
+        'booking type': 'booking_type', 'type': 'booking_type',
+        'event type': 'booking_type',
+
+        'booking source': 'booking_source', 'source': 'booking_source',
+        'ota': 'booking_source', 'channel': 'booking_source',
+        'platform': 'booking_source',
+
+        'check in': 'check_in', 'check-in': 'check_in',
+        'check in date': 'check_in', 'checkin': 'check_in',
+        'arrival': 'check_in', 'from': 'check_in', 'from date': 'check_in',
+
+        'check out': 'check_out', 'check-out': 'check_out',
+        'check out date': 'check_out', 'checkout': 'check_out',
+        'departure': 'check_out', 'to': 'check_out', 'to date': 'check_out',
+
+        'guest name': 'guest_name', 'name': 'guest_name',
+        'guest': 'guest_name', 'customer name': 'guest_name',
+
+        'guest phone': 'guest_phone', 'phone': 'guest_phone',
+        'mobile': 'guest_phone', 'contact': 'guest_phone',
+        'phone number': 'guest_phone', 'mobile number': 'guest_phone',
+
+        'guest email': 'guest_email', 'email': 'guest_email',
+
+        'guest city': 'guest_city', 'city': 'guest_city',
+
+        'adults': 'adults', 'no. of adults': 'adults',
+        'no of adults': 'adults', 'number of adults': 'adults', 'pax': 'adults',
+
+        'kids': 'kids', 'children': 'kids', 'no. of kids': 'kids',
+        'no of kids': 'kids', 'number of kids': 'kids',
+
+        'no. of rooms': 'number_of_rooms', 'no of rooms': 'number_of_rooms',
+        'rooms': 'number_of_rooms', 'number of rooms': 'number_of_rooms',
+        'room count': 'number_of_rooms',
+
+        'stay amount': 'stay_amount', 'room charges': 'stay_amount',
+        'room rent': 'stay_amount', 'room tariff': 'stay_amount',
+        'tariff': 'stay_amount', 'rent': 'stay_amount', 'base amount': 'stay_amount',
+
+        'extra guest charges': 'extra_guest_charges', 'extra charges': 'extra_guest_charges',
+        'extra guest': 'extra_guest_charges', 'additional charges': 'extra_guest_charges',
+
+        'meals/chef': 'meals_chef', 'meals': 'meals_chef',
+        'chef charges': 'meals_chef', 'chef': 'meals_chef',
+        'food': 'meals_chef', 'meal charges': 'meals_chef',
+
+        'bonfire/other': 'bonfire_other', 'bonfire': 'bonfire_other',
+        'other charges': 'bonfire_other', 'miscellaneous': 'bonfire_other',
+
+        'taxes': 'taxes', 'tax': 'taxes', 'gst amount': 'taxes',
+        'tax amount': 'taxes',
+
+        'damages': 'damages', 'damage': 'damages', 'damage charges': 'damages',
+
+        'ota service fee': 'ota_service_fee', 'ota fee': 'ota_service_fee',
+        'service fee': 'ota_service_fee', 'channel fee': 'ota_service_fee',
+        'platform fee': 'ota_service_fee', 'commission deducted': 'ota_service_fee',
+
+        'hostizzy revenue': 'hostizzy_revenue', 'commission': 'hostizzy_revenue',
+        'hostizzy commission': 'hostizzy_revenue', 'our commission': 'hostizzy_revenue',
+        'mgmt fee': 'hostizzy_revenue', 'management fee': 'hostizzy_revenue',
+
+        'revenue share': 'revenue_share_percent', 'revenue share %': 'revenue_share_percent',
+        'commission %': 'revenue_share_percent', 'commission rate': 'revenue_share_percent',
+        'share %': 'revenue_share_percent', 'rev share': 'revenue_share_percent',
+        'rev share %': 'revenue_share_percent',
+
+        'gst status': 'gst_status', 'gst type': 'gst_status',
+
+        'status': 'status', 'booking status': 'status',
+        'reservation status': 'status',
+
+        'payment status': 'payment_status', 'payment': 'payment_status',
+
+        'paid amount': 'paid_amount', 'amount paid': 'paid_amount',
+        'received': 'paid_amount', 'received amount': 'paid_amount',
+        'total paid': 'paid_amount',
+
+        'total': 'total_amount', 'total amount': 'total_amount',
+        'grand total': 'total_amount', 'total charges': 'total_amount',
+        'invoice amount': 'total_amount',
+
+        'nights': 'nights', 'no. of nights': 'nights',
+        'no of nights': 'nights', 'number of nights': 'nights',
+
+        'booking date': 'booking_date', 'booked on': 'booking_date',
+        'created': 'booking_date',
+
+        'notes': '_notes_', 'remarks': '_notes_', 'comment': '_notes_',
+        'comments': '_notes_',
+    };
+    return map;
+})();
+
+const _MONTH_ABBREV = {
+    jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+    jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+};
+
+/**
+ * Detect whether the CSV headers look like a legacy spreadsheet export.
+ * Returns { isLegacy: bool, headerMap: { originalHeader → standardName } }.
+ */
+function detectLegacyFormat(rawHeaders) {
+    const headerMap = {};
+    let legacyMatchCount = 0;
+
+    const STANDARD_HEADERS = new Set([
+        'booking_id', 'property_name', 'booking_type', 'booking_source',
+        'check_in', 'check_out', 'guest_name', 'guest_phone', 'guest_email',
+        'guest_city', 'adults', 'kids', 'number_of_rooms', 'stay_amount',
+        'extra_guest_charges', 'meals_chef', 'bonfire_other', 'taxes',
+        'damages', 'ota_service_fee', 'hostizzy_revenue', 'gst_status',
+        'status', 'payment_status', 'paid_amount', 'FY', 'total_amount',
+        'revenue_share_percent', 'booking_date', 'nights'
+    ]);
+
+    let standardCount = 0;
+
+    rawHeaders.forEach(h => {
+        const trimmed = h.trim();
+        if (STANDARD_HEADERS.has(trimmed)) {
+            standardCount++;
+            headerMap[h] = trimmed;
+        } else {
+            const key = trimmed.toLowerCase();
+            const mapped = LEGACY_HEADER_MAP[key];
+            if (mapped) {
+                legacyMatchCount++;
+                headerMap[h] = mapped;
+            } else {
+                headerMap[h] = '_skip_'; // unrecognised → skip
+            }
+        }
+    });
+
+    // Legacy if we got ≥3 legacy matches AND the headers aren't already standard
+    const isLegacy = standardCount < 3 && legacyMatchCount >= 3;
+    return { isLegacy, headerMap };
+}
+
+/** Parse DD-Mon-YYYY, DD/MM/YYYY, or pass through YYYY-MM-DD. */
+function parseLegacyDate(dateStr) {
+    if (!dateStr) return '';
+    dateStr = dateStr.trim();
+    // Already standard?
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+    // DD-Mon-YYYY or DD/Mon/YYYY (e.g. "01-Apr-2022", "1/Apr/2022")
+    let m = dateStr.match(/^(\d{1,2})[-/]([A-Za-z]{3})[-/](\d{4})$/);
+    if (m) {
+        const mon = _MONTH_ABBREV[m[2].toLowerCase()];
+        if (mon) return `${m[3]}-${mon}-${m[1].padStart(2, '0')}`;
+    }
+
+    // DD/MM/YYYY or DD-MM-YYYY
+    m = dateStr.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+
+    return dateStr; // unrecognised → pass through (will fail validation)
+}
+
+/** Strip ₹, Rs, INR, commas, whitespace from currency strings. */
+function parseCurrencyAmount(str) {
+    if (!str || str === '-' || str === '.' || str === 'N/A' || str === 'NA') return '0';
+    return str.replace(/[₹,\s]/g, '').replace(/^(Rs\.?|INR)\s*/i, '').trim() || '0';
+}
+
+/** Handle special kids values: "." → 0, "14+8" → 22, "20/55" → 20. */
+function parseKidsValue(str) {
+    if (!str || str === '.' || str === '-' || str === 'N/A') return '0';
+    if (str.includes('+')) {
+        return String(str.split('+').reduce((s, n) => s + (parseInt(n) || 0), 0));
+    }
+    if (str.includes('/')) return String(parseInt(str.split('/')[0]) || 0);
+    return String(parseInt(str) || 0);
+}
+
+/**
+ * In-place normalisation of a single row from legacy format.
+ * Transforms dates, amounts, status values, booking sources, etc.
+ */
+function normalizeLegacyRow(row) {
+    // --- Dates ---
+    if (row.check_in) row.check_in = parseLegacyDate(row.check_in);
+    if (row.check_out) row.check_out = parseLegacyDate(row.check_out);
+    if (row.booking_date) row.booking_date = parseLegacyDate(row.booking_date);
+
+    // --- Currency amounts ---
+    const amountFields = [
+        'stay_amount', 'extra_guest_charges', 'meals_chef', 'bonfire_other',
+        'taxes', 'damages', 'ota_service_fee', 'hostizzy_revenue',
+        'paid_amount', 'total_amount'
+    ];
+    amountFields.forEach(f => { if (row[f]) row[f] = parseCurrencyAmount(row[f]); });
+
+    // --- Kids (special values) ---
+    if (row.kids) row.kids = parseKidsValue(row.kids);
+
+    // --- Adults / rooms (strip non-numeric) ---
+    if (row.adults) row.adults = String(parseInt(row.adults) || 1);
+    if (row.number_of_rooms) row.number_of_rooms = String(parseInt(row.number_of_rooms) || 1);
+
+    // --- Revenue share percent (strip %) ---
+    if (row.revenue_share_percent) {
+        row.revenue_share_percent = row.revenue_share_percent.replace(/%/g, '').trim();
+    }
+
+    // --- Status ---
+    if (row.status) {
+        const s = row.status.toLowerCase().trim();
+        if (s === 'booked' || s === 'confirmed' || s === 'active') row.status = 'confirmed';
+        else if (s === 'cancelled' || s === 'canceled') row.status = 'cancelled';
+        else if (s === 'checked in' || s === 'checked-in' || s === 'checkedin') row.status = 'checked-in';
+        else if (s === 'checked out' || s === 'checked-out' || s === 'checkedout' || s === 'completed') row.status = 'checked-out';
+    }
+
+    // --- Booking source ---
+    if (row.booking_source) {
+        const src = row.booking_source.toUpperCase().trim();
+        if (src.includes('AIRBNB')) row.booking_source = 'AIRBNB';
+        else if (src === 'DIRECT' || src === 'OWNER' || src === 'SELF') row.booking_source = 'DIRECT';
+        else if (src.includes('MMT') || src.includes('GOIBIBO') || src.includes('MAKEMYTRIP')) row.booking_source = 'MMT/GOIBIBO';
+        else if (src.includes('AGODA') || src.includes('BOOKING.COM') || src.includes('BOOKING')) row.booking_source = 'AGODA/BOOKING.COM';
+        else if (src === 'OTHER' || src === 'OTHERS') row.booking_source = 'OTHER';
+        // else keep as-is — might already be a valid value
+    }
+
+    // --- Booking type ---
+    if (row.booking_type) {
+        const t = row.booking_type.toUpperCase().trim();
+        if (t.includes('WEDDING')) row.booking_type = 'WEDDING';
+        else if (t.includes('BIRTHDAY')) row.booking_type = 'BIRTHDAY';
+        else if (t.includes('CORPORATE') && t.includes('EVENT')) row.booking_type = 'CORPORATE_EVENT';
+        else if (t.includes('CORPORATE') && t.includes('STAY')) row.booking_type = 'CORPORATE_STAY';
+        else if (t.includes('CORPORATE')) row.booking_type = 'CORPORATE_STAY';
+        else row.booking_type = 'STAYCATION';
+    }
+
+    // --- GST status ---
+    if (row.gst_status) {
+        const g = row.gst_status.toLowerCase().trim();
+        if (g === 'yes' || g === 'gst' || g === 'true' || g === 'applicable') row.gst_status = 'gst';
+        else row.gst_status = 'non_gst';
+    } else if (row.taxes && parseFloat(row.taxes) > 0) {
+        // Infer GST from non-zero taxes
+        row.gst_status = 'gst';
+    }
+
+    // --- Payment status inference ---
+    if (!row.payment_status && row.paid_amount) {
+        const paid = parseFloat(row.paid_amount) || 0;
+        const total = parseFloat(row.total_amount) || parseFloat(row.stay_amount) || 0;
+        if (paid >= total && total > 0) row.payment_status = 'paid';
+        else if (paid > 0) row.payment_status = 'partial';
+        else row.payment_status = 'pending';
+    }
+
+    // --- Phone number cleanup ---
+    if (row.guest_phone) {
+        row.guest_phone = row.guest_phone.replace(/[^0-9+]/g, '');
+    }
+
+    // --- Compute hostizzy_revenue from rate if not explicitly provided ---
+    const rate = parseFloat(row.revenue_share_percent);
+    if ((!row.hostizzy_revenue || row.hostizzy_revenue === '0') && rate > 0) {
+        const stayAmt = parseFloat(row.stay_amount) || 0;
+        const otaFee = parseFloat(row.ota_service_fee) || 0;
+        const extras = parseFloat(row.extra_guest_charges) || 0;
+        const commissionBase = stayAmt - otaFee + extras;
+        row.hostizzy_revenue = String(Math.round(commissionBase * (rate / 100) * 100) / 100);
+    }
+
+    // --- Default booking_date to check_in for historical rows ---
+    if (!row.booking_date && row.check_in) {
+        row.booking_date = row.check_in;
+    }
+
+    // Internal flag so transformCSVRow can mark the row
+    row._is_legacy = 'true';
+}
 
 /**
  * Download a sample CSV template with all supported reservation fields
@@ -151,6 +461,7 @@ function resetImport() {
     csvData = [];
     validRows = [];
     skippedRows = [];
+    _isLegacyImport = false;
 
     // Reset file input
     document.getElementById('csvFileInput').value = '';
@@ -182,25 +493,41 @@ function parseCSV(text) {
     try {
         // Simple CSV parser (handles quoted fields)
         const lines = text.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-        
+        const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+
+        // Detect legacy spreadsheet format (human-readable headers, ₹ amounts, etc.)
+        const { isLegacy, headerMap } = detectLegacyFormat(rawHeaders);
+        _isLegacyImport = isLegacy;
+
+        const headers = isLegacy
+            ? rawHeaders.map(h => headerMap[h] || '_skip_')
+            : rawHeaders;
+
         csvData = [];
-        
+
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
-            
+
             const values = parseCSVLine(lines[i]);
             const row = {};
-            
+
             headers.forEach((header, index) => {
+                if (header === '_skip_' || header === '_notes_') return;
                 row[header] = values[index] ? values[index].trim().replace(/"/g, '') : '';
             });
-            
+
+            if (isLegacy) normalizeLegacyRow(row);
+
             csvData.push(row);
         }
-        
+
+        if (isLegacy) {
+            console.log(`Legacy spreadsheet detected — ${csvData.length} rows auto-transformed`);
+            showToast(`Legacy spreadsheet detected — ${csvData.length} rows auto-transformed`, 'success');
+        }
+
         validateAndPreview();
-        
+
     } catch (error) {
         console.error('CSV Parse Error:', error);
         showToast('Parse Error', 'Invalid CSV format. Please check your file.', '❌');
@@ -239,6 +566,10 @@ function validateAndPreview() {
     // Get existing booking IDs for duplicate check
     const existingBookingIds = new Set(allReservations.map(r => r.booking_id));
 
+    // Build property name lookup for early validation
+    const properties = (typeof state !== 'undefined' && state.properties) ? state.properties : [];
+    const knownPropertyNames = new Set(properties.map(p => p.name.toLowerCase().trim()));
+
     // Date format validation helper (YYYY-MM-DD)
     const isValidDate = (dateStr) => {
         if (!dateStr) return false;
@@ -269,6 +600,14 @@ function validateAndPreview() {
             if (!row.guest_name) missing.push('guest_name');
             if (!row.guest_phone) missing.push('guest_phone');
             skipReason = `Missing: ${missing.join(', ')}`;
+        }
+
+        // Check property name exists in the system
+        if (!skipReason && row.property_name && knownPropertyNames.size > 0) {
+            const pKey = row.property_name.toLowerCase().trim();
+            if (!knownPropertyNames.has(pKey)) {
+                skipReason = `Unknown property "${row.property_name}"`;
+            }
         }
 
         // Validate dates
@@ -307,6 +646,10 @@ function validateAndPreview() {
 
     // Render preview
     renderPreview();
+
+    // Show/hide legacy format banner
+    const legacyBanner = document.getElementById('legacyFormatBanner');
+    if (legacyBanner) legacyBanner.style.display = _isLegacyImport ? 'block' : 'none';
 
     // Show step 2
     document.getElementById('importStep1').style.display = 'none';
@@ -401,12 +744,18 @@ function transformCSVRow(row, propertyByName = {}) {
     const avgNightlyRate = nights > 0 ? totalAmount / nights : 0;
 
     // Resolve the property record so we can snapshot its commission rate.
-    // No silent default — if a non-cancelled row references a property without
-    // a configured rate, fail loud (caught upstream and reported per row).
+    // A row-level revenue_share_percent (from legacy spreadsheets with historical
+    // rates) takes precedence over the property's current rate.
     const status = (row.status || 'confirmed').toLowerCase();
     const propertyKey = (row.property_name || '').toLowerCase().trim();
     const propertyRecord = propertyByName[propertyKey] || null;
-    const propertyRate = propertyRecord ? propertyRecord.revenue_share_percent : null;
+
+    const rowRate = row.revenue_share_percent != null && row.revenue_share_percent !== ''
+        ? parseFloat(row.revenue_share_percent) : NaN;
+    const propertyRate = !isNaN(rowRate) && rowRate >= 0
+        ? rowRate
+        : (propertyRecord ? propertyRecord.revenue_share_percent : null);
+
     if (status !== 'cancelled' && (propertyRate == null || propertyRate === '')) {
         throw new Error(
             `Property "${row.property_name || '(missing)'}" has no commission rate set; configure revenue_share_percent before importing`
@@ -426,11 +775,26 @@ function transformCSVRow(row, propertyByName = {}) {
         bookingId = `HST${year}${rand}`;
     }
 
+    // Compute hostizzy_revenue: use explicit value from CSV if provided,
+    // otherwise derive from commission base × rate.
+    let hostizzyRevenue;
+    if (row.hostizzy_revenue != null && row.hostizzy_revenue !== '' && row.hostizzy_revenue !== '0') {
+        hostizzyRevenue = parseFloat(row.hostizzy_revenue) || 0;
+    } else {
+        const commissionBase = stayAmount - otaServiceFee + extraGuestCharges;
+        hostizzyRevenue = propertyRate > 0
+            ? Math.round(commissionBase * (propertyRate / 100) * 100) / 100
+            : 0;
+    }
+
+    const payoutEligible = totalAmount - taxes - otaServiceFee;
+    const hostPayout = payoutEligible - hostizzyRevenue;
+
     return {
         booking_id: bookingId,
         property_name: row.property_name,
         booking_type: row.booking_type || 'STAYCATION',
-        booking_date: new Date().toISOString().split('T')[0],
+        booking_date: row.booking_date || (row._is_legacy === 'true' ? checkIn : new Date().toISOString().split('T')[0]),
         booking_source: row.booking_source || 'DIRECT',
         check_in: checkIn,
         check_out: checkOut,
@@ -440,7 +804,7 @@ function transformCSVRow(row, propertyByName = {}) {
         guest_phone: row.guest_phone,
         guest_email: row.guest_email || null,
         guest_city: row.guest_city || null,
-        status: (row.status || 'confirmed').toLowerCase(),
+        status: status,
         gst_status: row.gst_status || 'non_gst',
         number_of_rooms: parseInt(row.number_of_rooms) || 1,
         adults: adults,
@@ -456,18 +820,11 @@ function transformCSVRow(row, propertyByName = {}) {
         total_amount_pre_tax: totalAmountPreTax,
         total_amount_inc_tax: totalAmountIncTax,
         total_amount: totalAmount,
-        hostizzy_revenue: parseFloat(row.hostizzy_revenue) || 0,
-        // Snapshot the property's commission rate at import time so the row stays
-        // in sync with properties.revenue_share_percent.
+        hostizzy_revenue: hostizzyRevenue,
         revenue_share_percent: propertyRate,
-        // payout_eligible = gross owner-eligible (before commission). Excludes taxes
-        // (GST is collected for the government, never paid out) and OTA service fee.
-        // Damages and meals/bonfire flow through to the owner.
-        payout_eligible: totalAmount - taxes - otaServiceFee,
-        // host_payout = NET rupees Hostizzy pays the owner after taking commission.
-        //             = payout_eligible - hostizzy_revenue
-        host_payout: totalAmount - taxes - otaServiceFee - (parseFloat(row.hostizzy_revenue) || 0),
-        is_legacy: false,
+        payout_eligible: payoutEligible,
+        host_payout: hostPayout,
+        is_legacy: row._is_legacy === 'true',
         avg_room_rate: avgRoomRate,
         avg_nightly_rate: avgNightlyRate,
         paid_amount: parseFloat(row.paid_amount) || 0,

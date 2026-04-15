@@ -16,7 +16,8 @@ const ALLOWED_TABLES = [
     'property_owners', 'payout_requests', 'guest_documents',
     'guest_meal_preferences', 'guest_portal_sessions',
     'synced_availability', 'settlement_status', 'property_expenses',
-    'communications', 'enquiries', 'ota_import_drafts'
+    'communications', 'enquiries', 'ota_import_drafts',
+    'revenue_targets'
 ];
 
 /**
