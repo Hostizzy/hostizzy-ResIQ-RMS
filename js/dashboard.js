@@ -328,18 +328,37 @@ function _targetComputeProgress(reservations, targets, now = new Date()) {
         })
         .reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0);
 
+    // Linear projection: current daily average × total days in month.
+    // Only meaningful after day 1 (we need some actual data to extrapolate).
+    const dailyAverage = dayOfMonth > 0 ? (monthRevenue / dayOfMonth) : 0;
+    const projectedMonthEnd = dailyAverage * daysInMonth;
+
     const tierAmounts = [targets.tier_1, targets.tier_2, targets.tier_3].map(Number);
     const tiers = tierAmounts.map((target, i) => {
         const expectedByToday = (target * dayOfMonth) / daysInMonth;
         const gap = Math.max(target - monthRevenue, 0);
         const dailyPaceNeeded = daysRemaining > 0 ? gap / daysRemaining : gap;
         const percentAchieved = target > 0 ? (monthRevenue / target) * 100 : 0;
+
+        // Day at which we'll cross this tier at current pace.
+        // - Already achieved → null (no projection needed).
+        // - Daily average is 0 → null (can't project from zero).
+        // - Projected crossing is after month-end → Infinity (will miss).
+        let projectedHitDay = null;
+        if (monthRevenue >= target) {
+            projectedHitDay = null;
+        } else if (dailyAverage > 0) {
+            const day = Math.ceil(target / dailyAverage);
+            projectedHitDay = day <= daysInMonth ? day : Infinity;
+        }
+
         return { label: `Tier ${i + 1}`, target, achieved: monthRevenue, percentAchieved,
-                 expectedByToday, onPace: monthRevenue >= expectedByToday, gap, dailyPaceNeeded };
+                 expectedByToday, onPace: monthRevenue >= expectedByToday, gap, dailyPaceNeeded,
+                 projectedHitDay };
     });
 
     const monthLabel = ist.toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-    return { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel };
+    return { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, dailyAverage, projectedMonthEnd, tiers, monthLabel };
 }
 
 function _targetFormatInr(amount) {
@@ -352,8 +371,14 @@ function _targetFormatShortInr(amount) {
     return '₹' + Math.round(n).toLocaleString('en-IN');
 }
 
+function _targetProjectedHitLabel(t) {
+    if (t.projectedHitDay === null) return '✅ Achieved';
+    if (t.projectedHitDay === Infinity) return '⚠️ Will miss at current pace';
+    return `Projected hit: day ${t.projectedHitDay}`;
+}
+
 function _targetBuildCardHTML(progress, { isAdmin, variant }) {
-    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel } = progress;
+    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, projectedMonthEnd, tiers, monthLabel } = progress;
 
     const tierRows = tiers.map((t, i) => {
         const pct = Math.min(t.percentAchieved, 100);
@@ -369,20 +394,37 @@ function _targetBuildCardHTML(progress, { isAdmin, variant }) {
             <div class="target-tier-meta">
                 <span>${paceIcon} ${paceText} · Expected: ${_targetFormatShortInr(t.expectedByToday)}</span>
                 <span>Gap: ${_targetFormatInr(t.gap)} · Needed/day: ${_targetFormatInr(t.dailyPaceNeeded)}</span>
+                <span style="color:var(--text-tertiary);">${_targetProjectedHitLabel(t)}</span>
             </div>
         </div>`;
     }).join('');
 
-    // Admin controls only appear on the Dashboard variant, never on Home.
-    const adminControls = (variant === 'dashboard' && isAdmin) ? `
-        <div class="target-card-admin-controls">
-            <button class="btn btn-secondary btn-sm" onclick="openRevenueTargetsModal()" title="Edit targets">
-                <i data-lucide="pencil" style="width: 14px; height: 14px;"></i> Edit
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="sendTargetWhatsApp(this)" title="Send WhatsApp update to all team members">
-                <i data-lucide="send" style="width: 14px; height: 14px;"></i> Send WA Now
-            </button>
+    // Linear-projection summary (only after day 1 to avoid 0-based chaos).
+    const projectionLine = dayOfMonth > 0 && monthRevenue > 0 ? `
+        <div style="margin-top: -4px; margin-bottom: 16px; text-align: center; font-size: 12px; color: var(--text-secondary);">
+            At current pace: <strong style="color: var(--text-primary);">${_targetFormatShortInr(projectedMonthEnd)}</strong> projected month-end
+            · daily avg <strong>${_targetFormatInr(progress.dailyAverage)}</strong>
         </div>
+    ` : '';
+
+    // Share button is always visible (on Home and Dashboard, for all users).
+    // Opens wa.me with a pre-filled plain-text version so the user can
+    // forward the card to any WhatsApp chat (management group, individual,
+    // etc.) — no approved template required.
+    const shareButton = `
+        <button class="btn btn-secondary btn-sm" onclick="shareTargetToWhatsApp()" title="Share this card to any WhatsApp chat">
+            <i data-lucide="share-2" style="width: 14px; height: 14px;"></i> Share
+        </button>
+    `;
+
+    // Admin-only controls appear on the Dashboard variant, never on Home.
+    const adminButtons = (variant === 'dashboard' && isAdmin) ? `
+        <button class="btn btn-secondary btn-sm" onclick="openRevenueTargetsModal()" title="Edit targets">
+            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i> Edit
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="sendTargetWhatsApp(this)" title="Send approved WhatsApp template to all team members">
+            <i data-lucide="send" style="width: 14px; height: 14px;"></i> Send WA Now
+        </button>
     ` : '';
 
     return `
@@ -391,12 +433,13 @@ function _targetBuildCardHTML(progress, { isAdmin, variant }) {
                 <h3 class="target-card-title">${monthLabel}</h3>
                 <span class="target-card-day-pill">Day ${dayOfMonth}/${daysInMonth} · ${daysRemaining}d left</span>
             </div>
-            ${adminControls}
+            <div class="target-card-admin-controls">${shareButton}${adminButtons}</div>
         </div>
         <div class="target-card-mtd">
             <div class="target-card-mtd-label">Month-to-Date Gross Revenue</div>
             <div class="target-card-mtd-value">${_targetFormatInr(monthRevenue)}</div>
         </div>
+        ${projectionLine}
         ${tierRows}
     `;
 }
@@ -477,6 +520,95 @@ async function saveRevenueTargets() {
     } catch (err) {
         console.error('saveRevenueTargets error:', err);
         showToast('Error', 'Failed to save targets: ' + (err.message || err), '❌');
+    }
+}
+
+// -- Manual share via WhatsApp: captures the visible card as an image -------
+// 1. Find the currently-visible target card element.
+// 2. Render it to a PNG via html2canvas.
+// 3. Prefer the native share sheet with a file attachment (mobile: WhatsApp,
+//    Telegram, etc.); fall back to downloading the PNG so the user can
+//    attach it manually.
+async function shareTargetToWhatsApp() {
+    if (typeof html2canvas !== 'function') {
+        showToast('Error', 'Image capture library not loaded. Refresh the page.', '❌');
+        return;
+    }
+
+    // Pick whichever card is currently on-screen (Home or Dashboard).
+    const homeCard = document.getElementById('homeTargetCard');
+    const dashCard = document.getElementById('dashboardTargetCard');
+    const isVisible = (el) => {
+        if (!el) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+    };
+    const cardEl = isVisible(dashCard) ? dashCard : (isVisible(homeCard) ? homeCard : (dashCard || homeCard));
+    if (!cardEl) {
+        showToast('Error', 'Target card not found on screen', '❌');
+        return;
+    }
+
+    // Hide the header action buttons during capture — they're not meaningful
+    // in a shared image.
+    const controlsEl = cardEl.querySelector('.target-card-admin-controls');
+    const prevControlsDisplay = controlsEl ? controlsEl.style.display : null;
+    if (controlsEl) controlsEl.style.display = 'none';
+
+    try {
+        const canvas = await html2canvas(cardEl, {
+            backgroundColor: '#ffffff',
+            scale: window.devicePixelRatio > 1 ? 2 : 1.5,
+            useCORS: true,
+            logging: false
+        });
+
+        const blob = await new Promise((resolve) =>
+            canvas.toBlob(resolve, 'image/png', 0.95)
+        );
+        if (!blob) throw new Error('Failed to encode image');
+
+        const filename = `hostizzy-target-${new Date().toISOString().slice(0, 10)}.png`;
+        const file = new File([blob], filename, { type: 'image/png' });
+
+        // Try native share-sheet with the file first (supported on mobile
+        // Chrome/Safari and some desktop browsers).
+        const canShareFile = navigator.canShare && navigator.canShare({ files: [file] });
+        if (canShareFile) {
+            try {
+                await navigator.share({
+                    title: 'Monthly Revenue Target',
+                    text: 'Hostizzy — Monthly Revenue Target',
+                    files: [file]
+                });
+                return;
+            } catch (e) {
+                if (e?.name === 'AbortError') return; // user cancelled
+                // Otherwise fall through to download fallback
+                console.warn('navigator.share failed, falling back to download:', e?.message);
+            }
+        }
+
+        // Fallback: download the PNG. User can then attach it manually
+        // via WhatsApp Web or the mobile app.
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        // Also open WhatsApp Web in a new tab so the user can paste/attach
+        // immediately. No `phone` specified → picks any chat.
+        window.open('https://web.whatsapp.com/', '_blank', 'noopener');
+        showToast('Ready to share', 'Image downloaded. Attach it in WhatsApp.', '📥');
+    } catch (err) {
+        console.error('shareTargetToWhatsApp error:', err);
+        showToast('Error', 'Could not capture card: ' + (err.message || err), '❌');
+    } finally {
+        if (controlsEl) controlsEl.style.display = prevControlsDisplay || '';
     }
 }
 
