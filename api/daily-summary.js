@@ -17,6 +17,7 @@ import {
     ensureTokenFresh,
     sendEmail
 } from './gmail-helpers.js';
+import { broadcastToAllSubscribers } from './send-push.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -799,7 +800,21 @@ async function dispatchMilestoneIfCrossed(accessToken, fromEmail, progress, team
             result.fires.push({ level, email: `failed: ${err.message}` });
         }
 
-        // 2. Optional WhatsApp milestone template
+        // 2a. Web Push celebration (if any subscribers opted in)
+        try {
+            const tierMark = progress.tiers[level - 1];
+            const pushResult = await broadcastToAllSubscribers({
+                title: `🎉 Tier ${level} Smashed — ${formatShortInr(tierMark.target)}!`,
+                body: `MTD ${formatShortInr(progress.monthRevenue)} on day ${progress.dayOfMonth}/${progress.daysInMonth}. Keep going!`,
+                url: '/app',
+                tag: `resiq-milestone-${level}`
+            });
+            result.fires[result.fires.length - 1].push = pushResult;
+        } catch (err) {
+            console.error('[daily-summary][milestone][push] failed:', err.message);
+        }
+
+        // 2b. Optional WhatsApp milestone template
         const milestoneTemplate = process.env.WA_MILESTONE_TEMPLATE;
         if (milestoneTemplate && WHATSAPP_ACCESS_TOKEN && WHATSAPP_PHONE_ID) {
             // Template vars: {{1}} level, {{2}} target, {{3}} MTD, {{4}} day, {{5}} daysInMonth
@@ -904,7 +919,26 @@ async function dispatchTargetUpdate(accessToken, fromEmail, progress, teamMember
     }
 
     console.log(`[daily-summary][target] WA sent: ${waResult.sent}, skipped: ${waResult.skipped}, failed: ${waResult.failed}`);
-    return { email: emailStatus, wa: waResult, progress };
+
+    // 4. Web Push broadcast to opted-in PWA installs.
+    // Skips cleanly if VAPID keys aren't configured.
+    let pushResult = null;
+    try {
+        const t1 = progress.tiers[0];
+        const title = `📊 Sales Update — Day ${progress.dayOfMonth}/${progress.daysInMonth}`;
+        const body = `MTD: ${formatShortInr(progress.monthRevenue)} · T1: ${t1.percentAchieved.toFixed(1)}% · Projected: ${formatShortInr(progress.projectedMonthEnd)}`;
+        pushResult = await broadcastToAllSubscribers({
+            title, body,
+            url: '/app',
+            tag: 'resiq-target-daily'
+        });
+        console.log(`[daily-summary][push] sent: ${pushResult.sent}, pruned: ${pushResult.pruned}, failed: ${pushResult.failed}`);
+    } catch (err) {
+        console.error('[daily-summary][push] failed:', err.message);
+        pushResult = { error: err.message };
+    }
+
+    return { email: emailStatus, wa: waResult, push: pushResult, progress };
 }
 
 // ============================================================

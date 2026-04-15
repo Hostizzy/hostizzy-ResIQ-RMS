@@ -417,6 +417,15 @@ function _targetBuildCardHTML(progress, { isAdmin, variant }) {
         </button>
     `;
 
+    // Push-notification toggle — only on Dashboard, only if PWA install + SW
+    // support is present. Button UI is populated asynchronously via
+    // updatePushToggleUI() below (the render pass can't await).
+    const pushToggle = (variant === 'dashboard') ? `
+        <button class="btn btn-secondary btn-sm" id="pushNotifToggleBtn" onclick="togglePushNotifications(this)" title="Get push notifications on this device">
+            <i data-lucide="bell" style="width: 14px; height: 14px;"></i> Notifications
+        </button>
+    ` : '';
+
     // Admin-only controls appear on the Dashboard variant, never on Home.
     const adminButtons = (variant === 'dashboard' && isAdmin) ? `
         <button class="btn btn-secondary btn-sm" onclick="openRevenueTargetsModal()" title="Edit targets">
@@ -433,7 +442,7 @@ function _targetBuildCardHTML(progress, { isAdmin, variant }) {
                 <h3 class="target-card-title">${monthLabel}</h3>
                 <span class="target-card-day-pill">Day ${dayOfMonth}/${daysInMonth} · ${daysRemaining}d left</span>
             </div>
-            <div class="target-card-admin-controls">${shareButton}${adminButtons}</div>
+            <div class="target-card-admin-controls">${shareButton}${pushToggle}${adminButtons}</div>
         </div>
         <div class="target-card-mtd">
             <div class="target-card-mtd-label">Month-to-Date Gross Revenue</div>
@@ -471,6 +480,12 @@ async function renderRevenueTargets() {
         // Re-create lucide icons for any newly-inserted admin buttons
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();
+        }
+
+        // Push-notification button state is async; update after render.
+        const pushBtn = document.getElementById('pushNotifToggleBtn');
+        if (pushBtn && window.pushNotifications) {
+            window.pushNotifications.updateButtonUI(pushBtn).catch(console.warn);
         }
     } catch (err) {
         console.error('renderRevenueTargets error:', err);
@@ -609,6 +624,35 @@ async function shareTargetToWhatsApp() {
         showToast('Error', 'Could not capture card: ' + (err.message || err), '❌');
     } finally {
         if (controlsEl) controlsEl.style.display = prevControlsDisplay || '';
+    }
+}
+
+// -- Push notifications toggle ----------------------------------------------
+async function togglePushNotifications(btn) {
+    if (!window.pushNotifications) {
+        showToast('Error', 'Push module not loaded', '❌');
+        return;
+    }
+    const status = await window.pushNotifications.getStatus();
+    try {
+        if (status === 'subscribed') {
+            if (!confirm('Disable push notifications on this device?')) return;
+            await window.pushNotifications.disable();
+            showToast('Disabled', 'Push notifications turned off', '🔕');
+        } else if (status === 'unsupported') {
+            showToast('Not supported', 'This browser doesn\'t support web push', '❌');
+            return;
+        } else if (status === 'blocked') {
+            showToast('Blocked', 'Enable notifications in your browser settings first', '⚠️');
+            return;
+        } else {
+            await window.pushNotifications.enable();
+            showToast('Enabled', 'You\'ll get daily target updates here', '🔔');
+        }
+        await window.pushNotifications.updateButtonUI(btn);
+    } catch (err) {
+        console.error('togglePushNotifications error:', err);
+        showToast('Error', err.message || 'Failed to toggle notifications', '❌');
     }
 }
 
