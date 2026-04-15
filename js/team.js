@@ -12,6 +12,7 @@ async function loadTeam() {
             <tr>
                 <td>${m.name}</td>
                 <td>${m.email}</td>
+                <td>${m.phone || '<span style="color:var(--text-tertiary);">—</span>'}</td>
                 <td><span class="badge badge-confirmed">${m.role.toUpperCase()}</span></td>
                 <td><span class="badge ${m.is_active ? 'badge-confirmed' : 'badge-cancelled'}">${m.is_active ? 'ACTIVE' : 'INACTIVE'}</span></td>
                 <td>
@@ -34,14 +35,18 @@ function closeTeamModal() {
     document.getElementById('teamMemberName').value = '';
     document.getElementById('teamMemberEmail').value = '';
     document.getElementById('teamMemberPassword').value = '';
+    const phoneEl = document.getElementById('teamMemberPhone');
+    if (phoneEl) phoneEl.value = '';
 }
 
 async function saveTeamMember() {
     try {
+        const phoneEl = document.getElementById('teamMemberPhone');
         const member = {
             name: document.getElementById('teamMemberName').value,
             email: document.getElementById('teamMemberEmail').value,
             password: document.getElementById('teamMemberPassword').value,
+            phone: phoneEl ? (phoneEl.value.trim() || null) : null,
             role: document.getElementById('teamMemberRole').value,
             is_active: true
         };

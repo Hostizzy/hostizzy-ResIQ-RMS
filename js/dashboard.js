@@ -291,10 +291,238 @@ async function loadDashboard() {
 
         // Load Top 15 Properties Stats
         updateTopPropertiesStats();
-        
+
+        // Round 6 — Monthly Revenue Target card
+        renderRevenueTargets();
+
     } catch (error) {
         console.error('Dashboard error:', error);
         showToast('Error', 'Failed to load dashboard', '❌');
+    }
+}
+
+// ============================================================
+// Round 6 — Monthly Revenue Target card
+// Renders into #homeTargetCard (Home) and #dashboardTargetCard (Dashboard).
+// Pulls targets from the `revenue_targets` table and computes MTD revenue
+// from state.reservations (already populated by loadDashboard /
+// updateHomeScreenStats).
+// ============================================================
+
+function _targetComputeProgress(reservations, targets, now = new Date()) {
+    const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
+    const ist = new Date(istMs);
+    const year = ist.getUTCFullYear();
+    const month = ist.getUTCMonth();
+    const dayOfMonth = ist.getUTCDate();
+    const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    const daysRemaining = Math.max(daysInMonth - dayOfMonth, 0);
+
+    const monthRevenue = (reservations || [])
+        .filter(r => r.status !== 'cancelled')
+        .filter(r => {
+            if (!r.check_in) return false;
+            const d = new Date(r.check_in);
+            const dIst = new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
+            return dIst.getUTCFullYear() === year && dIst.getUTCMonth() === month;
+        })
+        .reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0);
+
+    const tierAmounts = [targets.tier_1, targets.tier_2, targets.tier_3].map(Number);
+    const tiers = tierAmounts.map((target, i) => {
+        const expectedByToday = (target * dayOfMonth) / daysInMonth;
+        const gap = Math.max(target - monthRevenue, 0);
+        const dailyPaceNeeded = daysRemaining > 0 ? gap / daysRemaining : gap;
+        const percentAchieved = target > 0 ? (monthRevenue / target) * 100 : 0;
+        return { label: `Tier ${i + 1}`, target, achieved: monthRevenue, percentAchieved,
+                 expectedByToday, onPace: monthRevenue >= expectedByToday, gap, dailyPaceNeeded };
+    });
+
+    const monthLabel = ist.toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    return { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel };
+}
+
+function _targetFormatInr(amount) {
+    return '₹' + Math.round(Number(amount) || 0).toLocaleString('en-IN');
+}
+function _targetFormatShortInr(amount) {
+    const n = Number(amount) || 0;
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2) + 'Cr';
+    if (n >= 100000) return '₹' + (n / 100000).toFixed(1) + 'L';
+    return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+function _targetBuildCardHTML(progress, { isAdmin, variant }) {
+    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel } = progress;
+
+    const tierRows = tiers.map((t, i) => {
+        const pct = Math.min(t.percentAchieved, 100);
+        const paceIcon = t.onPace ? '🟢' : '🟡';
+        const paceText = t.onPace ? 'On pace' : 'Behind pace';
+        return `
+        <div class="target-tier-row" data-tier="${i + 1}">
+            <div class="target-tier-header">
+                <span class="target-tier-label">${t.label} — ${_targetFormatShortInr(t.target)}</span>
+                <span class="target-tier-pct">${t.percentAchieved.toFixed(1)}%</span>
+            </div>
+            <div class="target-tier-bar"><div class="target-tier-bar-fill" style="width: ${pct}%"></div></div>
+            <div class="target-tier-meta">
+                <span>${paceIcon} ${paceText} · Expected: ${_targetFormatShortInr(t.expectedByToday)}</span>
+                <span>Gap: ${_targetFormatInr(t.gap)} · Needed/day: ${_targetFormatInr(t.dailyPaceNeeded)}</span>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Admin controls only appear on the Dashboard variant, never on Home.
+    const adminControls = (variant === 'dashboard' && isAdmin) ? `
+        <div class="target-card-admin-controls">
+            <button class="btn btn-secondary btn-sm" onclick="openRevenueTargetsModal()" title="Edit targets">
+                <i data-lucide="pencil" style="width: 14px; height: 14px;"></i> Edit
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="sendTargetWhatsApp(this)" title="Send WhatsApp update to all team members">
+                <i data-lucide="send" style="width: 14px; height: 14px;"></i> Send WA Now
+            </button>
+        </div>
+    ` : '';
+
+    return `
+        <div class="target-card-header">
+            <div class="target-card-title-group">
+                <h3 class="target-card-title">${monthLabel}</h3>
+                <span class="target-card-day-pill">Day ${dayOfMonth}/${daysInMonth} · ${daysRemaining}d left</span>
+            </div>
+            ${adminControls}
+        </div>
+        <div class="target-card-mtd">
+            <div class="target-card-mtd-label">Month-to-Date Gross Revenue</div>
+            <div class="target-card-mtd-value">${_targetFormatInr(monthRevenue)}</div>
+        </div>
+        ${tierRows}
+    `;
+}
+
+async function renderRevenueTargets() {
+    const homeEl = document.getElementById('homeTargetCard');
+    const dashEl = document.getElementById('dashboardTargetCard');
+    if (!homeEl && !dashEl) return;
+
+    try {
+        const targets = await db.getRevenueTargets();
+        // Prefer state.reservations (already loaded by loadDashboard / home);
+        // fall back to direct fetch if we got here before either ran.
+        let reservations = (typeof state !== 'undefined' && state.reservations) ? state.reservations : null;
+        if (!reservations || reservations.length === 0) {
+            reservations = await db.getReservations();
+        }
+        const progress = _targetComputeProgress(reservations, targets);
+
+        const isAdmin = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin';
+
+        if (homeEl) {
+            homeEl.innerHTML = _targetBuildCardHTML(progress, { isAdmin, variant: 'home' });
+        }
+        if (dashEl) {
+            dashEl.innerHTML = _targetBuildCardHTML(progress, { isAdmin, variant: 'dashboard' });
+        }
+
+        // Re-create lucide icons for any newly-inserted admin buttons
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    } catch (err) {
+        console.error('renderRevenueTargets error:', err);
+        const msg = `<div style="padding:16px;color:var(--text-secondary);font-size:13px;">
+            Could not load revenue targets. ${err.message || ''}
+        </div>`;
+        if (homeEl) homeEl.innerHTML = msg;
+        if (dashEl) dashEl.innerHTML = msg;
+    }
+}
+
+// -- Edit modal --------------------------------------------------------------
+async function openRevenueTargetsModal() {
+    try {
+        const t = await db.getRevenueTargets();
+        document.getElementById('revenueTargetTier1').value = Number(t.tier_1);
+        document.getElementById('revenueTargetTier2').value = Number(t.tier_2);
+        document.getElementById('revenueTargetTier3').value = Number(t.tier_3);
+        document.getElementById('revenueTargetsModal').classList.add('active');
+    } catch (err) {
+        showToast('Error', 'Could not load current targets: ' + err.message, '❌');
+    }
+}
+function closeRevenueTargetsModal() {
+    document.getElementById('revenueTargetsModal').classList.remove('active');
+}
+async function saveRevenueTargets() {
+    const t1 = Number(document.getElementById('revenueTargetTier1').value);
+    const t2 = Number(document.getElementById('revenueTargetTier2').value);
+    const t3 = Number(document.getElementById('revenueTargetTier3').value);
+    if (!(t1 > 0 && t2 > 0 && t3 > 0)) {
+        showToast('Validation Error', 'All three tier amounts must be positive', '❌');
+        return;
+    }
+    if (!(t1 <= t2 && t2 <= t3)) {
+        showToast('Validation Error', 'Tiers must be non-decreasing (Tier 1 ≤ Tier 2 ≤ Tier 3)', '❌');
+        return;
+    }
+    try {
+        await db.updateRevenueTargets({
+            tier_1: t1, tier_2: t2, tier_3: t3,
+            updated_by_email: (typeof currentUser !== 'undefined' && currentUser?.email) || null
+        });
+        closeRevenueTargetsModal();
+        await renderRevenueTargets();
+        showToast('Saved', 'Monthly targets updated', '✅');
+    } catch (err) {
+        console.error('saveRevenueTargets error:', err);
+        showToast('Error', 'Failed to save targets: ' + (err.message || err), '❌');
+    }
+}
+
+// -- Manual "Send WA Now" broadcast ------------------------------------------
+async function sendTargetWhatsApp(btnEl) {
+    if (!confirm('Send the current monthly target progress via WhatsApp to every active team member?')) return;
+
+    const origHTML = btnEl ? btnEl.innerHTML : null;
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;"></i> Sending…';
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    try {
+        const firebaseUser = firebase.auth().currentUser;
+        if (!firebaseUser) throw new Error('Not signed in');
+        const token = await firebaseUser.getIdToken();
+
+        const resp = await fetch('/api/send-target-whatsapp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({})
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.error || `HTTP ${resp.status}`);
+
+        const { sent = 0, skipped = 0, failed = 0 } = data;
+        showToast(
+            'WhatsApp Sent',
+            `Sent to ${sent} · Skipped ${skipped} (no phone) · Failed ${failed}`,
+            failed > 0 ? '⚠️' : '✅'
+        );
+        if (failed > 0) console.warn('[sendTargetWhatsApp] failures:', data.details);
+    } catch (err) {
+        console.error('sendTargetWhatsApp error:', err);
+        showToast('Error', err.message || 'Failed to send WhatsApp updates', '❌');
+    } finally {
+        if (btnEl && origHTML !== null) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = origHTML;
+            if (window.lucide) window.lucide.createIcons();
+        }
     }
 }
 
