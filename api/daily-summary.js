@@ -108,7 +108,7 @@ function daysOverdue(checkInDate) {
 /**
  * Build HTML email body
  */
-function buildEmailHTML(date, checkIns, checkOuts, upcomingCheckIns, upcomingCheckOuts, pendingPayments, ownerName) {
+function buildEmailHTML(date, checkIns, checkOuts, upcomingCheckIns, upcomingCheckOuts, pendingPayments, ownerName, targetSectionHTML = '') {
     const displayDate = formatDateDisplay(date);
     const greeting = ownerName ? `Hi ${ownerName},` : 'Good morning,';
     const scopeLabel = ownerName ? 'your properties' : 'all properties';
@@ -349,6 +349,7 @@ function buildEmailHTML(date, checkIns, checkOuts, upcomingCheckIns, upcomingChe
         <div style="background: white; padding: 28px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
             <p style="color: #475569; font-size: 14px; margin-bottom: 24px;">${greeting} Here's your daily operations summary.</p>
 
+            ${targetSectionHTML}
             ${checkInsHTML}
             ${checkOutsHTML}
             ${upcomingCheckInsHTML}
@@ -460,6 +461,55 @@ function normalisePhone(raw) {
     if (digits.length === 10) digits = '91' + digits;
     if (digits.length < 11 || digits.length > 15) return null;
     return digits;
+}
+
+/**
+ * Build a compact target-progress HTML block for embedding INSIDE the
+ * existing daily-summary email (so the admin sees target progress inline
+ * alongside today's check-ins, check-outs, and pending payments).
+ */
+function buildTargetInlineSection(progress) {
+    const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel } = progress;
+    const tierColors = ['#0891b2', '#f59e0b', '#dc2626'];
+
+    const tierRows = tiers.map((t, i) => {
+        const pct = Math.min(t.percentAchieved, 100);
+        const color = tierColors[i];
+        const paceIcon = t.onPace ? '🟢' : '🟡';
+        return `
+        <tr>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">${t.label} — ${formatShortInr(t.target)}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right; color: ${color}; font-weight: 700;">${t.percentAchieved.toFixed(1)}%</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatInr(t.gap)}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${formatInr(t.dailyPaceNeeded)}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: center;">${paceIcon}</td>
+        </tr>
+        `;
+    }).join('');
+
+    return `
+        <div style="margin-bottom: 32px;">
+            <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #1B3A5C;">
+                🎯 Monthly Revenue Target — ${monthLabel} (Day ${dayOfMonth}/${daysInMonth} · ${daysRemaining}d left)
+            </h2>
+            <div style="background: #f8fafc; padding: 14px 16px; border-radius: 8px; margin-bottom: 12px;">
+                <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">MTD Gross Revenue:</span>
+                <span style="font-size: 20px; font-weight: 800; color: #0f172a; margin-left: 8px;">${formatInr(monthRevenue)}</span>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                    <tr style="background: #f1f5f9;">
+                        <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #475569;">Tier</th>
+                        <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Achieved</th>
+                        <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Gap</th>
+                        <th style="padding: 8px 12px; text-align: right; font-weight: 600; color: #475569;">Daily Pace Needed</th>
+                        <th style="padding: 8px 12px; text-align: center; font-weight: 600; color: #475569;">Pace</th>
+                    </tr>
+                </thead>
+                <tbody>${tierRows}</tbody>
+            </table>
+        </div>
+    `;
 }
 
 /**
@@ -591,16 +641,15 @@ function buildTargetWaComponents(progress) {
 }
 
 /**
- * Run the target-update dispatch: email to STAY_EMAIL_RECIPIENT +
- * WhatsApp template to each active team member with a phone.
- * Safe to call even if WA env vars are missing (logs + skips WA).
+ * Load targets + current-month reservations + active team members and compute
+ * progress. Returns { progress, teamMembers }. Safe to call on its own so the
+ * daily-summary email can embed the target section without also dispatching
+ * the separate stay@ email or WhatsApp broadcast.
  */
-async function dispatchTargetUpdate(accessToken, fromEmail) {
-    // 1. Fetch targets + current-month reservations + team members in parallel
+async function loadTargetProgress() {
     const [targetRows, monthReservations, teamMembers] = await Promise.all([
         querySupabase('revenue_targets', 'id=eq.1&select=tier_1,tier_2,tier_3'),
         (async () => {
-            // Pull anything with check_in in current IST month
             const now = new Date();
             const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
             const year = ist.getUTCFullYear();
@@ -619,7 +668,17 @@ async function dispatchTargetUpdate(accessToken, fromEmail) {
     const targets = targetRows?.[0] || { tier_1: 4000000, tier_2: 5000000, tier_3: 6000000 };
     const progress = computeTargetProgress(monthReservations, targets);
     console.log(`[daily-summary][target] MTD: ${formatInr(progress.monthRevenue)} | Day ${progress.dayOfMonth}/${progress.daysInMonth} | T1: ${progress.tiers[0].percentAchieved.toFixed(1)}%`);
+    return { progress, teamMembers };
+}
 
+/**
+ * Run the target-update dispatch: separate email to STAY_EMAIL_RECIPIENT +
+ * WhatsApp template to each active team member with a phone. Safe to call
+ * even if WA env vars are missing (logs + skips WA). Accepts pre-loaded
+ * `progress` + `teamMembers` to avoid duplicate queries — the main handler
+ * uses the same progress to embed an inline section in the admin summary.
+ */
+async function dispatchTargetUpdate(accessToken, fromEmail, progress, teamMembers) {
     // 2. Email to stay@hostizzy.com
     let emailStatus = 'skipped';
     try {
@@ -742,11 +801,26 @@ export default async function handler(req, res) {
 
         console.log(`[daily-summary] Today — Check-ins: ${checkIns.length}, Check-outs: ${checkOuts.length} | Upcoming — Check-ins: ${upcomingCheckIns.length}, Check-outs: ${upcomingCheckOuts.length} | Pending: ${pendingPayments.length}, Owners: ${externalOwners.length}`);
 
+        // Round 6 — load target progress once so we can both (a) embed it
+        // inline in the admin summary email and (b) dispatch the separate
+        // stay@ email + WA broadcast using the same numbers.
+        let targetProgress = null;
+        let targetTeamMembers = [];
+        let targetInlineHTML = '';
+        try {
+            const loaded = await loadTargetProgress();
+            targetProgress = loaded.progress;
+            targetTeamMembers = loaded.teamMembers;
+            targetInlineHTML = buildTargetInlineSection(targetProgress);
+        } catch (err) {
+            console.error('[daily-summary][target] Preload failed (continuing without inline section):', err.message);
+        }
+
         const sentTo = [];
 
-        // 4. Send admin summary (all properties)
+        // 4. Send admin summary (all properties) — with inline target section
         if (DAILY_SUMMARY_EMAIL) {
-            const adminHTML = buildEmailHTML(today, checkIns, checkOuts, upcomingCheckIns, upcomingCheckOuts, pendingPayments, null);
+            const adminHTML = buildEmailHTML(today, checkIns, checkOuts, upcomingCheckIns, upcomingCheckOuts, pendingPayments, null, targetInlineHTML);
             await sendEmail(accessToken, {
                 to: DAILY_SUMMARY_EMAIL,
                 subject: `ResIQ Daily Summary - ${formatDateDisplay(today)}`,
@@ -793,15 +867,19 @@ export default async function handler(req, res) {
 
         console.log(`[daily-summary] Sent to: ${sentTo.join(', ') || 'nobody'}`);
 
-        // Round 6 — monthly revenue target dispatch (email + WA).
+        // Round 6 — monthly revenue target dispatch (separate stay@ email + WA).
         // Runs after the summary emails so any failure here doesn't block the
-        // existing summary. Failures inside are caught and reported.
+        // existing summary. Uses the already-loaded progress + team_members.
         let targetUpdate = null;
-        try {
-            targetUpdate = await dispatchTargetUpdate(accessToken, fromEmail);
-        } catch (err) {
-            console.error('[daily-summary][target] Dispatch crashed:', err.message);
-            targetUpdate = { error: err.message };
+        if (targetProgress) {
+            try {
+                targetUpdate = await dispatchTargetUpdate(accessToken, fromEmail, targetProgress, targetTeamMembers);
+            } catch (err) {
+                console.error('[daily-summary][target] Dispatch crashed:', err.message);
+                targetUpdate = { error: err.message };
+            }
+        } else {
+            targetUpdate = { error: 'Target progress unavailable — see earlier log' };
         }
 
         return res.status(200).json({

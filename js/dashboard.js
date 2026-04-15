@@ -373,16 +373,24 @@ function _targetBuildCardHTML(progress, { isAdmin, variant }) {
         </div>`;
     }).join('');
 
-    // Admin controls only appear on the Dashboard variant, never on Home.
-    const adminControls = (variant === 'dashboard' && isAdmin) ? `
-        <div class="target-card-admin-controls">
-            <button class="btn btn-secondary btn-sm" onclick="openRevenueTargetsModal()" title="Edit targets">
-                <i data-lucide="pencil" style="width: 14px; height: 14px;"></i> Edit
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="sendTargetWhatsApp(this)" title="Send WhatsApp update to all team members">
-                <i data-lucide="send" style="width: 14px; height: 14px;"></i> Send WA Now
-            </button>
-        </div>
+    // Share button is always visible (on Home and Dashboard, for all users).
+    // Opens wa.me with a pre-filled plain-text version so the user can
+    // forward the card to any WhatsApp chat (management group, individual,
+    // etc.) — no approved template required.
+    const shareButton = `
+        <button class="btn btn-secondary btn-sm" onclick="shareTargetToWhatsApp()" title="Share this card to any WhatsApp chat">
+            <i data-lucide="share-2" style="width: 14px; height: 14px;"></i> Share
+        </button>
+    `;
+
+    // Admin-only controls appear on the Dashboard variant, never on Home.
+    const adminButtons = (variant === 'dashboard' && isAdmin) ? `
+        <button class="btn btn-secondary btn-sm" onclick="openRevenueTargetsModal()" title="Edit targets">
+            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i> Edit
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="sendTargetWhatsApp(this)" title="Send approved WhatsApp template to all team members">
+            <i data-lucide="send" style="width: 14px; height: 14px;"></i> Send WA Now
+        </button>
     ` : '';
 
     return `
@@ -391,7 +399,7 @@ function _targetBuildCardHTML(progress, { isAdmin, variant }) {
                 <h3 class="target-card-title">${monthLabel}</h3>
                 <span class="target-card-day-pill">Day ${dayOfMonth}/${daysInMonth} · ${daysRemaining}d left</span>
             </div>
-            ${adminControls}
+            <div class="target-card-admin-controls">${shareButton}${adminButtons}</div>
         </div>
         <div class="target-card-mtd">
             <div class="target-card-mtd-label">Month-to-Date Gross Revenue</div>
@@ -477,6 +485,58 @@ async function saveRevenueTargets() {
     } catch (err) {
         console.error('saveRevenueTargets error:', err);
         showToast('Error', 'Failed to save targets: ' + (err.message || err), '❌');
+    }
+}
+
+// -- Manual share via WhatsApp (plain-text, any chat) -----------------------
+// Opens wa.me with a pre-filled plain-text version of the card so the user
+// can forward it to any WhatsApp chat (group, individual). This is NOT a
+// template message and does NOT require Meta approval — it just drops the
+// text into WhatsApp's compose window.
+async function shareTargetToWhatsApp() {
+    try {
+        const targets = await db.getRevenueTargets();
+        let reservations = (typeof state !== 'undefined' && state.reservations) ? state.reservations : null;
+        if (!reservations || reservations.length === 0) {
+            reservations = await db.getReservations();
+        }
+        const progress = _targetComputeProgress(reservations, targets);
+        const { dayOfMonth, daysInMonth, daysRemaining, monthRevenue, tiers, monthLabel } = progress;
+
+        const lines = [
+            `*Hostizzy — Monthly Revenue Target*`,
+            `${monthLabel}`,
+            `Day ${dayOfMonth} of ${daysInMonth} · ${daysRemaining} day(s) remaining`,
+            ``,
+            `*MTD Revenue: ${_targetFormatInr(monthRevenue)}*`,
+            ``
+        ];
+        tiers.forEach((t, i) => {
+            const icon = t.onPace ? '🟢' : '🟡';
+            lines.push(`${icon} *Tier ${i + 1} — ${_targetFormatShortInr(t.target)}:* ${t.percentAchieved.toFixed(1)}% · gap ${_targetFormatInr(t.gap)}`);
+        });
+        lines.push('');
+        lines.push(`Daily pace needed for Tier 1: ${_targetFormatInr(tiers[0].dailyPaceNeeded)}/day`);
+
+        const text = lines.join('\n');
+        const url = 'https://wa.me/?text=' + encodeURIComponent(text);
+
+        // Prefer the native share sheet on mobile (lets user pick WhatsApp or
+        // any other target). Fall back to wa.me in a new tab.
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'Monthly Revenue Target', text });
+                return;
+            } catch (e) {
+                // User cancelled share sheet — do nothing.
+                if (e?.name === 'AbortError') return;
+                // Any other error, fall through to wa.me.
+            }
+        }
+        window.open(url, '_blank', 'noopener');
+    } catch (err) {
+        console.error('shareTargetToWhatsApp error:', err);
+        showToast('Error', 'Could not prepare share text: ' + (err.message || err), '❌');
     }
 }
 
