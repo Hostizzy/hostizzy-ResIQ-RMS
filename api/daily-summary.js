@@ -980,7 +980,7 @@ export default async function handler(req, res) {
         }
 
         const accessToken = await ensureTokenFresh(tokenRecord);
-        const fromEmail = tokenRecord.gmail_email;
+        const fromEmail = DAILY_SUMMARY_FROM_EMAIL || tokenRecord.gmail_email;
 
         // 2. Get today's date in IST and the upcoming window end (next 3 days)
         const today = getTodayIST();
