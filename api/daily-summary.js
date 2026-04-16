@@ -14,6 +14,7 @@
 
 import {
     getFirstGmailToken,
+    getGmailTokenByEmail,
     ensureTokenFresh,
     sendEmail
 } from './gmail-helpers.js';
@@ -22,6 +23,7 @@ import { broadcastToAllSubscribers } from './send-push.js';
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const DAILY_SUMMARY_EMAIL = process.env.DAILY_SUMMARY_EMAIL;
+const DAILY_SUMMARY_FROM_EMAIL = process.env.DAILY_SUMMARY_FROM_EMAIL;
 
 // Round 6 — monthly revenue target notifications
 const STAY_EMAIL_RECIPIENT = process.env.STAY_EMAIL_RECIPIENT || 'stay@hostizzy.com';
@@ -959,15 +961,26 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 1. Get Gmail token
-        const tokenRecord = await getFirstGmailToken();
+        // 1. Get Gmail token — prefer the dedicated daily-summary sender if configured
+        let tokenRecord = null;
+        if (DAILY_SUMMARY_FROM_EMAIL) {
+            tokenRecord = await getGmailTokenByEmail(DAILY_SUMMARY_FROM_EMAIL);
+            if (tokenRecord) {
+                console.log(`[daily-summary] Using dedicated sender: ${DAILY_SUMMARY_FROM_EMAIL}`);
+            } else {
+                console.warn(`[daily-summary] DAILY_SUMMARY_FROM_EMAIL is set to ${DAILY_SUMMARY_FROM_EMAIL} but no token found for it — falling back to first available`);
+            }
+        }
+        if (!tokenRecord) {
+            tokenRecord = await getFirstGmailToken();
+        }
         if (!tokenRecord) {
             console.warn('[daily-summary] No Gmail token found — skipping email send');
             return res.status(200).json({ message: 'No Gmail connected, skipping' });
         }
 
         const accessToken = await ensureTokenFresh(tokenRecord);
-        const fromEmail = tokenRecord.gmail_email;
+        const fromEmail = DAILY_SUMMARY_FROM_EMAIL || tokenRecord.gmail_email;
 
         // 2. Get today's date in IST and the upcoming window end (next 3 days)
         const today = getTodayIST();

@@ -55,6 +55,30 @@ export async function getFirstGmailToken() {
 }
 
 /**
+ * Get a Gmail token by email address.
+ * Useful when a specific sender account is needed (e.g. a dedicated daily-summary address).
+ * Returns null if no token is stored for that email.
+ */
+export async function getGmailTokenByEmail(email) {
+    if (!email) return null;
+
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/gmail_tokens?gmail_email=eq.${encodeURIComponent(email)}&select=*&limit=1`,
+        {
+            headers: {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+            }
+        }
+    );
+
+    if (!response.ok) return null;
+
+    const rows = await response.json();
+    return rows.length > 0 ? rows[0] : null;
+}
+
+/**
  * Save or update Gmail tokens in Supabase
  */
 export async function saveTokens(userId, tokens) {
