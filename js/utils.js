@@ -1,6 +1,23 @@
 // ResIQ Utils — Performance utilities, formatting, theme, toast/modal
 
         // ==========================================
+        // DATE / TIMEZONE HELPERS
+        // ==========================================
+
+        /** Current moment as a Date shifted into IST. Used by dashboards
+         *  and revenue-target math so day-of-month boundaries match what
+         *  Indian operators see on their phone clock. */
+        function getISTNow() {
+            return new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+        }
+
+        /** Today's date in IST as a YYYY-MM-DD string — the same format
+         *  reservation rows store check_in / check_out in. */
+        function getTodayKeyIST() {
+            return getISTNow().toISOString().split('T')[0];
+        }
+
+        // ==========================================
         // PERFORMANCE UTILITIES
         // ==========================================
 

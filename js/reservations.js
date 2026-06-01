@@ -242,10 +242,11 @@ function updateGreeting() {
     const hour = new Date().getHours();
     const greetingTimeEl = document.getElementById('greetingTime');
     const greetingUserEl = document.getElementById('greetingUser');
-    
+    const todayDateLabel = document.getElementById('todayDateLabel');
+
     let greeting = 'Good Evening';
     let emoji = '🌙';
-    
+
     if (hour < 12) {
         greeting = 'Good Morning';
         emoji = '☀️';
@@ -253,8 +254,14 @@ function updateGreeting() {
         greeting = 'Good Afternoon';
         emoji = '🌤️';
     }
-    
+
     greetingTimeEl.textContent = `${emoji} ${greeting}`;
+
+    if (todayDateLabel) {
+        todayDateLabel.textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'short', day: 'numeric', month: 'short'
+        });
+    }
     
     if (currentUser && currentUser.email) {
         const userName = currentUser.email.split('@')[0];
@@ -269,59 +276,61 @@ async function updateHomeScreenStats() {
     try {
         // Update greeting
         updateGreeting();
-        
-        // Ensure we have data
+
+        // Ensure we have data — load in parallel so a slow query doesn't
+        // serialize the others.
         if (!state.reservations || state.reservations.length === 0) {
-            // Load data if not available
-            state.reservations = await db.getReservations();
-            state.properties = await db.getProperties();
-            state.payments = await db.getAllPayments();
+            const [reservations, properties, payments] = await Promise.all([
+                db.getReservations(),
+                db.getProperties(),
+                db.getAllPayments()
+            ]);
+            state.reservations = reservations;
+            state.properties = properties;
+            state.payments = payments;
         }
-        
-        // Calculate stats
-        const totalReservations = state.reservations.length;
-        const activeReservations = state.reservations.filter(r => r.status === 'confirmed' || r.status === 'checked_in').length;
-        const upcomingReservations = state.reservations.filter(r => {
-            const checkIn = new Date(r.check_in);
-            const today = new Date();
-            return checkIn > today && r.status === 'confirmed';
-        }).length;
-        
-        const pendingPayments = state.reservations.filter(r => 
-            r.payment_status === 'pending' || r.payment_status === 'partial'
-        ).length;
-        
+
+        // ── Single-pass aggregate ──
+        // One traversal computes every count we need, instead of running
+        // 5 independent .filter() passes over the same array.
+        const todayKey = getTodayKeyIST();
+        const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+
+        const stats = state.reservations.reduce((acc, r) => {
+            if (r.status === 'confirmed' || r.status === 'checked_in') acc.active++;
+            if (r.payment_status === 'pending' || r.payment_status === 'partial') acc.pending++;
+            if (r.status !== 'cancelled') {
+                if (r.check_in === todayKey) acc.arrivals++;
+                if (r.check_out === todayKey) acc.departures++;
+            }
+            if (r.created_at && new Date(r.created_at).getTime() >= monthStart) {
+                acc.monthPaise += Money.parseRupeesToPaise(r.paid_amount);
+            }
+            return acc;
+        }, { active: 0, pending: 0, arrivals: 0, departures: 0, monthPaise: 0 });
+
         const totalProperties = state.properties ? state.properties.length : 0;
-        
-        // Calculate this month's revenue
-        const now = new Date();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        const thisMonthRevenue = state.reservations
-            .filter(r => new Date(r.created_at) >= firstDay)
-            .reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
-        
+
         // Update UI - with safe checks
-        const homeStatReservations = document.getElementById('homeStatReservations');
-        const homeStatActive = document.getElementById('homeStatActive');
-        const homeStatPending = document.getElementById('homeStatPending');
-        const homeStatUpcoming = document.getElementById('homeStatUpcoming');
-        const homeStatProperties = document.getElementById('homeStatProperties');
-        const homeStatGuests = document.getElementById('homeStatGuests');
-        const homeStatRevenue = document.getElementById('homeStatRevenue');
-        
-        if (homeStatReservations) homeStatReservations.textContent = totalReservations;
-        if (homeStatActive) homeStatActive.textContent = activeReservations;
-        if (homeStatPending) homeStatPending.textContent = pendingPayments;
-        if (homeStatUpcoming) homeStatUpcoming.textContent = upcomingReservations;
-        if (homeStatProperties) homeStatProperties.textContent = totalProperties;
-        if (homeStatGuests) homeStatGuests.textContent = calculateUniqueGuests(allReservations);
-        if (homeStatRevenue) homeStatRevenue.textContent = '₹' + Math.round(thisMonthRevenue / 1000) + 'K';
-        
+        const set = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        set('homeStatReservations', state.reservations.length);
+        set('homeStatActive', stats.active);
+        set('homeStatPending', stats.pending);
+        set('homeStatProperties', totalProperties);
+        set('homeStatGuests', calculateUniqueGuests(allReservations));
+        set('homeStatRevenue', Money.paiseToShortDisplay(stats.monthPaise));
+        set('homeStatArrivals', stats.arrivals);
+        set('homeStatDepartures', stats.departures);
+
         // Update recent activity
         updateRecentActivity();
 
-        // Update app launcher badges (mobile)
-        updateAppLauncherBadges(pendingPayments);
+        // Update mobile launcher + bottom-nav badges
+        updateAppLauncherBadges(stats.pending);
+        updateBottomNavBadges({ pendingPayments: stats.pending });
 
         // Round 6 — Monthly Revenue Target card on Home
         if (typeof renderRevenueTargets === 'function') {
@@ -330,23 +339,32 @@ async function updateHomeScreenStats() {
 
     } catch (error) {
         console.error('Error updating home screen:', error);
-        // Set default values on error
-        const homeStatReservations = document.getElementById('homeStatReservations');
-        const homeStatActive = document.getElementById('homeStatActive');
-        const homeStatPending = document.getElementById('homeStatPending');
-        const homeStatUpcoming = document.getElementById('homeStatUpcoming');
-        const homeStatProperties = document.getElementById('homeStatProperties');
-        const homeStatGuests = document.getElementById('homeStatGuests');
-        const homeStatRevenue = document.getElementById('homeStatRevenue');
-
-        if (homeStatReservations) homeStatReservations.textContent = '0';
-        if (homeStatActive) homeStatActive.textContent = '0';
-        if (homeStatPending) homeStatPending.textContent = '0';
-        if (homeStatUpcoming) homeStatUpcoming.textContent = '0';
-        if (homeStatProperties) homeStatProperties.textContent = '0';
-        if (homeStatGuests) homeStatGuests.textContent = '0';
-        if (homeStatRevenue) homeStatRevenue.textContent = '₹0';
+        // Default every stat to a zero placeholder so the user doesn't see
+        // a stuck "--" forever if the data load failed.
+        const zeroIds = [
+            'homeStatReservations', 'homeStatActive', 'homeStatPending',
+            'homeStatProperties', 'homeStatGuests',
+            'homeStatArrivals', 'homeStatDepartures'
+        ];
+        for (const id of zeroIds) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '0';
+        }
+        const rev = document.getElementById('homeStatRevenue');
+        if (rev) rev.textContent = '₹0';
     }
+}
+
+/**
+ * Update bottom-nav badges (mobile/tablet only) — surfaces overdue
+ * counts at the tab level so operators don't have to drill into a view
+ * to know there's something waiting.
+ */
+function updateBottomNavBadges({ pendingPayments }) {
+    if (!window.ResIQBottomTabs || typeof ResIQBottomTabs.setBadge !== 'function') return;
+    try {
+        ResIQBottomTabs.setBadge('payments', pendingPayments || 0);
+    } catch (_) { /* badge target may not be mounted yet */ }
 }
 
 /**

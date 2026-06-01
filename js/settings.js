@@ -118,13 +118,21 @@ function saveAutomationSettings() {
     }
 }
 
+// Persist a batch of settings to localStorage (sync) and SettingsStore
+// (one Supabase upsert for the whole batch).
+function _persistSettings(entries) {
+    for (const [k, v] of Object.entries(entries)) localStorage.setItem(k, v);
+    if (window.SettingsStore) SettingsStore.setMany(entries);
+}
+
 function saveGeneralSettings() {
     try {
-        localStorage.setItem('businessName', document.getElementById('businessName').value);
-        localStorage.setItem('currency', document.getElementById('currencySelect').value);
-        localStorage.setItem('timezone', document.getElementById('timezoneSelect').value);
-        localStorage.setItem('dateFormat', document.getElementById('dateFormatSelect').value);
-
+        _persistSettings({
+            businessName: document.getElementById('businessName').value,
+            currency: document.getElementById('currencySelect').value,
+            timezone: document.getElementById('timezoneSelect').value,
+            dateFormat: document.getElementById('dateFormatSelect').value
+        });
         showToast('Settings Saved', 'Preferences saved successfully', '');
     } catch (error) {
         showToast('Error', 'Failed to save settings', '');
@@ -133,13 +141,14 @@ function saveGeneralSettings() {
 
 function saveBusinessProfile() {
     try {
-        localStorage.setItem('businessName', document.getElementById('businessName').value);
-        localStorage.setItem('businessEmail', document.getElementById('businessEmail').value);
-        localStorage.setItem('businessPhone', document.getElementById('businessPhone').value);
-        localStorage.setItem('businessAddress', document.getElementById('businessAddress').value);
-        localStorage.setItem('businessGST', document.getElementById('businessGST').value);
-        localStorage.setItem('businessWebsite', document.getElementById('businessWebsite').value);
-
+        _persistSettings({
+            businessName: document.getElementById('businessName').value,
+            businessEmail: document.getElementById('businessEmail').value,
+            businessPhone: document.getElementById('businessPhone').value,
+            businessAddress: document.getElementById('businessAddress').value,
+            businessGST: document.getElementById('businessGST').value,
+            businessWebsite: document.getElementById('businessWebsite').value
+        });
         showToast('Settings Saved', 'Business profile saved successfully', '');
     } catch (error) {
         showToast('Error', 'Failed to save business profile', '');
@@ -153,11 +162,13 @@ function saveBusinessSettings() {
 
 function saveNotificationSettings() {
     try {
-        localStorage.setItem('emailNotifications', document.getElementById('emailNotifications').checked);
-        localStorage.setItem('whatsappNotifications', document.getElementById('whatsappNotifications').checked);
-        localStorage.setItem('paymentReminders', document.getElementById('paymentReminders').checked);
-        localStorage.setItem('bookingConfirmations', document.getElementById('bookingConfirmations').checked);
-        localStorage.setItem('dailySummary', document.getElementById('dailySummary').checked);
+        _persistSettings({
+            emailNotifications: document.getElementById('emailNotifications').checked,
+            whatsappNotifications: document.getElementById('whatsappNotifications').checked,
+            paymentReminders: document.getElementById('paymentReminders').checked,
+            bookingConfirmations: document.getElementById('bookingConfirmations').checked,
+            dailySummary: document.getElementById('dailySummary').checked
+        });
     } catch (error) {
         console.error('Failed to save notification settings:', error);
     }

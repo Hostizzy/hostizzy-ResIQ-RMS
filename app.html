@@ -931,25 +931,38 @@
             <!-- Today's Overview - Priority Stats -->
             <div class="home-section">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">Today's Overview</h2>
+                    <h2 class="home-section-title">Today</h2>
+                    <span class="home-section-subtitle" id="todayDateLabel"></span>
                 </div>
-                <div class="today-stats-grid">
-                    <div class="today-stat-card">
-                        <div class="today-stat-value" id="homeStatActive">--</div>
-                        <div class="today-stat-label">Active Bookings</div>
-                        <div class="today-stat-icon"><i data-lucide="calendar-check" style="width: 28px; height: 28px;"></i></div>
+                <div class="today-stats-grid today-stats-grid--priority">
+                    <div class="today-stat-card today-stat-card--accent" onclick="triggerHaptic('light'); showView('reservations');" style="cursor:pointer;">
+                        <div class="today-stat-value" id="homeStatArrivals">--</div>
+                        <div class="today-stat-label">Arrivals Today</div>
+                        <div class="today-stat-icon"><i data-lucide="log-in" style="width: 28px; height: 28px;"></i></div>
                     </div>
-                    <div class="today-stat-card">
+                    <div class="today-stat-card today-stat-card--accent" onclick="triggerHaptic('light'); showView('reservations');" style="cursor:pointer;">
+                        <div class="today-stat-value" id="homeStatDepartures">--</div>
+                        <div class="today-stat-label">Departures Today</div>
+                        <div class="today-stat-icon"><i data-lucide="log-out" style="width: 28px; height: 28px;"></i></div>
+                    </div>
+                    <div class="today-stat-card" onclick="triggerHaptic('light'); showView('payments');" style="cursor:pointer;">
                         <div class="today-stat-value" id="homeStatPending">--</div>
                         <div class="today-stat-label">Pending Payments</div>
                         <div class="today-stat-icon"><i data-lucide="clock" style="width: 28px; height: 28px;"></i></div>
                     </div>
-                    <div class="today-stat-card">
+                    <div class="today-stat-card" onclick="triggerHaptic('light'); showView('guestDocuments');" style="cursor:pointer;">
                         <div class="today-stat-value" id="homeStatDocuments">--</div>
                         <div class="today-stat-label">Documents to Review</div>
                         <div class="today-stat-icon"><i data-lucide="clipboard-list" style="width: 28px; height: 28px;"></i></div>
                     </div>
-                    <div class="today-stat-card">
+                </div>
+                <div class="today-stats-grid" style="margin-top: 12px;">
+                    <div class="today-stat-card today-stat-card--muted">
+                        <div class="today-stat-value" id="homeStatActive">--</div>
+                        <div class="today-stat-label">Active Bookings</div>
+                        <div class="today-stat-icon"><i data-lucide="calendar-check" style="width: 28px; height: 28px;"></i></div>
+                    </div>
+                    <div class="today-stat-card today-stat-card--muted">
                         <div class="today-stat-value" id="homeStatRevenue">--</div>
                         <div class="today-stat-label">Revenue (Month)</div>
                         <div class="today-stat-icon"><i data-lucide="trending-up" style="width: 28px; height: 28px;"></i></div>
@@ -1451,8 +1464,34 @@
         .today-stat-card:nth-child(3) { border-left-color: #3b82f6; }
         .today-stat-card:nth-child(4) { border-left-color: #059669; }
 
+        /* Priority row — slightly elevated, accent left bar */
+        .today-stats-grid--priority .today-stat-card--accent {
+            border-left-width: 5px;
+            background: linear-gradient(180deg, var(--surface) 0%, color-mix(in srgb, var(--primary) 4%, var(--surface)) 100%);
+        }
+
+        /* Muted row — secondary stats */
+        .today-stat-card--muted {
+            padding: 16px 16px 16px 20px;
+        }
+        .today-stat-card--muted .today-stat-value {
+            font-size: 22px;
+            opacity: 0.92;
+        }
+
+        .home-section-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            margin-left: auto;
+        }
+
         .today-stat-card:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .today-stat-card[onclick]:active {
+            transform: scale(0.98);
         }
 
         .today-stat-value {
@@ -6460,6 +6499,8 @@
     <!-- ResIQ Application Modules -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/money.js"></script>
+    <script src="js/settings-store.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/offline.js"></script>
     <script src="js/db.js"></script>

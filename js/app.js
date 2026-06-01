@@ -46,9 +46,13 @@ window.addEventListener('load', async () => {
         return; // Don't try to restore a regular session
     }
 
-    // Wait for Firebase Auth state to be ready before checking session
+    // Wait for Firebase Auth state to be ready before checking session.
+    // Firebase is now the SOURCE OF TRUTH — if it doesn't return a user,
+    // any stale localStorage session is cleared so we don't render the
+    // app for a signed-out user (or one whose token has been revoked).
+    let firebaseUser = null;
     try {
-        const firebaseUser = await new Promise((resolve) => {
+        firebaseUser = await new Promise((resolve) => {
             const unsubscribe = authService.onAuthStateChanged((user) => {
                 unsubscribe();
                 resolve(user);
@@ -60,9 +64,24 @@ window.addEventListener('load', async () => {
             const allMembers = await db.getTeamMembers();
             const profile = allMembers.find(u => u.email === firebaseUser.email);
             if (profile && profile.is_active) {
-                const sessionUser = { ...profile, userType: 'staff' };
+                const sessionUser = { ...profile, userType: profile.userType || profile.user_type || 'staff' };
                 localStorage.setItem('currentUser', JSON.stringify(sessionUser));
                 console.log('[Auth] Firebase session restored for:', profile.email);
+            } else {
+                // Authenticated with Firebase but the profile is missing or
+                // disabled — treat as signed out and force a fresh login.
+                console.warn('[Auth] Firebase user has no active profile, clearing session');
+                localStorage.removeItem('currentUser');
+                authService.signOut?.().catch(() => {});
+            }
+        } else if (navigator.onLine) {
+            // No Firebase user AND we're online — invalidate any stale
+            // localStorage session. (Offline: keep cached session so the
+            // operator can still work and we'll re-validate on reconnect.)
+            const stale = localStorage.getItem('currentUser');
+            if (stale) {
+                console.warn('[Auth] No Firebase session while online — clearing stale localStorage session');
+                localStorage.removeItem('currentUser');
             }
         }
     } catch (e) {
@@ -76,6 +95,14 @@ window.addEventListener('load', async () => {
         try {
             currentUser = JSON.parse(storedUser);
             showMainApp(currentUser);
+
+            // Pull persisted settings from Supabase into localStorage so the
+            // operator gets their business name, currency, signature, etc.
+            // even on a fresh device or after a cache clear. Fires AFTER
+            // showMainApp so it never blocks the critical render path.
+            if (window.SettingsStore) {
+                SettingsStore.hydrate().catch(() => {});
+            }
             
             // ✅ MOBILE PERFORMANCE: Detect mobile and optimize loading
             const isMobile = window.innerWidth <= 768;
