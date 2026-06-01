@@ -61,10 +61,13 @@ window.addEventListener('load', async () => {
             setTimeout(() => { resolve(null); }, 3000);
         });
         if (firebaseUser) {
-            const allMembers = await db.getTeamMembers();
-            const profile = allMembers.find(u => u.email === firebaseUser.email);
+            // Pre-auth lookup — db scope hasn't been initialized yet, so
+            // use the dedicated findUserByEmail() helper that bypasses scope.
+            const profile = await db.findUserByEmail(firebaseUser.email);
             if (profile && profile.is_active) {
-                const sessionUser = { ...profile, userType: profile.userType || profile.user_type || 'staff' };
+                const userType = profile._kind === 'owner' ? 'owner' : (profile.userType || profile.user_type || 'staff');
+                const sessionUser = { ...profile, userType };
+                delete sessionUser._kind;
                 localStorage.setItem('currentUser', JSON.stringify(sessionUser));
                 console.log('[Auth] Firebase session restored for:', profile.email);
             } else {

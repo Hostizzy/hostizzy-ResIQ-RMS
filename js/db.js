@@ -60,6 +60,22 @@
                 return this._ownerId === '__deny__';
             },
 
+            // Pre-auth lookup: identify a user by their just-authenticated
+            // email so the caller can build a session and call initScope().
+            // Bypasses the multi-tenant scope on purpose — the user is not
+            // logged in yet, so we have no scope to apply. Safe because the
+            // email is the user's own Firebase identity and at most one row
+            // can match. Used by js/auth.js login and js/app.js session
+            // restore, both before initScope() runs.
+            async findUserByEmail(email) {
+                if (!email) return null;
+                const team = await supabase.from('team_members').select('*').eq('email', email).limit(1);
+                if (team.data && team.data.length > 0) return { ...team.data[0], _kind: 'staff' };
+                const owner = await supabase.from('property_owners').select('*').eq('email', email).limit(1);
+                if (owner.data && owner.data.length > 0) return { ...owner.data[0], _kind: 'owner' };
+                return null;
+            },
+
             // ─── Core Queries (auto-scoped) ──────────────────────
             async getTeamMembers() {
                 if (this._isDenied()) return [];

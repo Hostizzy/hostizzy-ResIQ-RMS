@@ -182,17 +182,20 @@
                 console.log('[Auth] Firebase Auth login successful');
 
                 // ── Step 2: Find user profile in database ─────────────────
+                // Pre-auth lookup — scope hasn't been set yet, so use the
+                // dedicated findUserByEmail() helper that searches across
+                // team_members and property_owners.
                 {
-                    const users = await db.getTeamMembers();
-                    const profile = users.find(u => u.email === email);
+                    const profile = await db.findUserByEmail(email);
 
-                    if (profile) {
+                    if (profile && profile._kind === 'staff') {
                         if (!profile.is_active) {
                             await authService.signOut();
                             showToast('Account Inactive', 'Your account has been deactivated', '❌');
                             return;
                         }
                         currentUser = { ...profile, userType: 'staff' };
+                        delete currentUser._kind;
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
                         await db.initScope(currentUser);
                         showMainApp(currentUser);
@@ -205,10 +208,12 @@
                         return;
                     }
 
-                    // Firebase Auth user exists but no team_members record — check owners
-                    const owners = await db.getOwners();
-                    const ownerProfile = owners.find(o => o.email === email);
+                    // Firebase Auth user exists but no team_members record — check owners.
+                    // findUserByEmail() above already looked, so reuse its
+                    // result when it returned an owner instead of re-querying.
+                    const ownerProfile = (profile && profile._kind === 'owner') ? profile : null;
                     if (ownerProfile) {
+                        delete ownerProfile._kind;
                         // External owner: check approval status
                         if (ownerProfile.is_external) {
                             if (ownerProfile.status === 'pending') {
