@@ -248,6 +248,18 @@ export default async function handler(req, res) {
         }
     }
 
+    // Kill switch — automation is off by default. To enable guest-facing
+    // automated emails, set AUTOMATIONS_ENABLED=true in Vercel env vars
+    // AND add the cron schedule back to vercel.json. Both gates must be
+    // open before any email is sent. Keeps the code path alive for
+    // testing / future rollout without firing anything in production.
+    if (process.env.AUTOMATIONS_ENABLED !== 'true') {
+        console.log('[automation] disabled (AUTOMATIONS_ENABLED != true) — exiting');
+        return res.status(200).json({
+            message: 'Automations disabled. Set AUTOMATIONS_ENABLED=true to enable.'
+        });
+    }
+
     try {
         // 1. Get Gmail token (same logic as daily-summary)
         let tokenRecord = null;
