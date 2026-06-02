@@ -7,6 +7,10 @@
     {
       "path": "/api/cloudinary?action=delete-old-ids",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/automation-runner",
+      "schedule": "0 * * * *"
     }
   ],
   "buildCommand": "node scripts/build.js --inplace",
