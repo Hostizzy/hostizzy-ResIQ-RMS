@@ -251,6 +251,44 @@ function updateDashGreeting() {
 }
 
 // Dashboard
+/**
+ * Render the pinned "Today" panel at the top of the Dashboard view.
+ * Counts arrivals, departures, pending payments, and pending KYC reviews
+ * — the four things a small operator scans first thing every morning.
+ * Always reflects today's IST date regardless of the period filter.
+ */
+function renderDashboardTodayPanel(reservations) {
+    const todayKey = (typeof getTodayKeyIST === 'function') ? getTodayKeyIST() : new Date().toISOString().split('T')[0];
+
+    const stats = (reservations || []).reduce((acc, r) => {
+        if (r.payment_status === 'pending' || r.payment_status === 'partial') acc.pending++;
+        if (r.status !== 'cancelled') {
+            if (r.check_in === todayKey) acc.arrivals++;
+            if (r.check_out === todayKey) acc.departures++;
+            // KYC pending: any reservation with KYC not yet approved that
+            // has check-in within the next 7 days.
+            if (r.kyc_status === 'pending' || r.kyc_status === 'submitted') acc.docs++;
+        }
+        return acc;
+    }, { arrivals: 0, departures: 0, pending: 0, docs: 0 });
+
+    const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+    set('dashTodayArrivals', stats.arrivals);
+    set('dashTodayDepartures', stats.departures);
+    set('dashTodayPending', stats.pending);
+    set('dashTodayDocs', stats.docs);
+
+    const dateEl = document.getElementById('dashTodayDate');
+    if (dateEl) {
+        dateEl.textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'long', day: 'numeric', month: 'long'
+        });
+    }
+}
+
 async function loadDashboard() {
     try {
         // Update greeting
@@ -280,6 +318,10 @@ async function loadDashboard() {
         state.properties = properties;
         state.payments = allPayments;
         state.expenses = allExpenses;
+
+        // Update the pinned "Today" panel — always reflects today regardless
+        // of the period filter.
+        renderDashboardTodayPanel(allReservations);
 
         // Apply default "This Month" filter — this populates Core Metrics,
         // Activity Widgets, Revenue Split, and Action Center

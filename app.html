@@ -2117,6 +2117,62 @@
             box-shadow: 0 2px 6px rgba(8,145,178,0.3);
         }
 
+        /* Dashboard "Today" panel — pinned snapshot of arrivals / departures
+           / payments due / KYC to review. Always shows "right now" even when
+           the period filter is set to a different range. */
+        .dash-today-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        .dash-today-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .dash-today-title {
+            font-size: 14px; font-weight: 700; color: var(--text-primary);
+            margin: 0 0 2px 0; letter-spacing: 0.02em;
+        }
+        .dash-today-subtitle {
+            font-size: 12px; color: var(--text-secondary); margin: 0;
+        }
+        .dash-today-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .dash-today-card {
+            display: flex; flex-direction: column; align-items: flex-start;
+            gap: 4px; padding: 12px 14px;
+            background: var(--background); border: 1px solid var(--border);
+            border-radius: 10px; cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+            text-align: left; font-family: inherit;
+        }
+        .dash-today-card:hover {
+            transform: translateY(-1px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        }
+        .dash-today-card:active { transform: scale(0.98); }
+        .dash-today-num {
+            font-size: 24px; font-weight: 800; color: var(--text-primary);
+            line-height: 1; letter-spacing: -0.02em;
+        }
+        .dash-today-num--warn { color: #d97706; }
+        .dash-today-num--info { color: #2563eb; }
+        .dash-today-lbl {
+            font-size: 11px; font-weight: 600; color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        @media (max-width: 768px) {
+            .dash-today-grid { grid-template-columns: repeat(2, 1fr); }
+            .dash-today-num { font-size: 22px; }
+        }
+
         /* Dashboard mobile optimizations */
         @media (max-width: 768px) {
             /* Dashboard header: stack title and button */
@@ -2190,6 +2246,36 @@
                 </button>
             </div>
 
+
+            <!-- Today panel — pinned snapshot of arrivals, departures, and
+                 payments due today. Always reflects "right now" regardless
+                 of the period filter below. -->
+            <div class="dash-today-panel" id="dashTodayPanel">
+                <div class="dash-today-header">
+                    <div>
+                        <h3 class="dash-today-title"><i data-lucide="zap" style="width: 16px; height: 16px; vertical-align: -3px; margin-right: 6px; color: var(--primary);"></i>Today</h3>
+                        <p class="dash-today-subtitle" id="dashTodayDate"></p>
+                    </div>
+                </div>
+                <div class="dash-today-grid">
+                    <button class="dash-today-card" onclick="showView('reservations')">
+                        <span class="dash-today-num" id="dashTodayArrivals">--</span>
+                        <span class="dash-today-lbl">Arrivals</span>
+                    </button>
+                    <button class="dash-today-card" onclick="showView('reservations')">
+                        <span class="dash-today-num" id="dashTodayDepartures">--</span>
+                        <span class="dash-today-lbl">Departures</span>
+                    </button>
+                    <button class="dash-today-card" onclick="showView('payments')">
+                        <span class="dash-today-num dash-today-num--warn" id="dashTodayPending">--</span>
+                        <span class="dash-today-lbl">Payments due</span>
+                    </button>
+                    <button class="dash-today-card" onclick="showView('guestDocuments')">
+                        <span class="dash-today-num dash-today-num--info" id="dashTodayDocs">--</span>
+                        <span class="dash-today-lbl">KYC to review</span>
+                    </button>
+                </div>
+            </div>
 
             <!-- Dashboard Period Filter -->
             <div class="dash-filter-bar" style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 14px 20px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
