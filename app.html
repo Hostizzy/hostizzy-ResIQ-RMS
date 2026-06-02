@@ -5426,6 +5426,15 @@
                 <div id="wizardReviewContent">
                     <!-- Populated by renderWizardReview() -->
                 </div>
+                <!-- Recent messages for this reservation — only shown when editing
+                     an existing booking. Populated by renderReservationMessages(). -->
+                <div id="wizardRecentMessages" data-advanced style="display: none; margin-top: 18px; padding: 14px 16px; background: var(--background); border-radius: 10px; border: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <strong style="font-size: 13px; color: var(--text-primary);"><i data-lucide="message-square" style="width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px;"></i>Recent messages</strong>
+                        <a href="#" onclick="closeReservationModal(); showView('communication'); return false;" style="font-size: 12px; color: var(--primary); text-decoration: none;">View all →</a>
+                    </div>
+                    <div id="wizardRecentMessagesList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                </div>
             </div>
 
             <!-- Hidden fields -->

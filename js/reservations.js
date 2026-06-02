@@ -1632,6 +1632,63 @@ function prevWizardStep() {
     if (_wizardStep > 1) goToWizardStep(_wizardStep - 1);
 }
 
+/**
+ * Fetch the last 3 communications for a given booking and render them
+ * inline on Step 4 of the reservation wizard. Lets the operator see
+ * what's been said to the guest without leaving the modal.
+ */
+async function renderReservationMessages(bookingId) {
+    const wrap = document.getElementById('wizardRecentMessages');
+    const list = document.getElementById('wizardRecentMessagesList');
+    if (!wrap || !list) return;
+    if (!bookingId) { wrap.style.display = 'none'; return; }
+
+    try {
+        const { data, error } = await supabase
+            .from('communications')
+            .select('message_type, subject, message_content, status, sent_at')
+            .eq('booking_id', bookingId)
+            .order('sent_at', { ascending: false })
+            .limit(3);
+
+        if (error || !data || data.length === 0) {
+            wrap.style.display = 'none';
+            return;
+        }
+
+        const channelIcon = { email: '✉️', whatsapp: '💬', sms: '📱' };
+        list.innerHTML = data.map(m => {
+            const when = m.sent_at ? new Date(m.sent_at).toLocaleString('en-IN', {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+            }) : '';
+            const icon = channelIcon[m.message_type] || '💬';
+            const preview = (m.message_content || '').replace(/<[^>]+>/g, '').slice(0, 80);
+            const subject = m.subject ? `<strong>${escapeHtml(m.subject)}</strong> · ` : '';
+            return `
+                <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); padding: 6px 0; border-bottom: 1px solid var(--border);">
+                    <div style="color: var(--text-primary); margin-bottom: 2px;">
+                        ${icon} ${subject}<span style="color: var(--text-tertiary); font-size: 11px;">${escapeHtml(when)}</span>
+                    </div>
+                    ${escapeHtml(preview)}${preview.length >= 80 ? '…' : ''}
+                </div>
+            `;
+        }).join('');
+        wrap.style.display = 'block';
+    } catch (_) {
+        wrap.style.display = 'none';
+    }
+}
+
+// Light HTML escape so user-provided subject/message can't break the
+// review card layout or inject markup.
+function escapeHtml(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 function renderWizardReview() {
     var prop = document.getElementById('propertySelect');
     var propName = prop.options[prop.selectedIndex] ? prop.options[prop.selectedIndex].text : '-';
@@ -1718,6 +1775,12 @@ function toggleReservationQuickMode() {
 function openReservationModal(booking_id = null) {
     const modal = document.getElementById('reservationModal');
     applyReservationQuickMode();
+
+    // Load recent messages inline on the Review step — only meaningful
+    // when editing an existing booking. Fire-and-forget so we don't
+    // block the modal opening on a network call.
+    renderReservationMessages(booking_id);
+
     if (booking_id) {
         const r = allReservations.find(res => res.booking_id === booking_id);
         if (!r) {
