@@ -1252,6 +1252,21 @@ function createKanbanCard(reservation) {
     const nights = reservation.nights || 1;
     const amount = `₹${parseInt(reservation.total_amount || 0).toLocaleString('en-IN')}`;
 
+    // Tiny KYC pill mirrors what the table view shows on the guest cell,
+    // so an operator scanning the kanban can spot unverified guests at
+    // arrival time without switching to Guest Documents.
+    const kyc = reservation.kyc_status;
+    const kycStyles = {
+        verified: 'background:#dcfce7;color:#166534;',
+        pending:  'background:#fef3c7;color:#92400e;',
+        submitted:'background:#fef3c7;color:#92400e;',
+        rejected: 'background:#fee2e2;color:#991b1b;'
+    };
+    const kycIcon = { verified: '✓', pending: '⏳', submitted: '⏳', rejected: '✕' };
+    const kycPill = kycStyles[kyc]
+        ? `<span title="KYC ${kyc}" style="${kycStyles[kyc]}padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:0.02em;white-space:nowrap;margin-left:auto;">${kycIcon[kyc]} KYC</span>`
+        : '';
+
     card.innerHTML = `
         <div class="kanban-card-booking-id" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="hash" style="width: 12px; height: 12px; opacity: 0.6;"></i>
@@ -1260,6 +1275,7 @@ function createKanbanCard(reservation) {
         <div class="kanban-card-guest" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="user" style="width: 12px; height: 12px; opacity: 0.6;"></i>
             ${reservation.guest_name}
+            ${kycPill}
         </div>
         <div class="kanban-card-property" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="building-2" style="width: 12px; height: 12px; opacity: 0.6;"></i>

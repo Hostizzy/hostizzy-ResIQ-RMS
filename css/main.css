@@ -3055,9 +3055,13 @@ border-radius: var(--radius-xl) var(--radius-xl) 0 0;
    Lets small operators hide advanced fields (OTA fees, extras, meals,
    custom GST) so the form is ~8 fields instead of ~25. */
 .quick-mode-toggle {
-    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    display: inline-flex !important;
+    align-items: center; gap: 8px; cursor: pointer;
     user-select: none; font-size: 12px; font-weight: 600;
     color: var(--text-secondary);
+    /* Force visibility in case a legacy .modal-header child rule hides it. */
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 .quick-mode-toggle input { position: absolute; opacity: 0; pointer-events: none; }
 .quick-mode-track {
