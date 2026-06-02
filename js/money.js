@@ -10,9 +10,14 @@
 //   2. Do math in paise (always integers).
 //   3. Convert back at display time via `paiseToDisplay()`.
 //
-// Legacy float-based fields stay where they are until the data layer
-// migrates. The helpers below also accept raw rupee numbers so callers
-// can adopt them incrementally.
+// TODO (paise schema migration): the DB columns total_amount, paid_amount,
+// stay_amount, ota_service_fee, taxes, damages, hostizzy_revenue and
+// payments.amount are still numeric/float. All compute paths now route
+// through these helpers — once the JS callers are confirmed clean, the
+// next round can ALTER those columns to BIGINT (paise) and back-fill the
+// existing rows with `Math.round(value * 100)`. Until that happens, the
+// `formatRupeesSafe()` bridge below lets legacy float values be displayed
+// drift-free.
 
 (function (root) {
     // Parse a user-entered rupee value ("1,250.50", "1250", "₹1,250.5") into

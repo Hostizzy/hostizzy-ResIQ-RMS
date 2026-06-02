@@ -543,38 +543,40 @@ async function finishWizard(state) {
     const next = document.getElementById('wizNext');
     if (next) { next.disabled = true; next.textContent = 'Saving…'; }
 
-    // 1. Persist business name (Supabase + localStorage)
-    try {
-        if (window.SettingsStore) {
-            await SettingsStore.set('businessName', state.businessName);
-        } else {
-            localStorage.setItem('businessName', state.businessName);
-        }
-    } catch (e) {
-        console.warn('[setup-wizard] Failed to persist business name:', e?.message);
+    // Persist business name and create the first property in parallel —
+    // they have no data dependency on each other, so a slow Supabase
+    // insert shouldn't serialize behind a settings upsert.
+    const ratePaise = window.Money ? Money.parseRupeesToPaise(state.defaultRate) : Math.round(parseFloat(state.defaultRate || 0) * 100);
+    const rateRupees = ratePaise / 100;
+
+    const property = {
+        name: state.propertyName,
+        location: 'Not specified',
+        type: 'villa',
+        capacity: 4,
+        revenue_share_percent: 0,
+        is_managed: false,
+        default_rate: rateRupees
+    };
+    if (window.currentUser?.userType === 'owner') {
+        property.owner_id = window.currentUser.id;
     }
 
-    // 2. Create first property (sensible defaults — owner can refine later)
-    let propertyCreated = false;
-    try {
-        const ratePaise = window.Money ? Money.parseRupeesToPaise(state.defaultRate) : Math.round(parseFloat(state.defaultRate || 0) * 100);
-        const rateRupees = ratePaise / 100;
-
-        const property = {
-            name: state.propertyName,
-            location: 'Not specified',
-            type: 'villa',
-            capacity: 4,
-            revenue_share_percent: 0,
-            is_managed: false,
-            default_rate: rateRupees
-        };
-
-        if (window.currentUser?.userType === 'owner') {
-            property.owner_id = window.currentUser.id;
+    const settingsTask = (async () => {
+        try {
+            if (window.SettingsStore) {
+                await SettingsStore.set('businessName', state.businessName);
+            } else {
+                localStorage.setItem('businessName', state.businessName);
+            }
+        } catch (e) {
+            console.warn('[setup-wizard] Failed to persist business name:', e?.message);
         }
+    })();
 
-        if (typeof supabase !== 'undefined') {
+    const propertyTask = (async () => {
+        if (typeof supabase === 'undefined') return false;
+        try {
             const { error } = await supabase.from('properties').insert([property]);
             if (error) {
                 // default_rate may not exist on every deployment — retry without
@@ -582,20 +584,23 @@ async function finishWizard(state) {
                 if (String(error.message || '').toLowerCase().includes('default_rate')) {
                     delete property.default_rate;
                     const retry = await supabase.from('properties').insert([property]);
-                    if (!retry.error) propertyCreated = true;
-                } else {
-                    throw error;
+                    return !retry.error;
                 }
-            } else {
-                propertyCreated = true;
+                throw error;
             }
-            if (window.db && typeof db.refreshPropertyScope === 'function') {
-                await db.refreshPropertyScope();
-            }
+            return true;
+        } catch (e) {
+            console.error('[setup-wizard] Failed to create property:', e?.message);
+            if (window.showToast) window.showToast('Could not create property — you can add it from the Properties view.', 'warning');
+            return false;
         }
-    } catch (e) {
-        console.error('[setup-wizard] Failed to create property:', e?.message);
-        if (window.showToast) window.showToast('Could not create property — you can add it from the Properties view.', 'warning');
+    })();
+
+    const [, propertyCreated] = await Promise.all([settingsTask, propertyTask]);
+
+    // Scope refresh has to wait until properties exist.
+    if (propertyCreated && window.db && typeof db.refreshPropertyScope === 'function') {
+        try { await db.refreshPropertyScope(); } catch (_) {}
     }
 
     localStorage.setItem('setup_wizard_completed', 'true');

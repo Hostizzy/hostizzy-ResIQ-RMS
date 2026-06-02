@@ -107,72 +107,94 @@ function formatINR(amount) {
     return '₹' + Number(amount || 0).toLocaleString('en-IN');
 }
 
-function renderBookingConfirmationBody(r, businessName) {
+/**
+ * Shared HTML wrapper for every automation email. Each rule supplies
+ * just the headline and body fragment; the wrapper handles styling,
+ * greeting, and sign-off so a copy change in one place propagates
+ * to all four templates.
+ */
+function renderAutomationEmail({ guestName, businessName, headline, body }) {
     return `
 <!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;margin:0;padding:24px;">
 <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-<h1 style="margin:0 0 16px 0;font-size:22px;color:#0f172a;">Booking confirmed 🎉</h1>
-<p>Dear ${r.guest_name || 'Guest'},</p>
-<p>We're delighted to confirm your booking.</p>
+<h1 style="margin:0 0 16px 0;font-size:22px;color:#0f172a;">${headline}</h1>
+<p>Dear ${guestName || 'Guest'},</p>
+${body}
+<p style="margin-top:24px;color:#64748b;font-size:13px;">— ${businessName}</p>
+</div></body></html>`.trim();
+}
+
+function renderBookingConfirmationBody(r, businessName) {
+    return renderAutomationEmail({
+        guestName: r.guest_name, businessName,
+        headline: 'Booking confirmed 🎉',
+        body: `<p>We're delighted to confirm your booking.</p>
 <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;">
   <tr><td style="padding:6px 0;color:#64748b;">Property</td><td style="padding:6px 0;font-weight:600;">${r.property_name || '-'}</td></tr>
   <tr><td style="padding:6px 0;color:#64748b;">Check-in</td><td style="padding:6px 0;font-weight:600;">${r.check_in || '-'}</td></tr>
   <tr><td style="padding:6px 0;color:#64748b;">Check-out</td><td style="padding:6px 0;font-weight:600;">${r.check_out || '-'}</td></tr>
   <tr><td style="padding:6px 0;color:#64748b;">Total</td><td style="padding:6px 0;font-weight:700;">${formatINR(r.total_amount)}</td></tr>
 </table>
-<p>We look forward to hosting you.</p>
-<p style="margin-top:24px;color:#64748b;font-size:13px;">— ${businessName}</p>
-</div></body></html>`.trim();
+<p>We look forward to hosting you.</p>`
+    });
 }
 
 function renderCheckInBody(r, businessName) {
-    return `
-<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;margin:0;padding:24px;">
-<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-<h1 style="margin:0 0 16px 0;font-size:22px;color:#0f172a;">See you tomorrow! 👋</h1>
-<p>Dear ${r.guest_name || 'Guest'},</p>
-<p>Your check-in at <strong>${r.property_name || 'our property'}</strong> is tomorrow.</p>
+    return renderAutomationEmail({
+        guestName: r.guest_name, businessName,
+        headline: 'See you tomorrow! 👋',
+        body: `<p>Your check-in at <strong>${r.property_name || 'our property'}</strong> is tomorrow.</p>
 <p>Check-in time: <strong>2:00 PM</strong></p>
-<p>We'll share exact directions and access details closer to your arrival. If you need anything before then, just reply to this email.</p>
-<p style="margin-top:24px;color:#64748b;font-size:13px;">— ${businessName}</p>
-</div></body></html>`.trim();
+<p>We'll share exact directions and access details closer to your arrival. If you need anything before then, just reply to this email.</p>`
+    });
 }
 
 function renderPaymentReminderBody(r, businessName) {
     const balance = (Number(r.total_amount) || 0) - (Number(r.paid_amount) || 0);
-    return `
-<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;margin:0;padding:24px;">
-<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-<h1 style="margin:0 0 16px 0;font-size:22px;color:#0f172a;">A quick payment reminder</h1>
-<p>Dear ${r.guest_name || 'Guest'},</p>
-<p>Your stay at <strong>${r.property_name || 'our property'}</strong> is coming up on <strong>${r.check_in}</strong>. We noticed a pending balance on your booking.</p>
+    return renderAutomationEmail({
+        guestName: r.guest_name, businessName,
+        headline: 'A quick payment reminder',
+        body: `<p>Your stay at <strong>${r.property_name || 'our property'}</strong> is coming up on <strong>${r.check_in}</strong>. We noticed a pending balance on your booking.</p>
 <div style="background:#fff7ed;border-left:3px solid #d97706;padding:12px 16px;border-radius:6px;margin:16px 0;">
   <div style="color:#92400e;font-size:13px;">Outstanding balance</div>
   <div style="color:#0f172a;font-size:20px;font-weight:700;">${formatINR(balance)}</div>
 </div>
-<p>If you've already paid, please ignore this. Otherwise, kindly settle before check-in.</p>
-<p style="margin-top:24px;color:#64748b;font-size:13px;">— ${businessName}</p>
-</div></body></html>`.trim();
+<p>If you've already paid, please ignore this. Otherwise, kindly settle before check-in.</p>`
+    });
 }
 
 function renderThankYouBody(r, businessName) {
-    return `
-<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;margin:0;padding:24px;">
-<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-<h1 style="margin:0 0 16px 0;font-size:22px;color:#0f172a;">Thank you for staying! 🙏</h1>
-<p>Dear ${r.guest_name || 'Guest'},</p>
-<p>We hope you had a wonderful stay at <strong>${r.property_name || 'our property'}</strong>. It was our pleasure hosting you.</p>
-<p>We'd love to welcome you back any time. If you have a moment, a quick review would mean a lot to us.</p>
-<p style="margin-top:24px;color:#64748b;font-size:13px;">— ${businessName}</p>
-</div></body></html>`.trim();
+    return renderAutomationEmail({
+        guestName: r.guest_name, businessName,
+        headline: 'Thank you for staying! 🙏',
+        body: `<p>We hope you had a wonderful stay at <strong>${r.property_name || 'our property'}</strong>. It was our pleasure hosting you.</p>
+<p>We'd love to welcome you back any time. If you have a moment, a quick review would mean a lot to us.</p>`
+    });
 }
 
-/** Check if a (booking_id, rule_key) was already dispatched. */
-async function alreadyDispatched(bookingId, ruleKey) {
-    const rows = await sb(
-        `automation_dispatch_log?booking_id=eq.${encodeURIComponent(bookingId)}&rule_key=eq.${ruleKey}&select=id&limit=1`
-    );
-    return rows && rows.length > 0;
+/**
+ * Load the full dispatch log into a Set so the cron can check every
+ * (booking_id, rule_key) combination in O(1) — instead of firing a
+ * separate Supabase query per pair (would be 60+ round-trips per run).
+ */
+async function loadDispatchSet(bookingIds) {
+    if (!bookingIds || bookingIds.length === 0) return new Set();
+    // Chunk the IN() filter so a long URL doesn't blow up the PostgREST gateway.
+    const chunks = [];
+    for (let i = 0; i < bookingIds.length; i += 200) {
+        chunks.push(bookingIds.slice(i, i + 200));
+    }
+    const set = new Set();
+    for (const ids of chunks) {
+        const inList = ids.map(b => `"${encodeURIComponent(b)}"`).join(',');
+        const rows = await sb(
+            `automation_dispatch_log?booking_id=in.(${inList})&select=booking_id,rule_key`
+        );
+        for (const row of (rows || [])) {
+            set.add(`${row.booking_id}|${row.rule_key}`);
+        }
+    }
+    return set;
 }
 
 async function recordDispatch({ bookingId, ruleKey, channel, recipient, status, error, ownerId }) {
@@ -261,6 +283,9 @@ export default async function handler(req, res) {
         }
         const all = [...byId.values()];
 
+        // Load the dispatch log in one query — checking O(1) per pair below.
+        const dispatchSet = await loadDispatchSet(all.map(r => r.booking_id));
+
         // 3. Group settings cache by owner_id so we hit the table once per owner
         const settingsCache = new Map();
         async function getSettings(ownerId) {
@@ -287,7 +312,7 @@ export default async function handler(req, res) {
                     summary.skipped++;
                     continue;
                 }
-                if (await alreadyDispatched(r.booking_id, ruleKey)) {
+                if (dispatchSet.has(`${r.booking_id}|${ruleKey}`)) {
                     summary.skipped++;
                     continue;
                 }
@@ -309,6 +334,7 @@ export default async function handler(req, res) {
                         status: 'sent',
                         ownerId: r.owner_id
                     });
+                    dispatchSet.add(`${r.booking_id}|${ruleKey}`);
                     summary.dispatched++;
                     summary.details.push({ booking: r.booking_id, rule: ruleKey, to: r.guest_email });
                 } catch (err) {

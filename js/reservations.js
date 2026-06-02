@@ -1079,12 +1079,10 @@ async function loadReservations(forceRefresh = false) {
             state.reservations = allReservations;
             state.properties = properties;
 
-            // Refresh KYC statuses on cached data — fast (single query, no
-            // per-row work) and ensures the badge is current.
-            _buildKycStatusMap().then(map => {
-                _attachKycStatus(allReservations, map);
-                displayReservations(allReservations);
-            });
+            // KYC statuses were attached on the previous fresh load (or the
+            // last forceRefresh) and stored on the cached reservation rows.
+            // No need to re-query — only the fresh path below rebuilds the
+            // map. This avoids a network call on every navigation hit.
 
             // Quick render from cache
             populateFiltersAndDisplay(properties, allReservations);
