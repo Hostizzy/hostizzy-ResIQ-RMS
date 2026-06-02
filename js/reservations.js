@@ -1705,15 +1705,25 @@ function renderWizardReview() {
     var guestPhone = document.getElementById('guestPhone').value || '-';
     var guestEmail = document.getElementById('guestEmail').value || '-';
     var guestCity = document.getElementById('guestCity').value || '-';
-    var stayAmt = parseFloat(document.getElementById('stayAmount').value) || 0;
-    var extraGuest = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
-    var meals = parseFloat(document.getElementById('mealsChef').value) || 0;
-    var bonfire = parseFloat(document.getElementById('bonfireOther').value) || 0;
-    var taxes = parseFloat(document.getElementById('taxes').value) || 0;
-    var damages = parseFloat(document.getElementById('damages').value) || 0;
-    var hostizzy = parseFloat(document.getElementById('hostizzyRevenue').value) || 0;
-    var total = stayAmt + extraGuest + meals + bonfire + taxes + damages;
-    var fmt = function(n) { return '\u20B9' + Number(n).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); };
+    // Parse every amount via Money so the displayed totals never show
+    // float drift like 99.99999. sumPaise gives an exact integer total.
+    var stayPaise = Money.parseRupeesToPaise(document.getElementById('stayAmount').value);
+    var extraPaise = Money.parseRupeesToPaise(document.getElementById('extraGuestCharges').value);
+    var mealsPaise = Money.parseRupeesToPaise(document.getElementById('mealsChef').value);
+    var bonfirePaise = Money.parseRupeesToPaise(document.getElementById('bonfireOther').value);
+    var taxesPaise = Money.parseRupeesToPaise(document.getElementById('taxes').value);
+    var damagesPaise = Money.parseRupeesToPaise(document.getElementById('damages').value);
+    var hostizzyPaise = Money.parseRupeesToPaise(document.getElementById('hostizzyRevenue').value);
+    var totalPaise = stayPaise + extraPaise + mealsPaise + bonfirePaise + taxesPaise + damagesPaise;
+    var fmt = function(paise) { return Money.paiseToDisplay(paise); };
+    var stayAmt = fmt(stayPaise);
+    var extraGuest = fmt(extraPaise);
+    var meals = fmt(mealsPaise);
+    var bonfire = fmt(bonfirePaise);
+    var taxes = fmt(taxesPaise);
+    var damages = fmt(damagesPaise);
+    var hostizzy = fmt(hostizzyPaise);
+    var total = fmt(totalPaise);
 
     var html = '<div class="wizard-review-section">' +
         '<div class="wizard-review-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Guest</div>' +
@@ -1727,13 +1737,13 @@ function renderWizardReview() {
         '</div>' +
         '<div class="wizard-review-section">' +
         '<div class="wizard-review-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Pricing</div>' +
-        row('Stay Amount', fmt(stayAmt)) + row('Extra Guest Charges', fmt(extraGuest)) +
-        row('Meals/Chef', fmt(meals)) + row('Bonfire/Other', fmt(bonfire)) +
-        row('Taxes', fmt(taxes)) + row('Damages', fmt(damages)) +
-        row('Hostizzy Revenue', fmt(hostizzy)) +
+        row('Stay Amount', stayAmt) + row('Extra Guest Charges', extraGuest) +
+        row('Meals/Chef', meals) + row('Bonfire/Other', bonfire) +
+        row('Taxes', taxes) + row('Damages', damages) +
+        row('Hostizzy Revenue', hostizzy) +
         '<div class="wizard-review-row" style="margin-top: 8px; padding-top: 10px; border-top: 2px solid var(--primary); border-bottom: none;">' +
         '<span class="wizard-review-label" style="font-weight: 700; color: var(--text-primary);">Total Amount</span>' +
-        '<span class="wizard-review-value" style="font-size: 16px; color: var(--primary);">' + fmt(total) + '</span></div>' +
+        '<span class="wizard-review-value" style="font-size: 16px; color: var(--primary);">' + total + '</span></div>' +
         '</div>';
 
     function row(label, value) {
@@ -1910,30 +1920,31 @@ function calculateTaxes() {
     const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
     if (nights <= 0) return;
 
-    const stayAmount = parseFloat(document.getElementById('stayAmount').value) || 0;
-    const extraGuestCharges = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
+    // Parse user input through Money helpers so the math is done on
+    // integer paise. This prevents float-drift artifacts like
+    // ₹100.00999... showing up after a few add/multiply ops.
+    const stayPaise = Money.parseRupeesToPaise(document.getElementById('stayAmount').value);
+    const extraPaise = Money.parseRupeesToPaise(document.getElementById('extraGuestCharges').value);
 
-    const totalAmountPreTax = stayAmount + extraGuestCharges;
+    const preTaxPaise = stayPaise + extraPaise;
+    const preTaxRupees = Money.paiseToRupees(preTaxPaise);
 
     let taxRate = 0;
     if (gstRateMode === 'auto') {
         // Auto: 5% if ≤7500/night, 18% if >7500/night
-        const perNightRate = totalAmountPreTax / nights;
-        if (perNightRate <= 7500) {
-            taxRate = 0.05;
-        } else {
-            taxRate = 0.18;
-        }
+        const perNightRate = preTaxRupees / nights;
+        taxRate = perNightRate <= 7500 ? 0.05 : 0.18;
     } else {
         // Manual rate: 5, 12, or 18
         taxRate = parseFloat(gstRateMode) / 100;
     }
 
-    const taxes = totalAmountPreTax * taxRate;
-    taxesInput.value = taxes.toFixed(2);
+    // Round taxes through paise so the displayed value matches what we save.
+    const taxesPaise = Math.round(preTaxPaise * taxRate);
+    taxesInput.value = (taxesPaise / 100).toFixed(2);
 
     // Auto-calculate Hostizzy Revenue
-    calculateHostizzyRevenue(stayAmount, extraGuestCharges);
+    calculateHostizzyRevenue(Money.paiseToRupees(stayPaise), Money.paiseToRupees(extraPaise));
 }
 
 async function calculateHostizzyRevenue(stayAmount, extraGuestCharges) {
@@ -2030,22 +2041,39 @@ async function saveReservation() {
         const adults = parseInt(document.getElementById('adults').value) || 0;
         const kids = parseInt(document.getElementById('kids').value) || 0;
         const numberOfGuests = adults + kids;
-        
-        const stayAmount = parseFloat(document.getElementById('stayAmount').value) || 0;
-        const extraGuestCharges = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
-        const mealsChef = parseFloat(document.getElementById('mealsChef').value) || 0;
-        const bonfireOther = parseFloat(document.getElementById('bonfireOther').value) || 0;
-        const taxes = parseFloat(document.getElementById('taxes').value) || 0;
-        const damages = parseFloat(document.getElementById('damages').value) || 0;
-        
-        // Meals Revenue includes both meals_chef and bonfire_other (calculated, not stored)
-        const mealsRevenue = mealsChef + bonfireOther;
-        const totalAmountPreTax = stayAmount + extraGuestCharges + mealsRevenue;
-        const totalAmountIncTax = totalAmountPreTax + taxes;
-        const totalAmount = totalAmountIncTax + damages;
-        
-        const avgRoomRate = nights > 0 ? stayAmount / nights : 0;
-        const avgNightlyRate = nights > 0 ? totalAmount / nights : 0;
+
+        // ── Money math in paise ──
+        // Parse every amount input to integer paise, do additions in paise,
+        // then convert back to rupees for the (still-float) DB columns. This
+        // drops accumulated float-drift so the saved value matches what the
+        // operator typed and what the review screen showed.
+        const stayPaise = Money.parseRupeesToPaise(document.getElementById('stayAmount').value);
+        const extraGuestPaise = Money.parseRupeesToPaise(document.getElementById('extraGuestCharges').value);
+        const mealsChefPaise = Money.parseRupeesToPaise(document.getElementById('mealsChef').value);
+        const bonfireOtherPaise = Money.parseRupeesToPaise(document.getElementById('bonfireOther').value);
+        const taxesPaise = Money.parseRupeesToPaise(document.getElementById('taxes').value);
+        const damagesPaise = Money.parseRupeesToPaise(document.getElementById('damages').value);
+        const otaFeePaise = Money.parseRupeesToPaise(document.getElementById('otaServiceFee').value);
+        const hostizzyPaise = Money.parseRupeesToPaise(document.getElementById('hostizzyRevenue').value);
+
+        const mealsRevenuePaise = mealsChefPaise + bonfireOtherPaise;
+        const totalPreTaxPaise = stayPaise + extraGuestPaise + mealsRevenuePaise;
+        const totalIncTaxPaise = totalPreTaxPaise + taxesPaise;
+        const totalAmountPaise = totalIncTaxPaise + damagesPaise;
+
+        const p2r = Money.paiseToRupees;
+        const stayAmount = p2r(stayPaise);
+        const extraGuestCharges = p2r(extraGuestPaise);
+        const mealsChef = p2r(mealsChefPaise);
+        const bonfireOther = p2r(bonfireOtherPaise);
+        const taxes = p2r(taxesPaise);
+        const damages = p2r(damagesPaise);
+        const totalAmountPreTax = p2r(totalPreTaxPaise);
+        const totalAmountIncTax = p2r(totalIncTaxPaise);
+        const totalAmount = p2r(totalAmountPaise);
+
+        const avgRoomRate = nights > 0 ? p2r(Math.round(stayPaise / nights)) : 0;
+        const avgNightlyRate = nights > 0 ? p2r(Math.round(totalAmountPaise / nights)) : 0;
         
         const monthDate = new Date(checkIn);
         const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
@@ -2065,8 +2093,6 @@ async function saveReservation() {
             nights: nights,
             gst_status: document.getElementById('gstStatus').value,
             gst_rate_mode: document.getElementById('gstRateMode').value,
-            taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 :
-                   parseFloat(document.getElementById('taxes').value) || 0,
             guest_name: document.getElementById('guestName').value,
             guest_phone: document.getElementById('guestPhone').value,
             guest_email: document.getElementById('guestEmail').value || null,
@@ -2081,26 +2107,25 @@ async function saveReservation() {
             extra_guest_charges: extraGuestCharges,
             meals_chef: mealsChef,
             bonfire_other: bonfireOther,
-            ota_service_fee: parseFloat(document.getElementById('otaServiceFee').value) || 0,
-            taxes: taxes,
+            ota_service_fee: p2r(otaFeePaise),
+            // Taxes already drift-corrected; non-GST forces zero regardless of stale input.
+            taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 : taxes,
             total_amount_pre_tax: totalAmountPreTax,
             total_amount_inc_tax: totalAmountIncTax,
             total_amount: totalAmount,
             damages: damages,
-            hostizzy_revenue: parseFloat(document.getElementById('hostizzyRevenue').value) || 0,
+            hostizzy_revenue: p2r(hostizzyPaise),
             // Snapshot the property's commission rate at save time so the row stays
             // in sync with properties.revenue_share_percent. The orphaned column had
             // been silently drifting; this and the SQL backfill keep it accurate.
             revenue_share_percent: propertyRate,
             // payout_eligible = gross owner-eligible (before commission). Excludes taxes
             // (GST is collected for the government, never paid out) and OTA service fee.
-            // Damages and meals/bonfire flow through to the owner.
-            payout_eligible: totalAmount - taxes - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
+            // Damages and meals/bonfire flow through to the owner. Compute in paise.
+            payout_eligible: p2r(totalAmountPaise - taxesPaise - otaFeePaise),
             // host_payout = NET rupees Hostizzy pays the owner after taking commission.
-            //             = payout_eligible - hostizzy_revenue
-            host_payout: totalAmount - taxes
-                - (parseFloat(document.getElementById('otaServiceFee').value) || 0)
-                - (parseFloat(document.getElementById('hostizzyRevenue').value) || 0),
+            //             = payout_eligible - hostizzy_revenue (computed in paise)
+            host_payout: p2r(totalAmountPaise - taxesPaise - otaFeePaise - hostizzyPaise),
             is_legacy: false,
             avg_room_rate: avgRoomRate,
             avg_nightly_rate: avgNightlyRate,

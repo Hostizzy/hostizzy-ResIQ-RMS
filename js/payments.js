@@ -395,7 +395,10 @@ function switchToMultiPayment() {
 async function savePayment() {
     try {
         const bookingId = document.getElementById('paymentBookingId').value;
-        const amount = parseFloat(document.getElementById('paymentAmount').value);
+        // Parse via Money so we don't introduce float drift on a "1,250.50"
+        // type input. amount is the rupee value that goes to the DB.
+        const amountPaise = Money.parseRupeesToPaise(document.getElementById('paymentAmount').value);
+        const amount = Money.paiseToRupees(amountPaise);
         const method = document.getElementById('paymentMethod').value;
         const editPaymentId = document.getElementById('editPaymentId').value;
         
@@ -466,24 +469,25 @@ async function savePayment() {
 
 async function recalculatePaymentStatus(bookingId) {
     const payments = await db.getPayments(bookingId);
-    const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+    // Sum in paise — float .reduce() over many payments accumulates drift.
+    const totalPaidPaise = payments.reduce(
+        (sum, p) => sum + Money.parseRupeesToPaise(p.amount), 0
+    );
+    const totalPaid = Money.paiseToRupees(totalPaidPaise);
 
     const reservation = await db.getReservation(bookingId);
-    const totalAmount = parseFloat(reservation.total_amount) || 0;
-    const otaFee = parseFloat(reservation.ota_service_fee) || 0;
+    const totalAmountPaise = Money.parseRupeesToPaise(reservation.total_amount);
+    const otaFeePaise = Money.parseRupeesToPaise(reservation.ota_service_fee);
     const isOTA = reservation.booking_source && reservation.booking_source !== 'DIRECT';
 
-    // For OTA bookings, the receivable is total minus OTA's cut (they keep their fee)
-    const receivable = isOTA ? (totalAmount - otaFee) : totalAmount;
+    // For OTA bookings, the receivable is total minus OTA's cut.
+    const receivablePaise = isOTA ? (totalAmountPaise - otaFeePaise) : totalAmountPaise;
 
-    // Round to nearest rupee to avoid floating-point precision issues
-    const paidRounded = Math.round(totalPaid);
-    const receivableRounded = Math.round(receivable);
-
+    // Compare in paise — exact, no rounding tolerance needed.
     let paymentStatus = 'pending';
-    if (paidRounded >= receivableRounded) {
+    if (totalPaidPaise >= receivablePaise) {
         paymentStatus = 'paid';
-    } else if (paidRounded > 0) {
+    } else if (totalPaidPaise > 0) {
         paymentStatus = 'partial';
     }
 
