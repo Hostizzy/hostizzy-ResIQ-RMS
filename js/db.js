@@ -2,11 +2,25 @@
 
         const db = {
             // ─── Multi-Tenant Scoping ─────────────────────────────
-            _ownerId: null,
-            _ownerPropertyIds: null,
+            // Default-deny: queries return [] until initScope() explicitly
+            // establishes a scope. Prevents data leaks if a query fires
+            // before login completes.
+            _ownerId: '__deny__',
+            _ownerPropertyIds: [],
 
             async initScope(user) {
                 if (user.userType === 'owner') {
+                    if (!user.id) {
+                        // Owner accounts MUST have an id — without it we'd fall through
+                        // to the staff path and leak every other tenant's data.
+                        this._ownerId = '__deny__';
+                        this._ownerPropertyIds = [];
+                        console.error('[db.initScope] Owner account has no id — blocking all queries.');
+                        if (typeof showToast === 'function') {
+                            showToast('Account misconfigured', 'Please contact support — your account is missing an owner id.', '❌');
+                        }
+                        return;
+                    }
                     this._ownerId = user.id;
                     const { data } = await supabase.from('properties').select('id').eq('owner_id', user.id);
                     this._ownerPropertyIds = (data || []).map(p => p.id);
@@ -15,10 +29,15 @@
                     this._ownerId = user.owner_id;
                     const { data } = await supabase.from('properties').select('id').eq('owner_id', user.owner_id);
                     this._ownerPropertyIds = (data || []).map(p => p.id);
-                } else {
-                    // Hostizzy staff — no scope, sees everything
+                } else if (user.userType === 'staff' || user.userType === 'admin') {
+                    // Hostizzy internal staff — no scope, sees everything
                     this._ownerId = null;
                     this._ownerPropertyIds = null;
+                } else {
+                    // Unknown user type — deny by default rather than leak data
+                    this._ownerId = '__deny__';
+                    this._ownerPropertyIds = [];
+                    console.error('[db.initScope] Unknown userType, denying access:', user.userType);
                 }
             },
 
@@ -30,12 +49,36 @@
             },
 
             clearScope() {
-                this._ownerId = null;
-                this._ownerPropertyIds = null;
+                // Reset to the deny sentinel so a logged-out client cannot
+                // accidentally see data from a previous session.
+                this._ownerId = '__deny__';
+                this._ownerPropertyIds = [];
+            },
+
+            // Returns true when the current scope is the deny sentinel set by initScope
+            _isDenied() {
+                return this._ownerId === '__deny__';
+            },
+
+            // Pre-auth lookup: identify a user by their just-authenticated
+            // email so the caller can build a session and call initScope().
+            // Bypasses the multi-tenant scope on purpose — the user is not
+            // logged in yet, so we have no scope to apply. Safe because the
+            // email is the user's own Firebase identity and at most one row
+            // can match. Used by js/auth.js login and js/app.js session
+            // restore, both before initScope() runs.
+            async findUserByEmail(email) {
+                if (!email) return null;
+                const team = await supabase.from('team_members').select('*').eq('email', email).limit(1);
+                if (team.data && team.data.length > 0) return { ...team.data[0], _kind: 'staff' };
+                const owner = await supabase.from('property_owners').select('*').eq('email', email).limit(1);
+                if (owner.data && owner.data.length > 0) return { ...owner.data[0], _kind: 'owner' };
+                return null;
             },
 
             // ─── Core Queries (auto-scoped) ──────────────────────
             async getTeamMembers() {
+                if (this._isDenied()) return [];
                 let query = supabase.from('team_members').select('*');
                 if (this._ownerId) query = query.eq('owner_id', this._ownerId);
                 const { data, error } = await query;
@@ -43,6 +86,7 @@
                 return data || [];
             },
             async getProperties() {
+                if (this._isDenied()) return [];
                 let query = supabase.from('properties').select('*').order('name');
                 if (this._ownerId) query = query.eq('owner_id', this._ownerId);
                 const { data, error } = await query;
@@ -50,6 +94,7 @@
                 return data || [];
             },
             async getReservations() {
+                if (this._isDenied()) return [];
                 let query = supabase.from('reservations').select('*').order('check_in', { ascending: false });
                 if (this._ownerPropertyIds) {
                     query = query.in('property_id', this._ownerPropertyIds.length > 0 ? this._ownerPropertyIds : [-1]);

@@ -471,9 +471,12 @@ function updateComposeChannelHint(channel) {
         hint.innerHTML = gmailConnected
             ? '✅ Gmail connected — email will be sent from your Gmail account'
             : '⚠️ Gmail not connected — go to <strong>Settings → Integrations</strong> to connect Gmail';
+    } else if (channel === 'whatsapp') {
+        hint.style.background = '#f0fdf4';
+        hint.innerHTML = 'ℹ️ This compose box logs WhatsApp messages to history. To send directly, open a reservation and use the <strong>WhatsApp</strong> button (wa.me link or WABA template).';
     } else {
         hint.style.background = '#f8fafc';
-        hint.innerHTML = `ℹ️ ${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'} messages are logged in history only. Direct sending coming soon.`;
+        hint.innerHTML = 'ℹ️ SMS messages are logged in history only — direct SMS sending is not yet supported.';
     }
 }
 

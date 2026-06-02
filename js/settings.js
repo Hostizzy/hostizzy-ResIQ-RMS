@@ -118,13 +118,21 @@ function saveAutomationSettings() {
     }
 }
 
+// Persist a batch of settings to localStorage (sync) and SettingsStore
+// (one Supabase upsert for the whole batch).
+function _persistSettings(entries) {
+    for (const [k, v] of Object.entries(entries)) localStorage.setItem(k, v);
+    if (window.SettingsStore) SettingsStore.setMany(entries);
+}
+
 function saveGeneralSettings() {
     try {
-        localStorage.setItem('businessName', document.getElementById('businessName').value);
-        localStorage.setItem('currency', document.getElementById('currencySelect').value);
-        localStorage.setItem('timezone', document.getElementById('timezoneSelect').value);
-        localStorage.setItem('dateFormat', document.getElementById('dateFormatSelect').value);
-
+        _persistSettings({
+            businessName: document.getElementById('businessName').value,
+            currency: document.getElementById('currencySelect').value,
+            timezone: document.getElementById('timezoneSelect').value,
+            dateFormat: document.getElementById('dateFormatSelect').value
+        });
         showToast('Settings Saved', 'Preferences saved successfully', '');
     } catch (error) {
         showToast('Error', 'Failed to save settings', '');
@@ -133,13 +141,14 @@ function saveGeneralSettings() {
 
 function saveBusinessProfile() {
     try {
-        localStorage.setItem('businessName', document.getElementById('businessName').value);
-        localStorage.setItem('businessEmail', document.getElementById('businessEmail').value);
-        localStorage.setItem('businessPhone', document.getElementById('businessPhone').value);
-        localStorage.setItem('businessAddress', document.getElementById('businessAddress').value);
-        localStorage.setItem('businessGST', document.getElementById('businessGST').value);
-        localStorage.setItem('businessWebsite', document.getElementById('businessWebsite').value);
-
+        _persistSettings({
+            businessName: document.getElementById('businessName').value,
+            businessEmail: document.getElementById('businessEmail').value,
+            businessPhone: document.getElementById('businessPhone').value,
+            businessAddress: document.getElementById('businessAddress').value,
+            businessGST: document.getElementById('businessGST').value,
+            businessWebsite: document.getElementById('businessWebsite').value
+        });
         showToast('Settings Saved', 'Business profile saved successfully', '');
     } catch (error) {
         showToast('Error', 'Failed to save business profile', '');
@@ -153,11 +162,13 @@ function saveBusinessSettings() {
 
 function saveNotificationSettings() {
     try {
-        localStorage.setItem('emailNotifications', document.getElementById('emailNotifications').checked);
-        localStorage.setItem('whatsappNotifications', document.getElementById('whatsappNotifications').checked);
-        localStorage.setItem('paymentReminders', document.getElementById('paymentReminders').checked);
-        localStorage.setItem('bookingConfirmations', document.getElementById('bookingConfirmations').checked);
-        localStorage.setItem('dailySummary', document.getElementById('dailySummary').checked);
+        _persistSettings({
+            emailNotifications: document.getElementById('emailNotifications').checked,
+            whatsappNotifications: document.getElementById('whatsappNotifications').checked,
+            paymentReminders: document.getElementById('paymentReminders').checked,
+            bookingConfirmations: document.getElementById('bookingConfirmations').checked,
+            dailySummary: document.getElementById('dailySummary').checked
+        });
     } catch (error) {
         console.error('Failed to save notification settings:', error);
     }
@@ -177,7 +188,7 @@ function autoSaveNotificationToggle() {
             paymentReminder: document.getElementById('emailTemplatePaymentReminder')?.checked ?? false,
             thankYou: document.getElementById('emailTemplateThankYou')?.checked ?? false
         };
-        localStorage.setItem('emailTemplateSettings', JSON.stringify(templates));
+        _persistSettings({ emailTemplateSettings: JSON.stringify(templates) });
 
         showToast('Saved', 'Preference updated', '');
     } catch (error) {
@@ -193,7 +204,7 @@ function saveEmailSettings() {
             replyTo: document.getElementById('emailReplyTo')?.value || '',
             cc: document.getElementById('emailCC')?.value || ''
         };
-        localStorage.setItem('emailSettings', JSON.stringify(settings));
+        _persistSettings({ emailSettings: JSON.stringify(settings) });
     } catch (error) {
         console.error('Failed to save email settings:', error);
     }
@@ -208,7 +219,7 @@ function saveEmailTemplateSettings() {
             paymentReminder: document.getElementById('emailTemplatePaymentReminder')?.checked ?? false,
             thankYou: document.getElementById('emailTemplateThankYou')?.checked ?? false
         };
-        localStorage.setItem('emailTemplateSettings', JSON.stringify(templates));
+        _persistSettings({ emailTemplateSettings: JSON.stringify(templates) });
     } catch (error) {
         console.error('Failed to save template settings:', error);
     }
@@ -217,7 +228,7 @@ function saveEmailTemplateSettings() {
 function saveEmailSignature() {
     try {
         const signature = document.getElementById('emailSignature')?.value || '';
-        localStorage.setItem('emailSignature', signature);
+        _persistSettings({ emailSignature: signature });
     } catch (error) {
         console.error('Failed to save signature:', error);
     }
@@ -301,18 +312,18 @@ function saveWhatsAppSettings() {
         const businessName = document.getElementById('whatsappBusinessName')?.value || '';
         const upiId = document.getElementById('whatsappUpiId')?.value || '';
 
-        localStorage.setItem('whatsappCountryCode', countryCode);
-        localStorage.setItem('whatsappBusinessName', businessName);
-        localStorage.setItem('whatsappUpiId', upiId);
-
-        // Save WABA settings
         const replyNum = document.getElementById('wabaReplyNumber')?.value || '+919560494001';
         const ctaLabel = document.getElementById('wabaCtaLabel')?.value || 'Chat with Property';
         const footerText = document.getElementById('wabaFooterText')?.value || 'Hostizzy — Holiday Homes';
 
-        localStorage.setItem('wabaReplyNumber', replyNum);
-        localStorage.setItem('wabaCtaLabel', ctaLabel);
-        localStorage.setItem('wabaFooterText', footerText);
+        _persistSettings({
+            whatsappCountryCode: countryCode,
+            whatsappBusinessName: businessName,
+            whatsappUpiId: upiId,
+            wabaReplyNumber: replyNum,
+            wabaCtaLabel: ctaLabel,
+            wabaFooterText: footerText
+        });
 
         // Save property-specific reply numbers
         saveWABAPropertyNumbers();
@@ -325,7 +336,7 @@ function saveWhatsAppSettings() {
 
 // Toggle between wa.me links and Business API mode
 window.toggleWhatsAppMode = function(mode) {
-    localStorage.setItem('whatsappMode', mode);
+    _persistSettings({ whatsappMode: mode });
 
     const linksBtn = document.getElementById('waModeLinks');
     const apiBtn = document.getElementById('waModeApi');
@@ -430,7 +441,7 @@ function saveWABAPropertyNumbers() {
             numbers[propId] = value;
         }
     });
-    localStorage.setItem('wabaPropertyReplyNumbers', JSON.stringify(numbers));
+    _persistSettings({ wabaPropertyReplyNumbers: JSON.stringify(numbers) });
 }
 
 // Get the reply number for a specific property (used by messaging functions)

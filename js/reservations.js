@@ -242,10 +242,11 @@ function updateGreeting() {
     const hour = new Date().getHours();
     const greetingTimeEl = document.getElementById('greetingTime');
     const greetingUserEl = document.getElementById('greetingUser');
-    
+    const todayDateLabel = document.getElementById('todayDateLabel');
+
     let greeting = 'Good Evening';
     let emoji = '🌙';
-    
+
     if (hour < 12) {
         greeting = 'Good Morning';
         emoji = '☀️';
@@ -253,8 +254,14 @@ function updateGreeting() {
         greeting = 'Good Afternoon';
         emoji = '🌤️';
     }
-    
+
     greetingTimeEl.textContent = `${emoji} ${greeting}`;
+
+    if (todayDateLabel) {
+        todayDateLabel.textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'short', day: 'numeric', month: 'short'
+        });
+    }
     
     if (currentUser && currentUser.email) {
         const userName = currentUser.email.split('@')[0];
@@ -269,59 +276,61 @@ async function updateHomeScreenStats() {
     try {
         // Update greeting
         updateGreeting();
-        
-        // Ensure we have data
+
+        // Ensure we have data — load in parallel so a slow query doesn't
+        // serialize the others.
         if (!state.reservations || state.reservations.length === 0) {
-            // Load data if not available
-            state.reservations = await db.getReservations();
-            state.properties = await db.getProperties();
-            state.payments = await db.getAllPayments();
+            const [reservations, properties, payments] = await Promise.all([
+                db.getReservations(),
+                db.getProperties(),
+                db.getAllPayments()
+            ]);
+            state.reservations = reservations;
+            state.properties = properties;
+            state.payments = payments;
         }
-        
-        // Calculate stats
-        const totalReservations = state.reservations.length;
-        const activeReservations = state.reservations.filter(r => r.status === 'confirmed' || r.status === 'checked_in').length;
-        const upcomingReservations = state.reservations.filter(r => {
-            const checkIn = new Date(r.check_in);
-            const today = new Date();
-            return checkIn > today && r.status === 'confirmed';
-        }).length;
-        
-        const pendingPayments = state.reservations.filter(r => 
-            r.payment_status === 'pending' || r.payment_status === 'partial'
-        ).length;
-        
+
+        // ── Single-pass aggregate ──
+        // One traversal computes every count we need, instead of running
+        // 5 independent .filter() passes over the same array.
+        const todayKey = getTodayKeyIST();
+        const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+
+        const stats = state.reservations.reduce((acc, r) => {
+            if (r.status === 'confirmed' || r.status === 'checked_in') acc.active++;
+            if (r.payment_status === 'pending' || r.payment_status === 'partial') acc.pending++;
+            if (r.status !== 'cancelled') {
+                if (r.check_in === todayKey) acc.arrivals++;
+                if (r.check_out === todayKey) acc.departures++;
+            }
+            if (r.created_at && new Date(r.created_at).getTime() >= monthStart) {
+                acc.monthPaise += Money.parseRupeesToPaise(r.paid_amount);
+            }
+            return acc;
+        }, { active: 0, pending: 0, arrivals: 0, departures: 0, monthPaise: 0 });
+
         const totalProperties = state.properties ? state.properties.length : 0;
-        
-        // Calculate this month's revenue
-        const now = new Date();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        const thisMonthRevenue = state.reservations
-            .filter(r => new Date(r.created_at) >= firstDay)
-            .reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
-        
+
         // Update UI - with safe checks
-        const homeStatReservations = document.getElementById('homeStatReservations');
-        const homeStatActive = document.getElementById('homeStatActive');
-        const homeStatPending = document.getElementById('homeStatPending');
-        const homeStatUpcoming = document.getElementById('homeStatUpcoming');
-        const homeStatProperties = document.getElementById('homeStatProperties');
-        const homeStatGuests = document.getElementById('homeStatGuests');
-        const homeStatRevenue = document.getElementById('homeStatRevenue');
-        
-        if (homeStatReservations) homeStatReservations.textContent = totalReservations;
-        if (homeStatActive) homeStatActive.textContent = activeReservations;
-        if (homeStatPending) homeStatPending.textContent = pendingPayments;
-        if (homeStatUpcoming) homeStatUpcoming.textContent = upcomingReservations;
-        if (homeStatProperties) homeStatProperties.textContent = totalProperties;
-        if (homeStatGuests) homeStatGuests.textContent = calculateUniqueGuests(allReservations);
-        if (homeStatRevenue) homeStatRevenue.textContent = '₹' + Math.round(thisMonthRevenue / 1000) + 'K';
-        
+        const set = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        set('homeStatReservations', state.reservations.length);
+        set('homeStatActive', stats.active);
+        set('homeStatPending', stats.pending);
+        set('homeStatProperties', totalProperties);
+        set('homeStatGuests', calculateUniqueGuests(allReservations));
+        set('homeStatRevenue', Money.paiseToShortDisplay(stats.monthPaise));
+        set('homeStatArrivals', stats.arrivals);
+        set('homeStatDepartures', stats.departures);
+
         // Update recent activity
         updateRecentActivity();
 
-        // Update app launcher badges (mobile)
-        updateAppLauncherBadges(pendingPayments);
+        // Update mobile launcher + bottom-nav badges
+        updateAppLauncherBadges(stats.pending);
+        updateBottomNavBadges({ pendingPayments: stats.pending });
 
         // Round 6 — Monthly Revenue Target card on Home
         if (typeof renderRevenueTargets === 'function') {
@@ -330,23 +339,32 @@ async function updateHomeScreenStats() {
 
     } catch (error) {
         console.error('Error updating home screen:', error);
-        // Set default values on error
-        const homeStatReservations = document.getElementById('homeStatReservations');
-        const homeStatActive = document.getElementById('homeStatActive');
-        const homeStatPending = document.getElementById('homeStatPending');
-        const homeStatUpcoming = document.getElementById('homeStatUpcoming');
-        const homeStatProperties = document.getElementById('homeStatProperties');
-        const homeStatGuests = document.getElementById('homeStatGuests');
-        const homeStatRevenue = document.getElementById('homeStatRevenue');
-
-        if (homeStatReservations) homeStatReservations.textContent = '0';
-        if (homeStatActive) homeStatActive.textContent = '0';
-        if (homeStatPending) homeStatPending.textContent = '0';
-        if (homeStatUpcoming) homeStatUpcoming.textContent = '0';
-        if (homeStatProperties) homeStatProperties.textContent = '0';
-        if (homeStatGuests) homeStatGuests.textContent = '0';
-        if (homeStatRevenue) homeStatRevenue.textContent = '₹0';
+        // Default every stat to a zero placeholder so the user doesn't see
+        // a stuck "--" forever if the data load failed.
+        const zeroIds = [
+            'homeStatReservations', 'homeStatActive', 'homeStatPending',
+            'homeStatProperties', 'homeStatGuests',
+            'homeStatArrivals', 'homeStatDepartures'
+        ];
+        for (const id of zeroIds) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '0';
+        }
+        const rev = document.getElementById('homeStatRevenue');
+        if (rev) rev.textContent = '₹0';
     }
+}
+
+/**
+ * Update bottom-nav badges (mobile/tablet only) — surfaces overdue
+ * counts at the tab level so operators don't have to drill into a view
+ * to know there's something waiting.
+ */
+function updateBottomNavBadges({ pendingPayments }) {
+    if (!window.ResIQBottomTabs || typeof ResIQBottomTabs.setBadge !== 'function') return;
+    try {
+        ResIQBottomTabs.setBadge('payments', pendingPayments || 0);
+    } catch (_) { /* badge target may not be mounted yet */ }
 }
 
 /**
@@ -1013,6 +1031,40 @@ function populateFiltersAndDisplay(properties, reservations) {
 }
 
 // Reservations
+/**
+ * Build a { booking_id -> 'verified' | 'pending' | 'rejected' | 'none' } map
+ * so each reservation card can show a KYC badge without an extra query per
+ * row. Worst status wins ("rejected" > "pending" > "verified").
+ */
+async function _buildKycStatusMap() {
+    try {
+        if (typeof supabase === 'undefined') return {};
+        const { data, error } = await supabase
+            .from('guest_documents')
+            .select('booking_id, status');
+        if (error || !data) return {};
+
+        const rank = { rejected: 3, pending: 2, submitted: 2, verified: 1 };
+        const map = {};
+        for (const d of data) {
+            if (!d.booking_id) continue;
+            const current = map[d.booking_id];
+            if (!current || (rank[d.status] || 0) > (rank[current] || 0)) {
+                map[d.booking_id] = d.status;
+            }
+        }
+        return map;
+    } catch (_) {
+        return {};
+    }
+}
+
+function _attachKycStatus(reservations, kycMap) {
+    for (const r of reservations) {
+        r.kyc_status = kycMap[r.booking_id] || 'none';
+    }
+}
+
 async function loadReservations(forceRefresh = false) {
     try {
         // Try to get from cache first
@@ -1027,14 +1079,26 @@ async function loadReservations(forceRefresh = false) {
             state.reservations = allReservations;
             state.properties = properties;
 
+            // KYC statuses were attached on the previous fresh load (or the
+            // last forceRefresh) and stored on the cached reservation rows.
+            // No need to re-query — only the fresh path below rebuilds the
+            // map. This avoids a network call on every navigation hit.
+
             // Quick render from cache
             populateFiltersAndDisplay(properties, allReservations);
             return;
         }
 
-        // Fetch from database
-        allReservations = await db.getReservations();
-        const properties = await db.getProperties();
+        // Fetch from database — load reservations, properties, and KYC map
+        // in parallel so a slow KYC query doesn't delay the rest.
+        const [resData, propsData, kycMap] = await Promise.all([
+            db.getReservations(),
+            db.getProperties(),
+            _buildKycStatusMap()
+        ]);
+        allReservations = resData;
+        const properties = propsData;
+        _attachKycStatus(allReservations, kycMap);
 
         // Cache the results
         dataCache.set('reservations', allReservations);
@@ -1105,6 +1169,23 @@ async function loadReservations(forceRefresh = false) {
     }
 }
 
+/**
+ * Render a tiny KYC status pill next to the guest name on the reservation
+ * card. Empty for 'none' so reservations without a guest portal session
+ * aren't visually cluttered.
+ */
+function _renderKycBadge(status) {
+    const styles = {
+        verified: { bg: '#dcfce7', fg: '#166534', icon: '✓', label: 'KYC' },
+        pending:  { bg: '#fef3c7', fg: '#92400e', icon: '⏳', label: 'KYC' },
+        submitted:{ bg: '#fef3c7', fg: '#92400e', icon: '⏳', label: 'KYC' },
+        rejected: { bg: '#fee2e2', fg: '#991b1b', icon: '✕', label: 'KYC' }
+    };
+    const s = styles[status];
+    if (!s) return '';
+    return `<span title="KYC ${status}" style="background:${s.bg};color:${s.fg};padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:0.02em;white-space:nowrap;">${s.icon} ${s.label}</span>`;
+}
+
 function displayReservations(reservations) {
     const tbody = document.getElementById('reservationsTableBody');
     if (reservations.length === 0) {
@@ -1149,7 +1230,10 @@ function displayReservations(reservations) {
                     ${r.booking_source ? getBookingSourceBadge(r.booking_source) : '<span style="font-size: 11px; color: var(--text-tertiary);">Direct</span>'}
                 </td>
                 <td>
-                    <div style="font-weight: 600;">${r.guest_name || '-'}</div>
+                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <span>${r.guest_name || '-'}</span>
+                        ${_renderKycBadge(r.kyc_status)}
+                    </div>
                     ${r.guest_phone ? `<div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;"><i data-lucide="phone" style="width: 10px; height: 10px; margin-right: 2px;"></i>${r.guest_phone}</div>` : ''}
                 </td>
                 <td>
@@ -1546,6 +1630,63 @@ function prevWizardStep() {
     if (_wizardStep > 1) goToWizardStep(_wizardStep - 1);
 }
 
+/**
+ * Fetch the last 3 communications for a given booking and render them
+ * inline on Step 4 of the reservation wizard. Lets the operator see
+ * what's been said to the guest without leaving the modal.
+ */
+async function renderReservationMessages(bookingId) {
+    const wrap = document.getElementById('wizardRecentMessages');
+    const list = document.getElementById('wizardRecentMessagesList');
+    if (!wrap || !list) return;
+    if (!bookingId) { wrap.style.display = 'none'; return; }
+
+    try {
+        const { data, error } = await supabase
+            .from('communications')
+            .select('message_type, subject, message_content, status, sent_at')
+            .eq('booking_id', bookingId)
+            .order('sent_at', { ascending: false })
+            .limit(3);
+
+        if (error || !data || data.length === 0) {
+            wrap.style.display = 'none';
+            return;
+        }
+
+        const channelIcon = { email: '✉️', whatsapp: '💬', sms: '📱' };
+        list.innerHTML = data.map(m => {
+            const when = m.sent_at ? new Date(m.sent_at).toLocaleString('en-IN', {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+            }) : '';
+            const icon = channelIcon[m.message_type] || '💬';
+            const preview = (m.message_content || '').replace(/<[^>]+>/g, '').slice(0, 80);
+            const subject = m.subject ? `<strong>${escapeHtml(m.subject)}</strong> · ` : '';
+            return `
+                <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary); padding: 6px 0; border-bottom: 1px solid var(--border);">
+                    <div style="color: var(--text-primary); margin-bottom: 2px;">
+                        ${icon} ${subject}<span style="color: var(--text-tertiary); font-size: 11px;">${escapeHtml(when)}</span>
+                    </div>
+                    ${escapeHtml(preview)}${preview.length >= 80 ? '…' : ''}
+                </div>
+            `;
+        }).join('');
+        wrap.style.display = 'block';
+    } catch (_) {
+        wrap.style.display = 'none';
+    }
+}
+
+// Light HTML escape so user-provided subject/message can't break the
+// review card layout or inject markup.
+function escapeHtml(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 function renderWizardReview() {
     var prop = document.getElementById('propertySelect');
     var propName = prop.options[prop.selectedIndex] ? prop.options[prop.selectedIndex].text : '-';
@@ -1562,15 +1703,25 @@ function renderWizardReview() {
     var guestPhone = document.getElementById('guestPhone').value || '-';
     var guestEmail = document.getElementById('guestEmail').value || '-';
     var guestCity = document.getElementById('guestCity').value || '-';
-    var stayAmt = parseFloat(document.getElementById('stayAmount').value) || 0;
-    var extraGuest = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
-    var meals = parseFloat(document.getElementById('mealsChef').value) || 0;
-    var bonfire = parseFloat(document.getElementById('bonfireOther').value) || 0;
-    var taxes = parseFloat(document.getElementById('taxes').value) || 0;
-    var damages = parseFloat(document.getElementById('damages').value) || 0;
-    var hostizzy = parseFloat(document.getElementById('hostizzyRevenue').value) || 0;
-    var total = stayAmt + extraGuest + meals + bonfire + taxes + damages;
-    var fmt = function(n) { return '\u20B9' + Number(n).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); };
+    // Parse every amount via Money so the displayed totals never show
+    // float drift like 99.99999. sumPaise gives an exact integer total.
+    var stayPaise = Money.parseRupeesToPaise(document.getElementById('stayAmount').value);
+    var extraPaise = Money.parseRupeesToPaise(document.getElementById('extraGuestCharges').value);
+    var mealsPaise = Money.parseRupeesToPaise(document.getElementById('mealsChef').value);
+    var bonfirePaise = Money.parseRupeesToPaise(document.getElementById('bonfireOther').value);
+    var taxesPaise = Money.parseRupeesToPaise(document.getElementById('taxes').value);
+    var damagesPaise = Money.parseRupeesToPaise(document.getElementById('damages').value);
+    var hostizzyPaise = Money.parseRupeesToPaise(document.getElementById('hostizzyRevenue').value);
+    var totalPaise = stayPaise + extraPaise + mealsPaise + bonfirePaise + taxesPaise + damagesPaise;
+    var fmt = function(paise) { return Money.paiseToDisplay(paise); };
+    var stayAmt = fmt(stayPaise);
+    var extraGuest = fmt(extraPaise);
+    var meals = fmt(mealsPaise);
+    var bonfire = fmt(bonfirePaise);
+    var taxes = fmt(taxesPaise);
+    var damages = fmt(damagesPaise);
+    var hostizzy = fmt(hostizzyPaise);
+    var total = fmt(totalPaise);
 
     var html = '<div class="wizard-review-section">' +
         '<div class="wizard-review-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Guest</div>' +
@@ -1584,13 +1735,13 @@ function renderWizardReview() {
         '</div>' +
         '<div class="wizard-review-section">' +
         '<div class="wizard-review-section-title"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Pricing</div>' +
-        row('Stay Amount', fmt(stayAmt)) + row('Extra Guest Charges', fmt(extraGuest)) +
-        row('Meals/Chef', fmt(meals)) + row('Bonfire/Other', fmt(bonfire)) +
-        row('Taxes', fmt(taxes)) + row('Damages', fmt(damages)) +
-        row('Hostizzy Revenue', fmt(hostizzy)) +
+        row('Stay Amount', stayAmt) + row('Extra Guest Charges', extraGuest) +
+        row('Meals/Chef', meals) + row('Bonfire/Other', bonfire) +
+        row('Taxes', taxes) + row('Damages', damages) +
+        row('Hostizzy Revenue', hostizzy) +
         '<div class="wizard-review-row" style="margin-top: 8px; padding-top: 10px; border-top: 2px solid var(--primary); border-bottom: none;">' +
         '<span class="wizard-review-label" style="font-weight: 700; color: var(--text-primary);">Total Amount</span>' +
-        '<span class="wizard-review-value" style="font-size: 16px; color: var(--primary);">' + fmt(total) + '</span></div>' +
+        '<span class="wizard-review-value" style="font-size: 16px; color: var(--primary);">' + total + '</span></div>' +
         '</div>';
 
     function row(label, value) {
@@ -1600,8 +1751,44 @@ function renderWizardReview() {
     document.getElementById('wizardReviewContent').innerHTML = html;
 }
 
+/**
+ * Apply the saved Quick mode preference to the reservation modal.
+ * Quick mode hides every form element flagged [data-advanced] so a
+ * small operator only sees the ~8 fields they actually need.
+ */
+function applyReservationQuickMode() {
+    const modal = document.getElementById('reservationModal');
+    const toggle = document.getElementById('reservationQuickMode');
+    if (!modal || !toggle) return;
+    // Default ON for new operators (no preference saved yet) so the
+    // first-run reservation form isn't overwhelming. Returning users
+    // who explicitly turned it off keep it off.
+    const saved = localStorage.getItem('reservation_quick_mode');
+    const enabled = saved === null ? true : saved === 'true';
+    toggle.checked = enabled;
+    modal.classList.toggle('quick-mode', enabled);
+}
+
+function toggleReservationQuickMode() {
+    const modal = document.getElementById('reservationModal');
+    const toggle = document.getElementById('reservationQuickMode');
+    if (!modal || !toggle) return;
+    modal.classList.toggle('quick-mode', toggle.checked);
+    localStorage.setItem('reservation_quick_mode', String(toggle.checked));
+    if (window.SettingsStore) {
+        SettingsStore.set('reservation_quick_mode', String(toggle.checked));
+    }
+}
+
 function openReservationModal(booking_id = null) {
     const modal = document.getElementById('reservationModal');
+    applyReservationQuickMode();
+
+    // Load recent messages inline on the Review step — only meaningful
+    // when editing an existing booking. Fire-and-forget so we don't
+    // block the modal opening on a network call.
+    renderReservationMessages(booking_id);
+
     if (booking_id) {
         const r = allReservations.find(res => res.booking_id === booking_id);
         if (!r) {
@@ -1731,30 +1918,31 @@ function calculateTaxes() {
     const nights = Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24));
     if (nights <= 0) return;
 
-    const stayAmount = parseFloat(document.getElementById('stayAmount').value) || 0;
-    const extraGuestCharges = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
+    // Parse user input through Money helpers so the math is done on
+    // integer paise. This prevents float-drift artifacts like
+    // ₹100.00999... showing up after a few add/multiply ops.
+    const stayPaise = Money.parseRupeesToPaise(document.getElementById('stayAmount').value);
+    const extraPaise = Money.parseRupeesToPaise(document.getElementById('extraGuestCharges').value);
 
-    const totalAmountPreTax = stayAmount + extraGuestCharges;
+    const preTaxPaise = stayPaise + extraPaise;
+    const preTaxRupees = Money.paiseToRupees(preTaxPaise);
 
     let taxRate = 0;
     if (gstRateMode === 'auto') {
         // Auto: 5% if ≤7500/night, 18% if >7500/night
-        const perNightRate = totalAmountPreTax / nights;
-        if (perNightRate <= 7500) {
-            taxRate = 0.05;
-        } else {
-            taxRate = 0.18;
-        }
+        const perNightRate = preTaxRupees / nights;
+        taxRate = perNightRate <= 7500 ? 0.05 : 0.18;
     } else {
         // Manual rate: 5, 12, or 18
         taxRate = parseFloat(gstRateMode) / 100;
     }
 
-    const taxes = totalAmountPreTax * taxRate;
-    taxesInput.value = taxes.toFixed(2);
+    // Round taxes through paise so the displayed value matches what we save.
+    const taxesPaise = Math.round(preTaxPaise * taxRate);
+    taxesInput.value = (taxesPaise / 100).toFixed(2);
 
     // Auto-calculate Hostizzy Revenue
-    calculateHostizzyRevenue(stayAmount, extraGuestCharges);
+    calculateHostizzyRevenue(Money.paiseToRupees(stayPaise), Money.paiseToRupees(extraPaise));
 }
 
 async function calculateHostizzyRevenue(stayAmount, extraGuestCharges) {
@@ -1851,22 +2039,39 @@ async function saveReservation() {
         const adults = parseInt(document.getElementById('adults').value) || 0;
         const kids = parseInt(document.getElementById('kids').value) || 0;
         const numberOfGuests = adults + kids;
-        
-        const stayAmount = parseFloat(document.getElementById('stayAmount').value) || 0;
-        const extraGuestCharges = parseFloat(document.getElementById('extraGuestCharges').value) || 0;
-        const mealsChef = parseFloat(document.getElementById('mealsChef').value) || 0;
-        const bonfireOther = parseFloat(document.getElementById('bonfireOther').value) || 0;
-        const taxes = parseFloat(document.getElementById('taxes').value) || 0;
-        const damages = parseFloat(document.getElementById('damages').value) || 0;
-        
-        // Meals Revenue includes both meals_chef and bonfire_other (calculated, not stored)
-        const mealsRevenue = mealsChef + bonfireOther;
-        const totalAmountPreTax = stayAmount + extraGuestCharges + mealsRevenue;
-        const totalAmountIncTax = totalAmountPreTax + taxes;
-        const totalAmount = totalAmountIncTax + damages;
-        
-        const avgRoomRate = nights > 0 ? stayAmount / nights : 0;
-        const avgNightlyRate = nights > 0 ? totalAmount / nights : 0;
+
+        // ── Money math in paise ──
+        // Parse every amount input to integer paise, do additions in paise,
+        // then convert back to rupees for the (still-float) DB columns. This
+        // drops accumulated float-drift so the saved value matches what the
+        // operator typed and what the review screen showed.
+        const stayPaise = Money.parseRupeesToPaise(document.getElementById('stayAmount').value);
+        const extraGuestPaise = Money.parseRupeesToPaise(document.getElementById('extraGuestCharges').value);
+        const mealsChefPaise = Money.parseRupeesToPaise(document.getElementById('mealsChef').value);
+        const bonfireOtherPaise = Money.parseRupeesToPaise(document.getElementById('bonfireOther').value);
+        const taxesPaise = Money.parseRupeesToPaise(document.getElementById('taxes').value);
+        const damagesPaise = Money.parseRupeesToPaise(document.getElementById('damages').value);
+        const otaFeePaise = Money.parseRupeesToPaise(document.getElementById('otaServiceFee').value);
+        const hostizzyPaise = Money.parseRupeesToPaise(document.getElementById('hostizzyRevenue').value);
+
+        const mealsRevenuePaise = mealsChefPaise + bonfireOtherPaise;
+        const totalPreTaxPaise = stayPaise + extraGuestPaise + mealsRevenuePaise;
+        const totalIncTaxPaise = totalPreTaxPaise + taxesPaise;
+        const totalAmountPaise = totalIncTaxPaise + damagesPaise;
+
+        const p2r = Money.paiseToRupees;
+        const stayAmount = p2r(stayPaise);
+        const extraGuestCharges = p2r(extraGuestPaise);
+        const mealsChef = p2r(mealsChefPaise);
+        const bonfireOther = p2r(bonfireOtherPaise);
+        const taxes = p2r(taxesPaise);
+        const damages = p2r(damagesPaise);
+        const totalAmountPreTax = p2r(totalPreTaxPaise);
+        const totalAmountIncTax = p2r(totalIncTaxPaise);
+        const totalAmount = p2r(totalAmountPaise);
+
+        const avgRoomRate = nights > 0 ? p2r(Math.round(stayPaise / nights)) : 0;
+        const avgNightlyRate = nights > 0 ? p2r(Math.round(totalAmountPaise / nights)) : 0;
         
         const monthDate = new Date(checkIn);
         const month = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
@@ -1886,8 +2091,6 @@ async function saveReservation() {
             nights: nights,
             gst_status: document.getElementById('gstStatus').value,
             gst_rate_mode: document.getElementById('gstRateMode').value,
-            taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 :
-                   parseFloat(document.getElementById('taxes').value) || 0,
             guest_name: document.getElementById('guestName').value,
             guest_phone: document.getElementById('guestPhone').value,
             guest_email: document.getElementById('guestEmail').value || null,
@@ -1902,26 +2105,25 @@ async function saveReservation() {
             extra_guest_charges: extraGuestCharges,
             meals_chef: mealsChef,
             bonfire_other: bonfireOther,
-            ota_service_fee: parseFloat(document.getElementById('otaServiceFee').value) || 0,
-            taxes: taxes,
+            ota_service_fee: p2r(otaFeePaise),
+            // Taxes already drift-corrected; non-GST forces zero regardless of stale input.
+            taxes: document.getElementById('gstStatus').value === 'non_gst' ? 0 : taxes,
             total_amount_pre_tax: totalAmountPreTax,
             total_amount_inc_tax: totalAmountIncTax,
             total_amount: totalAmount,
             damages: damages,
-            hostizzy_revenue: parseFloat(document.getElementById('hostizzyRevenue').value) || 0,
+            hostizzy_revenue: p2r(hostizzyPaise),
             // Snapshot the property's commission rate at save time so the row stays
             // in sync with properties.revenue_share_percent. The orphaned column had
             // been silently drifting; this and the SQL backfill keep it accurate.
             revenue_share_percent: propertyRate,
             // payout_eligible = gross owner-eligible (before commission). Excludes taxes
             // (GST is collected for the government, never paid out) and OTA service fee.
-            // Damages and meals/bonfire flow through to the owner.
-            payout_eligible: totalAmount - taxes - (parseFloat(document.getElementById('otaServiceFee').value) || 0),
+            // Damages and meals/bonfire flow through to the owner. Compute in paise.
+            payout_eligible: p2r(totalAmountPaise - taxesPaise - otaFeePaise),
             // host_payout = NET rupees Hostizzy pays the owner after taking commission.
-            //             = payout_eligible - hostizzy_revenue
-            host_payout: totalAmount - taxes
-                - (parseFloat(document.getElementById('otaServiceFee').value) || 0)
-                - (parseFloat(document.getElementById('hostizzyRevenue').value) || 0),
+            //             = payout_eligible - hostizzy_revenue (computed in paise)
+            host_payout: p2r(totalAmountPaise - taxesPaise - otaFeePaise - hostizzyPaise),
             is_legacy: false,
             avg_room_rate: avgRoomRate,
             avg_nightly_rate: avgNightlyRate,

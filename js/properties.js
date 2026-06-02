@@ -238,58 +238,56 @@ function showIntegrationInfo(integrationType) {
         email: {
             title: '📧 Email Integration',
             icon: '📧',
-            description: 'Connect your email service to send automated booking confirmations, payment reminders, and guest communications.',
+            description: 'Send booking confirmations, payment reminders, and guest communications via your connected Gmail account.',
             features: [
                 'Automated booking confirmations',
                 'Payment reminder emails',
                 'Check-in/check-out notifications',
                 'Custom email templates',
-                'Bulk email campaigns'
+                'Daily summary digest'
             ],
-            providers: ['Gmail', 'Outlook', 'SendGrid', 'Mailgun'],
-            status: 'Available in Version 2.0'
+            providers: ['Gmail (OAuth)'],
+            status: 'Available now — connect Gmail in Settings → Email'
         },
         whatsapp: {
             title: '<i data-lucide="message-circle" style="width: 12px; height: 12px; margin-right: 3px;"></i>WhatsApp Business API',
             icon: '💬',
-            description: 'Send automated WhatsApp messages to guests for instant communication and better engagement.',
+            description: 'Send WhatsApp messages to guests via wa.me links or the WhatsApp Business API.',
             features: [
                 'Instant booking confirmations',
                 'Payment reminders via WhatsApp',
-                'Real-time guest support',
-                'Automated check-in instructions',
-                'Review request messages'
+                'Approved template messaging (WABA)',
+                'Per-property reply numbers',
+                'Daily target broadcasts to team'
             ],
-            providers: ['WhatsApp Business API', 'Twilio', 'MessageBird'],
-            status: 'Available in Version 2.0'
+            providers: ['wa.me links', 'WhatsApp Business API (Meta Cloud)'],
+            status: 'Available now — configure in Settings → WhatsApp'
         },
         payment: {
             title: '💳 Payment Gateway',
             icon: '💳',
-            description: 'Accept online payments directly from guests using secure payment gateways.',
+            description: 'Accept online payments directly from guests. Currently in development — for now, record payments manually and share UPI/bank details.',
             features: [
-                'Online payment collection',
-                'Multiple payment methods (UPI, Cards, Wallets)',
-                'Automatic payment reconciliation',
-                'Refund management',
-                'Payment analytics'
+                'Online payment collection (planned)',
+                'UPI, cards, wallets (planned)',
+                'Automatic reconciliation (planned)',
+                'Refund management (planned)'
             ],
-            providers: ['Razorpay', 'Stripe', 'PayU', 'Paytm'],
-            status: 'Available in Version 2.0'
+            providers: ['Razorpay (planned)', 'Stripe (planned)'],
+            status: 'Coming soon — manual payment recording works today'
         },
         calendar: {
             title: '📆 Calendar Sync',
             icon: '📆',
-            description: 'Sync your bookings with Google Calendar, Airbnb, Booking.com and other platforms to prevent double bookings.',
+            description: 'Import iCal feeds from Airbnb, Booking.com and other OTAs to prevent double bookings. Two-way sync planned.',
             features: [
-                'Two-way calendar synchronization',
-                'Prevent double bookings',
-                'Import bookings from OTAs',
-                'Real-time availability updates',
-                'Multi-platform integration'
+                'iCal feed import (Airbnb, Booking.com)',
+                'Block dates from external bookings',
+                'Manual availability calendar',
+                'Two-way push sync (planned)'
             ],
-            providers: ['Google Calendar', 'Airbnb', 'Booking.com', 'iCal'],
-            status: 'Available in Version 2.0'
+            providers: ['iCal feed import (working)', 'Google Calendar push (planned)'],
+            status: 'Partial — iCal import works in Availability'
         }
     };
 
