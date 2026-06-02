@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS automation_dispatch_log (
   recipient TEXT,
   status TEXT NOT NULL,                        -- 'sent' | 'failed' | 'skipped'
   error TEXT,
-  owner_id BIGINT REFERENCES property_owners(id) ON DELETE CASCADE,
+  owner_id UUID REFERENCES property_owners(id) ON DELETE CASCADE,
   dispatched_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE (booking_id, rule_key)
 );

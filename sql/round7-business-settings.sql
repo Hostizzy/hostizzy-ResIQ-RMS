@@ -8,7 +8,7 @@
 
 CREATE TABLE IF NOT EXISTS business_settings (
   id BIGSERIAL PRIMARY KEY,
-  owner_id BIGINT REFERENCES property_owners(id) ON DELETE CASCADE,
+  owner_id UUID REFERENCES property_owners(id) ON DELETE CASCADE,
   key TEXT NOT NULL,
   value JSONB NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW(),
