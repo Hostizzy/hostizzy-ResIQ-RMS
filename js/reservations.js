@@ -1618,8 +1618,38 @@ function renderWizardReview() {
     document.getElementById('wizardReviewContent').innerHTML = html;
 }
 
+/**
+ * Apply the saved Quick mode preference to the reservation modal.
+ * Quick mode hides every form element flagged [data-advanced] so a
+ * small operator only sees the ~8 fields they actually need.
+ */
+function applyReservationQuickMode() {
+    const modal = document.getElementById('reservationModal');
+    const toggle = document.getElementById('reservationQuickMode');
+    if (!modal || !toggle) return;
+    // Default ON for new operators (no preference saved yet) so the
+    // first-run reservation form isn't overwhelming. Returning users
+    // who explicitly turned it off keep it off.
+    const saved = localStorage.getItem('reservation_quick_mode');
+    const enabled = saved === null ? true : saved === 'true';
+    toggle.checked = enabled;
+    modal.classList.toggle('quick-mode', enabled);
+}
+
+function toggleReservationQuickMode() {
+    const modal = document.getElementById('reservationModal');
+    const toggle = document.getElementById('reservationQuickMode');
+    if (!modal || !toggle) return;
+    modal.classList.toggle('quick-mode', toggle.checked);
+    localStorage.setItem('reservation_quick_mode', String(toggle.checked));
+    if (window.SettingsStore) {
+        SettingsStore.set('reservation_quick_mode', String(toggle.checked));
+    }
+}
+
 function openReservationModal(booking_id = null) {
     const modal = document.getElementById('reservationModal');
+    applyReservationQuickMode();
     if (booking_id) {
         const r = allReservations.find(res => res.booking_id === booking_id);
         if (!r) {
