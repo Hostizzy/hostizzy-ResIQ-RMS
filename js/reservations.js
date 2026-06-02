@@ -1031,6 +1031,40 @@ function populateFiltersAndDisplay(properties, reservations) {
 }
 
 // Reservations
+/**
+ * Build a { booking_id -> 'verified' | 'pending' | 'rejected' | 'none' } map
+ * so each reservation card can show a KYC badge without an extra query per
+ * row. Worst status wins ("rejected" > "pending" > "verified").
+ */
+async function _buildKycStatusMap() {
+    try {
+        if (typeof supabase === 'undefined') return {};
+        const { data, error } = await supabase
+            .from('guest_documents')
+            .select('booking_id, status');
+        if (error || !data) return {};
+
+        const rank = { rejected: 3, pending: 2, submitted: 2, verified: 1 };
+        const map = {};
+        for (const d of data) {
+            if (!d.booking_id) continue;
+            const current = map[d.booking_id];
+            if (!current || (rank[d.status] || 0) > (rank[current] || 0)) {
+                map[d.booking_id] = d.status;
+            }
+        }
+        return map;
+    } catch (_) {
+        return {};
+    }
+}
+
+function _attachKycStatus(reservations, kycMap) {
+    for (const r of reservations) {
+        r.kyc_status = kycMap[r.booking_id] || 'none';
+    }
+}
+
 async function loadReservations(forceRefresh = false) {
     try {
         // Try to get from cache first
@@ -1045,14 +1079,28 @@ async function loadReservations(forceRefresh = false) {
             state.reservations = allReservations;
             state.properties = properties;
 
+            // Refresh KYC statuses on cached data — fast (single query, no
+            // per-row work) and ensures the badge is current.
+            _buildKycStatusMap().then(map => {
+                _attachKycStatus(allReservations, map);
+                displayReservations(allReservations);
+            });
+
             // Quick render from cache
             populateFiltersAndDisplay(properties, allReservations);
             return;
         }
 
-        // Fetch from database
-        allReservations = await db.getReservations();
-        const properties = await db.getProperties();
+        // Fetch from database — load reservations, properties, and KYC map
+        // in parallel so a slow KYC query doesn't delay the rest.
+        const [resData, propsData, kycMap] = await Promise.all([
+            db.getReservations(),
+            db.getProperties(),
+            _buildKycStatusMap()
+        ]);
+        allReservations = resData;
+        const properties = propsData;
+        _attachKycStatus(allReservations, kycMap);
 
         // Cache the results
         dataCache.set('reservations', allReservations);
@@ -1123,6 +1171,23 @@ async function loadReservations(forceRefresh = false) {
     }
 }
 
+/**
+ * Render a tiny KYC status pill next to the guest name on the reservation
+ * card. Empty for 'none' so reservations without a guest portal session
+ * aren't visually cluttered.
+ */
+function _renderKycBadge(status) {
+    const styles = {
+        verified: { bg: '#dcfce7', fg: '#166534', icon: '✓', label: 'KYC' },
+        pending:  { bg: '#fef3c7', fg: '#92400e', icon: '⏳', label: 'KYC' },
+        submitted:{ bg: '#fef3c7', fg: '#92400e', icon: '⏳', label: 'KYC' },
+        rejected: { bg: '#fee2e2', fg: '#991b1b', icon: '✕', label: 'KYC' }
+    };
+    const s = styles[status];
+    if (!s) return '';
+    return `<span title="KYC ${status}" style="background:${s.bg};color:${s.fg};padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:0.02em;white-space:nowrap;">${s.icon} ${s.label}</span>`;
+}
+
 function displayReservations(reservations) {
     const tbody = document.getElementById('reservationsTableBody');
     if (reservations.length === 0) {
@@ -1167,7 +1232,10 @@ function displayReservations(reservations) {
                     ${r.booking_source ? getBookingSourceBadge(r.booking_source) : '<span style="font-size: 11px; color: var(--text-tertiary);">Direct</span>'}
                 </td>
                 <td>
-                    <div style="font-weight: 600;">${r.guest_name || '-'}</div>
+                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <span>${r.guest_name || '-'}</span>
+                        ${_renderKycBadge(r.kyc_status)}
+                    </div>
                     ${r.guest_phone ? `<div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;"><i data-lucide="phone" style="width: 10px; height: 10px; margin-right: 2px;"></i>${r.guest_phone}</div>` : ''}
                 </td>
                 <td>
