@@ -7,6 +7,11 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/reservations_screen.dart';
 import 'screens/add_reservation_screen.dart';
+import 'screens/payments_screen.dart';
+import 'screens/more_screen.dart';
+import 'screens/documents_screen.dart';
+import 'screens/properties_screen.dart';
+import 'screens/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -31,12 +36,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           return ScaffoldWithNavBar(navigationShell: navigationShell);
         },
         branches: [
+          // Tab 0: Home
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/',
               builder: (context, state) => const HomeScreen(),
             ),
           ]),
+          // Tab 1: Reservations
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/reservations',
@@ -53,7 +60,34 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ),
           ]),
+          // Tab 2: Payments
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/payments',
+              builder: (context, state) => const PaymentsScreen(),
+            ),
+          ]),
+          // Tab 3: More (Properties, Documents, Settings)
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/more',
+              builder: (context, state) => const MoreScreen(),
+            ),
+          ]),
         ],
+      ),
+      // Standalone routes pushed from More menu
+      GoRoute(
+        path: '/properties',
+        builder: (context, state) => const PropertiesScreen(),
+      ),
+      GoRoute(
+        path: '/documents',
+        builder: (context, state) => const DocumentsScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
@@ -104,6 +138,16 @@ class ScaffoldWithNavBar extends StatelessWidget {
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: 'Bookings',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.payments_outlined),
+            selectedIcon: Icon(Icons.payments),
+            label: 'Payments',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu),
+            selectedIcon: Icon(Icons.menu),
+            label: 'More',
           ),
         ],
       ),
