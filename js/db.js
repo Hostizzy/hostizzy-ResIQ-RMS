@@ -70,8 +70,14 @@
             async findUserByEmail(email) {
                 if (!email) return null;
                 const team = await supabase.from('team_members').select('*').eq('email', email).limit(1);
+                if (team.error) {
+                    console.error('[db.findUserByEmail] team_members query failed:', team.error.message);
+                }
                 if (team.data && team.data.length > 0) return { ...team.data[0], _kind: 'staff' };
                 const owner = await supabase.from('property_owners').select('*').eq('email', email).limit(1);
+                if (owner.error) {
+                    console.error('[db.findUserByEmail] property_owners query failed:', owner.error.message);
+                }
                 if (owner.data && owner.data.length > 0) return { ...owner.data[0], _kind: 'owner' };
                 return null;
             },
