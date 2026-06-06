@@ -28,18 +28,22 @@ const ALLOWED_TABLES = [
     'revenue_targets', 'business_settings'
 ];
 
-// Tables the guest portal can access without Firebase login. Guests
-// authenticate via a booking_id + phone number verification flow
-// (not Firebase Auth). 'reservations' is included because the guest
-// portal looks up the reservation by booking code at entry.
-const GUEST_PORTAL_TABLES = [
+// Tables accessible without Firebase login.
+// - Guest portal: uses booking_id + phone verification, not Firebase Auth.
+// - Login flow: team_members + property_owners are looked up by email to
+//   identify the user right after Firebase signIn(), but the proxy token
+//   may not be populated yet due to compat API timing.
+const UNAUTHENTICATED_TABLES = [
     'guest_portal_sessions', 'guest_documents', 'guest_meal_preferences',
-    'reservations'
+    'reservations', 'team_members', 'property_owners'
 ];
 
-// Guest portal should only READ reservations, never write. Block
-// writes to reservations from unauthenticated callers.
-const GUEST_READ_ONLY_TABLES = ['reservations'];
+// These tables are READ-ONLY for unauthenticated callers. Guests can look
+// up their booking but can't write to reservations. Login flow can look up
+// profiles but can't modify team_members or property_owners.
+const UNAUTHENTICATED_READ_ONLY = [
+    'reservations', 'team_members', 'property_owners'
+];
 
 function setCorsHeaders(req, res) {
     const origin = req.headers.origin;
@@ -119,7 +123,7 @@ export default async function handler(req, res) {
     // flow (handled inside the guest portal HTML), not Firebase Auth. Allow
     // those through without a token so guests can submit KYC and meal prefs.
     // Everything else requires a valid Firebase ID token.
-    const isGuestTable = GUEST_PORTAL_TABLES.includes(table);
+    const isGuestTable = UNAUTHENTICATED_TABLES.includes(table);
 
     if (!isGuestTable) {
         const authHeader = req.headers.authorization;
@@ -134,7 +138,7 @@ export default async function handler(req, res) {
     }
 
     // Guest portal can only READ certain tables, never write them.
-    if (isGuestTable && GUEST_READ_ONLY_TABLES.includes(table) && operation !== 'select') {
+    if (isGuestTable && UNAUTHENTICATED_READ_ONLY.includes(table) && operation !== 'select') {
         return res.status(403).json({ data: null, error: { message: 'Write access denied on this table for unauthenticated callers' } });
     }
 
