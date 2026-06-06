@@ -87,6 +87,9 @@ function createSupabaseProxy(baseUrl) {
         upsert(data, options) {
             this._operation = 'upsert';
             this._data = data;
+            if (options && options.onConflict) {
+                this._onConflict = options.onConflict;
+            }
             return this;
         }
 
@@ -142,7 +145,8 @@ function createSupabaseProxy(baseUrl) {
                 maybeSingle: this._maybeSingle,
                 limit: this._limit,
                 count: this._count,
-                returning: this._returning
+                returning: this._returning,
+                onConflict: this._onConflict || undefined
             };
             return executeQuery(descriptor).then(resolve, reject);
         }

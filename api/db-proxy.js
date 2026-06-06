@@ -110,7 +110,7 @@ export default async function handler(req, res) {
     const {
         table, operation, select = '*', data,
         filters = [], order = [], single, maybeSingle,
-        limit, count, returning
+        limit, count, returning, onConflict
     } = req.body;
 
     // Validate table
@@ -158,6 +158,12 @@ export default async function handler(req, res) {
     }
 
     if (limit) params.set('limit', String(limit));
+
+    // Forward on_conflict for upserts on composite keys
+    // (e.g. settlement_status→owner_id,settlement_month)
+    if (onConflict && operation === 'upsert') {
+        params.set('on_conflict', onConflict);
+    }
 
     const url = `${SUPABASE_URL}/rest/v1/${table}?${params.toString()}`;
 
