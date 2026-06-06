@@ -23,11 +23,39 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABA
 
 const ALLOWED_BUCKETS = ['guest-id-documents', 'expense-receipts'];
 
-export default async function handler(req, res) {
-    // CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
+// Guest KYC uploads don't require Firebase auth (guests use booking code flow).
+const GUEST_BUCKETS = ['guest-id-documents'];
+
+const ALLOWED_ORIGINS = [
+    'https://resiq.hostizzy.com',
+    'http://localhost:3000',
+    'http://localhost:8000'
+];
+
+function setCorsHeaders(req, res) {
+    const origin = req.headers.origin;
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+async function verifyFirebaseToken(idToken) {
+    const firebaseApiKey = process.env.FIREBASE_API_KEY;
+    if (!firebaseApiKey) throw new Error('Firebase API key not configured');
+    const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseApiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken }) }
+    );
+    if (!response.ok) throw new Error('Invalid Firebase token');
+    const data = await response.json();
+    if (!data.users || data.users.length === 0) throw new Error('No user found');
+    return data.users[0].localId;
+}
+
+export default async function handler(req, res) {
+    setCorsHeaders(req, res);
 
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') {
@@ -39,6 +67,19 @@ export default async function handler(req, res) {
     // Validate bucket
     if (!ALLOWED_BUCKETS.includes(bucket)) {
         return res.status(200).json({ data: null, error: { message: 'Bucket not allowed' } });
+    }
+
+    // Require Firebase auth for non-guest buckets
+    if (!GUEST_BUCKETS.includes(bucket)) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ data: null, error: { message: 'Authentication required' } });
+        }
+        try {
+            await verifyFirebaseToken(authHeader.split('Bearer ')[1]);
+        } catch (err) {
+            return res.status(401).json({ data: null, error: { message: 'Invalid token: ' + err.message } });
+        }
     }
 
     const authHeaders = {

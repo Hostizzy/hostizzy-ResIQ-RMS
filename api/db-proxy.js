@@ -4,12 +4,20 @@
  * Proxies all database operations through Vercel to avoid ISP blocking
  * of direct browser-to-Supabase connections (common in India).
  *
- * Architecture: Browser → Vercel API → Supabase PostgREST
+ * Architecture: Browser → Firebase Auth → Vercel API → Supabase PostgREST
+ *
+ * SECURITY: Every request must include a valid Firebase ID token in the
+ * Authorization header. Without it, the endpoint returns 401.
  */
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-// Use service role key to bypass RLS — access control is enforced by ALLOWED_TABLES
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+const ALLOWED_ORIGINS = [
+    'https://resiq.hostizzy.com',
+    'http://localhost:3000',
+    'http://localhost:8000'
+];
 
 const ALLOWED_TABLES = [
     'reservations', 'properties', 'payments', 'team_members',
@@ -17,8 +25,49 @@ const ALLOWED_TABLES = [
     'guest_meal_preferences', 'guest_portal_sessions',
     'synced_availability', 'settlement_status', 'property_expenses',
     'communications', 'enquiries', 'ota_import_drafts',
-    'revenue_targets'
+    'revenue_targets', 'business_settings'
 ];
+
+// Tables the guest portal can access without Firebase login. Guests
+// authenticate via a booking_id + phone number verification flow
+// (not Firebase Auth). 'reservations' is included because the guest
+// portal looks up the reservation by booking code at entry.
+const GUEST_PORTAL_TABLES = [
+    'guest_portal_sessions', 'guest_documents', 'guest_meal_preferences',
+    'reservations'
+];
+
+// Guest portal should only READ reservations, never write. Block
+// writes to reservations from unauthenticated callers.
+const GUEST_READ_ONLY_TABLES = ['reservations'];
+
+function setCorsHeaders(req, res) {
+    const origin = req.headers.origin;
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+async function verifyFirebaseToken(idToken) {
+    const firebaseApiKey = process.env.FIREBASE_API_KEY;
+    if (!firebaseApiKey) throw new Error('Firebase API key not configured');
+
+    const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseApiKey}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        }
+    );
+
+    if (!response.ok) throw new Error('Invalid Firebase token');
+    const data = await response.json();
+    if (!data.users || data.users.length === 0) throw new Error('No user found');
+    return data.users[0].localId;
+}
 
 /**
  * Convert a filter descriptor to PostgREST query parameter format
@@ -47,10 +96,7 @@ function applyFilter(params, filter) {
 }
 
 export default async function handler(req, res) {
-    // CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    setCorsHeaders(req, res);
 
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') {
@@ -66,6 +112,30 @@ export default async function handler(req, res) {
     // Validate table
     if (!ALLOWED_TABLES.includes(table)) {
         return res.status(200).json({ data: null, error: { message: 'Access denied: table not allowed' } });
+    }
+
+    // ── Authentication ──
+    // Guest portal tables are accessed via a booking_id + phone verification
+    // flow (handled inside the guest portal HTML), not Firebase Auth. Allow
+    // those through without a token so guests can submit KYC and meal prefs.
+    // Everything else requires a valid Firebase ID token.
+    const isGuestTable = GUEST_PORTAL_TABLES.includes(table);
+
+    if (!isGuestTable) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ data: null, error: { message: 'Authentication required' } });
+        }
+        try {
+            await verifyFirebaseToken(authHeader.split('Bearer ')[1]);
+        } catch (err) {
+            return res.status(401).json({ data: null, error: { message: 'Invalid token: ' + err.message } });
+        }
+    }
+
+    // Guest portal can only READ certain tables, never write them.
+    if (isGuestTable && GUEST_READ_ONLY_TABLES.includes(table) && operation !== 'select') {
+        return res.status(403).json({ data: null, error: { message: 'Write access denied on this table for unauthenticated callers' } });
     }
 
     // Build query string

@@ -16,9 +16,23 @@ function createSupabaseProxy(baseUrl) {
     const STORAGE_PROXY = (baseUrl || '') + '/api/storage-proxy';
 
     async function executeQuery(descriptor) {
+        const headers = { 'Content-Type': 'application/json' };
+
+        // Attach Firebase ID token so /api/db-proxy can verify the caller.
+        // Guest portal tables work without a token (their own auth flow).
+        try {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    const idToken = await user.getIdToken();
+                    headers['Authorization'] = `Bearer ${idToken}`;
+                }
+            }
+        } catch (_) { /* guest portal or pre-login — no token available */ }
+
         const res = await fetch(DB_PROXY, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify(descriptor)
         });
         return res.json();
@@ -141,6 +155,19 @@ function createSupabaseProxy(baseUrl) {
             this._bucket = bucket;
         }
 
+        async _getAuthHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            try {
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    const user = firebase.auth().currentUser;
+                    if (user) {
+                        headers['Authorization'] = `Bearer ${await user.getIdToken()}`;
+                    }
+                }
+            } catch (_) {}
+            return headers;
+        }
+
         async upload(path, file, options) {
             // Convert File/Blob to base64
             const base64 = await new Promise((resolve, reject) => {
@@ -152,7 +179,7 @@ function createSupabaseProxy(baseUrl) {
 
             const res = await fetch(STORAGE_PROXY, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await this._getAuthHeaders(),
                 body: JSON.stringify({
                     action: 'upload',
                     bucket: this._bucket,
@@ -168,7 +195,7 @@ function createSupabaseProxy(baseUrl) {
         async createSignedUrl(path, expiresIn) {
             const res = await fetch(STORAGE_PROXY, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await this._getAuthHeaders(),
                 body: JSON.stringify({
                     action: 'signed-url',
                     bucket: this._bucket,
