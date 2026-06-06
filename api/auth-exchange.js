@@ -36,13 +36,31 @@ const ALLOWED_ORIGINS = [
 ];
 
 // Initialize Firebase Admin (idempotent)
+let _adminInitError = null;
 if (!admin.apps.length) {
     try {
-        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
+        // Accept both env var names (align with auth-proxy.js and push-fcm.js)
+        const raw = process.env.FIREBASE_SERVICE_ACCOUNT
+            || process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+            || '';
+
+        if (!raw) throw new Error('Neither FIREBASE_SERVICE_ACCOUNT nor FIREBASE_SERVICE_ACCOUNT_JSON is set');
+
+        // Handle base64-encoded values and escaped newlines in private_key
+        let json = raw;
+        if (!raw.startsWith('{')) {
+            json = Buffer.from(raw, 'base64').toString('utf-8');
+        }
+        const serviceAccount = JSON.parse(json);
+        if (serviceAccount.private_key) {
+            serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        }
+
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
     } catch (e) {
+        _adminInitError = e.message;
         console.error('[auth-exchange] Firebase Admin init failed:', e.message);
     }
 }
@@ -124,6 +142,14 @@ export default async function handler(req, res) {
 
     if (!SUPABASE_JWT_SECRET) {
         return res.status(500).json({ error: 'SUPABASE_JWT_SECRET not configured' });
+    }
+
+    // Surface init error clearly so it's obvious what went wrong
+    if (_adminInitError || !admin.apps.length) {
+        return res.status(500).json({
+            error: 'Firebase Admin SDK not initialized',
+            detail: _adminInitError || 'No Firebase app found — check FIREBASE_SERVICE_ACCOUNT env var'
+        });
     }
 
     const { firebaseToken } = req.body;
