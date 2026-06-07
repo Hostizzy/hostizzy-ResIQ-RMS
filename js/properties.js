@@ -167,6 +167,7 @@ async function loadProperties() {
                             <button class="prop-action-btn primary" onclick="syncPropertyNow(${p.id}, event)" title="Sync Now">Sync</button>
                         ` : ''}
                         <button class="prop-action-btn" onclick="openPropertySettings(${p.id})" title="Settings">Settings</button>
+                        <button class="prop-action-btn danger" onclick="deleteProperty(${p.id})" title="Delete Property" style="color: var(--danger);">Delete</button>
                     </div>
 
                 </div>

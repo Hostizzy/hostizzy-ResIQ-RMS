@@ -39,7 +39,7 @@
  * - v4.2.0: Fixed owner-portal caching issue
  */
 
-const CACHE_VERSION = 'v5.29.0';
+const CACHE_VERSION = 'v5.30.0';
 const CACHE_NAME = `resiq-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
