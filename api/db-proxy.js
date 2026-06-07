@@ -25,7 +25,7 @@ const ALLOWED_TABLES = [
     'guest_meal_preferences', 'guest_portal_sessions',
     'synced_availability', 'settlement_status', 'property_expenses',
     'communications', 'enquiries', 'ota_import_drafts',
-    'revenue_targets', 'business_settings'
+    'revenue_targets', 'business_settings', 'fcm_tokens'
 ];
 
 // Tables accessible without Firebase login.
