@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0891b2">
+    <title>Delete Your Account - ResIQ by Hostizzy</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="native-app-styles.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #0891b2;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background); color: var(--text); line-height: 1.6;
+        }
+        .header {
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+            position: sticky; top: 0;
+        }
+        .back-btn {
+            background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text);
+        }
+        .header-title { font-size: 18px; font-weight: 700; }
+        .content { max-width: 760px; margin: 0 auto; padding: 24px 20px 60px; }
+        .content > h1 { font-size: 28px; margin-bottom: 6px; }
+        .last-updated { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+        .highlight-box {
+            background: rgba(8,145,178,0.06); border: 1px solid rgba(8,145,178,0.18);
+            border-radius: 12px; padding: 16px; margin-bottom: 20px;
+        }
+        .section { background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+        h2 { font-size: 20px; margin-bottom: 12px; }
+        h3 { font-size: 16px; margin: 16px 0 6px; }
+        ul, ol { margin: 8px 0 8px 22px; }
+        li { margin-bottom: 6px; }
+        a { color: var(--primary); }
+        @media (max-width: 600px) { .content > h1 { font-size: 24px; } h2 { font-size: 18px; } .section { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">&#8592;</button>
+        <h1 class="header-title">Delete Your Account</h1>
+    </div>
+
+    <div class="content">
+        <h1>Delete Your ResIQ Account</h1>
+        <p class="last-updated">App: ResIQ by Hostizzy &middot; Last updated: June 8, 2026</p>
+
+        <div class="highlight-box">
+            <p>This page explains how to request deletion of your <strong>ResIQ by Hostizzy</strong>
+            account and the personal data associated with it.</p>
+        </div>
+
+        <div class="section">
+            <h2>How to request deletion</h2>
+            <ol>
+                <li>Email <a href="mailto:privacy@hostizzy.com">privacy@hostizzy.com</a> from your
+                    registered email address with the subject <strong>"Delete my account"</strong>,
+                    <em>or</em> ask your organisation's ResIQ administrator to remove your account.</li>
+                <li>We verify your identity (to protect your data) and confirm the request.</li>
+                <li>Your account and associated personal data are deleted within <strong>30 days</strong>.</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>What data is deleted</h2>
+            <ul>
+                <li>Your profile and contact details (name, email address, phone number)</li>
+                <li>Login credentials</li>
+                <li>Profile photo (if any)</li>
+                <li>Personal data linked to your user account</li>
+            </ul>
+
+            <h3>What may be retained</h3>
+            <ul>
+                <li>Transaction and booking records that we are legally required to keep for
+                    tax, accounting and audit purposes — retained for up to <strong>7 years</strong>,
+                    in limited or anonymised form where possible.</li>
+                <li>Guest KYC documents are automatically deleted <strong>60 days after checkout</strong>,
+                    independent of account deletion.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Contact</h2>
+            <p><strong>Hostizzy</strong><br>
+            Email: <a href="mailto:privacy@hostizzy.com">privacy@hostizzy.com</a><br>
+            Support: <a href="mailto:support@hostizzy.com">support@hostizzy.com</a><br>
+            Website: <a href="https://hostizzy.com">hostizzy.com</a></p>
+            <p style="margin-top:12px;">See also our
+            <a href="/privacy">Privacy Policy</a>.</p>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>
