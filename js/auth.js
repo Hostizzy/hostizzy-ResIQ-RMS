@@ -276,7 +276,7 @@
         }
 
         function hideSidebarForOwners() {
-            // Owners don't see admin-only views: Team, Owners, Pending Signups, OTA Import
+            // Hosts (independent) and managed owners don't see admin-only views
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 const label = item.querySelector('.sidebar-item-label')?.textContent?.trim();
                 if (['Team', 'Owners', 'OTA Import'].includes(label)) {

@@ -120,46 +120,80 @@ async function deleteTeamMember(id) {
 
 // ========== PROPERTY OWNERS MANAGEMENT ==========
 
+let currentOwnerTypeFilter = 'all';
+let loadedOwners = [];
+let loadedOwnerProperties = [];
+
 async function loadOwners() {
     try {
-        const owners = await db.getOwners();
-        const properties = await db.getProperties();
-        const tbody = document.getElementById('ownersTableBody');
-
-        if (!owners || owners.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color: var(--text-secondary);">No owners added yet. Click "+ Add Owner" to get started.</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = owners.map(owner => {
-            // Get assigned property names
-            const assignedProps = owner.property_ids || [];
-            const propNames = assignedProps.map(id => {
-                const prop = properties.find(p => p.id === id);
-                return prop ? prop.name : `Property ${id}`;
-            }).join(', ') || 'None';
-
-            const statusText = owner.is_active ? 'ACTIVE' : 'INACTIVE';
-            const statusBadge = owner.is_active ? 'badge-success' : 'badge-warning';
-
-            return `
-                <tr>
-                    <td>${owner.name}</td>
-                    <td>${owner.email}</td>
-                    <td>${owner.phone || '-'}</td>
-                    <td><span class="badge badge-info">${assignedProps.length} propert${assignedProps.length === 1 ? 'y' : 'ies'}</span><br><small style="color: var(--text-secondary);">${propNames}</small></td>
-                    <td><span class="badge ${statusBadge}">${statusText}</span></td>
-                    <td>
-                        <button class="btn btn-secondary btn-sm" onclick="editOwner('${owner.id}')">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteOwner('${owner.id}')">Delete</button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
+        loadedOwners = await db.getOwners();
+        loadedOwnerProperties = await db.getProperties();
+        renderOwnersTable();
     } catch (error) {
         console.error('Load owners error:', error);
         showToast('Error', 'Failed to load owners', '❌');
     }
+}
+
+function filterOwnersByType(type, el) {
+    currentOwnerTypeFilter = type;
+    document.querySelectorAll('#ownersView .filter-chip').forEach(c => c.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderOwnersTable();
+}
+
+function renderOwnersTable() {
+    const owners = loadedOwners;
+    const properties = loadedOwnerProperties;
+    const tbody = document.getElementById('ownersTableBody');
+
+    if (!owners || owners.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color: var(--text-secondary);">No owners added yet. Click "+ Add Owner" to get started.</td></tr>';
+        return;
+    }
+
+    let filtered = owners;
+    if (currentOwnerTypeFilter === 'managed') {
+        filtered = owners.filter(o => !o.is_external);
+    } else if (currentOwnerTypeFilter === 'independent') {
+        filtered = owners.filter(o => o.is_external);
+    }
+
+    if (filtered.length === 0) {
+        const label = currentOwnerTypeFilter === 'managed' ? 'managed owners' : 'hosts';
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="color: var(--text-secondary);">No ${label} found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(owner => {
+        const assignedProps = owner.property_ids || [];
+        const propNames = assignedProps.map(id => {
+            const prop = properties.find(p => p.id === id);
+            return prop ? prop.name : `Property ${id}`;
+        }).join(', ') || 'None';
+
+        const statusText = owner.is_active ? 'ACTIVE' : 'INACTIVE';
+        const statusBadge = owner.is_active ? 'badge-success' : 'badge-warning';
+        const isHost = owner.is_external;
+        const typeBadge = isHost
+            ? '<span class="badge" style="background: #dbeafe; color: #1d4ed8; font-size: 11px;">Host</span>'
+            : '<span class="badge" style="background: #dcfce7; color: #166534; font-size: 11px;">Managed</span>';
+
+        return `
+            <tr>
+                <td>${owner.name}</td>
+                <td>${owner.email}</td>
+                <td>${owner.phone || '-'}</td>
+                <td>${typeBadge}</td>
+                <td><span class="badge badge-info">${assignedProps.length} propert${assignedProps.length === 1 ? 'y' : 'ies'}</span><br><small style="color: var(--text-secondary);">${propNames}</small></td>
+                <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                <td>
+                    <button class="btn btn-secondary btn-sm" onclick="editOwner('${owner.id}')">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteOwner('${owner.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 async function openOwnerModal(ownerId = null) {
@@ -176,6 +210,9 @@ async function openOwnerModal(ownerId = null) {
             </label>
         `).join('');
 
+        const ownerTypeSelect = document.getElementById('ownerType');
+        const titleEl = document.getElementById('ownerModalTitle');
+
         if (ownerId) {
             // Edit mode - load owner data
             const owner = await db.getOwner(ownerId);
@@ -183,7 +220,9 @@ async function openOwnerModal(ownerId = null) {
             document.getElementById('ownerEmail').value = owner.email;
             document.getElementById('ownerPhone').value = owner.phone || '';
             document.getElementById('ownerStatus').value = owner.is_active ? 'active' : 'inactive';
-            document.querySelector('.modal-title').textContent = 'Edit Property Owner';
+            if (ownerTypeSelect) ownerTypeSelect.value = owner.is_external ? 'independent' : 'managed';
+            if (titleEl) titleEl.textContent = owner.is_external ? 'Edit Host' : 'Edit Managed Owner';
+            toggleOwnerTypeHint();
 
             // Check assigned properties
             const assignedProps = owner.property_ids || [];
@@ -199,8 +238,10 @@ async function openOwnerModal(ownerId = null) {
             modal.dataset.ownerId = ownerId;
         } else {
             // Add mode
-            document.querySelector('.modal-title').textContent = 'Add Property Owner';
+            if (titleEl) titleEl.textContent = 'Add Owner';
+            if (ownerTypeSelect) ownerTypeSelect.value = 'managed';
             document.getElementById('ownerPassword').parentElement.style.display = 'block';
+            toggleOwnerTypeHint();
             delete modal.dataset.ownerId;
         }
 
@@ -225,6 +266,22 @@ function closeOwnerModal() {
     delete modal.dataset.ownerId;
 }
 
+function toggleOwnerTypeHint() {
+    const ownerType = document.getElementById('ownerType')?.value;
+    const hint = document.getElementById('ownerTypeHint');
+    const emailHint = document.getElementById('ownerEmailHint');
+    if (hint) {
+        hint.textContent = ownerType === 'independent'
+            ? 'Hosts get the full ResIQ app scoped to their properties.'
+            : 'Managed owners access the Managed Owner Portal with limited views.';
+    }
+    if (emailHint) {
+        emailHint.textContent = ownerType === 'independent'
+            ? 'Host will use this email to login to ResIQ'
+            : 'Owner will use this email to login to the Managed Owner Portal';
+    }
+}
+
 async function saveOwner() {
     try {
         const modal = document.getElementById('ownerModal');
@@ -235,6 +292,7 @@ async function saveOwner() {
         const password = document.getElementById('ownerPassword').value;
         const phone = document.getElementById('ownerPhone').value.trim();
         const status = document.getElementById('ownerStatus').value;
+        const ownerType = document.getElementById('ownerType')?.value || 'managed';
 
         // Get selected properties
         const selectedProperties = Array.from(document.querySelectorAll('.property-checkbox:checked'))
@@ -261,6 +319,7 @@ async function saveOwner() {
             email,
             phone,
             is_active: status === 'active',
+            is_external: ownerType === 'independent',
             property_ids: selectedProperties
         };
 
@@ -269,14 +328,16 @@ async function saveOwner() {
             ownerData.password = password;
         }
 
+        const typeLabel = ownerType === 'independent' ? 'Host' : 'Managed owner';
+
         if (ownerId) {
             // Update existing owner
             await db.updateOwner(ownerId, ownerData);
-            showToast('Success', 'Owner updated successfully!', '✅');
+            showToast('Success', `${typeLabel} updated successfully!`, '✅');
         } else {
             // Create new owner
             await db.createOwner(ownerData);
-            showToast('Success', 'Owner created successfully!', '✅');
+            showToast('Success', `${typeLabel} created successfully!`, '✅');
         }
 
         closeOwnerModal();
@@ -292,7 +353,7 @@ async function editOwner(ownerId) {
 }
 
 async function deleteOwner(ownerId) {
-    if (!confirm('Are you sure you want to delete this owner? They will lose access to the Owner Portal.')) {
+    if (!confirm('Are you sure you want to delete this owner? They will lose access to their portal/app.')) {
         return;
     }
 
