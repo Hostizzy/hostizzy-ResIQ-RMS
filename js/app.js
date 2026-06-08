@@ -97,7 +97,24 @@ window.addEventListener('load', async () => {
     if (storedUser) {
         try {
             currentUser = JSON.parse(storedUser);
+
+            // Managed owners (not is_external) should use the owner portal
+            if (currentUser.userType === 'owner' && !currentUser.is_external) {
+                window.location.href = '/owner-portal';
+                return;
+            }
+
+            // Initialize database scope from restored session
+            await db.initScope(currentUser);
+
             showMainApp(currentUser);
+
+            // Apply role-based UI visibility on session restore
+            if (currentUser.userType === 'owner') {
+                hideSidebarForOwners();
+            } else if (currentUser.userType === 'staff' && currentUser.role === 'admin') {
+                showAdminOnlyNav();
+            }
 
             // Pull persisted settings from Supabase into localStorage so the
             // operator gets their business name, currency, signature, etc.

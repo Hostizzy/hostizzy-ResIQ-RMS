@@ -168,11 +168,18 @@ async function loadInitialData() {
             const sixtyDaysAgo = new Date();
             sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-            const { data: recentReservations, error: resError } = await supabase
+            let query = supabase
                 .from('reservations')
                 .select('*')
                 .gte('check_in', sixtyDaysAgo.toISOString().split('T')[0])
                 .order('check_in', { ascending: false });
+
+            // Apply owner scope for hosts/managed owners
+            if (db._ownerPropertyIds) {
+                query = query.in('property_id', db._ownerPropertyIds.length > 0 ? db._ownerPropertyIds : [-1]);
+            }
+
+            const { data: recentReservations, error: resError } = await query;
 
             if (resError) throw resError;
 

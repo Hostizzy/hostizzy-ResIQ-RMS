@@ -613,46 +613,54 @@ class BottomSheet {
     /** Open "More" navigation menu — app icon grid like a phone home screen */
     openMoreMenu() {
         const nav = (view) => () => { if (typeof window.showView === 'function') window.showView(view); };
+        const isOwner = window.currentUser?.userType === 'owner';
+        const adminOnlyIds = ['team', 'owners'];
 
-        return this.open({
-            appIcons: [
-                {
-                    title: '',
-                    items: [
-                        { id: 'dashboard', icon: 'barChart', label: 'Dashboard', gradient: 'linear-gradient(135deg, #0891b2, #06b6d4)', callback: nav('dashboard') },
-                        { id: 'property-analytics', icon: 'building', label: 'Property', gradient: 'linear-gradient(135deg, #6366f1, #818cf8)', callback: nav('property') },
-                        { id: 'business-analytics', icon: 'briefcase', label: 'Business', gradient: 'linear-gradient(135deg, #4f46e5, #6366f1)', callback: nav('business') },
-                        { id: 'financials', icon: 'dollarSign', label: 'Financials', gradient: 'linear-gradient(135deg, #059669, #10b981)', callback: nav('financials') },
-                    ]
-                },
-                {
-                    title: 'Operations',
-                    items: [
-                        { id: 'guests', icon: 'users', label: 'Guests', gradient: 'linear-gradient(135deg, #7c3aed, #a855f7)', callback: nav('guests') },
-                        { id: 'documents', icon: 'fileText', label: 'Documents', gradient: 'linear-gradient(135deg, #d97706, #f59e0b)', callback: nav('guestDocuments') },
-                        { id: 'meals', icon: 'utensils', label: 'Meals', gradient: 'linear-gradient(135deg, #ea580c, #f97316)', callback: nav('meals') },
-                        { id: 'expenses', icon: 'receipt', label: 'Expenses', gradient: 'linear-gradient(135deg, #e11d48, #f43f5e)', callback: nav('expenses') },
-                    ]
-                },
-                {
-                    title: 'Management',
-                    items: [
-                        { id: 'properties', icon: 'building2', label: 'Properties', gradient: 'linear-gradient(135deg, #0ea5e9, #38bdf8)', callback: nav('properties') },
-                        { id: 'team', icon: 'userCheck', label: 'Team', gradient: 'linear-gradient(135deg, #22c55e, #4ade80)', callback: nav('team') },
-                        { id: 'owners', icon: 'shield', label: 'Owners', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)', callback: nav('owners') },
-                        { id: 'availability', icon: 'calendarDays', label: 'Availability', gradient: 'linear-gradient(135deg, #14b8a6, #2dd4bf)', callback: nav('availability') },
-                    ]
-                },
-                {
-                    title: '',
-                    items: [
-                        { id: 'communication', icon: 'messageCircle', label: 'Messages', gradient: 'linear-gradient(135deg, #25D366, #4ade80)', callback: nav('communication') },
-                        { id: 'settings', icon: 'settings', label: 'Settings', gradient: 'linear-gradient(135deg, #64748b, #94a3b8)', callback: nav('settings') },
-                        { id: 'logout', icon: 'logOut', label: 'Logout', gradient: 'linear-gradient(135deg, #ef4444, #f87171)', callback: () => { if (typeof window.logout === 'function') window.logout(); } },
-                    ]
-                },
-            ]
-        });
+        const sections = [
+            {
+                title: '',
+                items: [
+                    { id: 'dashboard', icon: 'barChart', label: 'Dashboard', gradient: 'linear-gradient(135deg, #0891b2, #06b6d4)', callback: nav('dashboard') },
+                    { id: 'property-analytics', icon: 'building', label: 'Property', gradient: 'linear-gradient(135deg, #6366f1, #818cf8)', callback: nav('property') },
+                    { id: 'business-analytics', icon: 'briefcase', label: 'Business', gradient: 'linear-gradient(135deg, #4f46e5, #6366f1)', callback: nav('business') },
+                    { id: 'financials', icon: 'dollarSign', label: 'Financials', gradient: 'linear-gradient(135deg, #059669, #10b981)', callback: nav('financials') },
+                ]
+            },
+            {
+                title: 'Operations',
+                items: [
+                    { id: 'guests', icon: 'users', label: 'Guests', gradient: 'linear-gradient(135deg, #7c3aed, #a855f7)', callback: nav('guests') },
+                    { id: 'documents', icon: 'fileText', label: 'Documents', gradient: 'linear-gradient(135deg, #d97706, #f59e0b)', callback: nav('guestDocuments') },
+                    { id: 'meals', icon: 'utensils', label: 'Meals', gradient: 'linear-gradient(135deg, #ea580c, #f97316)', callback: nav('meals') },
+                    { id: 'expenses', icon: 'receipt', label: 'Expenses', gradient: 'linear-gradient(135deg, #e11d48, #f43f5e)', callback: nav('expenses') },
+                ]
+            },
+            {
+                title: 'Management',
+                items: [
+                    { id: 'properties', icon: 'building2', label: 'Properties', gradient: 'linear-gradient(135deg, #0ea5e9, #38bdf8)', callback: nav('properties') },
+                    { id: 'team', icon: 'userCheck', label: 'Team', gradient: 'linear-gradient(135deg, #22c55e, #4ade80)', callback: nav('team') },
+                    { id: 'owners', icon: 'shield', label: 'Owners', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)', callback: nav('owners') },
+                    { id: 'availability', icon: 'calendarDays', label: 'Availability', gradient: 'linear-gradient(135deg, #14b8a6, #2dd4bf)', callback: nav('availability') },
+                ]
+            },
+            {
+                title: '',
+                items: [
+                    { id: 'communication', icon: 'messageCircle', label: 'Messages', gradient: 'linear-gradient(135deg, #25D366, #4ade80)', callback: nav('communication') },
+                    { id: 'settings', icon: 'settings', label: 'Settings', gradient: 'linear-gradient(135deg, #64748b, #94a3b8)', callback: nav('settings') },
+                    { id: 'logout', icon: 'logOut', label: 'Logout', gradient: 'linear-gradient(135deg, #ef4444, #f87171)', callback: () => { if (typeof window.logout === 'function') window.logout(); } },
+                ]
+            },
+        ];
+
+        if (isOwner) {
+            sections.forEach(section => {
+                section.items = section.items.filter(item => !adminOnlyIds.includes(item.id));
+            });
+        }
+
+        return this.open({ appIcons: sections.filter(s => s.items.length > 0) });
     }
 
     /** Open reservation detail sheet */

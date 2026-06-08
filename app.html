@@ -868,6 +868,11 @@
 
             <!-- Sidebar Footer (Settings & Support) -->
             <div class="sidebar-footer">
+                <!-- Powered by Hostizzy (visible to Hosts only) -->
+                <div id="sidebarPoweredBy" style="display: none; padding: 8px 16px; font-size: 11px; color: var(--text-tertiary); text-align: center; border-top: 1px solid var(--border); margin-bottom: 4px;">
+                    Powered by <a href="https://hostizzy.com" target="_blank" rel="noopener" style="color: var(--primary); text-decoration: none; font-weight: 600;">Hostizzy</a>
+                </div>
+
                 <!-- Settings -->
                 <a class="sidebar-item" onclick="showView('settings')">
                     <span class="sidebar-item-icon"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></span>
@@ -1108,13 +1113,13 @@
                             </div>
                             <div class="app-icon-label">Properties</div>
                         </div>
-                        <div class="app-icon" onclick="triggerHaptic('light'); showView('team');">
+                        <div class="app-icon admin-only-item" onclick="triggerHaptic('light'); showView('team');">
                             <div class="app-icon-box bg-pink">
                                 <i data-lucide="user-check" style="width: 28px; height: 28px;"></i>
                             </div>
                             <div class="app-icon-label">Team</div>
                         </div>
-                        <div class="app-icon" onclick="triggerHaptic('light'); showView('owners');">
+                        <div class="app-icon admin-only-item" onclick="triggerHaptic('light'); showView('owners');">
                             <div class="app-icon-box bg-indigo">
                                 <i data-lucide="shield" style="width: 28px; height: 28px;"></i>
                             </div>
@@ -1272,7 +1277,7 @@
                         </div>
                         <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
-                    <div class="category-card" onclick="showView('team')">
+                    <div class="category-card admin-only-item" onclick="showView('team')">
                         <div class="category-card-icon"><i data-lucide="user-check" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Team</div>
@@ -1280,7 +1285,7 @@
                         </div>
                         <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
-                    <div class="category-card" onclick="showView('owners')">
+                    <div class="category-card admin-only-item" onclick="showView('owners')">
                         <div class="category-card-icon"><i data-lucide="shield" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Owners</div>
