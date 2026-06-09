@@ -276,15 +276,28 @@
         }
 
         function hideSidebarForOwners() {
-            // Owners don't see admin-only views: Team, Owners, Pending Signups, OTA Import
+            // Hosts (independent) and managed owners don't see admin-only views
+            const hiddenLabels = ['Team', 'Owners', 'OTA Import', 'Performance'];
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 const label = item.querySelector('.sidebar-item-label')?.textContent?.trim();
-                if (['Team', 'Owners', 'OTA Import'].includes(label)) {
+                if (hiddenLabels.includes(label)) {
                     item.style.display = 'none';
                 }
             });
             const pendingNav = document.getElementById('sidebarPendingSignups');
             if (pendingNav) pendingNav.style.display = 'none';
+
+            // Hide admin-only items from home screen grids
+            document.querySelectorAll('.admin-only-item').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // Also hide Performance from mobile navigation
+            hidePerformanceForStaff();
+
+            // Show "Powered by Hostizzy" in sidebar for hosts
+            const poweredBy = document.getElementById('sidebarPoweredBy');
+            if (poweredBy) poweredBy.style.display = 'block';
         }
 
         function showAdminOnlyNav() {

@@ -513,7 +513,7 @@
 
                 <!-- Sign Up Link -->
                 <div style="margin-top: 16px; text-align: center;">
-                    <span style="font-size: 14px; color: var(--text-secondary);">Property owner?</span>
+                    <span style="font-size: 14px; color: var(--text-secondary);">Host?</span>
                     <a href="/" style="font-size: 14px; color: var(--primary); font-weight: 600; margin-left: 4px; text-decoration: none;">Register here</a>
                 </div>
 
@@ -521,7 +521,7 @@
                 <div class="login-portal-links login-desktop-only">
                     <a href="/owner-portal" class="login-portal-link">
                         <i data-lucide="building-2" style="width: 18px; height: 18px;"></i>
-                        <span>Owner Portal</span>
+                        <span>Managed Owner Portal</span>
                     </a>
                     <a href="/guest-portal" class="login-portal-link">
                         <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
@@ -534,7 +534,7 @@
                     <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Access Portals</p>
                     <a href="/owner-portal" class="login-owner-portal-btn">
                         <i data-lucide="building-2" style="width: 18px; height: 18px;"></i>
-                        Owner Portal &rarr;
+                        Managed Owner Portal &rarr;
                     </a>
                     <a href="/guest-portal" class="login-owner-portal-btn" style="margin-top: 10px; background: rgba(232, 148, 58, 0.08); color: var(--brand-orange, #E8943A); border-color: var(--brand-orange, #E8943A);">
                         <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
@@ -558,7 +558,7 @@
                     <div style="font-size: 48px; margin-bottom: 16px;">
                         <i data-lucide="clock" style="width: 48px; height: 48px; color: var(--warning, #f59e0b);"></i>
                     </div>
-                    <p style="font-size: 16px; color: var(--text-primary); font-weight: 600; margin-bottom: 8px;">Your account is pending approval</p>
+                    <p style="font-size: 16px; color: var(--text-primary); font-weight: 600; margin-bottom: 8px;">Your host account is pending approval</p>
                     <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">Our team will review your registration and activate your account shortly. You'll be able to log in once approved.</p>
                 </div>
                 <button class="btn btn-primary login-btn" onclick="showLoginPanel()" style="margin-top: 12px;">Back to Login</button>
@@ -868,6 +868,11 @@
 
             <!-- Sidebar Footer (Settings & Support) -->
             <div class="sidebar-footer">
+                <!-- Powered by Hostizzy (visible to Hosts only) -->
+                <div id="sidebarPoweredBy" style="display: none; padding: 8px 16px; font-size: 11px; color: var(--text-tertiary); text-align: center; border-top: 1px solid var(--border); margin-bottom: 4px;">
+                    Powered by <a href="https://hostizzy.com" target="_blank" rel="noopener" style="color: var(--primary); text-decoration: none; font-weight: 600;">Hostizzy</a>
+                </div>
+
                 <!-- Settings -->
                 <a class="sidebar-item" onclick="showView('settings')">
                     <span class="sidebar-item-icon"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></span>
@@ -1108,13 +1113,13 @@
                             </div>
                             <div class="app-icon-label">Properties</div>
                         </div>
-                        <div class="app-icon" onclick="triggerHaptic('light'); showView('team');">
+                        <div class="app-icon admin-only-item" onclick="triggerHaptic('light'); showView('team');">
                             <div class="app-icon-box bg-pink">
                                 <i data-lucide="user-check" style="width: 28px; height: 28px;"></i>
                             </div>
                             <div class="app-icon-label">Team</div>
                         </div>
-                        <div class="app-icon" onclick="triggerHaptic('light'); showView('owners');">
+                        <div class="app-icon admin-only-item" onclick="triggerHaptic('light'); showView('owners');">
                             <div class="app-icon-box bg-indigo">
                                 <i data-lucide="shield" style="width: 28px; height: 28px;"></i>
                             </div>
@@ -1272,7 +1277,7 @@
                         </div>
                         <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
-                    <div class="category-card" onclick="showView('team')">
+                    <div class="category-card admin-only-item" onclick="showView('team')">
                         <div class="category-card-icon"><i data-lucide="user-check" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Team</div>
@@ -1280,7 +1285,7 @@
                         </div>
                         <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
-                    <div class="category-card" onclick="showView('owners')">
+                    <div class="category-card admin-only-item" onclick="showView('owners')">
                         <div class="category-card-icon"><i data-lucide="shield" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
                             <div class="category-card-title">Owners</div>
@@ -3786,16 +3791,19 @@
                         <i data-lucide="shield" style="width: 24px; height: 24px; color: var(--primary);"></i>
                         Property Owners
                     </h2>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Manage property owner credentials and portal access</p>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Manage managed owners and independent hosts</p>
                 </div>
                 <button class="btn btn-primary" onclick="openOwnerModal()" style="display: flex; align-items: center; gap: 6px;">
                     <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Owner
                 </button>
             </div>
             <div class="card">
-                <p style="margin-bottom: 20px; padding: 16px 16px 0; color: var(--text-secondary); font-size: 14px;">
-                    Manage property owner credentials. Owners can access their assigned properties via the Owner Portal.
-                </p>
+                <!-- Owner type filter tabs -->
+                <div style="display: flex; gap: 6px; padding: 16px 16px 0; margin-bottom: 16px; flex-wrap: wrap;">
+                    <button class="filter-chip active" onclick="filterOwnersByType('all', this)" style="font-size: 12px; padding: 4px 12px;">All</button>
+                    <button class="filter-chip" onclick="filterOwnersByType('managed', this)" style="font-size: 12px; padding: 4px 12px;">Managed Owners</button>
+                    <button class="filter-chip" onclick="filterOwnersByType('independent', this)" style="font-size: 12px; padding: 4px 12px;">Hosts</button>
+                </div>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -3803,6 +3811,7 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
+                                <th>Type</th>
                                 <th>Properties</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -3824,7 +3833,7 @@
                         <i data-lucide="user-plus" style="width: 24px; height: 24px; color: var(--primary);"></i>
                         Pending Signups
                     </h2>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review and approve new property owner registrations</p>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review and approve new host registrations</p>
                 </div>
                 <button class="btn btn-secondary" onclick="loadPendingSignups()" style="display: flex; align-items: center; gap: 6px;">
                     <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Refresh
@@ -5777,22 +5786,29 @@
     <div id="ownerModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h3 class="modal-title">Add Property Owner</h3>
+                <h3 class="modal-title" id="ownerModalTitle">Add Owner</h3>
                 <button class="close-btn" onclick="closeOwnerModal()">&times;</button>
             </div>
             <div class="form-group">
-                <label>Owner Name *</label>
-                <input type="text" id="ownerName" placeholder="Enter owner's full name" required>
+                <label>Owner Type *</label>
+                <select id="ownerType" onchange="toggleOwnerTypeHint()">
+                    <option value="managed">Managed Owner — Hostizzy manages operations</option>
+                    <option value="independent">Host — Uses ResIQ independently</option>
+                </select>
+                <small id="ownerTypeHint" style="color: var(--text-secondary);">Managed owners access the Owner Portal. Hosts get the full app scoped to their properties.</small>
+            </div>
+            <div class="form-group">
+                <label>Name *</label>
+                <input type="text" id="ownerName" placeholder="Enter full name" required>
             </div>
             <div class="form-group">
                 <label>Email *</label>
                 <input type="email" id="ownerEmail" placeholder="owner@example.com" required>
-                <small style="color: var(--text-secondary);">Owner will use this email to login to Owner Portal</small>
+                <small id="ownerEmailHint" style="color: var(--text-secondary);">Will be used to login</small>
             </div>
             <div class="form-group">
                 <label>Password *</label>
                 <input type="password" id="ownerPassword" placeholder="Minimum 6 characters" required>
-                <small style="color: var(--text-secondary);">Owner will use this password to access their portal</small>
             </div>
             <div class="form-group">
                 <label>Phone</label>
@@ -5803,7 +5819,7 @@
                 <div id="propertyCheckboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
                     <!-- Will be populated dynamically -->
                 </div>
-                <small style="color: var(--text-secondary);">Owner will only see data from selected properties</small>
+                <small style="color: var(--text-secondary);">Only data from selected properties will be visible</small>
             </div>
             <div class="form-group">
                 <label>Status</label>
