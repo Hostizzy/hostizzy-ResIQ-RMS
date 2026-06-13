@@ -16,13 +16,14 @@
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  *   FIREBASE_API_KEY
  *   OPENAI_API_KEY
- *   OPENAI_MODEL (optional, default 'gpt-4o-mini')
+ *   OPENAI_MODEL (optional, default 'gpt-5.4-mini')
  */
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+// Frontier default; override on Vercel with OPENAI_MODEL (e.g. gpt-5.4, gpt-5.5).
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
 
 const ALLOWED_ORIGINS = [
   'https://resiq.hostizzy.com',
@@ -70,13 +71,13 @@ async function sb(path) {
 /** Resolve who the caller is and which properties they may see. */
 async function resolveScope(email) {
   const staff = await sb(
-    `team_members?email=eq.${encodeURIComponent(email)}&select=id,name,role,is_active&limit=1`
+    `team_members?email=eq.${encodeURIComponent(email)}&select=*&limit=1`
   );
   if (staff.length) {
     return { type: 'staff', name: staff[0].name, role: staff[0].role, propertyIds: null };
   }
   const owner = await sb(
-    `property_owners?email=eq.${encodeURIComponent(email)}&select=id,name,property_ids,commission_rate,bank_name,upi_id&limit=1`
+    `property_owners?email=eq.${encodeURIComponent(email)}&select=*&limit=1`
   );
   if (owner.length) {
     return {
@@ -89,47 +90,203 @@ async function resolveScope(email) {
   return { type: 'unknown', propertyIds: [] };
 }
 
-/** Retrieve the real, scoped records the assistant may ground its answer on. */
+/**
+ * Retrieve the real, scoped records the assistant grounds its answer on.
+ *
+ * IMPORTANT: we fetch with `select=*` (not hand-picked column lists). PostgREST
+ * 400s the ENTIRE query if any single named column doesn't exist, and sb()
+ * swallows that into []. The app itself reads with `.select()` (all columns) and
+ * tolerates absent columns via null — so `*` here keeps us schema-proof and
+ * matches what the app actually sees. The full rows are used for exact
+ * aggregation; only trimmed fields are sent to the model (see handler).
+ */
 async function retrieve(scope) {
   const scoped = scope.propertyIds; // null = all
   const inProps = scoped && scoped.length
     ? `&property_id=in.(${scoped.join(',')})`
     : '';
+  const inIds = scoped && scoped.length
+    ? `&id=in.(${scoped.join(',')})`
+    : '';
 
-  // Properties
-  let properties = await sb(
-    `properties?select=id,name,location,type,capacity,revenue_share_percent,is_managed,ical_url${
-      scoped && scoped.length ? `&id=in.(${scoped.join(',')})` : ''
-    }&order=name`
+  const properties = await sb(`properties?select=*${inIds}&order=name`);
+
+  // Fetch a wide window so server-side totals are accurate (only a trimmed
+  // subset is later put in the prompt).
+  const reservations = await sb(
+    `reservations?select=*${inProps}&order=check_in.desc&limit=2000`
   );
 
-  // Reservations (cap to keep the prompt bounded) — most recent first.
-  const resCols =
-    'booking_id,property_name,guest_name,guest_phone,check_in,check_out,nights,adults,kids,status,booking_source,booking_type,total_amount,paid_amount,payment_status,hostizzy_revenue,host_payout,kyc_status';
-  let reservations = await sb(
-    `reservations?select=${resCols}${inProps}&order=check_in.desc&limit=250`
-  );
-
-  // Payments (recent)
   let payments = await sb(
-    `payments?select=booking_id,amount,payment_method,payment_recipient,payment_date&order=payment_date.desc&limit=200`
+    `payments?select=*&order=payment_date.desc&limit=400`
   );
   if (scoped && scoped.length) {
     const ids = new Set(reservations.map((r) => r.booking_id));
     payments = payments.filter((p) => ids.has(p.booking_id));
   }
 
-  // Expenses (recent)
-  let expenses = await sb(
-    `property_expenses?select=property_name,property_id,amount,category,expense_date,description${inProps}&order=expense_date.desc&limit=120`
+  const expenses = await sb(
+    `property_expenses?select=*${inProps}&order=expense_date.desc&limit=2000`
   );
 
-  // Upcoming availability (iCal-synced blocked dates)
-  let availability = await sb(
-    `synced_availability?select=property_id,blocked_date,source,booking_summary${inProps}&order=blocked_date.asc&limit=200`
+  const availability = await sb(
+    `synced_availability?select=*${inProps}&order=blocked_date.asc&limit=300`
   );
 
   return { properties, reservations, payments, expenses, availability };
+}
+
+/** Add N days to a 'YYYY-MM-DD' string (UTC), returning 'YYYY-MM-DD'. */
+function addDays(ymd, n) {
+  const d = new Date(ymd + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+const _num = (x) => {
+  const n = Number(x);
+  return Number.isFinite(n) ? n : 0;
+};
+
+/**
+ * Compute EXACT aggregates in code (not by the LLM) so any total/count/sum the
+ * user asks for is correct. Cancelled bookings are excluded from financials.
+ */
+function computeMetrics(data, today) {
+  const month = today.slice(0, 7); // 'YYYY-MM'
+  const lastMonth = addDays(month + '-01', -1).slice(0, 7);
+  const next7 = addDays(today, 7);
+  const r = data.reservations || [];
+  const exp = data.expenses || [];
+
+  let totalValue = 0,
+    totalCollected = 0,
+    totalOutstanding = 0,
+    hostizzyRevenue = 0,
+    hostPayout = 0;
+  let kycPending = 0,
+    checkInsToday = 0,
+    checkOutsToday = 0,
+    inHouse = 0,
+    arrivalsNext7 = 0;
+  let monthBookings = 0,
+    monthValue = 0,
+    monthNights = 0,
+    lastMonthValue = 0;
+  const byStatus = {};
+  const countBySource = {};
+  const revenueByProperty = {};
+  const revenueBySource = {};
+  const pending = [];
+
+  for (const b of r) {
+    const tot = _num(b.total_amount);
+    const paid = _num(b.paid_amount);
+    const ota = _num(b.ota_service_fee);
+    const src = b.booking_source || 'unknown';
+    const status = String(b.status || '').toLowerCase();
+    const cancelled = status === 'cancelled' || status === 'canceled';
+    // OTA-aware receivable/balance — mirrors the app's Reservation model.
+    const isOta = src !== 'DIRECT' && ota > 0;
+    const receivable = isOta ? tot - ota : tot;
+    const balance = receivable - paid;
+
+    byStatus[status || 'unknown'] = (byStatus[status || 'unknown'] || 0) + 1;
+    countBySource[src] = (countBySource[src] || 0) + 1;
+
+    if (!cancelled) {
+      totalValue += tot;
+      totalCollected += paid;
+      if (balance > 0) {
+        totalOutstanding += balance;
+        pending.push({
+          guest: b.guest_name || '—',
+          property: b.property_name || '—',
+          balance: Math.round(balance),
+        });
+      }
+      hostizzyRevenue += _num(b.hostizzy_revenue);
+      hostPayout += _num(b.host_payout);
+      const prop = b.property_name || 'unknown';
+      revenueByProperty[prop] = (revenueByProperty[prop] || 0) + tot;
+      revenueBySource[src] = (revenueBySource[src] || 0) + tot;
+    }
+
+    const kyc = String(b.kyc_status || '').toLowerCase();
+    if (kyc && !['completed', 'done', 'verified', 'approved'].includes(kyc)) {
+      kycPending++;
+    }
+    if (b.check_in === today) checkInsToday++;
+    if (b.check_out === today) checkOutsToday++;
+    if (b.check_in && b.check_out && b.check_in <= today && today < b.check_out) {
+      inHouse++;
+    }
+    if (b.check_in && b.check_in > today && b.check_in <= next7) arrivalsNext7++;
+    const ciMonth = String(b.check_in || '').slice(0, 7);
+    if (!cancelled && ciMonth === month) {
+      monthBookings++;
+      monthValue += tot;
+      monthNights += _num(b.nights);
+    }
+    if (!cancelled && ciMonth === lastMonth) lastMonthValue += tot;
+  }
+
+  let totalExpenses = 0;
+  const expensesByCategory = {};
+  for (const e of exp) {
+    const a = _num(e.amount);
+    totalExpenses += a;
+    const c = e.category || 'other';
+    expensesByCategory[c] = (expensesByCategory[c] || 0) + a;
+  }
+
+  const round = (n) => Math.round(n);
+  // Sort + round a {key:number} map, keeping the biggest `cap` entries.
+  const sortMap = (m, cap = 50) =>
+    Object.fromEntries(
+      Object.entries(m)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, cap)
+        .map(([k, v]) => [k, round(v)])
+    );
+  const revByProp = sortMap(revenueByProperty);
+  const topProp = Object.entries(revByProp)[0];
+  pending.sort((a, b) => b.balance - a.balance);
+
+  return {
+    note:
+      `EXACT precomputed figures from ${r.length} bookings and ${exp.length} ` +
+      `expenses. Use these for any total / count / sum / revenue-by-X / ` +
+      `outstanding / occupancy question instead of re-summing the raw lists.`,
+    counts: { properties: (data.properties || []).length, bookings: r.length },
+    financials: {
+      totalBookingValue: round(totalValue),
+      totalCollected: round(totalCollected),
+      totalOutstanding: round(totalOutstanding),
+      hostizzyRevenue: round(hostizzyRevenue),
+      hostPayout: round(hostPayout),
+      totalExpenses: round(totalExpenses),
+      netAfterExpenses: round(hostizzyRevenue - totalExpenses),
+    },
+    today: { date: today, checkInsToday, checkOutsToday, inHouse, arrivalsNext7 },
+    thisMonth: {
+      month,
+      bookings: monthBookings,
+      value: round(monthValue),
+      nightsBooked: monthNights,
+    },
+    lastMonth: { month: lastMonth, value: round(lastMonthValue) },
+    kycPending,
+    bookingsByStatus: byStatus,
+    bookingsBySource: countBySource,
+    revenueByProperty: revByProp,
+    revenueBySource: sortMap(revenueBySource),
+    expensesByCategory,
+    topPropertyByValue: topProp
+      ? { name: topProp[0], value: topProp[1] }
+      : null,
+    topPendingBookings: pending.slice(0, 10),
+  };
 }
 
 export default async function handler(req, res) {
@@ -162,25 +319,69 @@ export default async function handler(req, res) {
       .toISOString()
       .slice(0, 10);
 
+    // Exact, server-computed aggregates (the LLM must not re-add records itself).
+    const metrics = computeMetrics(data, istNow);
+
+    // Trim the (wide) raw rows to compact, useful fields for the prompt — the
+    // full rows already fed the exact METRICS above, so the model only needs
+    // enough detail to answer about specific bookings/guests/dates.
+    const trimRes = (data.reservations || []).slice(0, 150).map((b) => ({
+      booking_id: b.booking_id,
+      property: b.property_name,
+      guest: b.guest_name,
+      phone: b.guest_phone,
+      check_in: b.check_in,
+      check_out: b.check_out,
+      nights: b.nights,
+      status: b.status,
+      source: b.booking_source,
+      total: b.total_amount,
+      paid: b.paid_amount,
+      payment_status: b.payment_status,
+      kyc: b.kyc_status,
+    }));
+    const trimPay = (data.payments || []).slice(0, 120).map((p) => ({
+      booking_id: p.booking_id,
+      amount: p.amount,
+      method: p.payment_method,
+      to: p.payment_recipient,
+      date: p.payment_date,
+    }));
+    const trimExp = (data.expenses || []).slice(0, 100).map((e) => ({
+      property: e.property_name,
+      amount: e.amount,
+      category: e.category,
+      date: e.expense_date,
+      note: e.description,
+    }));
+    const properties = (data.properties || []).map((p) => ({
+      name: p.name,
+      location: p.location,
+      type: p.type,
+      capacity: p.capacity,
+    }));
+
     const system =
       "You are Rezi, the friendly AI assistant inside ResIQ — a vacation-rental property-management app. " +
       "Answer the user's question using ONLY the JSON in DATA below — it is the user's real, live records " +
-      "(properties/listings, reservations/bookings, payments, expenses, host profile, availability). " +
+      "(properties/listings, reservations/bookings, payments, expenses, host profile, availability) plus a METRICS object. " +
       'RULES: (1) Use ONLY this data — never use outside or general knowledge. ' +
-      "(2) If the answer is not present in the data, say you don't have that information — never guess or invent bookings, amounts, names, or dates. " +
-      '(3) Be concise and specific; use ₹ for money and the exact names from the data. ' +
-      `(4) Today is ${istNow} (IST). ` +
-      `(5) The user is a ${scope.type}${scope.name ? ' named ' + scope.name : ''}; only their scoped data is provided.`;
+      '(2) For any total, count, sum, revenue, outstanding, occupancy, breakdown, or "how much / how many / by property / by channel" question, READ the answer from METRICS (it has exact figures incl. revenueByProperty, revenueBySource, topPendingBookings, today, thisMonth). Do NOT re-sum the raw lists — they are trimmed and would undercount. ' +
+      '(3) Use the detailed reservations/payments/expenses lists only for specific bookings, guests, or dates. ' +
+      "(4) Only say you don't have the information if it is genuinely absent from BOTH metrics and the lists. A value of 0 (e.g. 0 check-ins today) IS an answer — state it plainly; never guess or invent data. " +
+      '(5) Be concise and specific; use ₹ for money and the exact names from the data. ' +
+      `(6) Today is ${istNow} (IST). ` +
+      `(7) The user is a ${scope.type}${scope.name ? ' named ' + scope.name : ''}; only their scoped data is provided.`;
 
     const dataBlock = 'DATA:\n' + JSON.stringify({
       today: istNow,
       user: { type: scope.type, name: scope.name || null },
       hostProfile: scope.profile || null,
-      properties: data.properties,
-      reservations: data.reservations,
-      payments: data.payments,
-      expenses: data.expenses,
-      availability: data.availability,
+      metrics,
+      properties,
+      reservations: trimRes,
+      payments: trimPay,
+      expenses: trimExp,
     });
 
     const messages = [
@@ -195,24 +396,37 @@ export default async function handler(req, res) {
       { role: 'user', content: String(question).slice(0, 2000) },
     ];
 
-    const oai = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: OPENAI_MODEL,
-        messages,
-        temperature: 0.2,
-        max_tokens: 600,
-      }),
-    });
+    const callOpenAI = (body) =>
+      fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify(body),
+      });
 
+    const baseBody = {
+      model: OPENAI_MODEL,
+      messages,
+      temperature: 0.2,
+      // Newer (gpt-5.x) models require max_completion_tokens; gpt-4o accepts it too.
+      max_completion_tokens: 700,
+    };
+
+    let oai = await callOpenAI(baseBody);
     if (!oai.ok) {
       const errText = await oai.text();
-      console.error('[ai-chat] OpenAI error:', oai.status, errText);
-      return res.status(502).json({ error: 'AI service error' });
+      // Some models only allow the default temperature — retry once without it.
+      if (oai.status === 400 && /temperature/i.test(errText)) {
+        const { temperature, ...noTemp } = baseBody;
+        oai = await callOpenAI(noTemp);
+      }
+      if (!oai.ok) {
+        const finalErr = oai.ok ? '' : await oai.text().catch(() => errText);
+        console.error('[ai-chat] OpenAI error:', oai.status, finalErr || errText);
+        return res.status(502).json({ error: 'AI service error' });
+      }
     }
     const out = await oai.json();
     const answer = out.choices?.[0]?.message?.content?.trim() ||
