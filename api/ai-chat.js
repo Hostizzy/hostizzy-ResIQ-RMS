@@ -16,7 +16,7 @@
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  *   FIREBASE_API_KEY
  *   OPENAI_API_KEY
- *   OPENAI_MODEL (optional, default 'gpt-5.4-mini')
+ *   OPENAI_MODEL (optional, default 'gpt-4o-mini')
  */
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -289,6 +289,106 @@ function computeMetrics(data, today) {
   };
 }
 
+// Actions Rezi can propose. The APP executes them under the user's own RLS
+// session after a confirm tap — this endpoint never writes to the DB.
+const TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'create_reservation',
+      description: 'Create a new booking/reservation from the user request.',
+      parameters: {
+        type: 'object',
+        properties: {
+          property_name: { type: 'string' },
+          guest_name: { type: 'string' },
+          guest_phone: { type: 'string' },
+          check_in: { type: 'string', description: 'YYYY-MM-DD' },
+          check_out: { type: 'string', description: 'YYYY-MM-DD' },
+          adults: { type: 'integer' },
+          kids: { type: 'integer' },
+          stay_amount: { type: 'number' },
+          advance: { type: 'number' },
+          source: {
+            type: 'string',
+            description: 'DIRECT, AIRBNB, MMT/GOIBIBO, BOOKING.COM or AGODA',
+          },
+        },
+        required: ['guest_name'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'record_payment',
+      description: 'Record a payment received against an existing booking.',
+      parameters: {
+        type: 'object',
+        properties: {
+          booking_id: { type: 'string' },
+          guest_name: { type: 'string' },
+          amount: { type: 'number' },
+          method: { type: 'string', description: 'upi, cash, bank, card' },
+        },
+        required: ['amount'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'send_whatsapp',
+      description: 'Open WhatsApp to message a guest.',
+      parameters: {
+        type: 'object',
+        properties: {
+          guest_name: { type: 'string' },
+          phone: { type: 'string' },
+          message: { type: 'string' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'navigate',
+      description: 'Open a screen in the app.',
+      parameters: {
+        type: 'object',
+        properties: {
+          screen: {
+            type: 'string',
+            description:
+              'one of: dashboard, today, reservations, payments, business, properties, guests, expenses, enquiries, settlements, intelligence',
+          },
+        },
+        required: ['screen'],
+      },
+    },
+  },
+];
+
+/** A friendly confirmation line when the model proposes an action. */
+function actionConfirm(type, a) {
+  switch (type) {
+    case 'create_reservation':
+      return `Create a booking${a.guest_name ? ' for ' + a.guest_name : ''}` +
+        `${a.property_name ? ' at ' + a.property_name : ''}` +
+        `${a.check_in ? ' (' + a.check_in + (a.check_out ? ' → ' + a.check_out : '') + ')' : ''}? ` +
+        'Tap below to review & save.';
+    case 'record_payment':
+      return `Record a payment of ₹${a.amount}${a.guest_name ? ' from ' + a.guest_name : ''}? Tap below to confirm.`;
+    case 'send_whatsapp':
+      return `Message ${a.guest_name || a.phone || 'the guest'} on WhatsApp? Tap below to open.`;
+    case 'navigate':
+      return `Opening ${a.screen}…`;
+    default:
+      return 'Tap below to continue.';
+  }
+}
+
 export default async function handler(req, res) {
   setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -371,7 +471,8 @@ export default async function handler(req, res) {
       "(4) Only say you don't have the information if it is genuinely absent from BOTH metrics and the lists. A value of 0 (e.g. 0 check-ins today) IS an answer — state it plainly; never guess or invent data. " +
       '(5) Be concise and specific; use ₹ for money and the exact names from the data. ' +
       `(6) Today is ${istNow} (IST). ` +
-      `(7) The user is a ${scope.type}${scope.name ? ' named ' + scope.name : ''}; only their scoped data is provided.`;
+      `(7) The user is a ${scope.type}${scope.name ? ' named ' + scope.name : ''}; only their scoped data is provided. ` +
+      '(8) You can also DO things: when the user clearly asks to create a booking, record a payment, message a guest, or open a screen, call the matching tool (create_reservation / record_payment / send_whatsapp / navigate) with the details you can extract — the app will ask the user to confirm, so do not ask for confirmation yourself. For everything else, answer from DATA.';
 
     const dataBlock = 'DATA:\n' + JSON.stringify({
       today: istNow,
@@ -412,6 +513,8 @@ export default async function handler(req, res) {
       temperature: 0.2,
       // Newer (gpt-5.x) models require max_completion_tokens; gpt-4o accepts it too.
       max_completion_tokens: 700,
+      tools: TOOLS,
+      tool_choice: 'auto',
     };
 
     let oai = await callOpenAI(baseBody);
@@ -429,8 +532,23 @@ export default async function handler(req, res) {
       }
     }
     const out = await oai.json();
-    const answer = out.choices?.[0]?.message?.content?.trim() ||
-      "I couldn't generate an answer.";
+    const msg = out.choices?.[0]?.message;
+
+    // The model proposed an action → return it for the app to confirm + execute.
+    const toolCall = msg?.tool_calls?.[0];
+    if (toolCall) {
+      let args = {};
+      try {
+        args = JSON.parse(toolCall.function?.arguments || '{}');
+      } catch (_) {
+        args = {};
+      }
+      const type = toolCall.function?.name;
+      const answer = (msg.content && msg.content.trim()) || actionConfirm(type, args);
+      return res.status(200).json({ answer, action: { type, args } });
+    }
+
+    const answer = msg?.content?.trim() || "I couldn't generate an answer.";
     return res.status(200).json({ answer });
   } catch (err) {
     console.error('[ai-chat] Error:', err.message);
