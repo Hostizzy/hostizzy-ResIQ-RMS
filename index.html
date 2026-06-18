@@ -61,8 +61,10 @@
         "@type": "SoftwareApplication",
         "name": "ResIQ",
         "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web, Android, iOS (PWA)",
+        "operatingSystem": "Web, Android",
         "url": "https://resiq.hostizzy.com",
+        "downloadUrl": "https://play.google.com/store/apps/details?id=com.hostizzy.resiq",
+        "installUrl": "https://play.google.com/store/apps/details?id=com.hostizzy.resiq",
         "description": "Reservation management system for vacation rentals, homestays, farmhouses and villas. Track bookings, payments, guest KYC and team operations.",
         "offers": {
             "@type": "Offer",
@@ -117,9 +119,9 @@
          ============================================ -->
     <div class="announcement-bar" id="announcementBar" style="background: linear-gradient(90deg, #E8943A 0%, #d97706 100%); color: white; font-size: 14px; font-weight: 500; text-align: center; position: relative; z-index: 1001;">
         <div style="max-width: 1100px; margin: 0 auto; padding: 10px 24px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
-            <span style="background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 1px;" class="announcement-badge">NEW</span>
-            <span>ResIQ is now open for independent hosts — <strong>Free for a limited time</strong> for selected properties</span>
-            <a href="#signup" style="color: white; font-weight: 700; text-decoration: underline; text-underline-offset: 2px;" class="announcement-cta">Sign Up Free →</a>
+            <span style="background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 1px;" class="announcement-badge">LIVE</span>
+            <span>ResIQ is now on Google Play — <strong>Download the app free</strong></span>
+            <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" style="color: white; font-weight: 700; text-decoration: underline; text-underline-offset: 2px;" class="announcement-cta">Get it on Play Store →</a>
             <button onclick="document.getElementById('announcementBar').style.display='none'; document.documentElement.style.setProperty('--announcement-height','0px');" aria-label="Close" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,0.8); font-size: 18px; cursor: pointer; padding: 4px;">×</button>
         </div>
     </div>
@@ -140,6 +142,7 @@
                 <li><a href="#technology">Technology</a></li>
                 <li><a href="/app" class="nav-cta nav-cta-secondary">Login</a></li>
                 <li><a href="#signup" class="nav-cta nav-cta-primary">Sign Up Free</a></li>
+                <li><a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="nav-cta" style="background: #01875f; color: white; border-color: #01875f; display: flex; align-items: center; gap: 6px; font-size: 13px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734c0-.382.218-.726.61-.92zM14.85 13.057l2.672 1.543-3.25 1.875-2.478-2.478 3.057-0.94zM14.85 10.943L11.793 10l2.478-2.478 3.25 1.875-2.672 1.546zM17.89 8.225L21 10.02c.752.434.752 1.526 0 1.96l-3.11 1.795-2.69-1.775 2.69-1.775z"/></svg>Get App</a></li>
             </ul>
 
             <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
@@ -169,7 +172,11 @@
                     Track every booking, collect payments, verify guest KYC, and communicate &mdash; all from one screen.
                 </p>
                 <div class="hero-buttons">
-                    <a href="#signup" class="btn-hero-primary">
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn-hero-primary" style="background: #01875f; border-color: #01875f;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734c0-.382.218-.726.61-.92zM14.85 13.057l2.672 1.543-3.25 1.875-2.478-2.478 3.057-0.94zM14.85 10.943L11.793 10l2.478-2.478 3.25 1.875-2.672 1.546zM17.89 8.225L21 10.02c.752.434.752 1.526 0 1.96l-3.11 1.795-2.69-1.775 2.69-1.775z"/></svg>
+                        Get it on Google Play
+                    </a>
+                    <a href="#signup" class="btn-hero-secondary">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
                         Sign Up Free
                     </a>
@@ -676,12 +683,12 @@
 
             <div class="download-grid">
                 <div class="download-card reveal">
-                    <div class="download-icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    <div class="download-icon" style="background: linear-gradient(135deg, #01875f, #34a853);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734c0-.382.218-.726.61-.92zM14.85 13.057l2.672 1.543-3.25 1.875-2.478-2.478 3.057-0.94zM14.85 10.943L11.793 10l2.478-2.478 3.25 1.875-2.672 1.546zM17.89 8.225L21 10.02c.752.434.752 1.526 0 1.96l-3.11 1.795-2.69-1.775 2.69-1.775z"/></svg>
                     </div>
-                    <h3>Mobile App</h3>
-                    <p>Native Android &amp; iOS app for the best mobile experience. Push notifications and quick access.</p>
-                    <span class="coming-soon-badge">Coming Soon</span>
+                    <h3>Android App</h3>
+                    <p>Native Android app with push notifications, offline mode, biometric login, and the full ResIQ experience.</p>
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="portal-link" style="color: #01875f; font-weight: 700;">Download on Google Play &rarr;</a>
                 </div>
                 <div class="download-card reveal reveal-delay-1">
                     <div class="download-icon">
@@ -761,9 +768,13 @@
         <div class="cta-inner reveal">
             <h2>Start Managing Your Reservations Today</h2>
             <p>Join 45+ properties across 15 cities in India using ResIQ for daily operations.</p>
-            <div class="cta-buttons">
-                <a href="#signup" class="btn-hero-primary">
-                    Sign Up Free
+            <div class="cta-buttons" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn-hero-primary" style="background: #01875f; border-color: #01875f; display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734c0-.382.218-.726.61-.92zM14.85 13.057l2.672 1.543-3.25 1.875-2.478-2.478 3.057-0.94zM14.85 10.943L11.793 10l2.478-2.478 3.25 1.875-2.672 1.546zM17.89 8.225L21 10.02c.752.434.752 1.526 0 1.96l-3.11 1.795-2.69-1.775 2.69-1.775z"/></svg>
+                    Get it on Google Play
+                </a>
+                <a href="#signup" class="btn-hero-secondary" style="border-color: rgba(255,255,255,0.4); color: white;">
+                    Sign Up on Web
                 </a>
             </div>
         </div>
@@ -798,8 +809,9 @@
                     <a href="about.html">About</a>
                 </div>
                 <div class="footer-col">
-                    <h4>Portals</h4>
-                    <a href="/app">Staff RMS</a>
+                    <h4>Get ResIQ</h4>
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener">Android App (Google Play)</a>
+                    <a href="/app">Web App</a>
                     <a href="/owner-portal">Managed Owner Portal</a>
                     <a href="/guest-portal">Guest Portal</a>
                 </div>
