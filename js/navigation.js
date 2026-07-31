@@ -964,6 +964,12 @@ function updateActiveFilterCount() {
         const el = document.getElementById(id);
         if (el && el.value) count++;
     });
+    // Chip preset (other than "all") also counts as an active filter
+    if (typeof _activeMonthPreset !== 'undefined' && _activeMonthPreset && _activeMonthPreset !== 'all') {
+        // Only count if the month dropdown isn't set (dropdown takes precedence and is already counted)
+        const monthMobile = document.getElementById('monthFilterMobile');
+        if (!monthMobile || !monthMobile.value) count++;
+    }
     const badge = document.getElementById('activeFilterCount');
     if (badge) {
         if (count > 0) {

@@ -989,11 +989,8 @@ function populateFiltersAndDisplay(properties, reservations) {
     propertyFilter.innerHTML = '<option value="">All Properties</option>' +
         properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
 
-    // Populate month filter with unique months from reservations
-    const months = [...new Set(reservations.map(r => r.month).filter(Boolean))].sort().reverse();
-    const monthFilter = document.getElementById('monthFilter');
-    monthFilter.innerHTML = '<option value="">All Months</option>' +
-        months.map(m => `<option value="${m}">${m}</option>`).join('');
+    // Populate month filter grouped by year (newest first)
+    populateMonthFilter(reservations);
 
     // Restore saved filters BEFORE display to avoid double-render
     const savedFilters = loadFilterState('reservations');
@@ -1022,6 +1019,9 @@ function populateFiltersAndDisplay(properties, reservations) {
         if (savedFilters.month) {
             const mf = document.getElementById('monthFilter');
             if (mf) mf.value = savedFilters.month;
+            // A specific month overrides chip presets — clear chip active state
+            _activeMonthPreset = '';
+            document.querySelectorAll('.month-chip').forEach(c => c.classList.remove('active'));
             hasActiveFilters = true;
         }
     }
@@ -1124,12 +1124,10 @@ async function loadReservations(forceRefresh = false) {
         propertyFilter.innerHTML = '<option value="">All Properties</option>' + 
             properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
         
-        // Populate month filter with unique months from reservations
-        const months = [...new Set(allReservations.map(r => r.month).filter(Boolean))].sort().reverse();
-        const monthFilter = document.getElementById('monthFilter');
-        monthFilter.innerHTML = '<option value="">All Months</option>' + 
-            months.map(m => `<option value="${m}">${m}</option>`).join('');
-        
+        // Populate month filter grouped by year (newest first)
+        populateMonthFilter(allReservations);
+
+
         // Restore saved filters BEFORE display to avoid double-render
         const savedFilters = loadFilterState('reservations');
         let hasActiveFilters = false;
@@ -1157,6 +1155,9 @@ async function loadReservations(forceRefresh = false) {
             if (savedFilters.month) {
                 const mf = document.getElementById('monthFilter');
                 if (mf) mf.value = savedFilters.month;
+                // A specific month overrides chip presets — clear chip active state
+                _activeMonthPreset = '';
+                document.querySelectorAll('.month-chip').forEach(c => c.classList.remove('active'));
                 hasActiveFilters = true;
             }
         }
@@ -1432,9 +1433,107 @@ async function changeReservationStatus(bookingId, newStatus) {
 // Store filtered reservations for CSV export
 let filteredReservationsForExport = [];
 
+// Current active month chip preset ('all' | 'this-month' | 'last-month' | 'next-month' | 'this-year' | '' if user picked a specific month)
+let _activeMonthPreset = 'all';
+
 // ── Stable debounced filter reference (so removeEventListener actually works) ──
 const _stableDebouncedFilter = debounce(filterReservations, 300);
 let _filterListenersAttached = false;
+
+/**
+ * Populate the month dropdown (desktop + mobile) with unique months
+ * grouped by year for easier navigation as history grows.
+ */
+function populateMonthFilter(reservations) {
+    const months = [...new Set((reservations || []).map(r => r.month).filter(Boolean))];
+    // Sort by actual date (newest first) — string sort would put "Apr 2026" before "Mar 2026" alphabetically
+    months.sort((a, b) => new Date('01 ' + b) - new Date('01 ' + a));
+
+    // Group by year
+    const byYear = {};
+    for (const m of months) {
+        const year = m.split(' ')[1];
+        (byYear[year] = byYear[year] || []).push(m);
+    }
+    const years = Object.keys(byYear).sort().reverse();
+
+    const html = '<option value="">All Months</option>' + years.map(year =>
+        `<optgroup label="${year}">` +
+        byYear[year].map(m => `<option value="${m}">${m}</option>`).join('') +
+        `</optgroup>`
+    ).join('');
+
+    const desktop = document.getElementById('monthFilter');
+    const mobile = document.getElementById('monthFilterMobile');
+    if (desktop) desktop.innerHTML = html;
+    if (mobile) mobile.innerHTML = html;
+}
+
+/**
+ * Get "Mon YYYY" strings covered by a preset. Empty array = no month filter.
+ */
+function getMonthsForPreset(preset) {
+    const fmt = d => d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+    const now = new Date();
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    switch (preset) {
+        case 'this-month': return [fmt(thisMonth)];
+        case 'last-month': return [fmt(lastMonth)];
+        case 'next-month': return [fmt(nextMonth)];
+        case 'this-year': {
+            const y = now.getFullYear();
+            return Array.from({ length: 12 }, (_, i) => fmt(new Date(y, i, 1)));
+        }
+        default: return [];
+    }
+}
+
+/**
+ * Handle a chip click. Updates the active chip, clears the month dropdown,
+ * and re-filters.
+ */
+function applyMonthChip(preset, chipEl, fromMobile) {
+    _activeMonthPreset = preset;
+
+    // Update active state on all chips (desktop + mobile in sync)
+    document.querySelectorAll('.month-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll(`.month-chip[data-preset="${preset}"], .month-chip[data-preset-mobile="${preset}"]`)
+        .forEach(c => c.classList.add('active'));
+
+    // Clear the specific-month dropdown so it doesn't compete with the chip
+    const monthEl = document.getElementById('monthFilter');
+    const monthMobileEl = document.getElementById('monthFilterMobile');
+    if (monthEl) monthEl.value = '';
+    if (monthMobileEl) monthMobileEl.value = '';
+
+    filterReservations();
+    if (typeof updateActiveFilterCount === 'function') updateActiveFilterCount();
+}
+
+/**
+ * Called when the user picks a specific month from the dropdown.
+ * Deactivates the chips (a specific month overrides any preset).
+ */
+function onMonthDropdownChange() {
+    const monthEl = document.getElementById('monthFilter');
+    const monthMobileEl = document.getElementById('monthFilterMobile');
+    if (monthEl && monthMobileEl) monthMobileEl.value = monthEl.value;
+
+    if (monthEl && monthEl.value) {
+        // User picked a specific month — clear chip active states
+        _activeMonthPreset = '';
+        document.querySelectorAll('.month-chip').forEach(c => c.classList.remove('active'));
+    } else {
+        // Dropdown cleared — fall back to "All"
+        _activeMonthPreset = 'all';
+        document.querySelectorAll('.month-chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.month-chip[data-preset="all"], .month-chip[data-preset-mobile="all"]')
+            .forEach(c => c.classList.add('active'));
+    }
+    filterReservations();
+}
 
 function filterReservations() {
     const search = document.getElementById('searchReservations').value.toLowerCase();
@@ -1442,21 +1541,29 @@ function filterReservations() {
     const property = document.getElementById('propertyFilter').value;
     const bookingSource = document.getElementById('bookingSourceFilter').value;
     const month = document.getElementById('monthFilter').value;
-    
+
+    // Chip-based month set (empty = no chip restriction). A specific month
+    // dropdown value takes precedence over the chip.
+    const chipMonths = (!month && _activeMonthPreset && _activeMonthPreset !== 'all')
+        ? new Set(getMonthsForPreset(_activeMonthPreset))
+        : null;
+
     filteredReservationsForExport = allReservations.filter(r => {
-        const matchesSearch = !search || 
+        const matchesSearch = !search ||
             (r.guest_name || '').toLowerCase().includes(search) ||
             (r.booking_id || '').toLowerCase().includes(search) ||
             (r.guest_phone || '').toLowerCase().includes(search) ||
             (r.property_name || '').toLowerCase().includes(search);
-        
+
         const matchesStatus = !status || r.status === status;
         const matchesProperty = !property || r.property_id == property;
         const matchesBookingSource = !bookingSource || r.booking_source === bookingSource;
-        
+
         let matchesMonth = true;
         if (month) {
-        matchesMonth = r.month === month;
+            matchesMonth = r.month === month;
+        } else if (chipMonths) {
+            matchesMonth = chipMonths.has(r.month);
         }
         
         return matchesSearch && matchesStatus && matchesProperty && matchesBookingSource && matchesMonth;
@@ -1508,6 +1615,15 @@ function clearFilters() {
     document.getElementById('propertyFilter').value = '';
     document.getElementById('bookingSourceFilter').value = '';
     document.getElementById('monthFilter').value = '';
+    const monthMobile = document.getElementById('monthFilterMobile');
+    if (monthMobile) monthMobile.value = '';
+
+    // Reset chips to "All"
+    _activeMonthPreset = 'all';
+    document.querySelectorAll('.month-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.month-chip[data-preset="all"], .month-chip[data-preset-mobile="all"]')
+        .forEach(c => c.classList.add('active'));
+
     filteredReservationsForExport = [];
     displayReservations(allReservations);
 

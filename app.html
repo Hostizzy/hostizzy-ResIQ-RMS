@@ -2781,6 +2781,15 @@
 
             <!-- Filters Card (separate from data to prevent click/flash issues) -->
             <div class="card" style="margin-bottom: 16px;">
+                <!-- Quick month chips (desktop) -->
+                <div class="month-chips-row month-chips-desktop" style="padding: 12px 20px 0; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600; margin-right: 4px;">Quick:</span>
+                    <button class="month-chip active" data-preset="all" onclick="applyMonthChip('all', this)">All</button>
+                    <button class="month-chip" data-preset="this-month" onclick="applyMonthChip('this-month', this)">This Month</button>
+                    <button class="month-chip" data-preset="last-month" onclick="applyMonthChip('last-month', this)">Last Month</button>
+                    <button class="month-chip" data-preset="next-month" onclick="applyMonthChip('next-month', this)">Next Month</button>
+                    <button class="month-chip" data-preset="this-year" onclick="applyMonthChip('this-year', this)">This Year</button>
+                </div>
                 <!-- Desktop filters (hidden on mobile) -->
                 <div class="filters filters-desktop" style="padding: 16px 20px; margin-bottom: 0;">
                     <div class="filter-item" style="flex: 1; max-width: 350px;">
@@ -2815,12 +2824,31 @@
                         </select>
                     </div>
                     <div class="filter-item" style="max-width: 180px;">
-                        <select id="monthFilter" onchange="filterReservations()">
+                        <select id="monthFilter" onchange="onMonthDropdownChange()">
                             <option value="">All Months</option>
                         </select>
                     </div>
                     <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
                 </div>
+
+                <style>
+                    .month-chip {
+                        padding: 6px 12px;
+                        border-radius: 16px;
+                        border: 1px solid var(--border);
+                        background: var(--surface);
+                        color: var(--text-primary);
+                        font-size: 12px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.15s;
+                    }
+                    .month-chip:hover { background: var(--background-alt, #f1f5f9); border-color: var(--primary); }
+                    .month-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+                    @media (max-width: 768px) {
+                        .month-chips-desktop { display: none !important; }
+                    }
+                </style>
 
                 <!-- Mobile filters: search bar + filter button + bottom sheet -->
                 <div class="filters-mobile">
@@ -2887,8 +2915,16 @@
                         </select>
                     </div>
                     <div class="filter-sheet-group">
-                        <label class="filter-sheet-label">Month</label>
-                        <select id="monthFilterMobile" onchange="document.getElementById('monthFilter').value = this.value; filterReservations();">
+                        <label class="filter-sheet-label">Quick Range</label>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
+                            <button class="month-chip active" data-preset-mobile="all" onclick="applyMonthChip('all', this, true)">All</button>
+                            <button class="month-chip" data-preset-mobile="this-month" onclick="applyMonthChip('this-month', this, true)">This Month</button>
+                            <button class="month-chip" data-preset-mobile="last-month" onclick="applyMonthChip('last-month', this, true)">Last Month</button>
+                            <button class="month-chip" data-preset-mobile="next-month" onclick="applyMonthChip('next-month', this, true)">Next Month</button>
+                            <button class="month-chip" data-preset-mobile="this-year" onclick="applyMonthChip('this-year', this, true)">This Year</button>
+                        </div>
+                        <label class="filter-sheet-label">Specific Month</label>
+                        <select id="monthFilterMobile" onchange="document.getElementById('monthFilter').value = this.value; onMonthDropdownChange();">
                             <option value="">All Months</option>
                         </select>
                     </div>
