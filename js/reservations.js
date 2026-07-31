@@ -1433,8 +1433,11 @@ async function changeReservationStatus(bookingId, newStatus) {
 // Store filtered reservations for CSV export
 let filteredReservationsForExport = [];
 
-// Current active month chip preset ('all' | 'this-month' | 'last-month' | 'next-month' | 'this-year' | '' if user picked a specific month)
+// Current active month chip preset ('all' | 'this-month' | 'last-month' | 'next-month' | 'this-year' | 'custom' | '' if user picked a specific month)
 let _activeMonthPreset = 'all';
+// Custom range state (set when preset === 'custom')
+let _customRangeFrom = null; // 'YYYY-MM-DD' or null
+let _customRangeTo = null;   // 'YYYY-MM-DD' or null
 
 // ── Stable debounced filter reference (so removeEventListener actually works) ──
 const _stableDebouncedFilter = debounce(filterReservations, 300);
@@ -1508,6 +1511,57 @@ function applyMonthChip(preset, chipEl, fromMobile) {
     if (monthEl) monthEl.value = '';
     if (monthMobileEl) monthMobileEl.value = '';
 
+    // Show/hide the custom date range inputs
+    const customRow = document.getElementById('customRangeRow');
+    const customRowMobile = document.getElementById('customRangeRowMobile');
+    if (preset === 'custom') {
+        if (customRow) customRow.style.display = 'flex';
+        if (customRowMobile) customRowMobile.style.display = 'block';
+        // Don't filter yet — wait for user to pick dates
+        if (!_customRangeFrom && !_customRangeTo) {
+            if (typeof updateActiveFilterCount === 'function') updateActiveFilterCount();
+            return;
+        }
+    } else {
+        if (customRow) customRow.style.display = 'none';
+        if (customRowMobile) customRowMobile.style.display = 'none';
+        _customRangeFrom = null;
+        _customRangeTo = null;
+    }
+
+    filterReservations();
+    if (typeof updateActiveFilterCount === 'function') updateActiveFilterCount();
+}
+
+function applyCustomRange() {
+    const fromEl = document.getElementById('customRangeFrom');
+    const toEl = document.getElementById('customRangeTo');
+    const fromMobileEl = document.getElementById('customRangeFromMobile');
+    const toMobileEl = document.getElementById('customRangeToMobile');
+
+    _customRangeFrom = (fromEl && fromEl.value) || null;
+    _customRangeTo = (toEl && toEl.value) || null;
+
+    // Keep mobile inputs in sync with desktop
+    if (fromMobileEl && _customRangeFrom) fromMobileEl.value = _customRangeFrom;
+    if (toMobileEl && _customRangeTo) toMobileEl.value = _customRangeTo;
+
+    _activeMonthPreset = 'custom';
+    document.querySelectorAll('.month-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.month-chip[data-preset="custom"], .month-chip[data-preset-mobile="custom"]')
+        .forEach(c => c.classList.add('active'));
+
+    filterReservations();
+    if (typeof updateActiveFilterCount === 'function') updateActiveFilterCount();
+}
+
+function clearCustomRange() {
+    _customRangeFrom = null;
+    _customRangeTo = null;
+    ['customRangeFrom', 'customRangeTo', 'customRangeFromMobile', 'customRangeToMobile'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
     filterReservations();
     if (typeof updateActiveFilterCount === 'function') updateActiveFilterCount();
 }
@@ -1543,8 +1597,10 @@ function filterReservations() {
     const month = document.getElementById('monthFilter').value;
 
     // Chip-based month set (empty = no chip restriction). A specific month
-    // dropdown value takes precedence over the chip.
-    const chipMonths = (!month && _activeMonthPreset && _activeMonthPreset !== 'all')
+    // dropdown value takes precedence over the chip. Custom range uses
+    // check_in dates directly, not the month string.
+    const isCustom = !month && _activeMonthPreset === 'custom';
+    const chipMonths = (!month && !isCustom && _activeMonthPreset && _activeMonthPreset !== 'all')
         ? new Set(getMonthsForPreset(_activeMonthPreset))
         : null;
 
@@ -1562,6 +1618,16 @@ function filterReservations() {
         let matchesMonth = true;
         if (month) {
             matchesMonth = r.month === month;
+        } else if (isCustom) {
+            // Filter on check_in date within the custom range (inclusive on both ends).
+            // Empty from/to means unbounded on that side.
+            if (!r.check_in) {
+                matchesMonth = false;
+            } else {
+                const ci = r.check_in;
+                if (_customRangeFrom && ci < _customRangeFrom) matchesMonth = false;
+                if (matchesMonth && _customRangeTo && ci > _customRangeTo) matchesMonth = false;
+            }
         } else if (chipMonths) {
             matchesMonth = chipMonths.has(r.month);
         }
@@ -1623,6 +1689,18 @@ function clearFilters() {
     document.querySelectorAll('.month-chip').forEach(c => c.classList.remove('active'));
     document.querySelectorAll('.month-chip[data-preset="all"], .month-chip[data-preset-mobile="all"]')
         .forEach(c => c.classList.add('active'));
+
+    // Reset custom range
+    _customRangeFrom = null;
+    _customRangeTo = null;
+    ['customRangeFrom', 'customRangeTo', 'customRangeFromMobile', 'customRangeToMobile'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    const customRow = document.getElementById('customRangeRow');
+    const customRowMobile = document.getElementById('customRangeRowMobile');
+    if (customRow) customRow.style.display = 'none';
+    if (customRowMobile) customRowMobile.style.display = 'none';
 
     filteredReservationsForExport = [];
     displayReservations(allReservations);

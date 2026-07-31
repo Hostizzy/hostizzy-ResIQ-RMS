@@ -2789,6 +2789,15 @@
                     <button class="month-chip" data-preset="last-month" onclick="applyMonthChip('last-month', this)">Last Month</button>
                     <button class="month-chip" data-preset="next-month" onclick="applyMonthChip('next-month', this)">Next Month</button>
                     <button class="month-chip" data-preset="this-year" onclick="applyMonthChip('this-year', this)">This Year</button>
+                    <button class="month-chip" data-preset="custom" onclick="applyMonthChip('custom', this)">Custom Range</button>
+                </div>
+                <!-- Custom date range row (hidden until Custom chip clicked) -->
+                <div id="customRangeRow" style="display: none; padding: 8px 20px 0; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">From</span>
+                    <input type="date" id="customRangeFrom" onchange="applyCustomRange()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">To</span>
+                    <input type="date" id="customRangeTo" onchange="applyCustomRange()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+                    <button class="btn btn-sm" onclick="clearCustomRange()" style="font-size: 12px; padding: 4px 12px;">Clear</button>
                 </div>
                 <!-- Desktop filters (hidden on mobile) -->
                 <div class="filters filters-desktop" style="padding: 16px 20px; margin-bottom: 0;">
@@ -2922,6 +2931,13 @@
                             <button class="month-chip" data-preset-mobile="last-month" onclick="applyMonthChip('last-month', this, true)">Last Month</button>
                             <button class="month-chip" data-preset-mobile="next-month" onclick="applyMonthChip('next-month', this, true)">Next Month</button>
                             <button class="month-chip" data-preset-mobile="this-year" onclick="applyMonthChip('this-year', this, true)">This Year</button>
+                            <button class="month-chip" data-preset-mobile="custom" onclick="applyMonthChip('custom', this, true)">Custom Range</button>
+                        </div>
+                        <div id="customRangeRowMobile" style="display: none; margin-bottom: 12px;">
+                            <label class="filter-sheet-label" style="font-size: 12px; margin-top: 8px;">From</label>
+                            <input type="date" id="customRangeFromMobile" onchange="document.getElementById('customRangeFrom').value = this.value; applyCustomRange();" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px;">
+                            <label class="filter-sheet-label" style="font-size: 12px;">To</label>
+                            <input type="date" id="customRangeToMobile" onchange="document.getElementById('customRangeTo').value = this.value; applyCustomRange();" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                         </div>
                         <label class="filter-sheet-label">Specific Month</label>
                         <select id="monthFilterMobile" onchange="document.getElementById('monthFilter').value = this.value; onMonthDropdownChange();">
