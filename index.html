@@ -4,57 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#1B3A5C" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
 
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="ResIQ — Reservation management system for vacation rentals, homestays, farmhouses & villas in India. Track bookings, payments, guest KYC, WhatsApp messaging & analytics. Built by Hostizzy.">
-    <meta name="keywords" content="reservation management system, vacation rental software India, homestay booking management, farmhouse reservation system, guest KYC verification, payment tracking hospitality, WhatsApp booking confirmation, property management India, OTA calendar sync, Hostizzy ResIQ, holiday home management, villa booking software, hospitality operations tool, guest management system, rental booking tracker">
+    <meta name="description" content="ResIQ — reservation management for vacation rentals, homestays, farmhouses and villas in India. Bookings, payments, guest KYC, WhatsApp and OTA sync in one place. Works offline. Built by Hostizzy.">
+    <meta name="keywords" content="reservation management system, vacation rental software India, homestay booking management, farmhouse reservation system, guest KYC verification, payment tracking hospitality, WhatsApp booking confirmation, property management India, OTA calendar sync, Hostizzy ResIQ, holiday home management, villa booking software, offline property management">
     <meta name="author" content="Hostizzy - Hostsphere India Private Limited">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://resiq.hostizzy.com/">
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="ResIQ by Hostizzy — Reservation Management for Vacation Rentals">
-    <meta property="og:description" content="Track reservations, payments, guest KYC & team operations for your vacation rental business. Built for Indian hospitality operators.">
     <meta property="og:type" content="website">
+    <meta property="og:title" content="ResIQ by Hostizzy — Run your property, not a spreadsheet">
+    <meta property="og:description" content="The daily operations board for Indian vacation rentals. Bookings, payments, guest KYC and WhatsApp in one place — and it works offline.">
     <meta property="og:url" content="https://resiq.hostizzy.com/">
-    <meta property="og:image" content="https://resiq.hostizzy.com/assets/logo-512.png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
+    <meta property="og:image" content="https://resiq.hostizzy.com/assets/Logo-512.png">
     <meta property="og:site_name" content="ResIQ by Hostizzy">
-    <meta property="og:locale" content="en_IN">
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ResIQ — Reservation Management for Vacation Rentals">
-    <meta name="twitter:description" content="Track reservations, payments, guest KYC & team operations. Built for Indian hospitality.">
-    <meta name="twitter:image" content="https://resiq.hostizzy.com/assets/logo-512.png">
+    <meta name="twitter:title" content="ResIQ by Hostizzy — Run your property, not a spreadsheet">
+    <meta name="twitter:description" content="Bookings, payments, guest KYC and WhatsApp in one place. Works offline. Built across 45 properties in India.">
+    <meta name="twitter:image" content="https://resiq.hostizzy.com/assets/Logo-512.png">
 
-    <!-- Geo & Language targeting -->
-    <meta name="geo.region" content="IN">
-    <meta name="geo.placename" content="India">
-    <meta name="language" content="English">
+    <meta name="theme-color" content="#0A1826">
+    <link rel="icon" type="image/png" sizes="48x48" href="assets/logo-48.png">
+    <link rel="apple-touch-icon" href="assets/logo-192.png">
+    <link rel="manifest" href="manifest.json">
 
-    <title>ResIQ by Hostizzy — Reservation Management System for Vacation Rentals, Homestays & Villas</title>
+    <title>ResIQ by Hostizzy — Reservation Management for Indian Vacation Rentals</title>
 
-    <link rel="icon" type="image/png" href="/assets/logo-96.png">
-    <link rel="apple-touch-icon" href="/assets/logo-180.png">
-    <link rel="sitemap" type="application/xml" href="/sitemap.xml">
-    <link rel="stylesheet" href="css/landing.css?v=3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/landing.css?v=4">
 
-    <!-- Inline overrides (ensures rendering even if CSS is cached) -->
-    <style>
-        @media (max-width: 768px) {
-            .signup-grid { grid-template-columns: 1fr !important; }
-            .signup-section { padding: 64px 20px !important; }
-            .signup-card { padding: 28px 24px !important; }
-            .announcement-badge { display: none !important; }
-            .announcement-bar { font-size: 12px !important; }
-        }
-    </style>
-
-    <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -65,7 +45,7 @@
         "url": "https://resiq.hostizzy.com",
         "downloadUrl": "https://play.google.com/store/apps/details?id=com.hostizzy.resiq",
         "installUrl": "https://play.google.com/store/apps/details?id=com.hostizzy.resiq",
-        "description": "Reservation management system for vacation rentals, homestays, farmhouses and villas. Track bookings, payments, guest KYC and team operations.",
+        "description": "Reservation management system for vacation rentals, homestays, farmhouses and villas in India. Track bookings, payments, guest KYC and team operations. Works offline.",
         "offers": {
             "@type": "Offer",
             "price": "0",
@@ -82,11 +62,6 @@
                 "https://linkedin.com/company/hostizzy",
                 "https://www.youtube.com/@hostizzy"
             ]
-        },
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.8",
-            "reviewCount": "45"
         }
     }
     </script>
@@ -97,7 +72,7 @@
         "name": "Hostizzy",
         "legalName": "Hostsphere India Private Limited",
         "url": "https://hostizzy.com",
-        "logo": "https://resiq.hostizzy.com/assets/logo-512.png",
+        "logo": "https://resiq.hostizzy.com/assets/Logo-512.png",
         "contactPoint": {
             "@type": "ContactPoint",
             "email": "support@hostizzy.com",
@@ -114,806 +89,621 @@
 </head>
 <body>
 
-    <!-- ============================================
-         ANNOUNCEMENT BANNER
-         ============================================ -->
-    <div class="announcement-bar" id="announcementBar" style="background: linear-gradient(90deg, #E8943A 0%, #d97706 100%); color: white; font-size: 14px; font-weight: 500; text-align: center; position: relative; z-index: 1001;">
-        <div style="max-width: 1100px; margin: 0 auto; padding: 10px 24px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
-            <span style="background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 1px;" class="announcement-badge">LIVE</span>
-            <span>ResIQ is now on Google Play — <strong>Download the app free</strong></span>
-            <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" style="color: white; font-weight: 700; text-decoration: underline; text-underline-offset: 2px;" class="announcement-cta">Get it on Play Store →</a>
-            <button onclick="document.getElementById('announcementBar').style.display='none'; document.documentElement.style.setProperty('--announcement-height','0px');" aria-label="Close" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,0.8); font-size: 18px; cursor: pointer; padding: 4px;">×</button>
+    <!-- ─────────── ANNOUNCEMENT ─────────── -->
+    <div class="announcement-bar" id="announcementBar">
+        <div class="wrap">
+            <span class="tag">Live</span>
+            <img src="assets/google-play.svg" alt="" width="13" height="13" class="inline-mark">
+            <span>ResIQ is on Google Play &mdash; <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener">download the Android app</a></span>
+            <button class="close" onclick="document.getElementById('announcementBar').style.display='none'; document.documentElement.style.setProperty('--announcement-height','0px');" aria-label="Dismiss announcement">&times;</button>
         </div>
     </div>
 
-    <!-- ============================================
-         NAVBAR
-         ============================================ -->
+    <!-- ─────────── NAV ─────────── -->
     <nav class="landing-nav" id="navbar">
         <div class="nav-inner">
-            <a href="/" class="nav-brand">
-                <img src="assets/logo-128.png" alt="ResIQ" width="40" height="40">
+            <a href="/" class="nav-brand" aria-label="ResIQ home">
+                <img src="assets/logo-128.png" alt="" width="29" height="29">
                 <span class="nav-brand-text">ResIQ</span>
             </a>
 
             <ul class="nav-links" id="navLinks">
+                <li><a href="#how">How it works</a></li>
                 <li><a href="#features">Features</a></li>
+                <li><a href="#offline">Offline</a></li>
                 <li><a href="#portals">Portals</a></li>
-                <li><a href="#technology">Technology</a></li>
-                <li><a href="/app" class="nav-cta nav-cta-secondary">Login</a></li>
-                <li><a href="#signup" class="nav-cta nav-cta-primary">Sign Up Free</a></li>
-                <li><a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="nav-cta" style="background: #01875f; color: white; border-color: #01875f; display: flex; align-items: center; gap: 6px; font-size: 13px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734c0-.382.218-.726.61-.92zM14.85 13.057l2.672 1.543-3.25 1.875-2.478-2.478 3.057-0.94zM14.85 10.943L11.793 10l2.478-2.478 3.25 1.875-2.672 1.546zM17.89 8.225L21 10.02c.752.434.752 1.526 0 1.96l-3.11 1.795-2.69-1.775 2.69-1.775z"/></svg>Get App</a></li>
+                <li aria-hidden="true"><span class="nav-sep"></span></li>
+                <li><a href="/app" class="nav-cta nav-cta-ghost">Sign in</a></li>
+                <li><a href="#signup" class="nav-cta nav-cta-solid">Start free</a></li>
             </ul>
 
-            <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
+            <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+                <span></span><span></span><span></span>
             </button>
         </div>
     </nav>
 
-    <!-- ============================================
-         HERO
-         ============================================ -->
-    <section class="hero">
+    <!-- ─────────── HERO ─────────── -->
+    <header class="hero">
         <div class="hero-inner">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <span class="hero-badge-dot" style="background: #F0A85C;"></span>
-                    Now Open for Independent Hosts
-                </div>
-                <h1>
-                    <span>Reservations. Guests.</span>
-                    <span>Payments. Sorted.</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Built by Hostizzy for 45+ vacation rentals across India. Now open for independent hosts.
-                    Track every booking, collect payments, verify guest KYC, and communicate &mdash; all from one screen.
+            <div>
+                <span class="hero-eyebrow"><span class="dot"></span> Now open to independent hosts</span>
+
+                <h1>Run your property, not a <em>spreadsheet.</em></h1>
+
+                <p class="hero-sub">
+                    ResIQ is the daily operations board for Indian vacation rentals &mdash; bookings, payments,
+                    guest KYC and WhatsApp in one place. Built by Hostizzy across <strong>45 properties</strong>.
+                    And it works with no signal, because your hill property doesn't have any.
                 </p>
-                <div class="hero-buttons">
-                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn-hero-primary" style="background: #01875f; border-color: #01875f;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734c0-.382.218-.726.61-.92zM14.85 13.057l2.672 1.543-3.25 1.875-2.478-2.478 3.057-0.94zM14.85 10.943L11.793 10l2.478-2.478 3.25 1.875-2.672 1.546zM17.89 8.225L21 10.02c.752.434.752 1.526 0 1.96l-3.11 1.795-2.69-1.775 2.69-1.775z"/></svg>
+
+                <div class="hero-actions">
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn btn-accent">
+                        <img src="assets/google-play.svg" alt="" width="18" height="18" class="btn-mark">
                         Get it on Google Play
                     </a>
-                    <a href="#signup" class="btn-hero-secondary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                        Sign Up Free
-                    </a>
-                    <a href="/app" class="btn-hero-secondary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                        Login
-                    </a>
+                    <a href="#signup" class="btn btn-onnavy">Start free on web</a>
                 </div>
-            </div>
 
-            <div class="hero-visual">
-                <div class="hero-mockup">
-                    <div class="mockup-header">
-                        <img src="assets/logo-96.png" alt="ResIQ" class="mockup-logo" width="36" height="36">
-                        <span class="mockup-title">Today's Overview</span>
-                    </div>
-                    <div class="mockup-stats">
-                        <div class="mockup-stat">
-                            <div class="mockup-stat-value">6</div>
-                            <div class="mockup-stat-label">Check-ins</div>
-                        </div>
-                        <div class="mockup-stat">
-                            <div class="mockup-stat-value">3</div>
-                            <div class="mockup-stat-label">Check-outs</div>
-                        </div>
-                        <div class="mockup-stat">
-                            <div class="mockup-stat-value">2</div>
-                            <div class="mockup-stat-label">Pending KYC</div>
-                        </div>
-                        <div class="mockup-stat">
-                            <div class="mockup-stat-value">&#8377;48K</div>
-                            <div class="mockup-stat-label">Due Today</div>
-                        </div>
-                    </div>
-                    <div class="mockup-chart">
-                        <div class="mockup-bar" style="height: 40%"></div>
-                        <div class="mockup-bar" style="height: 65%"></div>
-                        <div class="mockup-bar" style="height: 45%"></div>
-                        <div class="mockup-bar" style="height: 80%"></div>
-                        <div class="mockup-bar" style="height: 55%"></div>
-                        <div class="mockup-bar" style="height: 90%"></div>
-                        <div class="mockup-bar" style="height: 70%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============================================
-         STATS BAR — Proven at Scale by Hostizzy
-         ============================================ -->
-    <section class="stats-bar">
-        <div class="stats-bar-inner">
-            <div class="stat-item-landing reveal">
-                <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                </div>
-                <div class="stat-number" data-count="45">0+</div>
-                <div class="stat-label">Properties Powered</div>
-            </div>
-            <div class="stat-item-landing reveal reveal-delay-1">
-                <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <div class="stat-number" data-count="3">0+</div>
-                <div class="stat-label">Years Battle-Tested</div>
-            </div>
-            <div class="stat-item-landing reveal reveal-delay-2">
-                <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                </div>
-                <div class="stat-number" data-count="15">0</div>
-                <div class="stat-label">Cities Across India</div>
-            </div>
-            <div class="stat-item-landing reveal reveal-delay-3">
-                <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                </div>
-                <div class="stat-number">Built for Scale</div>
-                <div class="stat-label">Now Open for You</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============================================
-         WHAT IS RESIQ
-         ============================================ -->
-    <section class="section-landing" id="what-is-resiq">
-        <div class="section-inner">
-            <div class="section-header reveal">
-                <span class="section-tag">What is ResIQ</span>
-                <h2 class="section-title">Not a PMS. Your Daily<br>Operations Dashboard.</h2>
-                <p class="section-subtitle">
-                    ResIQ handles what your team does every single day &mdash; managing reservations, chasing payments, verifying guests, and staying on top of operations. It's the staff-facing tool that keeps your properties running.
+                <p class="hero-meta">
+                    <span>Free to start</span>
+                    <span aria-hidden="true">&middot;</span>
+                    <span>No card required</span>
+                    <span aria-hidden="true">&middot;</span>
+                    <span>Android &amp; web</span>
                 </p>
             </div>
 
-            <div class="workflow-grid">
-                <div class="workflow-step reveal">
-                    <div class="workflow-number">1</div>
-                    <div class="workflow-content">
-                        <h3>Enquiry Comes In</h3>
-                        <p>Phone, WhatsApp, Instagram, walk-in &mdash; capture every lead with source tracking and follow-up reminders.</p>
+            <!-- The board: the most characteristic surface in this product -->
+            <div class="board" role="img" aria-label="Screenshot of the ResIQ daily operations board showing four check-ins, three check-outs, two pending KYC verifications and ₹48,200 due today, followed by a list of today's guest arrivals.">
+                <div class="board-top">
+                    <span class="t">Today's board</span>
+                    <span class="board-live">Live</span>
+                    <span class="date">Sat 12 Jul</span>
+                </div>
+
+                <div class="board-kpis">
+                    <div class="board-kpi"><div class="v">04</div><div class="l">Check-ins</div></div>
+                    <div class="board-kpi"><div class="v">03</div><div class="l">Check-outs</div></div>
+                    <div class="board-kpi"><div class="v">02</div><div class="l">KYC due</div></div>
+                    <div class="board-kpi due"><div class="v">48.2K</div><div class="l">&#8377; Due</div></div>
+                </div>
+
+                <div class="board-rows">
+                    <div class="board-row">
+                        <div><div class="g">Ananya Deshpande</div><div class="p">The Bageecha &middot; 4 guests</div></div>
+                        <div class="d">12&ndash;15 Jul</div>
+                        <span class="status status-in">Checked in</span>
+                    </div>
+                    <div class="board-row">
+                        <div><div class="g">Rohit Menon</div><div class="p">Coorg Hill House &middot; 6 guests</div></div>
+                        <div class="d">12&ndash;14 Jul</div>
+                        <span class="status status-due">&#8377;12,400 due</span>
+                    </div>
+                    <div class="board-row">
+                        <div><div class="g">Farida Contractor</div><div class="p">Alibaug Villa &middot; 8 guests</div></div>
+                        <div class="d">13&ndash;17 Jul</div>
+                        <span class="status status-conf">Confirmed</span>
+                    </div>
+                    <div class="board-row">
+                        <div><div class="g">Karan &amp; Divya Sethi</div><div class="p">The Bageecha &middot; 2 guests</div></div>
+                        <div class="d">09&ndash;12 Jul</div>
+                        <span class="status status-out">Checking out</span>
                     </div>
                 </div>
 
-                <div class="workflow-step reveal reveal-delay-1">
-                    <div class="workflow-number">2</div>
-                    <div class="workflow-content">
-                        <h3>Create Reservation</h3>
-                        <p>Convert enquiries to bookings. Kanban pipeline or table view. Auto-sync with Airbnb &amp; Booking.com via iCal.</p>
-                    </div>
+                <div class="board-foot">
+                    <span>4 properties &middot; 11 bookings this week</span>
+                    <span class="sync">Synced 2 min ago</span>
                 </div>
+            </div>
+        </div>
+    </header>
 
-                <div class="workflow-step reveal reveal-delay-2">
-                    <div class="workflow-number">3</div>
-                    <div class="workflow-content">
-                        <h3>Collect Payments</h3>
-                        <p>Track Cash, UPI, Gateway, Bank Transfer. Smart reminders for pending balances. Full financial health view.</p>
-                    </div>
+    <!-- ─────────── PROOF ─────────── -->
+    <section class="proof" aria-label="Track record">
+        <div class="wrap">
+            <div class="proof-grid">
+                <div class="proof-item">
+                    <span class="stat-number" data-count="45">0</span>
+                    <div class="stat-label">Properties run on it</div>
                 </div>
-
-                <div class="workflow-step reveal reveal-delay-3">
-                    <div class="workflow-number">4</div>
-                    <div class="workflow-content">
-                        <h3>Guest Check-in &amp; KYC</h3>
-                        <p>Guests upload Aadhar/Passport via QR portal. Selfie verification. Admin review. Meal preferences collected.</p>
-                    </div>
+                <div class="proof-item">
+                    <span class="stat-number" data-count="15">0</span>
+                    <div class="stat-label">Cities across India</div>
                 </div>
-
-                <div class="workflow-step reveal reveal-delay-4">
-                    <div class="workflow-number">5</div>
-                    <div class="workflow-content">
-                        <h3>Communicate &amp; Complete</h3>
-                        <p>WhatsApp confirmations, email reminders, check-out thank you messages. Everything templated and tracked.</p>
-                    </div>
+                <div class="proof-item">
+                    <span class="stat-number" data-count="3">0</span>
+                    <div class="stat-label">Years in daily use</div>
+                </div>
+                <div class="proof-item">
+                    <span class="stat-number is-text">Offline&#8209;first</span>
+                    <div class="stat-label">Built for bad signal</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ============================================
-         FEATURES
-         ============================================ -->
-    <section class="section-landing alt" id="features">
-        <div class="section-inner">
-            <div class="section-header reveal">
-                <span class="section-tag">Features</span>
-                <h2 class="section-title">Everything Your Operations<br>Team Needs Daily</h2>
-                <p class="section-subtitle">Built for the team that runs your properties day-to-day. No bloat, no complexity &mdash; just the tools that matter.</p>
+    <!-- ─────────── HOW IT WORKS (a real sequence, so it's numbered) ─────────── -->
+    <section id="how">
+        <div class="wrap">
+            <div class="sec-head reveal">
+                <span class="eyebrow">How it works</span>
+                <h2>One booking, start to finish.</h2>
+                <p>The same five steps your team already does every day &mdash; just in one place instead of four apps and a notebook.</p>
             </div>
 
-            <div class="features-grid">
-                <div class="feature-card reveal">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-                    <h3>Reservation Pipeline</h3>
-                    <p>Kanban board and table views with drag-and-drop. Filter by property, status, dates, payment. Auto status updates on check-in/check-out dates.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-1">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-                    <h3>Payment Tracking</h3>
-                    <p>Track by method (Cash, UPI, Gateway, Bank Transfer). Outstanding balance alerts. Collection reminders. Full receivable vs collected breakdown.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-2">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-                    <h3>Guest KYC &amp; Documents</h3>
-                    <p>Self-service QR portal for Aadhar, Passport, DL upload with selfie. Admin review &amp; approval workflow. Auto-delete after 60 days.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-3">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-                    <h3>WhatsApp &amp; Email</h3>
-                    <p>Send booking confirmations, payment reminders, check-in instructions via WhatsApp &amp; Gmail. Editable templates with smart placeholders.</p>
-                </div>
-                <div class="feature-card reveal">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-                    <h3>Enquiry &amp; Lead Pipeline</h3>
-                    <p>Capture leads from every source. Kanban board: New &rarr; Contacted &rarr; Follow Up &rarr; Negotiation &rarr; Converted. Priority levels and follow-up tracking.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-1">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-                    <h3>Business Analytics</h3>
-                    <p>Revenue trends, occupancy by property, channel performance (OTA vs Direct), booking type breakdown. Cross-property leaderboard.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-2">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg></div>
-                    <h3>OTA Calendar Sync</h3>
-                    <p>iCal sync with Airbnb, Booking.com and other OTAs. Prevent double bookings. Manual date blocking. Auto-sync intervals.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-3">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-                    <h3>Smart Automation</h3>
-                    <p>Auto check-in/check-out based on dates. Payment due reminders. Overdue follow-up alerts. Configurable automation intervals.</p>
-                </div>
-                <div class="feature-card reveal">
-                    <div class="feature-icon-box"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
-                    <h3>Works Offline (PWA)</h3>
-                    <p>Install on any device. Full offline support with background sync. No data lost even without internet. 95+ Lighthouse score.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-1">
-                    <div class="feature-icon-box feature-icon-orange"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E8943A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
-                    <h3>OTA Email Import</h3>
-                    <p>Import reservations from Gmail. Supports Airbnb, Booking.com, Goibibo, MMT &amp; Agoda. Smart duplicate detection and review.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-1">
-                    <div class="feature-icon-box feature-icon-orange"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E8943A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg></div>
-                    <h3>Owner Portal &amp; Payouts</h3>
-                    <p>Dedicated dashboard for managed owners. Commission tracking, monthly settlements, payout requests, and expense management.</p>
-                </div>
-                <div class="feature-card reveal reveal-delay-2">
-                    <div class="feature-icon-box feature-icon-orange"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E8943A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-                    <h3>Financial System</h3>
-                    <p>Host payouts, P&amp;L reports, expense tracking per property. Commission auto-calculation with GST support.</p>
-                </div>
+            <ol class="flow">
+                <li class="flow-row reveal">
+                    <span class="flow-num">01</span>
+                    <h3 class="flow-title">An enquiry comes in</h3>
+                    <p class="flow-body">WhatsApp, Instagram, a phone call, a walk-in. Log it with the source so you know months later which channel actually brings you guests.</p>
+                </li>
+                <li class="flow-row reveal">
+                    <span class="flow-num">02</span>
+                    <h3 class="flow-title">It becomes a booking</h3>
+                    <p class="flow-body">Convert the enquiry in two taps. Airbnb, Booking.com, Agoda and MakeMyTrip bookings arrive on their own via calendar sync and email import.</p>
+                </li>
+                <li class="flow-row reveal">
+                    <span class="flow-num">03</span>
+                    <h3 class="flow-title">Money gets collected</h3>
+                    <p class="flow-body">Advance, balance, cash, UPI, bank transfer, OTA payout. ResIQ tracks what's in, what's pending, and who to chase &mdash; and sends the reminder for you.</p>
+                </li>
+                <li class="flow-row reveal">
+                    <span class="flow-num">04</span>
+                    <h3 class="flow-title">The guest checks in</h3>
+                    <p class="flow-body">They scan a QR code, upload Aadhaar or passport, take a selfie, pick their meals. You approve it from your phone. No register, no photocopies.</p>
+                </li>
+                <li class="flow-row reveal">
+                    <span class="flow-num">05</span>
+                    <h3 class="flow-title">And you stay in touch</h3>
+                    <p class="flow-body">Confirmation on booking, directions before arrival, a thank-you after checkout. Templated in English or Hindi, sent over WhatsApp, logged against the booking.</p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <!-- ─────────── FEATURES ─────────── -->
+    <section id="features" class="section-alt">
+        <div class="wrap">
+            <div class="sec-head reveal">
+                <span class="eyebrow">What's inside</span>
+                <h2>Built for the person actually running the place.</h2>
+                <p>Not a 400-setting enterprise PMS. The things you touch every day, and nothing you don't.</p>
+            </div>
+
+            <div class="bento">
+                <article class="tile tile-wide reveal">
+                    <div>
+                        <div class="tile-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <h3>Every channel on one calendar</h3>
+                        <p>Two-way iCal sync keeps your OTA calendars honest, and ResIQ reads booking confirmation emails straight out of Gmail &mdash; so an Airbnb reservation is in your system before you've finished reading the notification.</p>
+                    </div>
+                    <div class="tile-chips">
+                        <span class="chip">Airbnb</span>
+                        <span class="chip">Booking.com</span>
+                        <span class="chip">Agoda</span>
+                        <span class="chip">MakeMyTrip</span>
+                        <span class="chip">Goibibo</span>
+                    </div>
+                </article>
+
+                <article class="tile tile-lg reveal">
+                    <div class="tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <h3>Payments that add up</h3>
+                    <p>Track advances and balances across cash, UPI, gateway and bank transfer. Commission, GST and owner payouts calculate themselves, so month-end is a review rather than a reconstruction.</p>
+                </article>
+
+                <article class="tile tile-lg reveal reveal-delay-1">
+                    <div class="tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 5-3.5 7.5-8.5 9.5C7.5 19.5 4 17 4 12V6l8.5-3L21 6z"/></svg>
+                    </div>
+                    <h3>Guest KYC without the paperwork</h3>
+                    <p>Guests upload ID and a selfie through a QR portal before they arrive. You approve from your phone. Documents auto-delete 60 days after checkout, so you're not sitting on a pile of Aadhaar scans.</p>
+                </article>
+
+                <article class="tile tile-md reveal">
+                    <div class="tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    </div>
+                    <h3>WhatsApp, templated</h3>
+                    <p>Confirmations, directions, payment nudges and thank-yous &mdash; in English or Hindi, logged against the booking.</p>
+                </article>
+
+                <article class="tile tile-md reveal reveal-delay-1">
+                    <div class="tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    </div>
+                    <h3>Numbers you'll actually read</h3>
+                    <p>Occupancy, ADR, RevPAR and P&amp;L per property. Which channel earns, which month drags, what next month looks like.</p>
+                </article>
+
+                <article class="tile tile-md reveal reveal-delay-2">
+                    <div class="tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <h3>Your team, scoped</h3>
+                    <p>Caretakers, managers and owners each see their own slice. Invite them by email; revoke in one tap.</p>
+                </article>
             </div>
         </div>
     </section>
 
-    <!-- ============================================
-         THREE PORTALS
-         ============================================ -->
-    <section class="section-landing" id="portals">
-        <div class="section-inner">
-            <div class="section-header reveal">
-                <span class="section-tag">Portals</span>
-                <h2 class="section-title">Three Interfaces,<br>One System</h2>
-                <p class="section-subtitle">Separate dashboards for your staff, property owners, and guests &mdash; each built for their specific workflow.</p>
-            </div>
-
-            <div class="portals-grid">
-                <div class="portal-card reveal">
-                    <div class="portal-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
-                    <h3>Staff RMS</h3>
-                    <p>The main operations dashboard. Reservations, payments, guests, KYC review, communications, analytics, and team management.</p>
-                    <a href="/app" class="portal-link">Open Staff Portal &rarr;</a>
-                </div>
-                <div class="portal-card reveal reveal-delay-1">
-                    <div class="portal-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-                    <h3>Managed Owner Portal</h3>
-                    <p>Managed owners track earnings, view bookings, check availability, monitor settlements, and manage bank details independently.</p>
-                    <a href="/owner-portal" class="portal-link">Open Managed Owner Portal &rarr;</a>
-                </div>
-                <div class="portal-card reveal reveal-delay-2">
-                    <div class="portal-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-                    <h3>Guest Portal</h3>
-                    <p>Guests access via QR code to complete KYC, upload ID documents, take selfies, and select meal preferences. No app download needed.</p>
-                    <a href="/guest-portal" class="portal-link">Open Guest Portal &rarr;</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============================================
-         SIGNUP + HOW IT WORKS
-         ============================================ -->
-    <section class="signup-section" id="signup" style="background: linear-gradient(135deg, #1B3A5C 0%, #0e4a6f 50%, #0e7490 100%); padding: 100px 24px; position: relative; overflow: hidden;">
-        <!-- Decorative glow -->
-        <div style="position: absolute; top: -40%; right: -15%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
-
-        <div style="max-width: 1100px; margin: 0 auto; position: relative; z-index: 1;">
-            <!-- Section Header with Story -->
-            <div style="text-align: center; margin-bottom: 56px;" class="reveal">
-                <span style="display: inline-block; padding: 6px 16px; background: rgba(232, 148, 58, 0.2); color: #F0A85C; border-radius: 30px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">Now Open for Hosts</span>
-                <h2 style="font-size: 40px; font-weight: 900; color: white; line-height: 1.2; margin-bottom: 16px;">Built for Our Properties.<br>Now Open for Yours.</h2>
-                <p style="font-size: 17px; color: rgba(255,255,255,0.75); max-width: 600px; margin: 0 auto; line-height: 1.7;">ResIQ powered Hostizzy's 45+ vacation rentals across India. Now we're opening it up to independent hosts &mdash; free for a limited time for selected properties.</p>
-            </div>
-
-            <!-- Two-column: Form + Steps -->
-            <div class="signup-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;">
-
-                <!-- Signup Form Card -->
-                <div class="signup-card reveal" id="signupFormCard" style="background: white; border-radius: 16px; padding: 36px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
-                    <h3 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Create Your Account</h3>
-                    <p style="font-size: 14px; color: #64748b; margin-bottom: 24px;">Register as a Host</p>
-
-                    <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Full Name <span style="color: #ef4444;">*</span></label>
-                        <input type="text" id="landingSignupName" placeholder="Your full name" autocomplete="name" style="width: 100%; padding: 11px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; color: #1f2937; outline: none; box-sizing: border-box; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0891b2'; this.style.boxShadow='0 0 0 3px rgba(8,145,178,0.12)'" onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
-                    </div>
-                    <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Email <span style="color: #ef4444;">*</span></label>
-                        <input type="email" id="landingSignupEmail" placeholder="Email address" autocomplete="email" style="width: 100%; padding: 11px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; color: #1f2937; outline: none; box-sizing: border-box; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0891b2'; this.style.boxShadow='0 0 0 3px rgba(8,145,178,0.12)'" onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
-                    </div>
-                    <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Phone</label>
-                        <input type="tel" id="landingSignupPhone" placeholder="Phone number" autocomplete="tel" style="width: 100%; padding: 11px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; color: #1f2937; outline: none; box-sizing: border-box; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0891b2'; this.style.boxShadow='0 0 0 3px rgba(8,145,178,0.12)'" onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
-                    </div>
-                    <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Password <span style="color: #ef4444;">*</span></label>
-                        <div style="position: relative;">
-                            <input type="password" id="landingSignupPassword" placeholder="Min 8 characters" autocomplete="new-password" style="width: 100%; padding: 11px 44px 11px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; color: #1f2937; outline: none; box-sizing: border-box; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0891b2'; this.style.boxShadow='0 0 0 3px rgba(8,145,178,0.12)'" onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
-                            <button type="button" onclick="const inp = document.getElementById('landingSignupPassword'); inp.type = inp.type === 'password' ? 'text' : 'password';" aria-label="Toggle password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; padding: 4px;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 20px;">
-                        <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Confirm Password <span style="color: #ef4444;">*</span></label>
-                        <input type="password" id="landingSignupConfirm" placeholder="Confirm password" autocomplete="new-password" style="width: 100%; padding: 11px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; color: #1f2937; outline: none; box-sizing: border-box; transition: border-color 0.2s;" onfocus="this.style.borderColor='#0891b2'; this.style.boxShadow='0 0 0 3px rgba(8,145,178,0.12)'" onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
-                    </div>
-
-                    <div id="landingSignupMsg" style="display:none; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px;"></div>
-
-                    <button onclick="landingSignup()" id="landingSignupBtn" style="width: 100%; padding: 13px 24px; background: #E8943A; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.25s; font-family: inherit;" onmouseover="this.style.background='#F0A85C'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#E8943A'; this.style.transform='none'">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                        Create Account
-                    </button>
-                    <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 16px;">Already have an account? <a href="/app" style="color: #0891b2; font-weight: 600; text-decoration: none;">Login here</a></p>
-                </div>
-
-                <!-- Success Card (hidden by default) -->
-                <div id="signupSuccessCard" style="display:none; background: white; border-radius: 16px; padding: 36px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); text-align: center;">
-                    <div style="margin-bottom: 20px;">
-                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    </div>
-                    <h3 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Account Created!</h3>
-                    <p style="font-size: 15px; color: #64748b; line-height: 1.7;">Your registration is pending admin approval. Our team will review and activate your account shortly. You'll be able to <a href="/app" style="color: #0891b2; font-weight: 600; text-decoration: none;">log in</a> once approved.</p>
-                </div>
-
-                <!-- How It Works Steps -->
-                <div class="reveal reveal-delay-1" style="padding-top: 16px;">
-                    <h3 style="font-size: 24px; font-weight: 800; color: white; margin-bottom: 32px;">How It Works</h3>
-
-                    <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 28px;">
-                        <div style="width: 36px; height: 36px; min-width: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: white;">1</div>
-                        <div>
-                            <h4 style="font-size: 16px; font-weight: 700; color: white; margin: 0 0 4px;">Register</h4>
-                            <p style="font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0;">Create your free account. Selected hosts get early access at no cost.</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 28px;">
-                        <div style="width: 36px; height: 36px; min-width: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: white;">2</div>
-                        <div>
-                            <h4 style="font-size: 16px; font-weight: 700; color: white; margin: 0 0 4px;">Add Properties</h4>
-                            <p style="font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0;">Add your properties, set commission rates, configure OTA sources and payment methods.</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 28px;">
-                        <div style="width: 36px; height: 36px; min-width: 36px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: white;">3</div>
-                        <div>
-                            <h4 style="font-size: 16px; font-weight: 700; color: white; margin: 0 0 4px;">Go Live</h4>
-                            <p style="font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0;">Start managing reservations, payments, guest KYC, and team operations from day one.</p>
-                        </div>
-                    </div>
-
-                    <!-- Trust bar -->
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 500;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        <span>Powering 45+ properties across 15 cities in India</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============================================
-         TECHNOLOGY & SECURITY
-         ============================================ -->
-    <section class="section-landing" id="technology">
-        <div class="section-inner">
-            <div class="section-header reveal">
-                <span class="section-tag">Technology &amp; Security</span>
-                <h2 class="section-title">Built on Enterprise-Grade<br>Infrastructure</h2>
-                <p class="section-subtitle">Your data is secured by the same providers that power the world's largest applications.</p>
-            </div>
-
-            <!-- Technology Providers -->
-            <div class="tech-grid reveal">
-                <div class="tech-card">
-                    <div class="tech-logo">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none"/></svg>
-                    </div>
-                    <h4>Supabase</h4>
-                    <p>PostgreSQL database with real-time subscriptions, row-level security, and automatic backups.</p>
-                </div>
-                <div class="tech-card">
-                    <div class="tech-logo">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    </div>
-                    <h4>Firebase Auth</h4>
-                    <p>Google-grade authentication with secure email/password login, token management, and session handling.</p>
-                </div>
-                <div class="tech-card">
-                    <div class="tech-logo">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.5"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>
-                    </div>
-                    <h4>Vercel</h4>
-                    <p>Edge-deployed globally for instant load times. Automatic SSL, DDoS protection, and 99.99% uptime SLA.</p>
-                </div>
-                <div class="tech-card">
-                    <div class="tech-logo">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                    </div>
-                    <h4>PWA Technology</h4>
-                    <p>Progressive Web App with service workers for offline support, background sync, and native app experience.</p>
-                </div>
-            </div>
-
-            <!-- Security Features -->
-            <div class="security-section reveal">
-                <h3 class="security-title">Security &amp; Data Protection</h3>
-                <div class="security-grid">
-                    <div class="security-item">
-                        <div class="security-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-                        <div>
-                            <strong>End-to-End Encryption</strong>
-                            <p>All data transmitted over HTTPS/TLS. Tokens encrypted at rest in Supabase with row-level security policies.</p>
-                        </div>
-                    </div>
-                    <div class="security-item">
-                        <div class="security-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-                        <div>
-                            <strong>Role-Based Access Control</strong>
-                            <p>Separate access levels for Admin, Manager, Staff, Owners, and Guests. Each role sees only what they need.</p>
-                        </div>
-                    </div>
-                    <div class="security-item">
-                        <div class="security-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
-                        <div>
-                            <strong>Auto Data Cleanup</strong>
-                            <p>Guest KYC documents and personal data automatically deleted 60 days after checkout. Privacy by design.</p>
-                        </div>
-                    </div>
-                    <div class="security-item">
-                        <div class="security-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                        <div>
-                            <strong>Token-Based Sessions</strong>
-                            <p>Firebase authentication with 24-hour guest session expiry. Server-side token validation on every API call.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============================================
-         OFFLINE USP
-         ============================================ -->
-    <section class="offline-section" id="offline">
+    <!-- ─────────── OFFLINE ─────────── -->
+    <section class="offline-section on-navy" id="offline">
         <div class="offline-inner">
-            <div class="offline-content reveal">
-                <span class="offline-tag">Key USP</span>
-                <h2>Works Where Networks Don't</h2>
-                <p>
-                    Many vacation rental properties in India are in remote hills, farmlands, and coastal areas with poor connectivity. ResIQ works fully offline &mdash; your operations never stop.
+            <div class="reveal">
+                <span class="eyebrow">Why it holds up</span>
+                <h2>Your property has no signal.<br>ResIQ doesn't care.</h2>
+                <p class="offline-lead">
+                    Hill stations, farmland, backwaters, forest edges &mdash; the properties worth staying at
+                    are rarely the ones with four bars. So ResIQ was built to run with none.
                 </p>
-                <ul class="offline-features">
+
+                <ul class="offline-list">
                     <li>
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Create and edit reservations without internet
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Create and edit bookings with the network off
                     </li>
                     <li>
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Record payments, update guest details offline
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Take payments and check guests in at the gate
                     </li>
                     <li>
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Background sync when connection returns &mdash; zero data loss
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Everything queues and syncs itself when signal returns
                     </li>
                     <li>
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Install as native app on any phone, tablet, or laptop
-                    </li>
-                    <li>
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        95+ Lighthouse score &mdash; loads in under 2 seconds
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Nothing is lost, nothing is entered twice
                     </li>
                 </ul>
             </div>
+
             <div class="offline-visual reveal reveal-delay-1">
-                <div class="offline-graphic">
-                    <div class="offline-phone">
-                        <div class="offline-phone-notch"></div>
-                        <div class="offline-phone-content">
-                            <div class="offline-phone-bar"></div>
-                            <div class="offline-phone-bar"></div>
-                            <div class="offline-phone-bar"></div>
-                            <div class="offline-phone-bar"></div>
-                            <div class="offline-phone-bar"></div>
+                <div class="offline-phone" role="img" aria-label="A phone with no signal showing three actions queued offline: a booking saved, a payment recorded, and a check-in completed — all waiting to sync.">
+                    <div class="offline-screen">
+                        <div class="offline-status">
+                            <span class="no-signal">No signal</span>
+                            <span>9:41</span>
                         </div>
-                        <div class="offline-phone-badge">Works Offline</div>
+
+                        <div class="offline-banner">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 20h.01"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 14 0"/></svg>
+                            Working offline &mdash; 3 queued
+                        </div>
+
+                        <div class="offline-queue">
+                            <div class="offline-item">
+                                <div class="txt">
+                                    <div class="t1">Booking saved</div>
+                                    <div class="t2">R. Menon &middot; 12 Jul</div>
+                                </div>
+                                <svg class="queued" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                            </div>
+                            <div class="offline-item">
+                                <div class="txt">
+                                    <div class="t1">Payment recorded</div>
+                                    <div class="t2">&#8377;12,400 &middot; UPI</div>
+                                </div>
+                                <svg class="queued" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                            </div>
+                            <div class="offline-item">
+                                <div class="txt">
+                                    <div class="t1">Check-in complete</div>
+                                    <div class="t2">A. Deshpande &middot; KYC ok</div>
+                                </div>
+                                <svg class="tick" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                        </div>
+
+                        <div class="offline-sync">Will sync when back online</div>
                     </div>
-                    <div class="offline-signal-bars">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                    <div class="offline-signal-label">No signal? No problem.</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ============================================
-         DOWNLOAD / INSTALL
-         ============================================ -->
-    <section class="section-landing alt" id="download">
-        <div class="section-inner">
-            <div class="section-header reveal">
-                <span class="section-tag">Get ResIQ</span>
-                <h2 class="section-title">Available on Every Device</h2>
-                <p class="section-subtitle">Use ResIQ on your phone, tablet, or desktop. Install it or use it directly in your browser.</p>
+    <!-- ─────────── PORTALS + GET ─────────── -->
+    <section id="portals">
+        <div class="wrap">
+            <div class="sec-head reveal">
+                <span class="eyebrow">Three ways in</span>
+                <h2>Everyone gets their own door.</h2>
+                <p>Your team, your owners and your guests each see exactly what they need &mdash; and nothing they shouldn't.</p>
             </div>
 
-            <div class="download-grid">
-                <div class="download-card reveal">
-                    <div class="download-icon" style="background: linear-gradient(135deg, #01875f, #34a853);">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734c0-.382.218-.726.61-.92zM14.85 13.057l2.672 1.543-3.25 1.875-2.478-2.478 3.057-0.94zM14.85 10.943L11.793 10l2.478-2.478 3.25 1.875-2.672 1.546zM17.89 8.225L21 10.02c.752.434.752 1.526 0 1.96l-3.11 1.795-2.69-1.775 2.69-1.775z"/></svg>
+            <div class="portal-grid">
+                <article class="portal-card reveal">
+                    <div class="tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                     </div>
-                    <h3>Android App</h3>
-                    <p>Native Android app with push notifications, offline mode, biometric login, and the full ResIQ experience.</p>
-                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="portal-link" style="color: #01875f; font-weight: 700;">Download on Google Play &rarr;</a>
-                </div>
-                <div class="download-card reveal reveal-delay-1">
-                    <div class="download-icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                    </div>
-                    <h3>Web App (PWA)</h3>
-                    <p>Works on any browser. Install as a PWA on iOS, Android, Windows, Mac, or Chrome OS. No app store needed.</p>
-                    <a href="/app" class="portal-link">Open Web App &rarr;</a>
-                </div>
-            </div>
-        </div>
-    </section>
+                    <h3>Staff app</h3>
+                    <p>The full operations board. Bookings, payments, KYC, calendar, expenses and reports &mdash; the screen your day runs on.</p>
+                    <a href="/app" class="portal-link">Open the app <span aria-hidden="true">&rarr;</span></a>
+                </article>
 
-    <!-- ============================================
-         HOSTIZZY BRAND BANNER
-         ============================================ -->
-    <section class="hostizzy-banner">
-        <div class="hostizzy-banner-inner reveal">
-            <div class="hostizzy-banner-content">
-                <span class="hostizzy-badge">By Hostizzy &middot; Hostsphere India Pvt Ltd</span>
-                <h2>India's Vertically Integrated<br>Hospitality Ecosystem</h2>
-                <p>Hostizzy manages vacation rentals end-to-end &mdash; from listing optimization and dynamic pricing to guest check-in and owner payouts. ResIQ is the operations backbone powering 45+ properties across 15 cities.</p>
-                <div class="hostizzy-banner-buttons">
-                    <a href="https://hostizzy.com" class="btn-hostizzy-primary" target="_blank" rel="noopener">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                        Visit hostizzy.com
+                <article class="portal-card reveal reveal-delay-1">
+                    <div class="tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                    </div>
+                    <h3>Owner portal</h3>
+                    <p>For properties Hostizzy manages. Owners see their earnings, bookings and statements without calling you to ask.</p>
+                    <a href="/owner-portal" class="portal-link">Owner sign in <span aria-hidden="true">&rarr;</span></a>
+                </article>
+
+                <article class="portal-card reveal reveal-delay-2">
+                    <div class="tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <h3>Guest portal</h3>
+                    <p>A QR code, no download. Guests complete KYC, upload ID and choose meals before they reach your gate.</p>
+                    <a href="/guest-portal" class="portal-link">See the guest view <span aria-hidden="true">&rarr;</span></a>
+                </article>
+            </div>
+
+            <div class="get-strip reveal">
+                <div>
+                    <h3>Take it with you</h3>
+                    <p>Native Android app with push notifications and offline mode &mdash; or install the web app on any phone, tablet or laptop.</p>
+                </div>
+                <div class="actions">
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn btn-ink">
+                        <img src="assets/google-play.svg" alt="" width="17" height="17" class="btn-mark">
+                        Google Play
                     </a>
-                    <a href="https://hostos.hostizzy.com" class="btn-hostizzy-secondary" target="_blank" rel="noopener">
-                        Explore HostOS Platform &rarr;
-                    </a>
-                </div>
-                <div class="hostizzy-social-strip">
-                    <span>Follow us</span>
-                    <a href="https://instagram.com/hostizzy" target="_blank" rel="noopener" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-                    <a href="https://linkedin.com/company/hostizzy" target="_blank" rel="noopener" aria-label="LinkedIn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
-                    <a href="https://www.youtube.com/@hostizzy" target="_blank" rel="noopener" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></a>
-                    <a href="https://wa.me/919560593335?text=Hi%2C%20I%20have%20a%20question%20about%20ResIQ%20by%20Hostizzy." target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+                    <a href="/app" class="btn btn-ghost">Open web app</a>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="hostizzy-products">
-                <div class="hostizzy-product-card">
-                    <div class="hostizzy-product-icon icon-resiq">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    </div>
-                    <div class="hostizzy-product-text">
-                        <h4>ResIQ</h4>
-                        <p>Reservation &amp; operations management</p>
-                    </div>
+    <!-- ─────────── SIGNUP ─────────── -->
+    <section class="signup-section" id="signup">
+        <div class="wrap">
+            <div class="signup-grid">
+                <div class="reveal signup-intro">
+                    <span class="eyebrow">Get started</span>
+                    <h2>Built for our properties.<br>Now open for yours.</h2>
+                    <p>
+                        ResIQ ran Hostizzy's 45 properties for three years before we opened it up.
+                        It's free while we onboard the first wave of independent hosts.
+                    </p>
+
+                    <ol class="signup-steps">
+                        <li>
+                            <div>
+                                <h4>Create your account</h4>
+                                <p>Name, email, password. Thirty seconds, no card.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div>
+                                <h4>We approve it</h4>
+                                <p>A quick check by our team, usually the same day. You'll get an email when you're in.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div>
+                                <h4>Add your first property</h4>
+                                <p>Name, location, rooms, rate. Connect your Airbnb or Booking.com calendar if you have one.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div>
+                                <h4>Start taking bookings</h4>
+                                <p>Import what's already on your calendar, or enter today's arrivals and go from there.</p>
+                            </div>
+                        </li>
+                    </ol>
                 </div>
-                <div class="hostizzy-product-card">
-                    <div class="hostizzy-product-icon icon-hostos">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+
+                <div class="reveal reveal-delay-1">
+                    <div class="signup-card" id="signupFormCard">
+                        <h3>Create your account</h3>
+                        <p class="sub">Free for independent hosts</p>
+
+                        <div class="field">
+                            <label for="landingSignupName">Full name <span class="req">*</span></label>
+                            <input type="text" id="landingSignupName" placeholder="Ananya Deshpande" autocomplete="name">
+                        </div>
+                        <div class="field">
+                            <label for="landingSignupEmail">Email <span class="req">*</span></label>
+                            <input type="email" id="landingSignupEmail" placeholder="you@example.com" autocomplete="email">
+                        </div>
+                        <div class="field">
+                            <label for="landingSignupPhone">Phone</label>
+                            <input type="tel" id="landingSignupPhone" placeholder="+91 98765 43210" autocomplete="tel">
+                        </div>
+                        <div class="field">
+                            <label for="landingSignupPassword">Password <span class="req">*</span></label>
+                            <div class="field-pw">
+                                <input type="password" id="landingSignupPassword" placeholder="At least 8 characters" autocomplete="new-password">
+                                <button type="button" onclick="togglePw('landingSignupPassword')" aria-label="Show or hide password">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="landingSignupConfirm">Confirm password <span class="req">*</span></label>
+                            <input type="password" id="landingSignupConfirm" placeholder="Type it again" autocomplete="new-password">
+                        </div>
+
+                        <div id="landingSignupMsg" style="display:none;"></div>
+
+                        <button onclick="landingSignup()" id="landingSignupBtn" class="btn btn-accent signup-submit">
+                            Create account
+                        </button>
+
+                        <p class="signup-foot">Already have an account? <a href="/app">Sign in</a></p>
                     </div>
-                    <div class="hostizzy-product-text">
-                        <h4>HostOS</h4>
-                        <p>Full property management suite</p>
-                    </div>
-                </div>
-                <div class="hostizzy-product-card">
-                    <div class="hostizzy-product-icon icon-juxtravel">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-                    </div>
-                    <div class="hostizzy-product-text">
-                        <h4>JuxTravel</h4>
-                        <p>Guest booking &amp; discovery platform</p>
+
+                    <div class="signup-card signup-success" id="signupSuccessCard" style="display:none;">
+                        <div class="ok">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <h3>You're on the list</h3>
+                        <p>We've got your details. Our team reviews new hosts within a day &mdash; you'll get an email the moment your account is live.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ============================================
-         CTA BANNER
-         ============================================ -->
-    <section class="cta-banner">
-        <div class="cta-inner reveal">
-            <h2>Start Managing Your Reservations Today</h2>
-            <p>Join 45+ properties across 15 cities in India using ResIQ for daily operations.</p>
-            <div class="cta-buttons" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn-hero-primary" style="background: #01875f; border-color: #01875f; display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734c0-.382.218-.726.61-.92zM14.85 13.057l2.672 1.543-3.25 1.875-2.478-2.478 3.057-0.94zM14.85 10.943L11.793 10l2.478-2.478 3.25 1.875-2.672 1.546zM17.89 8.225L21 10.02c.752.434.752 1.526 0 1.96l-3.11 1.795-2.69-1.775 2.69-1.775z"/></svg>
-                    Get it on Google Play
-                </a>
-                <a href="#signup" class="btn-hero-secondary" style="border-color: rgba(255,255,255,0.4); color: white;">
-                    Sign Up on Web
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============================================
-         FOOTER
-         ============================================ -->
+    <!-- ─────────── FOOTER ─────────── -->
     <footer class="landing-footer">
         <div class="footer-inner">
+            <div class="footer-lede">
+                <div>
+                    <h2>Stop rebuilding last month<br>from memory.</h2>
+                    <p>ResIQ is built and maintained by Hostizzy &mdash; who manage vacation rentals end to end across 15 Indian cities. It's the tool we needed, so we built it.</p>
+                </div>
+                <div class="footer-lede-actions">
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn btn-accent">
+                        <img src="assets/google-play.svg" alt="" width="17" height="17" class="btn-mark">
+                        Get the app
+                    </a>
+                    <a href="#signup" class="btn btn-onnavy">Start free</a>
+                </div>
+            </div>
+
             <div class="footer-grid">
                 <div>
                     <div class="footer-brand">
-                        <img src="assets/logo-128.png" alt="ResIQ" width="40" height="40">
+                        <img src="assets/logo-128.png" alt="" width="29" height="29">
                         <span class="footer-brand-name">ResIQ</span>
                     </div>
-                    <p class="footer-desc">
-                        Reservation management system for vacation rentals, built by Hostizzy. Your daily operations dashboard for Indian hospitality.
-                    </p>
+                    <p class="footer-desc">Reservation management for Indian vacation rentals, homestays and villas. By Hostizzy.</p>
                     <div class="footer-social">
-                        <a href="https://instagram.com/hostizzy" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-                        <a href="https://linkedin.com/company/hostizzy" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
-                        <a href="https://www.youtube.com/@hostizzy" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></a>
-                        <a href="https://wa.me/919560593335?text=Hi%2C%20I%20have%20a%20question%20about%20ResIQ%20by%20Hostizzy." target="_blank" rel="noopener" title="WhatsApp" aria-label="WhatsApp"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+                        <a href="https://instagram.com/hostizzy" target="_blank" rel="noopener" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+                        <a href="https://linkedin.com/company/hostizzy" target="_blank" rel="noopener" aria-label="LinkedIn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+                        <a href="https://www.youtube.com/@hostizzy" target="_blank" rel="noopener" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></a>
+                        <a href="https://wa.me/919560593335?text=Hi%2C%20I%20have%20a%20question%20about%20ResIQ." target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
                     </div>
                 </div>
+
                 <div class="footer-col">
                     <h4>Product</h4>
+                    <a href="#how">How it works</a>
                     <a href="#features">Features</a>
-                    <a href="#portals">Portals</a>
-                    <a href="#technology">Technology</a>
+                    <a href="#offline">Offline mode</a>
                     <a href="about.html">About</a>
                 </div>
+
                 <div class="footer-col">
                     <h4>Get ResIQ</h4>
-                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener">Android App (Google Play)</a>
-                    <a href="/app">Web App</a>
-                    <a href="/owner-portal">Managed Owner Portal</a>
-                    <a href="/guest-portal">Guest Portal</a>
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener"><img src="assets/google-play.svg" alt="" width="13" height="13" class="inline-mark">Android app</a>
+                    <a href="/app">Web app</a>
+                    <a href="/owner-portal">Owner portal</a>
+                    <a href="/guest-portal">Guest portal</a>
                 </div>
+
                 <div class="footer-col">
                     <h4>Company</h4>
-                    <a href="https://hostos.hostizzy.com" target="_blank" rel="noopener">HostOS Platform</a>
-                    <a href="privacy.html">Privacy Policy</a>
-                    <a href="terms.html">Terms of Service</a>
-                    <a href="mailto:support@hostizzy.com">Contact Support</a>
+                    <a href="https://hostizzy.com" target="_blank" rel="noopener">Hostizzy</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="terms.html">Terms</a>
+                    <a href="deleteaccount.html">Delete account</a>
+                    <a href="mailto:support@hostizzy.com">Support</a>
                 </div>
             </div>
+
             <div class="footer-bottom">
-                <p>&copy; 2026 Hostizzy (Hostsphere India Private Limited). All rights reserved.</p>
+                <span>&copy; 2026 Hostsphere India Private Limited</span>
                 <a href="mailto:support@hostizzy.com">support@hostizzy.com</a>
             </div>
         </div>
     </footer>
 
-    <!-- ============================================
-         SCRIPTS
-         ============================================ -->
+    <!-- ─────────── SCRIPTS ─────────── -->
     <script>
-        // If running as installed PWA (standalone mode), skip landing page and go straight to login
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches
-                   || window.matchMedia('(display-mode: window-controls-overlay)').matches
-                   || window.navigator.standalone === true;
-        if (isPWA) {
+        // Installed PWA users skip the marketing page
+        if (window.matchMedia('(display-mode: standalone)').matches
+            || window.matchMedia('(display-mode: window-controls-overlay)').matches
+            || window.navigator.standalone === true) {
             window.location.replace('/app');
         }
 
-        // Navbar scroll effect
+        // The nav stays navy while it's over the hero and flips to the light
+        // bar only once the hero has scrolled past it — so the top of the page
+        // reads as one dark mass rather than a light bar stacked on a dark one.
         const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            navbar.classList.toggle('scrolled', window.scrollY > 50);
-        });
-
-        // Mobile menu toggle
-        function toggleMenu() {
-            document.getElementById('navLinks').classList.toggle('open');
+        const heroEl = document.querySelector('.hero');
+        if (heroEl && 'IntersectionObserver' in window) {
+            new IntersectionObserver(
+                ([e]) => navbar.classList.toggle('scrolled', !e.isIntersecting),
+                { rootMargin: '-64px 0px 0px 0px', threshold: 0 }
+            ).observe(heroEl);
+        } else {
+            window.addEventListener('scroll', () => {
+                navbar.classList.toggle('scrolled', window.scrollY > 400);
+            }, { passive: true });
         }
 
-        // Close menu on link click
+        function toggleMenu() {
+            const links = document.getElementById('navLinks');
+            const btn = document.getElementById('hamburger');
+            const open = links.classList.toggle('open');
+            btn.setAttribute('aria-expanded', String(open));
+        }
+
+        function togglePw(id) {
+            const el = document.getElementById(id);
+            el.type = el.type === 'password' ? 'text' : 'password';
+        }
+
         document.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', () => {
                 document.getElementById('navLinks').classList.remove('open');
+                document.getElementById('hamburger').setAttribute('aria-expanded', 'false');
             });
         });
 
-        // Scroll reveal animation
+        // Scroll reveal
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        // Animate stat numbers
+        // Count up the proof figures once, when they come into view
         function animateCounters() {
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             document.querySelectorAll('.stat-number[data-count]').forEach(el => {
-                const target = parseInt(el.dataset.count);
-                const duration = 2000;
+                const target = parseInt(el.dataset.count, 10);
+                if (reduce) { el.textContent = target; return; }
+                const duration = 1400;
                 const start = performance.now();
-                const suffix = target >= 5000 ? '+' : '';
-
-                function update(now) {
-                    const elapsed = now - start;
-                    const progress = Math.min(elapsed / duration, 1);
-                    const eased = 1 - Math.pow(1 - progress, 3);
-                    const current = Math.floor(eased * target);
-                    el.textContent = current.toLocaleString('en-IN') + suffix;
-                    if (progress < 1) requestAnimationFrame(update);
-                }
-                requestAnimationFrame(update);
+                (function step(now) {
+                    const p = Math.min((now - start) / duration, 1);
+                    el.textContent = Math.floor((1 - Math.pow(1 - p, 3)) * target);
+                    if (p < 1) requestAnimationFrame(step);
+                })(start);
             });
         }
-
-        // Trigger counters when stats section is visible
-        const statsObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateCounters();
-                    statsObserver.disconnect();
-                }
-            });
-        }, { threshold: 0.3 });
-
-        const statsBar = document.querySelector('.stats-bar');
-        if (statsBar) statsObserver.observe(statsBar);
-
-        // Dark mode: match system preference
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-theme', 'dark');
+        const proof = document.querySelector('.proof');
+        if (proof) {
+            const so = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) { animateCounters(); so.disconnect(); } });
+            }, { threshold: 0.35 });
+            so.observe(proof);
         }
 
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-        });
+        // Follow the OS theme
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const applyTheme = e => document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        applyTheme(mq);
+        mq.addEventListener('change', applyTheme);
 
-        // Smooth scroll for anchor links
+        // Smooth in-page scrolling
         document.querySelectorAll('a[href^="#"]').forEach(a => {
             a.addEventListener('click', e => {
                 const target = document.querySelector(a.getAttribute('href'));
@@ -925,9 +715,7 @@
             });
         });
 
-        // ============================================
-        // SIGNUP FORM (standalone — no app JS needed)
-        // ============================================
+        // ─── Signup ───
         async function landingSignup() {
             const name = document.getElementById('landingSignupName').value.trim();
             const email = document.getElementById('landingSignupEmail').value.trim();
@@ -939,26 +727,15 @@
 
             msgEl.style.display = 'none';
 
-            // Validation
-            if (!name || !email || !password) {
-                showSignupError(msgEl, 'Please fill in all required fields.');
-                return;
-            }
-            if (password.length < 8) {
-                showSignupError(msgEl, 'Password must be at least 8 characters.');
-                return;
-            }
-            if (password !== confirm) {
-                showSignupError(msgEl, 'Passwords do not match.');
-                return;
-            }
+            if (!name || !email || !password) return showSignupError(msgEl, 'Fill in your name, email and a password to continue.');
+            if (password.length < 8)          return showSignupError(msgEl, 'Use at least 8 characters for your password.');
+            if (password !== confirm)         return showSignupError(msgEl, 'The two passwords don’t match.');
 
             btn.disabled = true;
-            btn.textContent = 'Creating account...';
+            btn.textContent = 'Creating account…';
 
             let firebaseCreated = false;
             try {
-                // Step 1: Create Firebase Auth account
                 const authResp = await fetch('/api/auth-proxy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -968,7 +745,6 @@
                 if (!authResp.ok) throw new Error(authResult.error || 'Failed to create account');
                 firebaseCreated = true;
 
-                // Step 2: Insert owner record via db-proxy (pending approval)
                 const dbResp = await fetch('/api/db-proxy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -976,8 +752,7 @@
                         table: 'property_owners',
                         operation: 'insert',
                         data: [{
-                            name,
-                            email,
+                            name, email,
                             phone: phone || null,
                             password: 'firebase-managed',
                             is_active: false,
@@ -989,12 +764,10 @@
                 const dbResult = await dbResp.json();
                 if (dbResult.error) throw new Error(dbResult.error.message || 'Failed to save account');
 
-                // Step 3: Show success
                 document.getElementById('signupFormCard').style.display = 'none';
                 document.getElementById('signupSuccessCard').style.display = 'block';
 
             } catch (error) {
-                // Rollback Firebase user if DB insert failed
                 if (firebaseCreated) {
                     try {
                         await fetch('/api/auth-proxy', {
@@ -1004,14 +777,15 @@
                         });
                     } catch (e) { /* best effort */ }
                 }
-                if (error.message.includes('already exists') || error.message.includes('email-already-exists')) {
-                    showSignupError(msgEl, 'An account with this email already exists.');
+                const m = error.message || '';
+                if (m.includes('already exists') || m.includes('email-already-exists')) {
+                    showSignupError(msgEl, 'That email already has an account. Try signing in instead.');
                 } else {
-                    showSignupError(msgEl, error.message || 'Failed to create account. Please try again.');
+                    showSignupError(msgEl, m || 'Something went wrong creating your account. Please try again.');
                 }
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Create Account';
+                btn.textContent = 'Create account';
             }
         }
 
