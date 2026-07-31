@@ -124,21 +124,37 @@ export default async function handler(req, res) {
     // those through without a token so guests can submit KYC and meal prefs.
     // Everything else requires a valid Firebase ID token.
     const isGuestTable = UNAUTHENTICATED_TABLES.includes(table);
+    const authHeader = req.headers.authorization;
+    const hasBearer = authHeader && authHeader.startsWith('Bearer ');
+    let isAuthenticated = false;
 
     if (!isGuestTable) {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // Non-guest tables: token is mandatory
+        if (!hasBearer) {
             return res.status(401).json({ data: null, error: { message: 'Authentication required' } });
         }
         try {
             await verifyFirebaseToken(authHeader.split('Bearer ')[1]);
+            isAuthenticated = true;
         } catch (err) {
+            return res.status(401).json({ data: null, error: { message: 'Invalid token: ' + err.message } });
+        }
+    } else if (hasBearer) {
+        // Guest table but a token was supplied — verify it so a logged-in user
+        // can write to reservations / team_members / property_owners without
+        // being blocked by the unauthenticated read-only rule below.
+        try {
+            await verifyFirebaseToken(authHeader.split('Bearer ')[1]);
+            isAuthenticated = true;
+        } catch (err) {
+            // Token was provided but invalid — reject rather than silently
+            // downgrading to guest access.
             return res.status(401).json({ data: null, error: { message: 'Invalid token: ' + err.message } });
         }
     }
 
-    // Guest portal can only READ certain tables, never write them.
-    if (isGuestTable && UNAUTHENTICATED_READ_ONLY.includes(table) && operation !== 'select') {
+    // Guest portal (no valid token) can only READ certain tables, never write them.
+    if (isGuestTable && !isAuthenticated && UNAUTHENTICATED_READ_ONLY.includes(table) && operation !== 'select') {
         return res.status(403).json({ data: null, error: { message: 'Write access denied on this table for unauthenticated callers' } });
     }
 
