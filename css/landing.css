@@ -723,6 +723,45 @@ section { padding-block: clamp(68px, 8.5vw, 120px); }
 }
 
 /* ============================================
+   IN DEVELOPMENT — kept visible because active development is a real signal
+   for a young product, but visually separated from shipped features so it
+   can never be mistaken for one. Dashed border does that work.
+   ============================================ */
+.next-strip {
+    margin-top: 40px;
+    border: 1px dashed var(--line);
+    border-radius: var(--r-lg);
+    padding: 26px 28px;
+    display: grid;
+    grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr);
+    gap: clamp(20px, 3vw, 44px);
+    background: transparent;
+}
+
+.next-tag {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: var(--t-micro);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber-deep);
+    border: 1px dashed rgba(240,147,43,0.5);
+    border-radius: 4px;
+    padding: 4px 9px;
+    margin-bottom: 12px;
+}
+.next-head p { font-size: var(--t-sm); color: var(--text-mute); max-width: 30ch; }
+
+.next-list { list-style: none; display: grid; gap: 18px; }
+.next-list h3 { font-size: 1.02rem; margin-bottom: 5px; }
+.next-list p { font-size: var(--t-sm); color: var(--text-mute); max-width: 62ch; }
+
+@media (max-width: 760px) {
+    .next-strip { grid-template-columns: 1fr; padding: 22px; }
+}
+
+/* ============================================
    OFFLINE — the differentiator, on its own navy stage
    ============================================ */
 .offline-section { position: relative; overflow: hidden; }
