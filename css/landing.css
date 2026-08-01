@@ -845,6 +845,53 @@ section { padding-block: clamp(68px, 8.5vw, 120px); }
 .get-strip .actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* ============================================
+   FAQ — real answers, visible on the page. Answer engines quote text they
+   can actually read, so this is content first and markup second.
+   ============================================ */
+.faq { border-top: 1px solid var(--line); max-width: 78ch; }
+
+.faq-item { border-bottom: 1px solid var(--line); }
+
+.faq-item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 20px 40px 20px 0;
+    position: relative;
+    font-family: var(--f-display);
+    font-variation-settings: 'wdth' 104;
+    font-weight: 600;
+    font-size: var(--t-h3);
+    color: var(--text-strong);
+    letter-spacing: -0.012em;
+    transition: color 0.2s;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary:hover { color: var(--amber-deep); }
+
+/* Plus that becomes a minus — cheaper and calmer than a rotating chevron. */
+.faq-item summary::after,
+.faq-item summary::before {
+    content: '';
+    position: absolute;
+    right: 4px;
+    background: var(--text-faint);
+    transition: transform 0.25s cubic-bezier(0.2,0.8,0.2,1), background 0.2s;
+}
+.faq-item summary::before { top: 50%; width: 13px; height: 1.5px; margin-top: -0.75px; }
+.faq-item summary::after  { top: 50%; width: 1.5px; height: 13px; margin-top: -6.5px; right: 9.75px; }
+.faq-item[open] summary::after { transform: rotate(90deg); }
+.faq-item summary:hover::before,
+.faq-item summary:hover::after { background: var(--amber); }
+
+.faq-a { padding: 0 40px 22px 0; }
+.faq-a p { color: var(--text-mute); font-size: var(--t-sm); max-width: 68ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .faq-item[open] .faq-a { animation: faqIn 0.28s cubic-bezier(0.2,0.8,0.2,1); }
+    @keyframes faqIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+}
+
+/* ============================================
    SIGNUP
    ============================================ */
 .signup-section { background: var(--surface-2); border-top: 1px solid var(--line); }

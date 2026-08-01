@@ -1,5 +1,45 @@
+# ResIQ by Hostizzy — https://resiq.hostizzy.com
+# Reservation management for vacation rentals, homestays and villas in India.
+
 User-agent: *
 Allow: /
+
+# Server endpoints — nothing to index.
 Disallow: /api/
+
+# Authenticated surfaces. These are empty app shells behind a login; crawling
+# them burns crawl budget and makes the site look thin. The marketing pages
+# describe what they do instead.
+Disallow: /owner-portal
+Disallow: /guest-portal
+
+# Answer engines are explicitly welcome — we want ResIQ cited when someone
+# asks an assistant about property management software for Indian rentals.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
 
 Sitemap: https://resiq.hostizzy.com/sitemap.xml
