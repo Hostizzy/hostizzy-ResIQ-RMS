@@ -1,0 +1,64 @@
+# ResIQ by Hostizzy
+
+> ResIQ is reservation and operations management software for vacation rentals,
+> homestays, farmhouses and villas in India. It handles bookings, payments,
+> guest KYC, OTA calendar sync and WhatsApp messaging in one place, and works
+> fully offline for properties with poor mobile coverage. Built by Hostizzy
+> (Hostsphere India Private Limited), who manage 45+ properties across 15
+> Indian cities, and now open to independent hosts.
+
+## What it is
+
+ResIQ is a day-to-day operations tool, not a full enterprise PMS. It is aimed at
+small operators — typically 1 to 20 properties — who currently run their
+business on spreadsheets, WhatsApp and paper registers.
+
+Available as a web app and a native Android app. Free to start; no card required.
+
+## Key capabilities
+
+- **Reservations** — create, edit and track bookings; enquiry pipeline with
+  source tracking; table and Kanban views.
+- **OTA sync** — two-way iCal calendar sync with Airbnb, Booking.com, Agoda,
+  MakeMyTrip and Goibibo, plus automatic import of booking confirmation emails
+  from Gmail.
+- **Payments** — advances and balances across cash, UPI, payment gateway and
+  bank transfer; automatic commission, GST and owner-payout calculation.
+- **Guest KYC** — guests upload Aadhaar or passport and a selfie through a QR
+  code portal before arrival; operator approves in-app. Documents are
+  automatically deleted 60 days after checkout.
+- **WhatsApp messaging** — templated booking confirmations, directions, payment
+  reminders and thank-you messages in English or Hindi, logged per booking.
+- **Offline-first** — bookings, payments and check-ins can be created with no
+  network connection; everything queues and syncs automatically when signal
+  returns.
+- **Reporting** — occupancy, ADR, RevPAR and per-property P&L.
+- **Role-based access** — separate views for staff, property owners and guests.
+
+## Who it's for
+
+Independent hosts and small operators running vacation rentals, homestays,
+farmhouses, villas and boutique guesthouses in India — particularly properties
+in hill stations, farmland, backwaters and coastal areas where connectivity is
+unreliable.
+
+## Pages
+
+- [Home](https://resiq.hostizzy.com/): product overview, features, how it works
+- [About & Help](https://resiq.hostizzy.com/about): what ResIQ is and how to get support
+- [Sign in / web app](https://resiq.hostizzy.com/app): the staff operations app
+- [Privacy Policy](https://resiq.hostizzy.com/privacy): data handling, KYC document retention
+- [Terms of Service](https://resiq.hostizzy.com/terms)
+- [Delete your account](https://resiq.hostizzy.com/deleteaccount): account deletion process
+- [Android app](https://play.google.com/store/apps/details?id=com.hostizzy.resiq): Google Play listing
+
+## Company
+
+Hostizzy is the brand of Hostsphere India Private Limited. Hostizzy manages
+vacation rentals end to end — listing optimisation, dynamic pricing, guest
+check-in and owner payouts — across 15 Indian cities. ResIQ is the operations
+software behind that business, now offered to independent hosts.
+
+- Website: https://hostizzy.com
+- Support: support@hostizzy.com
+- Privacy enquiries: privacy@hostizzy.com

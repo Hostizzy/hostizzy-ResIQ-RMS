@@ -1,58 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ResIQ by Hostizzy — sitemap
+  Only publicly reachable, indexable pages belong here. The owner and guest
+  portals are auth-only shells and are disallowed in robots.txt, so listing
+  them here would contradict that signal.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <!-- Landing Page -->
     <url>
         <loc>https://resiq.hostizzy.com/</loc>
-        <lastmod>2026-04-04</lastmod>
+        <lastmod>2026-08-01</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>
-
-    <!-- About -->
     <url>
         <loc>https://resiq.hostizzy.com/about</loc>
-        <lastmod>2026-04-04</lastmod>
+        <lastmod>2026-08-01</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
+        <priority>0.6</priority>
     </url>
-
-    <!-- App (Staff RMS) -->
     <url>
         <loc>https://resiq.hostizzy.com/app</loc>
-        <lastmod>2026-04-04</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.9</priority>
+        <lastmod>2026-08-01</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
     </url>
-
-    <!-- Owner Portal -->
-    <url>
-        <loc>https://resiq.hostizzy.com/owner-portal</loc>
-        <lastmod>2026-04-04</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-
-    <!-- Guest Portal -->
-    <url>
-        <loc>https://resiq.hostizzy.com/guest-portal</loc>
-        <lastmod>2026-04-04</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-    </url>
-
-    <!-- Privacy Policy -->
     <url>
         <loc>https://resiq.hostizzy.com/privacy</loc>
-        <lastmod>2026-04-04</lastmod>
+        <lastmod>2026-08-01</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
     </url>
-
-    <!-- Terms of Service -->
     <url>
         <loc>https://resiq.hostizzy.com/terms</loc>
-        <lastmod>2026-04-04</lastmod>
+        <lastmod>2026-08-01</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>https://resiq.hostizzy.com/deleteaccount</loc>
+        <lastmod>2026-08-01</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.2</priority>
     </url>
 </urlset>
