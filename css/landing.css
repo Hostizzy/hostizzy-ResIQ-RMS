@@ -700,6 +700,19 @@ section { padding-block: clamp(68px, 8.5vw, 120px); }
     color: var(--amber);
 }
 .tile-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+/* Not-yet-shipped capabilities are labelled, never implied. */
+.chip-soon {
+    border-style: dashed;
+    border-color: rgba(240,147,43,0.45);
+    color: var(--amber);
+}
+.soon-note {
+    display: inline;
+    color: var(--text-faint);
+    font-style: italic;
+}
+.tile-wide .soon-note { color: rgba(233,241,247,0.42); }
+
 .chip {
     font-family: var(--f-mono);
     font-size: var(--t-micro); font-weight: 500;

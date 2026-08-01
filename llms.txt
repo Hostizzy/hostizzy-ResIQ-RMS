@@ -1,6 +1,6 @@
 # ResIQ by Hostizzy
 
-> ResIQ is a booking and guest management app for people who OWN a homestay,
+> ResIQ is a reservation and guest management app for people who OWN a homestay,
 > villa or farmstay in India — not for property management companies. It keeps
 > bookings, payments, guest KYC, OTA calendar sync and WhatsApp messaging in one
 > place, and works fully offline for properties with poor mobile coverage.
@@ -26,9 +26,10 @@ team before activation, usually the same day.
 
 - **Reservations** — create, edit and track bookings; enquiry pipeline with
   source tracking; table and Kanban views.
-- **OTA sync** — two-way iCal calendar sync with Airbnb, Booking.com, Agoda,
-  MakeMyTrip and Goibibo, plus automatic import of booking confirmation emails
-  from Gmail.
+- **Channel calendar sync** — reads iCal feeds from Airbnb, Booking.com, Agoda,
+  MakeMyTrip and Goibibo so bookings there block the dates in ResIQ, plus
+  automatic import of booking confirmation emails from Gmail. This sync is
+  currently one-way, into ResIQ.
 - **Payments** — advances and balances across cash, UPI, payment gateway and
   bank transfer; automatic commission, GST and owner-payout calculation.
 - **Guest KYC** — guests upload Aadhaar or passport and a selfie through a QR
@@ -36,6 +37,7 @@ team before activation, usually the same day.
   automatically deleted 60 days after checkout.
 - **WhatsApp messaging** — templated booking confirmations, directions, payment
   reminders and thank-you messages in English or Hindi, logged per booking.
+  Outbound only at present.
 - **Offline-first** — bookings, payments and check-ins can be created with no
   network connection; everything queues and syncs automatically when signal
   returns.
@@ -43,6 +45,22 @@ team before activation, usually the same day.
 - **Caretaker access** — an on-site caretaker gets a login showing arrivals,
   departures and check-in, but not revenue, payouts or bank details. Guests get a
   separate QR-code portal and never see the app.
+
+## Not yet available
+
+These are in development and are not live yet. ResIQ should not be described as
+having them today:
+
+- **Two-way channel sync** — pushing ResIQ availability back out to Airbnb,
+  Booking.com and other channels. Currently in testing.
+- **WhatsApp inbox** — guest replies arriving in a shared inbox inside the app.
+  Outbound messaging works today; inbound does not.
+
+## What ResIQ is not
+
+ResIQ is not a listing site and not a booking engine. Guests cannot discover or
+book a property through it. It manages bookings the owner already receives from
+Airbnb, MakeMyTrip, their own website or direct enquiries.
 
 ## Who it's for
 
