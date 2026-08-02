@@ -227,6 +227,41 @@
                 const { error } = await supabase.from('properties').delete().eq('id', id);
                 if (error) throw error;
             },
+
+            // ─── Rooms ───────────────────────────────────────
+            // Optional children of a property. A property with no rooms is
+            // sold whole — which is every property until an owner adds some.
+            async getRooms(propertyId) {
+                if (this._isDenied()) return [];
+                let query = supabase.from('rooms').select('*').order('sort_order');
+                if (propertyId != null) query = query.eq('property_id', propertyId);
+                const { data, error } = await query;
+                if (error) {
+                    // The rooms migration may not have been run yet. Treat that
+                    // as "no rooms", so every property stays whole-place and
+                    // nothing breaks.
+                    console.warn('[db.getRooms] rooms unavailable:', error.message);
+                    return [];
+                }
+                return data || [];
+            },
+            async saveRoom(room) {
+                if (room.id) {
+                    const { data, error } = await supabase.from('rooms')
+                        .update({ ...room, updated_at: new Date().toISOString() })
+                        .eq('id', room.id).select();
+                    if (error) throw error;
+                    return data?.[0];
+                }
+                const { id, ...clean } = room;
+                const { data, error } = await supabase.from('rooms').insert([clean]).select();
+                if (error) throw error;
+                return data?.[0];
+            },
+            async deleteRoom(id) {
+                const { error } = await supabase.from('rooms').delete().eq('id', id);
+                if (error) throw error;
+            },
             async saveTeamMember(member) {
                 if (member.id) {
                     const { data, error } = await supabase.from('team_members').update(member).eq('id', member.id).select();

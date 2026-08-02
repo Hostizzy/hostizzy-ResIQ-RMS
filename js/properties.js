@@ -166,6 +166,7 @@ async function loadProperties() {
                         ${p.ical_url ? `
                             <button class="prop-action-btn primary" onclick="syncPropertyNow(${p.id}, event)" title="Sync Now">Sync</button>
                         ` : ''}
+                        <button class="prop-action-btn" onclick="openRoomsManager(${p.id}, '${(p.name || '').replace(/'/g, "\\'")}')" title="Rooms">Rooms</button>
                         <button class="prop-action-btn" onclick="openPropertySettings(${p.id})" title="Settings">Settings</button>
                         <button class="prop-action-btn danger" onclick="deleteProperty(${p.id})" title="Delete Property" style="color: var(--danger);">Delete</button>
                     </div>
@@ -1376,3 +1377,124 @@ async function initializeAutoSync() {
     }
 }
 
+
+// ============================================================
+// ROOMS MANAGER
+// ============================================================
+// Rooms are optional. A property with none is sold whole, which is the
+// default and correct for villas and farmstays. Adding rooms switches the
+// property to per-room selling, while still allowing the whole place to be
+// booked as one unit — the database enforces that a whole-property booking
+// and a room booking can't overlap.
+
+window.openRoomsManager = async function(propertyId, propertyName) {
+    let rooms = [];
+    try {
+        rooms = await db.getRooms(propertyId);
+    } catch (e) {
+        showToast('Error', 'Could not load rooms: ' + e.message, '❌');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.id = 'roomsManagerModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 620px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Rooms &mdash; ${escapeHtml(propertyName || 'Property')}</h3>
+                <button class="close-btn" onclick="closeRoomsManager()">&times;</button>
+            </div>
+            <div style="padding: 20px;">
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+                    Leave this empty if you rent the whole place. Add rooms only if you sell them
+                    individually &mdash; you'll still be able to book the entire property as one unit.
+                </p>
+                <div id="roomsList"></div>
+
+                <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);">
+                    <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end;">
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:12px;">Room name</label>
+                            <input type="text" id="newRoomName" placeholder="Garden Room">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:12px;">Sleeps</label>
+                            <input type="number" id="newRoomCapacity" min="1" placeholder="2">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:12px;">Rate/night</label>
+                            <input type="number" id="newRoomRate" min="0" step="0.01" placeholder="3500">
+                        </div>
+                        <button class="btn btn-primary" onclick="addRoom(${propertyId})" style="height:40px;white-space:nowrap;">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeRoomsManager(); });
+    renderRoomsList(rooms, propertyId);
+};
+
+function renderRoomsList(rooms, propertyId) {
+    const el = document.getElementById('roomsList');
+    if (!el) return;
+
+    if (!rooms.length) {
+        el.innerHTML = `<div style="padding:22px;text-align:center;color:var(--text-secondary);
+            border:1px dashed var(--border);border-radius:8px;font-size:13px;">
+            No rooms yet &mdash; this property is sold as a whole place.</div>`;
+        return;
+    }
+
+    el.innerHTML = rooms.map(r => `
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);">
+            <div style="flex:1;">
+                <div style="font-weight:600;font-size:14px;">${escapeHtml(r.name)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">
+                    ${r.capacity ? `Sleeps ${r.capacity}` : 'Capacity not set'}
+                    ${r.base_rate ? ` &middot; ₹${Number(r.base_rate).toLocaleString('en-IN')}/night` : ''}
+                    ${r.ical_url ? ' &middot; calendar linked' : ''}
+                </div>
+            </div>
+            <button class="btn btn-sm" onclick="deleteRoom(${r.id}, ${propertyId})"
+                style="color:var(--danger);border:1px solid var(--danger);background:transparent;">Remove</button>
+        </div>`).join('');
+}
+
+window.addRoom = async function(propertyId) {
+    const name = document.getElementById('newRoomName').value.trim();
+    if (!name) { showToast('Name needed', 'Give the room a name so you can tell them apart', '⚠️'); return; }
+
+    const capacity = parseInt(document.getElementById('newRoomCapacity').value) || null;
+    const rate = parseFloat(document.getElementById('newRoomRate').value) || null;
+
+    try {
+        await db.saveRoom({ property_id: propertyId, name, capacity, base_rate: rate });
+        document.getElementById('newRoomName').value = '';
+        document.getElementById('newRoomCapacity').value = '';
+        document.getElementById('newRoomRate').value = '';
+        renderRoomsList(await db.getRooms(propertyId), propertyId);
+        showToast('Room added', `${name} is now bookable separately`, '✅');
+    } catch (e) {
+        const msg = /duplicate key|idx_rooms_property_name/i.test(e.message || '')
+            ? `You already have a room called "${name}" here.`
+            : e.message;
+        showToast('Could not add room', msg, '❌');
+    }
+};
+
+window.deleteRoom = async function(roomId, propertyId) {
+    if (!confirm('Remove this room? Bookings already on it will revert to the whole property.')) return;
+    try {
+        await db.deleteRoom(roomId);
+        renderRoomsList(await db.getRooms(propertyId), propertyId);
+        showToast('Room removed', '', '✅');
+    } catch (e) {
+        showToast('Error', e.message, '❌');
+    }
+};
+
+window.closeRoomsManager = function() {
+    document.getElementById('roomsManagerModal')?.remove();
+};

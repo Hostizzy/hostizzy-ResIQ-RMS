@@ -1981,6 +1981,43 @@ function toggleReservationQuickMode() {
     }
 }
 
+
+/**
+ * Show the room picker only when the selected property actually has rooms.
+ * A property with none is sold whole, which is the existing behaviour and
+ * the common case for villas and farmstays.
+ */
+async function onReservationPropertyChange(preselectRoomId) {
+    const propEl  = document.getElementById('propertySelect');
+    const group   = document.getElementById('reservationRoomGroup');
+    const roomEl  = document.getElementById('reservationRoom');
+    if (!propEl || !group || !roomEl) return;
+
+    const propertyId = propEl.value;
+    if (!propertyId) { group.style.display = 'none'; roomEl.innerHTML = '<option value="">Whole property</option>'; return; }
+
+    let rooms = [];
+    try {
+        rooms = await db.getRooms(parseInt(propertyId));
+    } catch (e) {
+        console.warn('[rooms] could not load:', e.message);
+    }
+
+    if (!rooms.length) {
+        group.style.display = 'none';
+        roomEl.innerHTML = '<option value="">Whole property</option>';
+        roomEl.value = '';
+        return;
+    }
+
+    group.style.display = '';
+    roomEl.innerHTML = '<option value="">Whole property</option>' +
+        rooms.filter(r => r.is_active !== false)
+             .map(r => `<option value="${r.id}">${escapeHtml(r.name)}${r.capacity ? ` &middot; sleeps ${r.capacity}` : ''}</option>`)
+             .join('');
+    roomEl.value = preselectRoomId != null ? String(preselectRoomId) : '';
+}
+
 function openReservationModal(booking_id = null) {
     const modal = document.getElementById('reservationModal');
     applyReservationQuickMode();
@@ -1999,6 +2036,7 @@ function openReservationModal(booking_id = null) {
         document.getElementById('reservationModalTitle').textContent = 'Edit Reservation';
         document.getElementById('editReservationId').value = r.id;
         document.getElementById('propertySelect').value = r.property_id;
+        onReservationPropertyChange(r.room_id);
         document.getElementById('bookingStatus').value = r.status;
         document.getElementById('bookingType').value = r.booking_type || 'STAYCATION';
         document.getElementById('checkInDate').value = r.check_in;
@@ -2041,6 +2079,7 @@ function openReservationModal(booking_id = null) {
         document.getElementById('reservationCode').value = '';
         toggleReservationCodeField(); // Reset visibility
         toggleOtaServiceFeeField(); // Reset OTA fee visibility
+        onReservationPropertyChange();
     }
     modal.classList.add('active');
     // Reset wizard to step 1 every time the modal opens
@@ -2299,6 +2338,8 @@ async function saveReservation() {
             status: bookingStatus,
             booking_source: bookingSource,
             number_of_rooms: parseInt(document.getElementById('numberOfRooms').value) || 1,
+            room_id: document.getElementById('reservationRoom')?.value
+                ? parseInt(document.getElementById('reservationRoom').value) : null,
             adults: adults,
             kids: kids,
             number_of_guests: numberOfGuests,
@@ -2399,7 +2440,15 @@ async function saveReservation() {
         }
     } catch (error) {
         console.error('Error saving reservation:', error);
-        showToast('Error', 'Failed to save reservation: ' + error.message, '❌');
+        // The double-booking trigger raises a message already written for a
+        // human ("Those dates are already taken. Ravi has the Garden Room
+        // from 12 Jul to 15 Jul."), so show it as-is rather than prefixing it.
+        const msg = error.message || '';
+        if (msg.includes('already taken')) {
+            showToast('Dates clash', msg, '⚠️');
+        } else {
+            showToast('Error', 'Failed to save reservation: ' + msg, '❌');
+        }
     }
 }
 

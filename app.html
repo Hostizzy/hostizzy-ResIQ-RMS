@@ -5247,9 +5247,18 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Property *</label>
-                        <select id="propertySelect" required onchange="calculateTaxes()">
+                        <select id="propertySelect" required onchange="calculateTaxes(); onReservationPropertyChange();">
                             <option value="">Select Property</option>
                         </select>
+                    </div>
+                    <!-- Only rendered for properties that actually have rooms.
+                         Whole-place properties never see this field. -->
+                    <div class="form-group" id="reservationRoomGroup" style="display: none;">
+                        <label>Room *</label>
+                        <select id="reservationRoom">
+                            <option value="">Whole property</option>
+                        </select>
+                        <small style="color: var(--text-secondary);">Booking the whole property blocks every room for those dates.</small>
                     </div>
                     <div class="form-group">
                         <label>Booking Status *</label>
