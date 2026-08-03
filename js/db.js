@@ -1,5 +1,15 @@
 // ResIQ DB — Database service layer (Supabase via proxy)
 
+        // account_type ('managed' | 'host') is the source of truth. is_external is
+        // the older boolean meaning the same thing, kept in sync by a database
+        // trigger. Reading through this means the app behaves correctly whether or
+        // not sql/account-type-and-host-profiles.sql has been applied.
+        window.accountTypeOf = function(o) {
+            if (o?.account_type) return o.account_type;
+            return o?.is_external ? 'host' : 'managed';
+        };
+        window.isHostAccount = (o) => window.accountTypeOf(o) === 'host';
+
         // 160 bits from the CSPRNG, base36. The feed URL is pasted into Airbnb
         // and fetched by their servers, so a guessable token would expose a
         // property's occupancy to anyone who tried.

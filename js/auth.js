@@ -119,7 +119,8 @@
                     email,
                     phone: phone || null,
                     is_active: false,
-                    is_external: true,
+                    account_type: 'host',
+                    is_external: true,   // kept in sync by trigger; drop once nothing reads it
                     status: 'pending'
                 };
                 const createdOwner = await db.createOwner(ownerData);
@@ -225,7 +226,8 @@
                     if (ownerProfile) {
                         delete ownerProfile._kind;
                         // External owner: check approval status
-                        if (ownerProfile.is_external) {
+                        const isHost = (ownerProfile.account_type || (ownerProfile.is_external ? 'host' : 'managed')) === 'host';
+                        if (isHost) {
                             if (ownerProfile.status === 'pending') {
                                 await authService.signOut();
                                 showPendingApprovalScreen();
@@ -316,7 +318,9 @@
             // before anyone opens the view.
             if (currentUser?.userType !== 'staff') return;
             db.getOwners().then(owners => {
-                const waiting = (owners || []).filter(o => o.is_external && o.status === 'pending').length;
+                const waiting = (owners || []).filter(o =>
+                    (o.account_type || (o.is_external ? 'host' : 'managed')) === 'host'
+                    && o.status === 'pending').length;
                 if (typeof updatePendingBadge === 'function') updatePendingBadge(waiting);
             }).catch(() => {});
         }

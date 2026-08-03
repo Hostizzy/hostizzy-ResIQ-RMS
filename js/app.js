@@ -99,7 +99,7 @@ window.addEventListener('load', async () => {
             currentUser = JSON.parse(storedUser);
 
             // Managed owners (not is_external) should use the owner portal
-            if (currentUser.userType === 'owner' && !currentUser.is_external) {
+            if (currentUser.userType === 'owner' && !isHostAccount(currentUser)) {
                 window.location.href = '/owner-portal';
                 return;
             }

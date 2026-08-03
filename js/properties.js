@@ -388,7 +388,7 @@ async function saveProperty() {
         };
 
         // Auto-set owner_id for external owners
-        if (currentUser?.userType === 'owner' && currentUser?.is_external) {
+        if (currentUser?.userType === 'owner' && isHostAccount(currentUser)) {
             property.owner_id = currentUser.id;
         }
 

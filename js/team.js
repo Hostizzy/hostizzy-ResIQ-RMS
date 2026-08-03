@@ -57,7 +57,7 @@ async function saveTeamMember() {
         }
 
         // Set owner_id if current user is an external owner
-        if (currentUser?.userType === 'owner' && currentUser?.is_external) {
+        if (currentUser?.userType === 'owner' && isHostAccount(currentUser)) {
             member.owner_id = currentUser.id;
         }
 
@@ -129,7 +129,7 @@ let loadedOwnerProperties = [];
 async function loadOwners() {
     try {
         const all = await db.getOwners();
-        loadedOwners = (all || []).filter(o => !o.is_external);
+        loadedOwners = (all || []).filter(o => accountTypeOf(o) === 'managed');
         loadedOwnerProperties = await db.getProperties();
         renderOwnersTable();
     } catch (error) {
@@ -195,8 +195,9 @@ async function openOwnerModal(ownerId = null) {
             document.getElementById('ownerEmail').value = owner.email;
             document.getElementById('ownerPhone').value = owner.phone || '';
             document.getElementById('ownerStatus').value = owner.is_active ? 'active' : 'inactive';
-            if (ownerTypeSelect) ownerTypeSelect.value = owner.is_external ? 'independent' : 'managed';
-            if (titleEl) titleEl.textContent = owner.is_external ? 'Edit Host' : 'Edit Managed Owner';
+            const isHost = isHostAccount(owner);
+            if (ownerTypeSelect) ownerTypeSelect.value = isHost ? 'independent' : 'managed';
+            if (titleEl) titleEl.textContent = isHost ? 'Edit Host' : 'Edit Managed Owner';
             toggleOwnerTypeHint();
 
             // Check assigned properties
@@ -294,7 +295,8 @@ async function saveOwner() {
             email,
             phone,
             is_active: status === 'active',
-            is_external: ownerType === 'independent',
+            account_type: ownerType === 'independent' ? 'host' : 'managed',
+            is_external: ownerType === 'independent',   // synced by trigger
             property_ids: selectedProperties
         };
 
@@ -1038,7 +1040,7 @@ let currentHostFilter = 'pending';
 async function loadHosts() {
     try {
         const all = await db.getOwners();
-        loadedHosts = (all || []).filter(o => o.is_external);
+        loadedHosts = (all || []).filter(o => accountTypeOf(o) === 'host');
         loadedHostProperties = await db.getProperties();
         renderHostsTable();
         updatePendingBadge(loadedHosts.filter(h => h.status === 'pending').length);

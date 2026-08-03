@@ -853,7 +853,8 @@
                             phone: phone || null,
                             password: 'firebase-managed',
                             is_active: false,
-                            is_external: true,
+                            account_type: 'host',
+                            is_external: true,   // kept in sync by trigger; drop once nothing reads it
                             status: 'pending'
                         }]
                     })
