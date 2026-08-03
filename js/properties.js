@@ -5,6 +5,7 @@ async function loadProperties() {
         const properties = await db.getProperties();
         const reservations = await db.getReservations();
         const payments = await db.getAllPayments();
+        const allRooms = await db.getRooms();   // [] if the migration hasn't run
         const grid = document.getElementById('propertiesGrid');
         
         grid.innerHTML = properties.map(p => {
@@ -86,6 +87,10 @@ async function loadProperties() {
             };
             const propertyIcon = iconMap[p.type] || '🏠';
 
+            // Rooms are optional — show the count only when there are some,
+            // so whole-place properties stay visually unchanged.
+            const roomCount = allRooms.filter(r => String(r.property_id) === String(p.id)).length;
+
             // Sync status
             const syncStatus = getSyncStatusBadge(p);
             const lastSynced = p.ical_last_synced ?
@@ -118,7 +123,7 @@ async function loadProperties() {
                             <span class="prop-location">📍 ${p.location || 'No location'}</span>
                             <span class="prop-badge ${badgeClass}">${performanceBadge}</span>
                         </div>
-                        <div class="prop-type-row">${p.type || 'Property'}</div>
+                        <div class="prop-type-row">${p.type || 'Property'}${roomCount ? ` &middot; ${roomCount} room${roomCount === 1 ? '' : 's'}` : ''}</div>
                     </div>
 
                     <!-- Stats: 4 fixed-width columns -->
@@ -232,6 +237,8 @@ function closePropertyModal() {
     document.getElementById('propertyModal').classList.remove('active');
     document.getElementById('propertyName').value = '';
     document.getElementById('propertyLocation').value = '';
+    const mode = document.getElementById('propertyRentalMode');
+    if (mode) mode.value = 'whole';
 }
 
 // Integration Info Modal Functions
@@ -412,9 +419,20 @@ async function saveProperty() {
         // Refresh scoped property IDs after adding a new property
         await db.refreshPropertyScope();
 
+        // This function only ever creates — editing goes through
+        // savePropertySettings() — so a new property is always the case here.
+        const wantsRooms = document.getElementById('propertyRentalMode')?.value === 'rooms';
+        const created = data?.[0] || property;
+
         closePropertyModal();
         await loadProperties(); // Refresh the properties list
         showToast('Success', 'Property saved!', '✅');
+
+        // Nothing else surfaces rooms during setup, so take them straight
+        // there rather than relying on them finding the button on the card.
+        if (wantsRooms && created?.id) {
+            openRoomsManager(created.id, created.name);
+        }
     } catch (error) {
         showToast('Error', 'Failed to save property: ' + error.message, '❌');
     }
