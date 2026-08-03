@@ -129,8 +129,44 @@ final rooms = await supabase
    on a property that *has* rooms means "the whole place", not "unassigned" —
    label it accordingly or it reads as a data error.
 
-RLS on `rooms` inherits the parent property's owner via your existing JWT claims
-(`user_type`, `owner_id`), so no auth work is needed.
+### Tenant isolation — you get this for free, the web app doesn't
+
+Worth understanding, because the two clients have **opposite** security models
+and it's an easy thing to get wrong later.
+
+| | How it reaches Postgres | What enforces isolation |
+|---|---|---|
+| **Flutter app** | `supabase_flutter` with the user's JWT from `/api/auth-exchange` | **RLS**, enforced by Postgres |
+| **Web app** | `/api/db-proxy` using the **service-role key** | Hand-written scoping in `js/db.js` — RLS is bypassed |
+
+The `rooms` policies read your existing claims:
+
+```sql
+user_type IN ('admin','staff')
+OR EXISTS (SELECT 1 FROM properties p
+            WHERE p.id = rooms.property_id
+              AND p.owner_id::text = <owner_id claim>)
+```
+
+`auth-exchange` already puts `user_type` and `owner_id` in the token, so **an
+owner can only ever see and write rooms under their own properties, and you need
+no client-side filtering to achieve it.** Query `rooms` freely.
+
+Two things follow from this:
+
+- **Don't replicate the web app's filtering.** `js/db.js` restricts `rooms` by
+  `_ownerPropertyIds` only because the proxy bypasses RLS. Copying that into Dart
+  would be redundant, and a second copy of an authorisation rule is a liability —
+  it drifts.
+- **If you ever add a server endpoint that uses the service-role key**, you
+  inherit the web app's problem: RLS stops applying and you must scope by hand.
+  This exact trap produced a cross-tenant leak in the web app (one owner's
+  browser received every other owner's rooms) — fixed in
+  `test/rooms-scoping.test.js`, worth reading as a cautionary example.
+
+Please verify rather than trust the above: sign in as two different owner
+accounts and confirm each sees only their own rooms. If RLS is somehow not
+applying, that's a much bigger problem than rooms and worth knowing immediately.
 
 ### Availability helper
 
@@ -248,6 +284,13 @@ Conflict guard:
 - [ ] Editing a booking's dates onto an occupied range → rejected
 - [ ] A booking with `ical_uid` set that overlaps → **accepted** (exempt by design)
 
+Tenant isolation (do this first — it validates RLS, not just rooms):
+
+- [ ] Sign in as owner A, note the rooms visible
+- [ ] Sign in as owner B → sees only their own rooms, none of A's
+- [ ] Attempt to read a room belonging to A while signed in as B → returns nothing
+- [ ] Attempt to write a room onto A's property while signed in as B → rejected
+
 Rooms:
 
 - [ ] Property with no rooms → picker hidden, saves with `room_id` NULL, behaves as before
@@ -274,6 +317,7 @@ Push:
 | `api/push-fcm.js` | register / unregister / broadcast |
 | `test/ical-feed.test.js` | Feed format, round-tripped through the app's own parser |
 | `js/properties.js` | Rooms manager — reference for the equivalent Flutter screen |
+| `test/rooms-scoping.test.js` | Why the web app scopes rooms by hand, and what it guards against |
 
 Questions: whoever picks this up should read the header comment in
 `sql/rooms-and-conflict-guard.sql` first. The reasoning behind the model and the

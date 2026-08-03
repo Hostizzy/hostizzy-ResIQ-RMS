@@ -239,10 +239,28 @@
             // ─── Rooms ───────────────────────────────────────
             // Optional children of a property. A property with no rooms is
             // sold whole — which is every property until an owner adds some.
+            // Scoping matters here: /api/db-proxy talks to Supabase with the
+            // SERVICE ROLE key, which bypasses RLS. The rooms RLS policies
+            // protect the Flutter app (real user JWT) but NOT the browser, so
+            // the owner filter has to be applied here or one owner's browser
+            // receives every other owner's rooms.
             async getRooms(propertyId) {
                 if (this._isDenied()) return [];
+
                 let query = supabase.from('rooms').select('*').order('sort_order');
-                if (propertyId != null) query = query.eq('property_id', propertyId);
+
+                if (propertyId != null) {
+                    // Asking for a specific property — refuse if it isn't ours.
+                    if (!this._ownsProperty(propertyId)) return [];
+                    query = query.eq('property_id', propertyId);
+                } else if (this._ownerPropertyIds) {
+                    // No property given: restrict to this owner's properties.
+                    // [-1] is an id that cannot exist, so an owner with none
+                    // gets an empty set rather than everything.
+                    query = query.in('property_id',
+                        this._ownerPropertyIds.length > 0 ? this._ownerPropertyIds : [-1]);
+                }
+
                 const { data, error } = await query;
                 if (error) {
                     // The rooms migration may not have been run yet. Treat that
@@ -253,20 +271,47 @@
                 }
                 return data || [];
             },
+
+            // null _ownerPropertyIds means Hostizzy staff — unscoped by design.
+            _ownsProperty(propertyId) {
+                if (this._isDenied()) return false;
+                if (this._ownerPropertyIds == null) return true;
+                return this._ownerPropertyIds.some(id => String(id) === String(propertyId));
+            },
             async saveRoom(room) {
+                // Same reason as getRooms: the proxy bypasses RLS, so without
+                // this an owner could create or edit a room on someone else's
+                // property just by changing the id in the request.
+                if (room.property_id != null && !this._ownsProperty(room.property_id)) {
+                    throw new Error('That property is not yours.');
+                }
+
                 if (room.id) {
+                    // Confirm the room we're editing sits under one of our
+                    // properties, not just that the payload claims it does.
+                    const { data: existing } = await supabase.from('rooms')
+                        .select('property_id').eq('id', room.id).maybeSingle();
+                    if (existing && !this._ownsProperty(existing.property_id)) {
+                        throw new Error('That room is not yours.');
+                    }
                     const { data, error } = await supabase.from('rooms')
                         .update({ ...room, updated_at: new Date().toISOString() })
                         .eq('id', room.id).select();
                     if (error) throw error;
                     return data?.[0];
                 }
+
                 const { id, ...clean } = room;
                 const { data, error } = await supabase.from('rooms').insert([clean]).select();
                 if (error) throw error;
                 return data?.[0];
             },
             async deleteRoom(id) {
+                const { data: existing } = await supabase.from('rooms')
+                    .select('property_id').eq('id', id).maybeSingle();
+                if (existing && !this._ownsProperty(existing.property_id)) {
+                    throw new Error('That room is not yours.');
+                }
                 const { error } = await supabase.from('rooms').delete().eq('id', id);
                 if (error) throw error;
             },
