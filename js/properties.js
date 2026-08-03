@@ -474,6 +474,20 @@ async function openPropertySettings(propertyId) {
         document.getElementById('settingsModalTitle').textContent = `${property.name} Settings`;
         document.getElementById('settingsPropertyName').textContent = property.name;
         document.getElementById('settingsPropertyLocation').textContent = property.location || 'No location set';
+
+        // Rooms summary — reflects how this property is actually configured.
+        (async () => {
+            const el = document.getElementById('settingsRoomsSummary');
+            if (!el) return;
+            try {
+                const rooms = (await db.getRooms(propertyId)).filter(r => r.is_active !== false);
+                el.textContent = rooms.length
+                    ? `${rooms.length} room${rooms.length === 1 ? '' : 's'}: ${rooms.map(r => r.name).join(', ')}`
+                    : 'Sold as one whole place — add rooms if you rent them separately';
+            } catch {
+                el.textContent = 'Sold as one whole place';
+            }
+        })();
         
         // Set property icon based on type
         const iconMap = {
@@ -1405,6 +1419,14 @@ async function initializeAutoSync() {
 // booked as one unit — the database enforces that a whole-property booking
 // and a room booking can't overlap.
 
+// Opens the rooms manager for whichever property Settings is currently showing.
+window.openRoomsFromSettings = async function() {
+    const id = document.getElementById('settingsPropertyId')?.value;
+    if (!id) return;
+    const name = document.getElementById('settingsPropertyName')?.textContent || 'Property';
+    openRoomsManager(parseInt(id), name);
+};
+
 window.openRoomsManager = async function(propertyId, propertyName) {
     let rooms = [];
     try {
@@ -1579,4 +1601,18 @@ window.deleteRoom = async function(roomId, propertyId) {
 
 window.closeRoomsManager = function() {
     document.getElementById('roomsManagerModal')?.remove();
+    // Settings may still be open behind this — refresh its summary so it
+    // doesn't show a stale room list.
+    const id = document.getElementById('settingsPropertyId')?.value;
+    const el = document.getElementById('settingsRoomsSummary');
+    if (id && el) {
+        db.getRooms(parseInt(id))
+          .then(rooms => {
+              const active = rooms.filter(r => r.is_active !== false);
+              el.textContent = active.length
+                  ? `${active.length} room${active.length === 1 ? '' : 's'}: ${active.map(r => r.name).join(', ')}`
+                  : 'Sold as one whole place — add rooms if you rent them separately';
+          })
+          .catch(() => {});
+    }
 };
