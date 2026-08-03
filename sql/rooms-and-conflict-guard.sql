@@ -37,6 +37,44 @@
 BEGIN;
 
 -- ------------------------------------------------------------
+-- 0. PRE-FLIGHT
+-- ------------------------------------------------------------
+-- Fail here, loudly, rather than installing cleanly and then breaking every
+-- booking save with a confusing runtime error.
+-- ------------------------------------------------------------
+DO $preflight$
+DECLARE
+    ci_type TEXT;
+BEGIN
+    IF to_regclass('public.reservations') IS NULL THEN
+        RAISE EXCEPTION 'reservations table not found — wrong database?';
+    END IF;
+    IF to_regclass('public.properties') IS NULL THEN
+        RAISE EXCEPTION 'properties table not found — wrong database?';
+    END IF;
+
+    -- The conflict trigger reads ical_uid to exempt OTA-sourced rows.
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+         WHERE table_name = 'reservations' AND column_name = 'ical_uid'
+    ) THEN
+        RAISE EXCEPTION
+            'reservations.ical_uid missing — run sql/round5-ical-schema.sql first.';
+    END IF;
+
+    SELECT data_type INTO ci_type
+      FROM information_schema.columns
+     WHERE table_name = 'reservations' AND column_name = 'check_in';
+
+    RAISE NOTICE 'reservations.check_in is %. Date logic casts explicitly, so either date or text is fine.', ci_type;
+
+    IF ci_type NOT IN ('date', 'text', 'character varying', 'timestamp without time zone', 'timestamp with time zone') THEN
+        RAISE EXCEPTION 'Unexpected type % for reservations.check_in — stopping rather than guessing.', ci_type;
+    END IF;
+END
+$preflight$;
+
+-- ------------------------------------------------------------
 -- 1. ROOMS
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS rooms (
@@ -136,8 +174,8 @@ BEGIN
        AND COALESCE(r.status, '') <> 'cancelled'
        AND r.check_in IS NOT NULL
        AND r.check_out IS NOT NULL
-       AND daterange(r.check_in, r.check_out, '[)')
-        && daterange(NEW.check_in, NEW.check_out, '[)')
+       AND daterange(r.check_in::date, r.check_out::date, '[)')
+        && daterange(NEW.check_in::date, NEW.check_out::date, '[)')
        AND (
               r.room_id IS NULL            -- existing takes the whole property
            OR NEW.room_id IS NULL          -- incoming takes the whole property
@@ -155,8 +193,8 @@ BEGIN
             'Those dates are already taken. % has % from % to %.',
             COALESCE(NULLIF(clash.guest_name, ''), 'Booking ' || COALESCE(clash.booking_id, '?')),
             clash_where,
-            to_char(clash.check_in,  'DD Mon'),
-            to_char(clash.check_out, 'DD Mon')
+            to_char(clash.check_in::date,  'DD Mon'),
+            to_char(clash.check_out::date, 'DD Mon')
             USING ERRCODE = '23P01';   -- exclusion_violation
     END IF;
 
@@ -193,7 +231,7 @@ AS $$
          WHERE r.property_id = p_property_id
            AND COALESCE(r.status, '') <> 'cancelled'
            AND r.check_in IS NOT NULL AND r.check_out IS NOT NULL
-           AND daterange(r.check_in, r.check_out, '[)')
+           AND daterange(r.check_in::date, r.check_out::date, '[)')
             && daterange(p_check_in, p_check_out, '[)')
     ),
     whole_taken AS (
@@ -262,8 +300,8 @@ COMMIT;
 --     JOIN reservations b
 --       ON a.property_id = b.property_id
 --      AND a.id < b.id
---      AND daterange(a.check_in, a.check_out, '[)')
---       && daterange(b.check_in, b.check_out, '[)')
+--      AND daterange(a.check_in::date, a.check_out::date, '[)')
+--       && daterange(b.check_in::date, b.check_out::date, '[)')
 --    WHERE COALESCE(a.status,'') <> 'cancelled'
 --      AND COALESCE(b.status,'') <> 'cancelled'
 --      AND (a.room_id IS NULL OR b.room_id IS NULL OR a.room_id = b.room_id)
