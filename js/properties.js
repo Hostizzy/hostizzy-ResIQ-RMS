@@ -1412,6 +1412,20 @@ window.openRoomsManager = async function(propertyId, propertyName) {
                 </p>
                 <div id="roomsList"></div>
 
+                <!-- Outbound feeds. Separate from the room list because these
+                     are shared with third parties, not internal settings. -->
+                <details style="margin-top:18px;border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+                    <summary style="cursor:pointer;font-weight:600;font-size:13px;">
+                        Channel sync &mdash; share your calendar with Airbnb &amp; Booking.com
+                    </summary>
+                    <p style="font-size:12px;color:var(--text-secondary);margin:10px 0 12px;">
+                        Paste these links into the channel's <em>Import calendar</em> setting. They'll stop
+                        selling dates you've filled here. Channels refresh every few hours, so this reduces
+                        double bookings rather than eliminating them outright.
+                    </p>
+                    <div id="feedList"></div>
+                </details>
+
                 <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);">
                     <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end;">
                         <div class="form-group" style="margin:0;">
@@ -1434,6 +1448,7 @@ window.openRoomsManager = async function(propertyId, propertyName) {
     document.body.appendChild(modal);
     modal.addEventListener('click', e => { if (e.target === modal) closeRoomsManager(); });
     renderRoomsList(rooms, propertyId);
+    renderFeedList(rooms, propertyId);
 };
 
 function renderRoomsList(rooms, propertyId) {
@@ -1462,6 +1477,51 @@ function renderRoomsList(rooms, propertyId) {
         </div>`).join('');
 }
 
+function renderFeedList(rooms, propertyId) {
+    const el = document.getElementById('feedList');
+    if (!el) return;
+
+    const active = rooms.filter(r => r.is_active !== false);
+    // A property with rooms still publishes a whole-property feed, because the
+    // whole place may also be listed. With no rooms, that's the only feed.
+    const targets = [{ kind: 'property', id: propertyId, label: 'Whole property' }]
+        .concat(active.map(r => ({ kind: 'room', id: r.id, label: r.name })));
+
+    el.innerHTML = targets.map(t => `
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:600;">${escapeHtml(t.label)}</div>
+                <div id="feedUrl-${t.kind}-${t.id}" style="font-size:11px;color:var(--text-secondary);
+                    word-break:break-all;font-family:monospace;">Not generated yet</div>
+            </div>
+            <button class="btn btn-sm" onclick="generateFeedUrl('${t.kind}', ${t.id})"
+                style="white-space:nowrap;">Get link</button>
+        </div>`).join('');
+}
+
+window.generateFeedUrl = async function(kind, id) {
+    const target = document.getElementById(`feedUrl-${kind}-${id}`);
+    if (!target) return;
+    target.textContent = 'Generating…';
+    try {
+        const token = await db.ensureFeedToken(kind, id);
+        const url = `${window.location.origin}/api/ical-feed?t=${token}`;
+        target.innerHTML = `<span style="user-select:all;">${escapeHtml(url)}</span>`;
+        try {
+            await navigator.clipboard.writeText(url);
+            showToast('Link copied', 'Paste it into the channel\'s Import calendar setting', '✅');
+        } catch {
+            showToast('Link ready', 'Select and copy the link shown', 'ℹ️');
+        }
+    } catch (e) {
+        target.textContent = 'Could not generate';
+        const msg = /column .*ical_feed_token|does not exist/i.test(e.message || '')
+            ? 'Run sql/ical-feed-tokens.sql first.'
+            : e.message;
+        showToast('Error', msg, '❌');
+    }
+};
+
 window.addRoom = async function(propertyId) {
     const name = document.getElementById('newRoomName').value.trim();
     if (!name) { showToast('Name needed', 'Give the room a name so you can tell them apart', '⚠️'); return; }
@@ -1474,7 +1534,9 @@ window.addRoom = async function(propertyId) {
         document.getElementById('newRoomName').value = '';
         document.getElementById('newRoomCapacity').value = '';
         document.getElementById('newRoomRate').value = '';
-        renderRoomsList(await db.getRooms(propertyId), propertyId);
+        const fresh = await db.getRooms(propertyId);
+        renderRoomsList(fresh, propertyId);
+        renderFeedList(fresh, propertyId);
         showToast('Room added', `${name} is now bookable separately`, '✅');
     } catch (e) {
         const msg = /duplicate key|idx_rooms_property_name/i.test(e.message || '')
@@ -1488,7 +1550,9 @@ window.deleteRoom = async function(roomId, propertyId) {
     if (!confirm('Remove this room? Bookings already on it will revert to the whole property.')) return;
     try {
         await db.deleteRoom(roomId);
-        renderRoomsList(await db.getRooms(propertyId), propertyId);
+        const fresh = await db.getRooms(propertyId);
+        renderRoomsList(fresh, propertyId);
+        renderFeedList(fresh, propertyId);
         showToast('Room removed', '', '✅');
     } catch (e) {
         showToast('Error', e.message, '❌');
