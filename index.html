@@ -847,6 +847,7 @@
                     body: JSON.stringify({
                         table: 'property_owners',
                         operation: 'insert',
+                        returning: 'representation',
                         data: [{
                             name, email,
                             phone: phone || null,
@@ -859,6 +860,18 @@
                 });
                 const dbResult = await dbResp.json();
                 if (dbResult.error) throw new Error(dbResult.error.message || 'Failed to save account');
+
+                // Tell the Hostizzy team someone is waiting. Fire-and-forget:
+                // the account already exists, so a failed notification must not
+                // make a successful signup look broken.
+                const newOwnerId = Array.isArray(dbResult.data) ? dbResult.data[0]?.id : dbResult.data?.id;
+                if (newOwnerId) {
+                    fetch('/api/owner-notify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'signup', ownerId: newOwnerId })
+                    }).catch(() => {});
+                }
 
                 document.getElementById('signupFormCard').style.display = 'none';
                 document.getElementById('signupSuccessCard').style.display = 'block';

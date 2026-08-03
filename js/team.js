@@ -120,79 +120,54 @@ async function deleteTeamMember(id) {
 
 // ========== PROPERTY OWNERS MANAGEMENT ==========
 
-let currentOwnerTypeFilter = 'all';
 let loadedOwners = [];
 let loadedOwnerProperties = [];
 
+// Managed Owners only. Hosts live in their own view — the two share a table
+// but almost nothing operationally, so mixing them meant half the columns
+// were meaningless for half the rows.
 async function loadOwners() {
     try {
-        loadedOwners = await db.getOwners();
+        const all = await db.getOwners();
+        loadedOwners = (all || []).filter(o => !o.is_external);
         loadedOwnerProperties = await db.getProperties();
         renderOwnersTable();
     } catch (error) {
-        console.error('Load owners error:', error);
-        showToast('Error', 'Failed to load owners', '❌');
+        console.error('Load managed owners error:', error);
+        showToast('Error', 'Failed to load managed owners', '❌');
     }
-}
-
-function filterOwnersByType(type, el) {
-    currentOwnerTypeFilter = type;
-    document.querySelectorAll('#ownersView .filter-chip').forEach(c => c.classList.remove('active'));
-    if (el) el.classList.add('active');
-    renderOwnersTable();
 }
 
 function renderOwnersTable() {
-    const owners = loadedOwners;
-    const properties = loadedOwnerProperties;
     const tbody = document.getElementById('ownersTableBody');
+    if (!tbody) return;
 
-    if (!owners || owners.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color: var(--text-secondary);">No owners added yet. Click "+ Add Owner" to get started.</td></tr>';
+    if (!loadedOwners.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color: var(--text-secondary);">No managed owners yet. Click "Add Managed Owner" to create one.</td></tr>';
         return;
     }
 
-    let filtered = owners;
-    if (currentOwnerTypeFilter === 'managed') {
-        filtered = owners.filter(o => !o.is_external);
-    } else if (currentOwnerTypeFilter === 'independent') {
-        filtered = owners.filter(o => o.is_external);
-    }
-
-    if (filtered.length === 0) {
-        const label = currentOwnerTypeFilter === 'managed' ? 'managed owners' : 'hosts';
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="color: var(--text-secondary);">No ${label} found.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = filtered.map(owner => {
-        const assignedProps = owner.property_ids || [];
-        const propNames = assignedProps.map(id => {
-            const prop = properties.find(p => p.id === id);
-            return prop ? prop.name : `Property ${id}`;
-        }).join(', ') || 'None';
-
-        const statusText = owner.is_active ? 'ACTIVE' : 'INACTIVE';
+    tbody.innerHTML = loadedOwners.map(owner => {
+        const assigned = owner.property_ids || [];
+        const propNames = assigned
+            .map(id => loadedOwnerProperties.find(p => p.id === id)?.name || `Property ${id}`)
+            .join(', ') || 'None';
         const statusBadge = owner.is_active ? 'badge-success' : 'badge-warning';
-        const isHost = owner.is_external;
-        const typeBadge = isHost
-            ? '<span class="badge" style="background: #dbeafe; color: #1d4ed8; font-size: 11px;">Host</span>'
-            : '<span class="badge" style="background: #dcfce7; color: #166534; font-size: 11px;">Managed</span>';
+        const commission = owner.commission_rate != null ? `${owner.commission_rate}%` : '—';
 
         return `
             <tr>
-                <td>${owner.name}</td>
-                <td>${owner.email}</td>
-                <td>${owner.phone || '-'}</td>
-                <td>${typeBadge}</td>
-                <td><span class="badge badge-info">${assignedProps.length} propert${assignedProps.length === 1 ? 'y' : 'ies'}</span><br><small style="color: var(--text-secondary);">${propNames}</small></td>
-                <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                <td>${escapeHtml(owner.name || '')}</td>
+                <td>${escapeHtml(owner.email || '')}</td>
+                <td>${escapeHtml(owner.phone || '-')}</td>
+                <td><span class="badge badge-info">${assigned.length} propert${assigned.length === 1 ? 'y' : 'ies'}</span><br><small style="color: var(--text-secondary);">${escapeHtml(propNames)}</small></td>
+                <td>${commission}</td>
+                <td><span class="badge ${statusBadge}">${owner.is_active ? 'ACTIVE' : 'INACTIVE'}</span></td>
                 <td>
                     <button class="btn btn-secondary btn-sm" onclick="editOwner('${owner.id}')">Edit</button>
                     <button class="btn btn-danger btn-sm" onclick="deleteOwner('${owner.id}')">Delete</button>
                 </td>
-            </tr>
-        `;
+            </tr>`;
     }).join('');
 }
 
@@ -1052,88 +1027,164 @@ window.viewExpenseReceipt = async function(receiptPath) {
 
 // ========== PENDING SIGNUPS (Admin Approval) ==========
 
-async function loadPendingSignups() {
+// ── Hosts (self-signup owners) ──────────────────────────────
+// One view for the whole lifecycle. A host waiting for approval and a host
+// who's been running for months are the same person, so splitting them across
+// two nav items just made people hunt.
+
+let loadedHosts = [];
+let currentHostFilter = 'pending';
+
+async function loadHosts() {
     try {
-        const { data: pending, error } = await db.getPendingOwners();
-        if (error) throw error;
-
-        const tbody = document.getElementById('pendingSignupsTableBody');
-        if (!pending || pending.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color: var(--text-secondary);">No pending signups.</td></tr>';
-            updatePendingBadge(0);
-            return;
-        }
-
-        updatePendingBadge(pending.length);
-
-        tbody.innerHTML = pending.map(owner => {
-            const signupDate = owner.created_at ? new Date(owner.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
-            return `
-                <tr>
-                    <td>${owner.name}</td>
-                    <td>${owner.email}</td>
-                    <td>${owner.phone || '-'}</td>
-                    <td>${signupDate}</td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" onclick="approveOwnerSignup('${owner.id}')" style="margin-right: 4px;">Approve</button>
-                        <button class="btn btn-danger btn-sm" onclick="rejectOwnerSignup('${owner.id}', '${owner.email}')">Reject</button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
+        const all = await db.getOwners();
+        loadedHosts = (all || []).filter(o => o.is_external);
+        loadedHostProperties = await db.getProperties();
+        renderHostsTable();
+        updatePendingBadge(loadedHosts.filter(h => h.status === 'pending').length);
     } catch (error) {
-        console.error('Load pending signups error:', error);
-        showToast('Error', 'Failed to load pending signups', '❌');
+        console.error('Load hosts error:', error);
+        showToast('Error', 'Failed to load hosts', '❌');
     }
+}
+let loadedHostProperties = [];
+
+function filterHosts(status, el) {
+    currentHostFilter = status;
+    document.querySelectorAll('#hostsView .filter-chip').forEach(c => c.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderHostsTable();
+}
+
+function renderHostsTable() {
+    const tbody = document.getElementById('hostsTableBody');
+    if (!tbody) return;
+
+    const pendingCount = loadedHosts.filter(h => h.status === 'pending').length;
+    const countEl = document.getElementById('hostsPendingCount');
+    if (countEl) countEl.textContent = pendingCount ? `(${pendingCount})` : '';
+
+    const rows = currentHostFilter === 'all'
+        ? loadedHosts
+        : loadedHosts.filter(h => (h.status || 'pending') === currentHostFilter);
+
+    if (!rows.length) {
+        const empty = {
+            pending:  'Nobody waiting for approval right now.',
+            approved: 'No active hosts yet.',
+            rejected: 'No rejected signups.',
+            all:      'No hosts yet. They arrive through the signup form on the landing page.'
+        }[currentHostFilter];
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="color: var(--text-secondary);">${empty}</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = rows.map(h => {
+        const propCount = loadedHostProperties.filter(p => String(p.owner_id) === String(h.id)).length;
+        const signedUp = h.created_at
+            ? new Date(h.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+            : '—';
+
+        const status = h.status || 'pending';
+        const badge = {
+            pending:  '<span class="badge badge-warning">Waiting</span>',
+            approved: '<span class="badge badge-success">Active</span>',
+            rejected: '<span class="badge badge-danger">Rejected</span>',
+        }[status] || `<span class="badge">${escapeHtml(status)}</span>`;
+
+        // Actions follow status — approve/reject only mean something while
+        // they're waiting.
+        const actions = status === 'pending'
+            ? `<button class="btn btn-primary btn-sm" onclick="approveOwnerSignup('${h.id}')" style="margin-right:4px;">Approve</button>
+               <button class="btn btn-danger btn-sm" onclick="rejectOwnerSignup('${h.id}', '${escapeHtml(h.email || '')}')">Reject</button>`
+            : `<button class="btn btn-danger btn-sm" onclick="deleteOwner('${h.id}')">Remove</button>`;
+
+        return `
+            <tr>
+                <td>${escapeHtml(h.name || '')}</td>
+                <td>${escapeHtml(h.email || '')}</td>
+                <td>${escapeHtml(h.phone || '-')}</td>
+                <td>${propCount ? `<span class="badge badge-info">${propCount}</span>` : '<span style="color:var(--text-tertiary);">None yet</span>'}</td>
+                <td>${signedUp}</td>
+                <td>${badge}</td>
+                <td style="white-space:nowrap;">${actions}</td>
+            </tr>`;
+    }).join('');
 }
 
 function updatePendingBadge(count) {
     const badge = document.getElementById('pendingSignupsBadge');
-    if (badge) {
-        if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = '';
-        } else {
-            badge.style.display = 'none';
-        }
+    if (!badge) return;
+    if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = '';
+    } else {
+        badge.style.display = 'none';
     }
 }
 
 async function approveOwnerSignup(ownerId) {
-    if (!confirm('Approve this owner? They will be able to log in and manage properties.')) return;
+    if (!confirm('Approve this host? They will be able to sign in and add properties.')) return;
 
     try {
         const { error } = await db.approveOwner(ownerId);
         if (error) throw error;
-        showToast('Approved', 'Owner account activated successfully', '✅');
-        await loadPendingSignups();
+
+        // Let them know they can sign in. Reported separately from the
+        // approval itself — the account IS active even if the mail fails, and
+        // saying otherwise would be misleading.
+        let emailed = false;
+        try {
+            const idToken = await firebase.auth().currentUser.getIdToken();
+            const resp = await fetch('/api/owner-notify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({ action: 'approved', ownerId })
+            });
+            emailed = (await resp.json())?.sent === true;
+        } catch (e) {
+            console.warn('[approve] notification failed:', e.message);
+        }
+
+        showToast(
+            'Approved',
+            emailed ? 'Host activated and emailed'
+                    : 'Host activated — but the welcome email did not send',
+            emailed ? '✅' : '⚠️'
+        );
+        await loadHosts();
     } catch (error) {
-        console.error('Approve owner error:', error);
-        showToast('Error', 'Failed to approve owner', '❌');
+        console.error('Approve host error:', error);
+        showToast('Error', 'Failed to approve host', '❌');
     }
 }
 
 async function rejectOwnerSignup(ownerId, email) {
-    if (!confirm('Reject this registration? The owner will not be able to log in.')) return;
+    if (!confirm('Reject this registration? They will not be able to sign in.')) return;
 
     try {
         const { error } = await db.rejectOwner(ownerId);
         if (error) throw error;
 
-        // Optionally delete Firebase Auth account
-        try {
-            await fetch('/api/auth-proxy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'delete-user', email })
-            });
-        } catch (e) { /* best effort */ }
+        // Best-effort Firebase cleanup so the email can be reused later.
+        if (email) {
+            try {
+                await fetch('/api/auth-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete-user', email })
+                });
+            } catch (e) { /* best effort */ }
+        }
 
-        showToast('Rejected', 'Owner registration rejected', '✅');
-        await loadPendingSignups();
+        showToast('Rejected', 'Registration rejected', 'ℹ️');
+        await loadHosts();
     } catch (error) {
-        console.error('Reject owner error:', error);
-        showToast('Error', 'Failed to reject owner', '❌');
+        console.error('Reject host error:', error);
+        showToast('Error', 'Failed to reject registration', '❌');
     }
 }
 

@@ -847,11 +847,11 @@
                         </a>
                         <a class="sidebar-item" onclick="showView('owners')">
                             <span class="sidebar-item-icon"><i data-lucide="shield" style="width: 20px; height: 20px;"></i></span>
-                            <span class="sidebar-item-label">Owners</span>
+                            <span class="sidebar-item-label">Managed Owners</span>
                         </a>
-                        <a class="sidebar-item" onclick="showView('pendingSignups')" id="sidebarPendingSignups" style="display: none;">
-                            <span class="sidebar-item-icon"><i data-lucide="user-plus" style="width: 20px; height: 20px;"></i></span>
-                            <span class="sidebar-item-label">Pending Signups</span>
+                        <a class="sidebar-item" onclick="showView('hosts')" id="sidebarHosts">
+                            <span class="sidebar-item-icon"><i data-lucide="home" style="width: 20px; height: 20px;"></i></span>
+                            <span class="sidebar-item-label">Hosts</span>
                             <span class="pending-signups-badge" id="pendingSignupsBadge" style="display: none; background: var(--danger, #ef4444); color: white; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 10px; margin-left: auto;"></span>
                         </a>
                         <a class="sidebar-item" onclick="showView('availability')">
@@ -1123,7 +1123,7 @@
                             <div class="app-icon-box bg-indigo">
                                 <i data-lucide="shield" style="width: 28px; height: 28px;"></i>
                             </div>
-                            <div class="app-icon-label">Owners</div>
+                            <div class="app-icon-label">Managed Owners</div>
                         </div>
                         <div class="app-icon" onclick="triggerHaptic('light'); showView('communication');">
                             <div class="app-icon-box bg-green">
@@ -1288,8 +1288,8 @@
                     <div class="category-card admin-only-item" onclick="showView('owners')">
                         <div class="category-card-icon"><i data-lucide="shield" style="width: 28px; height: 28px;"></i></div>
                         <div class="category-card-content">
-                            <div class="category-card-title">Owners</div>
-                            <div class="category-card-stat">Owner portal</div>
+                            <div class="category-card-title">Managed Owners</div>
+                            <div class="category-card-stat">Commission &amp; payouts</div>
                         </div>
                         <div class="category-card-arrow"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></div>
                     </div>
@@ -3841,21 +3841,15 @@
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="shield" style="width: 24px; height: 24px; color: var(--primary);"></i>
-                        Property Owners
+                        Managed Owners
                     </h2>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Manage managed owners and independent hosts</p>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Owners whose properties Hostizzy runs &mdash; commission, settlements and payouts</p>
                 </div>
                 <button class="btn btn-primary" onclick="openOwnerModal()" style="display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Owner
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Managed Owner
                 </button>
             </div>
             <div class="card">
-                <!-- Owner type filter tabs -->
-                <div style="display: flex; gap: 6px; padding: 16px 16px 0; margin-bottom: 16px; flex-wrap: wrap;">
-                    <button class="filter-chip active" onclick="filterOwnersByType('all', this)" style="font-size: 12px; padding: 4px 12px;">All</button>
-                    <button class="filter-chip" onclick="filterOwnersByType('managed', this)" style="font-size: 12px; padding: 4px 12px;">Managed Owners</button>
-                    <button class="filter-chip" onclick="filterOwnersByType('independent', this)" style="font-size: 12px; padding: 4px 12px;">Hosts</button>
-                </div>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -3863,35 +3857,45 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
-                                <th>Type</th>
                                 <th>Properties</th>
+                                <th>Commission</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="ownersTableBody">
-                            <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                            <tr><td colspan="7" class="text-center">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Pending Signups View (Admin) -->
-        <div id="pendingSignupsView" class="container hidden">
+        <!-- Hosts View (self-signup owners) -->
+        <div id="hostsView" class="container hidden">
             <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
                     <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px;">
-                        <i data-lucide="user-plus" style="width: 24px; height: 24px; color: var(--primary);"></i>
-                        Pending Signups
+                        <i data-lucide="home" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                        Hosts
                     </h2>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Review and approve new host registrations</p>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Independent owners who signed up themselves and run their own properties</p>
                 </div>
-                <button class="btn btn-secondary" onclick="loadPendingSignups()" style="display: flex; align-items: center; gap: 6px;">
+                <button class="btn btn-secondary" onclick="loadHosts()" style="display: flex; align-items: center; gap: 6px;">
                     <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Refresh
                 </button>
             </div>
             <div class="card">
+                <!-- Status tabs. A pending host and an approved one are the same
+                     person, so they belong in one place. -->
+                <div style="display: flex; gap: 6px; padding: 16px 16px 0; margin-bottom: 16px; flex-wrap: wrap;">
+                    <button class="filter-chip active" onclick="filterHosts('pending', this)" style="font-size: 12px; padding: 4px 12px;">
+                        Waiting for approval <span id="hostsPendingCount" style="opacity:.7;"></span>
+                    </button>
+                    <button class="filter-chip" onclick="filterHosts('approved', this)" style="font-size: 12px; padding: 4px 12px;">Active</button>
+                    <button class="filter-chip" onclick="filterHosts('rejected', this)" style="font-size: 12px; padding: 4px 12px;">Rejected</button>
+                    <button class="filter-chip" onclick="filterHosts('all', this)" style="font-size: 12px; padding: 4px 12px;">All</button>
+                </div>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -3899,12 +3903,14 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
-                                <th>Signed Up</th>
+                                <th>Properties</th>
+                                <th>Signed up</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="pendingSignupsTableBody">
-                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                        <tbody id="hostsTableBody">
+                            <tr><td colspan="7" class="text-center">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>

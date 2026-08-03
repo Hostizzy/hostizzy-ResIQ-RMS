@@ -122,7 +122,17 @@
                     is_external: true,
                     status: 'pending'
                 };
-                await db.createOwner(ownerData);
+                const createdOwner = await db.createOwner(ownerData);
+
+                // Fire-and-forget — the account exists either way.
+                const newId = createdOwner?.id || createdOwner?.[0]?.id;
+                if (newId) {
+                    fetch('/api/owner-notify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'signup', ownerId: newId })
+                    }).catch(() => {});
+                }
 
                 // Step 3: Show pending approval screen
                 showPendingApprovalScreen();
@@ -277,15 +287,15 @@
 
         function hideSidebarForOwners() {
             // Hosts (independent) and managed owners don't see admin-only views
-            const hiddenLabels = ['Team', 'Owners', 'OTA Import', 'Performance'];
+            const hiddenLabels = ['Team', 'Managed Owners', 'Hosts', 'OTA Import', 'Performance'];
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 const label = item.querySelector('.sidebar-item-label')?.textContent?.trim();
                 if (hiddenLabels.includes(label)) {
                     item.style.display = 'none';
                 }
             });
-            const pendingNav = document.getElementById('sidebarPendingSignups');
-            if (pendingNav) pendingNav.style.display = 'none';
+            const hostsNav = document.getElementById('sidebarHosts');
+            if (hostsNav) hostsNav.style.display = 'none';
 
             // Hide admin-only items from home screen grids
             document.querySelectorAll('.admin-only-item').forEach(el => {
@@ -301,24 +311,14 @@
         }
 
         function showAdminOnlyNav() {
-            // Show pending signups nav for admins and load count
-            const pendingNav = document.getElementById('sidebarPendingSignups');
-            if (pendingNav && currentUser?.userType === 'staff' && currentUser?.role === 'admin') {
-                pendingNav.style.display = '';
-                // Load pending count in background
-                db.getPendingOwners().then(({ data }) => {
-                    const count = data?.length || 0;
-                    const badge = document.getElementById('pendingSignupsBadge');
-                    if (badge) {
-                        if (count > 0) {
-                            badge.textContent = count;
-                            badge.style.display = '';
-                        } else {
-                            badge.style.display = 'none';
-                        }
-                    }
-                }).catch(() => {});
-            }
+            // Hosts is visible to all staff; the badge tells admins there's
+            // something waiting. Loading it here means the count is right
+            // before anyone opens the view.
+            if (currentUser?.userType !== 'staff') return;
+            db.getOwners().then(owners => {
+                const waiting = (owners || []).filter(o => o.is_external && o.status === 'pending').length;
+                if (typeof updatePendingBadge === 'function') updatePendingBadge(waiting);
+            }).catch(() => {});
         }
 
         async function logout() {
