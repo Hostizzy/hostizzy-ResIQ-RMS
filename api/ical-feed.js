@@ -88,6 +88,62 @@ function fold(line) {
     return parts.join('\r\n ');
 }
 
+/**
+ * Build the calendar body. Split out from the handler so the format can be
+ * tested without a database — see test/ical-feed.test.js, which round-trips
+ * the output through ResIQ's own iCal parser.
+ */
+export function buildCalendar(rows, calName, nowIso) {
+    const stamp = (nowIso || new Date().toISOString()).replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+    const lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Hostizzy//ResIQ//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        fold(`X-WR-CALNAME:${esc(calName)}`),
+    ];
+
+    for (const r of rows) {
+        const start = toIcalDate(r.check_in);
+        const end = toIcalDate(r.check_out);
+        if (!start || !end || end <= start) continue;   // skip malformed / zero-night rows
+
+        // Echo the channel's own UID back so it dedupes rather than creating
+        // a phantom block over its own reservation.
+        const uid = r.ical_uid ? r.ical_uid : `resiq-${r.id}@resiq.hostizzy.com`;
+
+        lines.push(
+            'BEGIN:VEVENT',
+            fold(`UID:${esc(uid)}`),
+            `DTSTAMP:${stamp}`,
+            // DTEND is exclusive for VALUE=DATE, so checkout day stays sellable.
+            `DTSTART;VALUE=DATE:${start}`,
+            `DTEND;VALUE=DATE:${end}`,
+            // Deliberately no guest name, phone or amount. This URL lives
+            // inside a third party's system.
+            'SUMMARY:Reserved',
+            'TRANSP:OPAQUE',
+            'STATUS:CONFIRMED',
+            'END:VEVENT'
+        );
+    }
+
+    lines.push('END:VCALENDAR');
+    return lines.join('\r\n') + '\r\n';
+}
+
+/** Which bookings belong in a given feed. The parent/child rule lives here. */
+export function relevantBookings(rows, scope) {
+    return rows.filter(r => {
+        if (!r.check_in || !r.check_out) return false;
+        if (String(r.status || '').toLowerCase() === 'cancelled') return false;
+        if (scope.kind === 'property') return true;   // any booking blocks the whole place
+        return r.room_id == null || String(r.room_id) === String(scope.room.id);
+    });
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
         res.setHeader('Allow', 'GET, HEAD');
@@ -128,56 +184,13 @@ export default async function handler(req, res) {
             `&order=check_in.asc&limit=2000`
         );
 
-        const relevant = rows.filter(r => {
-            if (!r.check_in || !r.check_out) return false;
-            if (String(r.status || '').toLowerCase() === 'cancelled') return false;
-            if (scope.kind === 'property') return true;      // any booking blocks the whole place
-            return r.room_id == null || String(r.room_id) === String(scope.room.id);
-        });
+        const relevant = relevantBookings(rows, scope);
 
         const calName = scope.kind === 'room'
             ? `ResIQ — ${scope.room.name}`
             : `ResIQ — ${scope.property.name}`;
 
-        const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-
-        const lines = [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'PRODID:-//Hostizzy//ResIQ//EN',
-            'CALSCALE:GREGORIAN',
-            'METHOD:PUBLISH',
-            fold(`X-WR-CALNAME:${esc(calName)}`),
-        ];
-
-        for (const r of relevant) {
-            const start = toIcalDate(r.check_in);
-            const end = toIcalDate(r.check_out);
-            if (!start || !end || end <= start) continue;   // skip malformed / zero-night rows
-
-            // Echo the channel's own UID back so it dedupes rather than
-            // creating a phantom block over its own reservation.
-            const uid = r.ical_uid
-                ? r.ical_uid
-                : `resiq-${r.id}@resiq.hostizzy.com`;
-
-            lines.push(
-                'BEGIN:VEVENT',
-                fold(`UID:${esc(uid)}`),
-                `DTSTAMP:${stamp}`,
-                // DTEND is exclusive for VALUE=DATE, so checkout day stays sellable.
-                `DTSTART;VALUE=DATE:${start}`,
-                `DTEND;VALUE=DATE:${end}`,
-                // Deliberately no guest name, phone or amount. This URL lives
-                // inside a third party's system.
-                'SUMMARY:Reserved',
-                'TRANSP:OPAQUE',
-                'STATUS:CONFIRMED',
-                'END:VEVENT'
-            );
-        }
-
-        lines.push('END:VCALENDAR');
+        const body = buildCalendar(relevant, calName);
 
         res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
         res.setHeader('Content-Disposition', 'inline; filename="resiq.ics"');
@@ -185,7 +198,7 @@ export default async function handler(req, res) {
         // misconfigured client hammering the endpoint.
         res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300');
         res.setHeader('X-Robots-Tag', 'noindex');
-        return res.status(200).send(lines.join('\r\n') + '\r\n');
+        return res.status(200).send(body);
 
     } catch (err) {
         console.error('[ical-feed]', err.message);
