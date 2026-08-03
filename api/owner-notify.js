@@ -19,8 +19,10 @@
  * Env:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  *   FIREBASE_API_KEY                 (verifying the admin on 'approved')
- *   SIGNUP_NOTIFY_EMAIL              (who hears about signups; falls back to
- *                                     STAY_EMAIL_RECIPIENT, then support@)
+ *   SIGNUP_NOTIFY_EMAIL              (optional — who hears about signups.
+ *                                     Defaults to DAILY_SUMMARY_EMAIL, so with
+ *                                     no config it goes to the same inbox as
+ *                                     the daily summary.)
  *   DAILY_SUMMARY_FROM_EMAIL         (optional — which connected Gmail sends)
  *   APP_URL                          (optional — links in the emails)
  */
@@ -34,7 +36,12 @@ import {
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Defaults to whoever already receives the daily summary, so signup alerts
+// land in the inbox the team is reading anyway and nothing extra needs setting.
+// STAY_EMAIL_RECIPIENT is only a further fallback — it's the revenue-target
+// address, which is a different audience.
 const NOTIFY_TO = process.env.SIGNUP_NOTIFY_EMAIL
+    || process.env.DAILY_SUMMARY_EMAIL
     || process.env.STAY_EMAIL_RECIPIENT
     || 'support@hostizzy.com';
 const FROM_EMAIL = process.env.DAILY_SUMMARY_FROM_EMAIL;
