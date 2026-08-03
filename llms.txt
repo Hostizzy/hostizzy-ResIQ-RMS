@@ -1,27 +1,35 @@
 # ResIQ by Hostizzy
 
-> ResIQ is reservation and operations management software for vacation rentals,
-> homestays, farmhouses and villas in India. It handles bookings, payments,
-> guest KYC, OTA calendar sync and WhatsApp messaging in one place, and works
-> fully offline for properties with poor mobile coverage. Built by Hostizzy
-> (Hostsphere India Private Limited), who manage 45+ properties across 15
-> Indian cities, and now open to independent hosts.
+> ResIQ is a reservation and guest management app for people who OWN a homestay,
+> villa or farmstay in India — not for property management companies. It keeps
+> bookings, payments, guest KYC, OTA calendar sync and WhatsApp messaging in one
+> place, and works fully offline for properties with poor mobile coverage.
+> The first property is free permanently. Built by Hostizzy (Hostsphere India
+> Private Limited), who manage 45 properties across 15 Indian cities.
 
 ## What it is
 
-ResIQ is a day-to-day operations tool, not a full enterprise PMS. It is aimed at
-small operators — typically 1 to 20 properties — who currently run their
-business on spreadsheets, WhatsApp and paper registers.
+ResIQ is a day-to-day tool for a single owner, not an enterprise PMS. It is aimed
+at people who own one or a few properties and run the bookings themselves —
+currently juggling WhatsApp threads, UPI notifications, a photo gallery full of
+guest IDs, and a spreadsheet.
 
-Available as a web app and a native Android app. Free to start; no card required.
+Available as a web app and a native Android app.
+
+## Pricing
+
+The first property is free permanently — not a trial, and no card is required.
+Additional properties move to a paid plan. Accounts are reviewed by the Hostizzy
+team before activation, usually the same day.
 
 ## Key capabilities
 
 - **Reservations** — create, edit and track bookings; enquiry pipeline with
   source tracking; table and Kanban views.
-- **OTA sync** — two-way iCal calendar sync with Airbnb, Booking.com, Agoda,
-  MakeMyTrip and Goibibo, plus automatic import of booking confirmation emails
-  from Gmail.
+- **Channel calendar sync** — reads iCal feeds from Airbnb, Booking.com, Agoda,
+  MakeMyTrip and Goibibo so bookings there block the dates in ResIQ, plus
+  automatic import of booking confirmation emails from Gmail. This sync is
+  currently one-way, into ResIQ.
 - **Payments** — advances and balances across cash, UPI, payment gateway and
   bank transfer; automatic commission, GST and owner-payout calculation.
 - **Guest KYC** — guests upload Aadhaar or passport and a selfie through a QR
@@ -29,24 +37,49 @@ Available as a web app and a native Android app. Free to start; no card required
   automatically deleted 60 days after checkout.
 - **WhatsApp messaging** — templated booking confirmations, directions, payment
   reminders and thank-you messages in English or Hindi, logged per booking.
+  Outbound only at present.
 - **Offline-first** — bookings, payments and check-ins can be created with no
   network connection; everything queues and syncs automatically when signal
   returns.
 - **Reporting** — occupancy, ADR, RevPAR and per-property P&L.
-- **Role-based access** — separate views for staff, property owners and guests.
+- **Caretaker access** — an on-site caretaker gets a login showing arrivals,
+  departures and check-in, but not revenue, payouts or bank details. Guests get a
+  separate QR-code portal and never see the app.
+
+## Not yet available
+
+These are in development and are not live yet. ResIQ should not be described as
+having them today:
+
+- **Two-way channel sync** — pushing ResIQ availability back out to Airbnb,
+  Booking.com and other channels. Currently in testing.
+- **WhatsApp inbox** — guest replies arriving in a shared inbox inside the app.
+  Outbound messaging works today; inbound does not.
+
+## What ResIQ is not
+
+ResIQ is not a listing site and not a booking engine. Guests cannot discover or
+book a property through it. It manages bookings the owner already receives from
+Airbnb, MakeMyTrip, their own website or direct enquiries.
 
 ## Who it's for
 
-Independent hosts and small operators running vacation rentals, homestays,
-farmhouses, villas and boutique guesthouses in India — particularly properties
-in hill stations, farmland, backwaters and coastal areas where connectivity is
-unreliable.
+Property OWNERS in India — people who own a homestay, villa, farmstay or
+boutique guesthouse, handle the bookings themselves, and usually have a
+caretaker on site. Especially relevant for properties in hill stations,
+farmland, backwaters and coastal areas where mobile coverage is unreliable.
+
+## Who it is NOT for
+
+Property management companies operating other people's properties. ResIQ is
+deliberately shaped and priced for an individual owner; Hostizzy is building a
+separate product for managers.
 
 ## Pages
 
 - [Home](https://resiq.hostizzy.com/): product overview, features, how it works
 - [About & Help](https://resiq.hostizzy.com/about): what ResIQ is and how to get support
-- [Sign in / web app](https://resiq.hostizzy.com/app): the staff operations app
+- [Sign in / web app](https://resiq.hostizzy.com/app): the owner web app
 - [Privacy Policy](https://resiq.hostizzy.com/privacy): data handling, KYC document retention
 - [Terms of Service](https://resiq.hostizzy.com/terms)
 - [Delete your account](https://resiq.hostizzy.com/deleteaccount): account deletion process
@@ -56,8 +89,8 @@ unreliable.
 
 Hostizzy is the brand of Hostsphere India Private Limited. Hostizzy manages
 vacation rentals end to end — listing optimisation, dynamic pricing, guest
-check-in and owner payouts — across 15 Indian cities. ResIQ is the operations
-software behind that business, now offered to independent hosts.
+check-in and owner payouts — across 15 Indian cities. ResIQ is the software
+behind that business, now offered free to owners running their own properties.
 
 - Website: https://hostizzy.com
 - Support: support@hostizzy.com

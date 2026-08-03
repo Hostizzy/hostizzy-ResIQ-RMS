@@ -1,5 +1,13 @@
 // ResIQ DB — Database service layer (Supabase via proxy)
 
+        // 160 bits from the CSPRNG, base36. The feed URL is pasted into Airbnb
+        // and fetched by their servers, so a guessable token would expose a
+        // property's occupancy to anyone who tried.
+        function _newFeedToken() {
+            const bytes = crypto.getRandomValues(new Uint8Array(20));
+            return Array.from(bytes, b => b.toString(36).padStart(2, '0')).join('');
+        }
+
         const db = {
             // ─── Multi-Tenant Scoping ─────────────────────────────
             // Default-deny: queries return [] until initScope() explicitly
@@ -226,6 +234,66 @@
             async deleteProperty(id) {
                 const { error } = await supabase.from('properties').delete().eq('id', id);
                 if (error) throw error;
+            },
+
+            // ─── Rooms ───────────────────────────────────────
+            // Optional children of a property. A property with no rooms is
+            // sold whole — which is every property until an owner adds some.
+            async getRooms(propertyId) {
+                if (this._isDenied()) return [];
+                let query = supabase.from('rooms').select('*').order('sort_order');
+                if (propertyId != null) query = query.eq('property_id', propertyId);
+                const { data, error } = await query;
+                if (error) {
+                    // The rooms migration may not have been run yet. Treat that
+                    // as "no rooms", so every property stays whole-place and
+                    // nothing breaks.
+                    console.warn('[db.getRooms] rooms unavailable:', error.message);
+                    return [];
+                }
+                return data || [];
+            },
+            async saveRoom(room) {
+                if (room.id) {
+                    const { data, error } = await supabase.from('rooms')
+                        .update({ ...room, updated_at: new Date().toISOString() })
+                        .eq('id', room.id).select();
+                    if (error) throw error;
+                    return data?.[0];
+                }
+                const { id, ...clean } = room;
+                const { data, error } = await supabase.from('rooms').insert([clean]).select();
+                if (error) throw error;
+                return data?.[0];
+            },
+            async deleteRoom(id) {
+                const { error } = await supabase.from('rooms').delete().eq('id', id);
+                if (error) throw error;
+            },
+
+            // ─── Outbound iCal feed tokens ───────────────────
+            // Minted on demand so a property that never uses channel sync
+            // never carries a live secret. Regenerating simply overwrites,
+            // which instantly invalidates the old URL.
+            async ensureFeedToken(kind, id) {
+                const table = kind === 'room' ? 'rooms' : 'properties';
+                const { data: existing } = await supabase.from(table)
+                    .select('ical_feed_token').eq('id', id).maybeSingle();
+                if (existing?.ical_feed_token) return existing.ical_feed_token;
+
+                const token = _newFeedToken();
+                const { error } = await supabase.from(table)
+                    .update({ ical_feed_token: token }).eq('id', id);
+                if (error) throw error;
+                return token;
+            },
+            async regenerateFeedToken(kind, id) {
+                const table = kind === 'room' ? 'rooms' : 'properties';
+                const token = _newFeedToken();
+                const { error } = await supabase.from(table)
+                    .update({ ical_feed_token: token }).eq('id', id);
+                if (error) throw error;
+                return token;
             },
             async saveTeamMember(member) {
                 if (member.id) {

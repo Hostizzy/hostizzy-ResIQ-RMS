@@ -5,6 +5,7 @@ async function loadProperties() {
         const properties = await db.getProperties();
         const reservations = await db.getReservations();
         const payments = await db.getAllPayments();
+        const allRooms = await db.getRooms();   // [] if the migration hasn't run
         const grid = document.getElementById('propertiesGrid');
         
         grid.innerHTML = properties.map(p => {
@@ -86,6 +87,10 @@ async function loadProperties() {
             };
             const propertyIcon = iconMap[p.type] || '🏠';
 
+            // Rooms are optional — show the count only when there are some,
+            // so whole-place properties stay visually unchanged.
+            const roomCount = allRooms.filter(r => String(r.property_id) === String(p.id)).length;
+
             // Sync status
             const syncStatus = getSyncStatusBadge(p);
             const lastSynced = p.ical_last_synced ?
@@ -118,7 +123,7 @@ async function loadProperties() {
                             <span class="prop-location">📍 ${p.location || 'No location'}</span>
                             <span class="prop-badge ${badgeClass}">${performanceBadge}</span>
                         </div>
-                        <div class="prop-type-row">${p.type || 'Property'}</div>
+                        <div class="prop-type-row">${p.type || 'Property'}${roomCount ? ` &middot; ${roomCount} room${roomCount === 1 ? '' : 's'}` : ''}</div>
                     </div>
 
                     <!-- Stats: 4 fixed-width columns -->
@@ -166,6 +171,7 @@ async function loadProperties() {
                         ${p.ical_url ? `
                             <button class="prop-action-btn primary" onclick="syncPropertyNow(${p.id}, event)" title="Sync Now">Sync</button>
                         ` : ''}
+                        <button class="prop-action-btn" onclick="openRoomsManager(${p.id}, '${(p.name || '').replace(/'/g, "\\'")}')" title="Rooms">Rooms</button>
                         <button class="prop-action-btn" onclick="openPropertySettings(${p.id})" title="Settings">Settings</button>
                         <button class="prop-action-btn danger" onclick="deleteProperty(${p.id})" title="Delete Property" style="color: var(--danger);">Delete</button>
                     </div>
@@ -231,6 +237,8 @@ function closePropertyModal() {
     document.getElementById('propertyModal').classList.remove('active');
     document.getElementById('propertyName').value = '';
     document.getElementById('propertyLocation').value = '';
+    const mode = document.getElementById('propertyRentalMode');
+    if (mode) mode.value = 'whole';
 }
 
 // Integration Info Modal Functions
@@ -411,9 +419,20 @@ async function saveProperty() {
         // Refresh scoped property IDs after adding a new property
         await db.refreshPropertyScope();
 
+        // This function only ever creates — editing goes through
+        // savePropertySettings() — so a new property is always the case here.
+        const wantsRooms = document.getElementById('propertyRentalMode')?.value === 'rooms';
+        const created = data?.[0] || property;
+
         closePropertyModal();
         await loadProperties(); // Refresh the properties list
         showToast('Success', 'Property saved!', '✅');
+
+        // Nothing else surfaces rooms during setup, so take them straight
+        // there rather than relying on them finding the button on the card.
+        if (wantsRooms && created?.id) {
+            openRoomsManager(created.id, created.name);
+        }
     } catch (error) {
         showToast('Error', 'Failed to save property: ' + error.message, '❌');
     }
@@ -455,6 +474,20 @@ async function openPropertySettings(propertyId) {
         document.getElementById('settingsModalTitle').textContent = `${property.name} Settings`;
         document.getElementById('settingsPropertyName').textContent = property.name;
         document.getElementById('settingsPropertyLocation').textContent = property.location || 'No location set';
+
+        // Rooms summary — reflects how this property is actually configured.
+        (async () => {
+            const el = document.getElementById('settingsRoomsSummary');
+            if (!el) return;
+            try {
+                const rooms = (await db.getRooms(propertyId)).filter(r => r.is_active !== false);
+                el.textContent = rooms.length
+                    ? `${rooms.length} room${rooms.length === 1 ? '' : 's'}: ${rooms.map(r => r.name).join(', ')}`
+                    : 'Sold as one whole place — add rooms if you rent them separately';
+            } catch {
+                el.textContent = 'Sold as one whole place';
+            }
+        })();
         
         // Set property icon based on type
         const iconMap = {
@@ -1376,3 +1409,210 @@ async function initializeAutoSync() {
     }
 }
 
+
+// ============================================================
+// ROOMS MANAGER
+// ============================================================
+// Rooms are optional. A property with none is sold whole, which is the
+// default and correct for villas and farmstays. Adding rooms switches the
+// property to per-room selling, while still allowing the whole place to be
+// booked as one unit — the database enforces that a whole-property booking
+// and a room booking can't overlap.
+
+// Opens the rooms manager for whichever property Settings is currently showing.
+window.openRoomsFromSettings = async function() {
+    const id = document.getElementById('settingsPropertyId')?.value;
+    if (!id) return;
+    const name = document.getElementById('settingsPropertyName')?.textContent || 'Property';
+    openRoomsManager(parseInt(id), name);
+};
+
+window.openRoomsManager = async function(propertyId, propertyName) {
+    let rooms = [];
+    try {
+        rooms = await db.getRooms(propertyId);
+    } catch (e) {
+        showToast('Error', 'Could not load rooms: ' + e.message, '❌');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.id = 'roomsManagerModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 620px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Rooms &mdash; ${escapeHtml(propertyName || 'Property')}</h3>
+                <button class="close-btn" onclick="closeRoomsManager()">&times;</button>
+            </div>
+            <div style="padding: 20px;">
+                <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+                    Leave this empty if you rent the whole place. Add rooms only if you sell them
+                    individually &mdash; you'll still be able to book the entire property as one unit.
+                </p>
+                <div id="roomsList"></div>
+
+                <!-- Outbound feeds. Separate from the room list because these
+                     are shared with third parties, not internal settings. -->
+                <details style="margin-top:18px;border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+                    <summary style="cursor:pointer;font-weight:600;font-size:13px;">
+                        Channel sync &mdash; share your calendar with Airbnb &amp; Booking.com
+                    </summary>
+                    <p style="font-size:12px;color:var(--text-secondary);margin:10px 0 12px;">
+                        Paste these links into the channel's <em>Import calendar</em> setting. They'll stop
+                        selling dates you've filled here. Channels refresh every few hours, so this reduces
+                        double bookings rather than eliminating them outright.
+                    </p>
+                    <div id="feedList"></div>
+                </details>
+
+                <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);">
+                    <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end;">
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:12px;">Room name</label>
+                            <input type="text" id="newRoomName" placeholder="Garden Room">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:12px;">Sleeps</label>
+                            <input type="number" id="newRoomCapacity" min="1" placeholder="2">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:12px;">Rate/night</label>
+                            <input type="number" id="newRoomRate" min="0" step="0.01" placeholder="3500">
+                        </div>
+                        <button class="btn btn-primary" onclick="addRoom(${propertyId})" style="height:40px;white-space:nowrap;">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeRoomsManager(); });
+    renderRoomsList(rooms, propertyId);
+    renderFeedList(rooms, propertyId);
+};
+
+function renderRoomsList(rooms, propertyId) {
+    const el = document.getElementById('roomsList');
+    if (!el) return;
+
+    if (!rooms.length) {
+        el.innerHTML = `<div style="padding:22px;text-align:center;color:var(--text-secondary);
+            border:1px dashed var(--border);border-radius:8px;font-size:13px;">
+            No rooms yet &mdash; this property is sold as a whole place.</div>`;
+        return;
+    }
+
+    el.innerHTML = rooms.map(r => `
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);">
+            <div style="flex:1;">
+                <div style="font-weight:600;font-size:14px;">${escapeHtml(r.name)}</div>
+                <div style="font-size:12px;color:var(--text-secondary);">
+                    ${r.capacity ? `Sleeps ${r.capacity}` : 'Capacity not set'}
+                    ${r.base_rate ? ` &middot; ₹${Number(r.base_rate).toLocaleString('en-IN')}/night` : ''}
+                    ${r.ical_url ? ' &middot; calendar linked' : ''}
+                </div>
+            </div>
+            <button class="btn btn-sm" onclick="deleteRoom(${r.id}, ${propertyId})"
+                style="color:var(--danger);border:1px solid var(--danger);background:transparent;">Remove</button>
+        </div>`).join('');
+}
+
+function renderFeedList(rooms, propertyId) {
+    const el = document.getElementById('feedList');
+    if (!el) return;
+
+    const active = rooms.filter(r => r.is_active !== false);
+    // A property with rooms still publishes a whole-property feed, because the
+    // whole place may also be listed. With no rooms, that's the only feed.
+    const targets = [{ kind: 'property', id: propertyId, label: 'Whole property' }]
+        .concat(active.map(r => ({ kind: 'room', id: r.id, label: r.name })));
+
+    el.innerHTML = targets.map(t => `
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:600;">${escapeHtml(t.label)}</div>
+                <div id="feedUrl-${t.kind}-${t.id}" style="font-size:11px;color:var(--text-secondary);
+                    word-break:break-all;font-family:monospace;">Not generated yet</div>
+            </div>
+            <button class="btn btn-sm" onclick="generateFeedUrl('${t.kind}', ${t.id})"
+                style="white-space:nowrap;">Get link</button>
+        </div>`).join('');
+}
+
+window.generateFeedUrl = async function(kind, id) {
+    const target = document.getElementById(`feedUrl-${kind}-${id}`);
+    if (!target) return;
+    target.textContent = 'Generating…';
+    try {
+        const token = await db.ensureFeedToken(kind, id);
+        const url = `${window.location.origin}/api/ical-feed?t=${token}`;
+        target.innerHTML = `<span style="user-select:all;">${escapeHtml(url)}</span>`;
+        try {
+            await navigator.clipboard.writeText(url);
+            showToast('Link copied', 'Paste it into the channel\'s Import calendar setting', '✅');
+        } catch {
+            showToast('Link ready', 'Select and copy the link shown', 'ℹ️');
+        }
+    } catch (e) {
+        target.textContent = 'Could not generate';
+        const msg = /column .*ical_feed_token|does not exist/i.test(e.message || '')
+            ? 'Run sql/ical-feed-tokens.sql first.'
+            : e.message;
+        showToast('Error', msg, '❌');
+    }
+};
+
+window.addRoom = async function(propertyId) {
+    const name = document.getElementById('newRoomName').value.trim();
+    if (!name) { showToast('Name needed', 'Give the room a name so you can tell them apart', '⚠️'); return; }
+
+    const capacity = parseInt(document.getElementById('newRoomCapacity').value) || null;
+    const rate = parseFloat(document.getElementById('newRoomRate').value) || null;
+
+    try {
+        await db.saveRoom({ property_id: propertyId, name, capacity, base_rate: rate });
+        document.getElementById('newRoomName').value = '';
+        document.getElementById('newRoomCapacity').value = '';
+        document.getElementById('newRoomRate').value = '';
+        const fresh = await db.getRooms(propertyId);
+        renderRoomsList(fresh, propertyId);
+        renderFeedList(fresh, propertyId);
+        showToast('Room added', `${name} is now bookable separately`, '✅');
+    } catch (e) {
+        const msg = /duplicate key|idx_rooms_property_name/i.test(e.message || '')
+            ? `You already have a room called "${name}" here.`
+            : e.message;
+        showToast('Could not add room', msg, '❌');
+    }
+};
+
+window.deleteRoom = async function(roomId, propertyId) {
+    if (!confirm('Remove this room? Bookings already on it will revert to the whole property.')) return;
+    try {
+        await db.deleteRoom(roomId);
+        const fresh = await db.getRooms(propertyId);
+        renderRoomsList(fresh, propertyId);
+        renderFeedList(fresh, propertyId);
+        showToast('Room removed', '', '✅');
+    } catch (e) {
+        showToast('Error', e.message, '❌');
+    }
+};
+
+window.closeRoomsManager = function() {
+    document.getElementById('roomsManagerModal')?.remove();
+    // Settings may still be open behind this — refresh its summary so it
+    // doesn't show a stale room list.
+    const id = document.getElementById('settingsPropertyId')?.value;
+    const el = document.getElementById('settingsRoomsSummary');
+    if (id && el) {
+        db.getRooms(parseInt(id))
+          .then(rooms => {
+              const active = rooms.filter(r => r.is_active !== false);
+              el.textContent = active.length
+                  ? `${active.length} room${active.length === 1 ? '' : 's'}: ${active.map(r => r.name).join(', ')}`
+                  : 'Sold as one whole place — add rooms if you rent them separately';
+          })
+          .catch(() => {});
+    }
+};
