@@ -1105,7 +1105,32 @@ async function approveOwnerSignup(ownerId) {
     try {
         const { error } = await db.approveOwner(ownerId);
         if (error) throw error;
-        showToast('Approved', 'Owner account activated successfully', '✅');
+
+        // Let them know they can sign in. Reported separately from the
+        // approval itself — the account IS active even if the mail fails, and
+        // saying otherwise would be misleading.
+        let emailed = false;
+        try {
+            const idToken = await firebase.auth().currentUser.getIdToken();
+            const resp = await fetch('/api/owner-notify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({ action: 'approved', ownerId })
+            });
+            emailed = (await resp.json())?.sent === true;
+        } catch (e) {
+            console.warn('[approve] notification failed:', e.message);
+        }
+
+        showToast(
+            'Approved',
+            emailed ? 'Account activated and the owner has been emailed'
+                    : 'Account activated — but the welcome email did not send',
+            emailed ? '✅' : '⚠️'
+        );
         await loadPendingSignups();
     } catch (error) {
         console.error('Approve owner error:', error);

@@ -122,7 +122,17 @@
                     is_external: true,
                     status: 'pending'
                 };
-                await db.createOwner(ownerData);
+                const createdOwner = await db.createOwner(ownerData);
+
+                // Fire-and-forget — the account exists either way.
+                const newId = createdOwner?.id || createdOwner?.[0]?.id;
+                if (newId) {
+                    fetch('/api/owner-notify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'signup', ownerId: newId })
+                    }).catch(() => {});
+                }
 
                 // Step 3: Show pending approval screen
                 showPendingApprovalScreen();
