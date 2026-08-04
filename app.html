@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="ResIQ">
 
     <!-- Theme Colors (supports dark mode) -->
-    <meta name="theme-color" content="#0891b2" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1B3A5C" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
 
     <!-- iOS App Icons -->
@@ -50,6 +50,13 @@
     <link rel="stylesheet" href="native-app-styles.css">
     <link rel="stylesheet" href="mobile-enhanced-forms.css">
     <link rel="stylesheet" href="onboarding.css">
+
+    <!-- Type, shared with the landing page. Archivo is the signage voice,
+         IBM Plex Sans the body, IBM Plex Mono the figures. preconnect first
+         so the swap lands before first paint on a slow Indian connection. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/main.css">
 
@@ -1461,14 +1468,14 @@
             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
             font-size: 11px; color: var(--text-secondary);
         }
-        .target-tier-row[data-tier="1"] .target-tier-pct { color: #0891b2; }
-        .target-tier-row[data-tier="1"] .target-tier-bar-fill { background-color: #0891b2; }
+        .target-tier-row[data-tier="1"] .target-tier-pct { color: #1B3A5C; }
+        .target-tier-row[data-tier="1"] .target-tier-bar-fill { background-color: #1B3A5C; }
         .target-tier-row[data-tier="2"] .target-tier-pct { color: #f59e0b; }
         .target-tier-row[data-tier="2"] .target-tier-bar-fill { background-color: #f59e0b; }
         .target-tier-row[data-tier="3"] .target-tier-pct { color: #dc2626; }
         .target-tier-row[data-tier="3"] .target-tier-bar-fill { background-color: #dc2626; }
 
-        .today-stat-card:nth-child(1) { border-left-color: #0891b2; }
+        .today-stat-card:nth-child(1) { border-left-color: #1B3A5C; }
         .today-stat-card:nth-child(2) { border-left-color: #d97706; }
         .today-stat-card:nth-child(3) { border-left-color: #3b82f6; }
         .today-stat-card:nth-child(4) { border-left-color: #059669; }
@@ -1583,7 +1590,7 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            background: linear-gradient(135deg, #e0f2f7 0%, #cffafe 100%);
+            background: linear-gradient(135deg, #e0f2f7 0%, #E4ECF3 100%);
             transition: transform 0.2s ease, background 0.2s ease;
         }
 
@@ -1696,7 +1703,7 @@
         }
 
         .category-card:hover .category-card-arrow {
-            color: #0891b2;
+            color: #1B3A5C;
             transform: translateX(4px);
         }
 
@@ -1813,14 +1820,14 @@
         }
 
         /* App Icon Color Variants */
-        .app-icon-box.bg-teal { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+        .app-icon-box.bg-teal { background: linear-gradient(135deg, #1B3A5C, #2A5480); }
         .app-icon-box.bg-blue { background: linear-gradient(135deg, #2563eb, #3b82f6); }
         .app-icon-box.bg-green { background: linear-gradient(135deg, #059669, #10b981); }
         .app-icon-box.bg-amber { background: linear-gradient(135deg, #d97706, #f59e0b); }
         .app-icon-box.bg-purple { background: linear-gradient(135deg, #7c3aed, #a855f7); }
         .app-icon-box.bg-rose { background: linear-gradient(135deg, #e11d48, #f43f5e); }
         .app-icon-box.bg-indigo { background: linear-gradient(135deg, #4f46e5, #6366f1); }
-        .app-icon-box.bg-cyan { background: linear-gradient(135deg, #0e7490, #22d3ee); }
+        .app-icon-box.bg-cyan { background: linear-gradient(135deg, #132B42, #3E6E9E); }
         .app-icon-box.bg-emerald { background: linear-gradient(135deg, #047857, #34d399); }
         .app-icon-box.bg-orange { background: linear-gradient(135deg, #ea580c, #f97316); }
         .app-icon-box.bg-slate { background: linear-gradient(135deg, #475569, #64748b); }
@@ -2225,7 +2232,7 @@
             <!-- Core Metrics - Essential KPIs -->
             <div id="coreMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px;">
                 <!-- 1. Total Revenue -->
-                <div class="stat-card" style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: white; border: none; position: relative; overflow: hidden;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #1B3A5C 0%, #132B42 100%); color: white; border: none; position: relative; overflow: hidden;">
                     <div style="position: absolute; top: 10px; right: 10px; opacity: 0.15;">
                         <i data-lucide="dollar-sign" style="width: 60px; height: 60px;"></i>
                     </div>
@@ -2273,7 +2280,7 @@
                 </div>
 
                 <!-- 4. Upcoming Bookings -->
-                <div class="stat-card" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border: none; position: relative; overflow: hidden;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #2A5480 0%, #1B3A5C 100%); color: white; border: none; position: relative; overflow: hidden;">
                     <div style="position: absolute; top: 10px; right: 10px; opacity: 0.15;">
                         <i data-lucide="calendar-clock" style="width: 60px; height: 60px;"></i>
                     </div>
@@ -2490,9 +2497,9 @@
                             <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;"><i data-lucide="home" style="width: 12px; height: 12px; margin-right: 3px;"></i>Properties</div>
                             <div style="font-size: 18px; font-weight: 700; color: #10b981;" id="propertyCollected">₹0</div>
                         </div>
-                        <div style="padding: 12px; background: linear-gradient(135deg, #0891b215 0%, #06b6d415 100%); border-radius: 8px; border-left: 3px solid #0891b2;">
+                        <div style="padding: 12px; background: linear-gradient(135deg, #1B3A5C15 0%, #2A548015 100%); border-radius: 8px; border-left: 3px solid #1B3A5C;">
                             <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;"><i data-lucide="briefcase" style="width: 12px; height: 12px; margin-right: 3px;"></i>Hostizzy</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #0891b2;" id="hostizzyCollected">₹0</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #1B3A5C;" id="hostizzyCollected">₹0</div>
                         </div>
                     </div>
 
@@ -2687,7 +2694,7 @@
                     <div style="font-size: 12px; color: var(--text-secondary);">High Value (₹50K+)</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="font-size: 28px; font-weight: 700; color: #06b6d4;" id="guestStatAvgStays">0</div>
+                    <div style="font-size: 28px; font-weight: 700; color: #2A5480;" id="guestStatAvgStays">0</div>
                     <div style="font-size: 12px; color: var(--text-secondary);">Avg Stays/Guest</div>
                 </div>
                 <div style="text-align: center;">
@@ -4830,7 +4837,7 @@
                     <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Total Sent</div>
                 </div>
                 <div class="card" style="padding: 16px; text-align: center;">
-                    <div id="commStatEmail" style="font-size: 28px; font-weight: 700; color: #0e7490;">0</div>
+                    <div id="commStatEmail" style="font-size: 28px; font-weight: 700; color: #132B42;">0</div>
                     <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Emails</div>
                 </div>
                 <div class="card" style="padding: 16px; text-align: center;">
@@ -6375,7 +6382,7 @@
         #channelToggleWhatsapp.active { background: #25d366; color: white; }
         #channelToggleWhatsappApi.active { background: #0ea5e9; color: white; }
         .channel-toggle-btn.active[data-channel="email"],
-        #channelToggleEmail.active { background: #0e7490; color: white; }
+        #channelToggleEmail.active { background: #132B42; color: white; }
     </style> 
  
 
@@ -6823,7 +6830,7 @@
                         <div class="stat-label" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Total Spent</div>
                     </div>
                     <div style="background: var(--background-alt); padding: 16px; border-radius: 10px; text-align: center;">
-                        <div class="stat-value" style="font-size: 22px; font-weight: 700; color: #06b6d4;" id="guestDetailAvgValue">₹0</div>
+                        <div class="stat-value" style="font-size: 22px; font-weight: 700; color: #2A5480;" id="guestDetailAvgValue">₹0</div>
                         <div class="stat-label" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Avg Booking Value</div>
                     </div>
                     <div style="background: var(--background-alt); padding: 16px; border-radius: 10px; text-align: center;">

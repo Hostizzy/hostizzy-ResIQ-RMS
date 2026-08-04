@@ -181,7 +181,7 @@
 }
 
 .btn-native-primary {
-    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #1B3A5C 0%, #2A5480 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
 }
@@ -291,7 +291,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--primary), var(--primary-light, #06b6d4));
+    background: linear-gradient(90deg, var(--primary), var(--primary-light, #2A5480));
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.3s ease;
@@ -375,7 +375,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light, #06b6d4) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light, #2A5480) 100%);
     color: white;
     border-radius: 14px;
     font-size: 24px;
@@ -659,7 +659,7 @@ input[type="datetime-local"]:focus {
 }
 
 .badge-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light, #06b6d4) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light, #2A5480) 100%);
     color: white;
 }
 
@@ -698,7 +698,7 @@ input[type="datetime-local"]:focus {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light, #06b6d4) 100%);
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light, #2A5480) 100%);
     border-radius: 8px;
     transition: width 0.3s ease;
 }
