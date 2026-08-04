@@ -27,6 +27,17 @@ async function loadTeam() {
 }
 
 function openTeamModal() {
+    // A host adds caretakers, not administrators. "Admin" is a Hostizzy-side
+    // role, so it isn't offered to them and the wording matches what they mean.
+    const isHost = currentUser?.userType === 'owner' && isHostAccount(currentUser);
+    const roleEl = document.getElementById('teamMemberRole');
+    if (roleEl) {
+        const adminOpt = roleEl.querySelector('option[value="admin"]');
+        if (adminOpt) adminOpt.hidden = isHost;
+        const staffOpt = roleEl.querySelector('option[value="staff"]');
+        if (staffOpt) staffOpt.textContent = isHost ? 'Caretaker' : 'Staff';
+        if (isHost) roleEl.value = 'staff';
+    }
     document.getElementById('teamModal').classList.add('active');
 }
 
@@ -42,22 +53,26 @@ function closeTeamModal() {
 async function saveTeamMember() {
     try {
         const phoneEl = document.getElementById('teamMemberPhone');
+        // The password goes to Firebase and nowhere else. It used to be stored
+        // on the row as well, in plaintext, where nothing ever read it —
+        // Firebase is the only thing that authenticates anyone.
+        const password = document.getElementById('teamMemberPassword').value;
         const member = {
             name: document.getElementById('teamMemberName').value,
             email: document.getElementById('teamMemberEmail').value,
-            password: document.getElementById('teamMemberPassword').value,
+            password: 'firebase-managed',
             phone: phoneEl ? (phoneEl.value.trim() || null) : null,
             role: document.getElementById('teamMemberRole').value,
             is_active: true
         };
 
-        if (!member.name || !member.email || !member.password) {
+        if (!member.name || !member.email || !password) {
             showToast('Validation Error', 'Please fill in all required fields', '❌');
             return;
         }
 
         // Set owner_id if current user is an external owner
-        if (currentUser?.userType === 'owner' && currentUser?.is_external) {
+        if (currentUser?.userType === 'owner' && isHostAccount(currentUser)) {
             member.owner_id = currentUser.id;
         }
 
@@ -65,8 +80,11 @@ async function saveTeamMember() {
         try {
             const authResp = await fetch('/api/auth-proxy', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'create-user', email: member.email, password: member.password, displayName: member.name })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                },
+                body: JSON.stringify({ action: 'create-user', email: member.email, password, displayName: member.name })
             });
             const authResult = await authResp.json();
             if (!authResp.ok) throw new Error(authResult.error || 'Failed to create auth account');
@@ -102,7 +120,10 @@ async function deleteTeamMember(id) {
             try {
                 await fetch('/api/auth-proxy', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                    },
                     body: JSON.stringify({ action: 'delete-user', email: member.email })
                 });
             } catch (e) { /* best effort */ }
@@ -129,7 +150,7 @@ let loadedOwnerProperties = [];
 async function loadOwners() {
     try {
         const all = await db.getOwners();
-        loadedOwners = (all || []).filter(o => !o.is_external);
+        loadedOwners = (all || []).filter(o => accountTypeOf(o) === 'managed');
         loadedOwnerProperties = await db.getProperties();
         renderOwnersTable();
     } catch (error) {
@@ -195,8 +216,9 @@ async function openOwnerModal(ownerId = null) {
             document.getElementById('ownerEmail').value = owner.email;
             document.getElementById('ownerPhone').value = owner.phone || '';
             document.getElementById('ownerStatus').value = owner.is_active ? 'active' : 'inactive';
-            if (ownerTypeSelect) ownerTypeSelect.value = owner.is_external ? 'independent' : 'managed';
-            if (titleEl) titleEl.textContent = owner.is_external ? 'Edit Host' : 'Edit Managed Owner';
+            const isHost = isHostAccount(owner);
+            if (ownerTypeSelect) ownerTypeSelect.value = isHost ? 'independent' : 'managed';
+            if (titleEl) titleEl.textContent = isHost ? 'Edit Host' : 'Edit Managed Owner';
             toggleOwnerTypeHint();
 
             // Check assigned properties
@@ -294,13 +316,18 @@ async function saveOwner() {
             email,
             phone,
             is_active: status === 'active',
+            // account_type is derived from is_external by trg_sync_account_type.
+            // Writing it here too would fail with "column does not exist" until
+            // sql/account-type-and-host-profiles.sql has been applied.
             is_external: ownerType === 'independent',
             property_ids: selectedProperties
         };
 
-        // Add password only for new owners
+        // The column is NOT NULL, but the value is never read — Firebase holds
+        // the credential. Storing the real password here put it in plaintext in
+        // a table anyone could read.
         if (!ownerId) {
-            ownerData.password = password;
+            ownerData.password = 'firebase-managed';
         }
 
         const typeLabel = ownerType === 'independent' ? 'Host' : 'Managed owner';
@@ -1038,7 +1065,7 @@ let currentHostFilter = 'pending';
 async function loadHosts() {
     try {
         const all = await db.getOwners();
-        loadedHosts = (all || []).filter(o => o.is_external);
+        loadedHosts = (all || []).filter(o => accountTypeOf(o) === 'host');
         loadedHostProperties = await db.getProperties();
         renderHostsTable();
         updatePendingBadge(loadedHosts.filter(h => h.status === 'pending').length);
@@ -1174,7 +1201,10 @@ async function rejectOwnerSignup(ownerId, email) {
             try {
                 await fetch('/api/auth-proxy', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                    },
                     body: JSON.stringify({ action: 'delete-user', email })
                 });
             } catch (e) { /* best effort */ }

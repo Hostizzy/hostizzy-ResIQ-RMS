@@ -830,46 +830,29 @@
             btn.disabled = true;
             btn.textContent = 'Creating account…';
 
-            let firebaseCreated = false;
             try {
-                const authResp = await fetch('/api/auth-proxy', {
+                // One server call. Creating the Firebase identity and the
+                // pending account row belong in the same place — split across
+                // two browser calls, a failure between them left an orphaned
+                // Firebase user whose cleanup depended on this page still
+                // being open. The endpoint also decides status/activation, so
+                // a signup can't approve itself.
+                const resp = await fetch('/api/owner-signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'create-user', email, password, displayName: name })
+                    body: JSON.stringify({ name, email, phone, password })
                 });
-                const authResult = await authResp.json();
-                if (!authResp.ok) throw new Error(authResult.error || 'Failed to create account');
-                firebaseCreated = true;
-
-                const dbResp = await fetch('/api/db-proxy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        table: 'property_owners',
-                        operation: 'insert',
-                        returning: 'representation',
-                        data: [{
-                            name, email,
-                            phone: phone || null,
-                            password: 'firebase-managed',
-                            is_active: false,
-                            is_external: true,
-                            status: 'pending'
-                        }]
-                    })
-                });
-                const dbResult = await dbResp.json();
-                if (dbResult.error) throw new Error(dbResult.error.message || 'Failed to save account');
+                const result = await resp.json();
+                if (!resp.ok) throw new Error(result.error || 'Failed to create account');
 
                 // Tell the Hostizzy team someone is waiting. Fire-and-forget:
                 // the account already exists, so a failed notification must not
                 // make a successful signup look broken.
-                const newOwnerId = Array.isArray(dbResult.data) ? dbResult.data[0]?.id : dbResult.data?.id;
-                if (newOwnerId) {
+                if (result.ownerId) {
                     fetch('/api/owner-notify', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'signup', ownerId: newOwnerId })
+                        body: JSON.stringify({ action: 'signup', ownerId: result.ownerId })
                     }).catch(() => {});
                 }
 
@@ -877,21 +860,7 @@
                 document.getElementById('signupSuccessCard').style.display = 'block';
 
             } catch (error) {
-                if (firebaseCreated) {
-                    try {
-                        await fetch('/api/auth-proxy', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'delete-user', email })
-                        });
-                    } catch (e) { /* best effort */ }
-                }
-                const m = error.message || '';
-                if (m.includes('already exists') || m.includes('email-already-exists')) {
-                    showSignupError(msgEl, 'That email already has an account. Try signing in instead.');
-                } else {
-                    showSignupError(msgEl, m || 'Something went wrong creating your account. Please try again.');
-                }
+                showSignupError(msgEl, error.message || 'Something went wrong creating your account. Please try again.');
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Create account';

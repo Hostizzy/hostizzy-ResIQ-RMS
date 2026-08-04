@@ -229,7 +229,19 @@ return d.toLocaleDateString('en-IN');
 }
 
 
+/** Hosts sign up on their own and have no commercial relationship with
+ *  Hostizzy, so the commission-rate and managed-by-Hostizzy fields are
+ *  meaningless to them — and the commission field is *required*, which
+ *  would otherwise block them from adding a property at all. */
+function isSelfServeHost() {
+    return currentUser?.userType === 'owner' && isHostAccount(currentUser);
+}
+
 function openPropertyModal() {
+    const hostizzyOnly = !isSelfServeHost();
+    document.querySelectorAll('#propertyModal .hostizzy-only').forEach(el => {
+        el.style.display = hostizzyOnly ? '' : 'none';
+    });
     document.getElementById('propertyModal').classList.add('active');
 }
 
@@ -237,6 +249,10 @@ function closePropertyModal() {
     document.getElementById('propertyModal').classList.remove('active');
     document.getElementById('propertyName').value = '';
     document.getElementById('propertyLocation').value = '';
+    document.getElementById('propertyCapacity').value = '4';
+    document.getElementById('propertyCommissionRate').value = '';
+    const managed = document.getElementById('propertyIsManaged');
+    if (managed) managed.checked = false;
     const mode = document.getElementById('propertyRentalMode');
     if (mode) mode.value = 'whole';
 }
@@ -364,15 +380,19 @@ function closeIntegrationModal() {
 
 async function saveProperty() {
     try {
-        const commissionRate = parseFloat(document.getElementById('propertyCommissionRate').value);
+        const isHost = isSelfServeHost();
+        // Hosts keep 100% of their revenue — there is no Hostizzy share to
+        // withhold, so the rate is fixed at 0 and the field is never shown.
+        const commissionRate = isHost ? 0 : parseFloat(document.getElementById('propertyCommissionRate').value);
 
         if (!document.getElementById('propertyName').value || !document.getElementById('propertyLocation').value) {
             showToast('Validation Error', 'Please fill in all required fields', '❌');
             return;
         }
 
-        // Commission rate is required — no silent default. Without it we cannot
-        // compute hostizzy_revenue correctly for any reservation on this property.
+        // For managed properties the commission rate is required — no silent
+        // default. Without it we cannot compute hostizzy_revenue correctly for
+        // any reservation on this property.
         if (isNaN(commissionRate) || commissionRate < 0 || commissionRate > 100) {
             showToast('Validation Error', 'Commission rate is required and must be between 0 and 100%', '❌');
             return;
@@ -384,35 +404,39 @@ async function saveProperty() {
             type: document.getElementById('propertyType').value,
             capacity: parseInt(document.getElementById('propertyCapacity').value),
             revenue_share_percent: commissionRate,
-            is_managed: document.getElementById('propertyIsManaged')?.checked || false
+            is_managed: isHost ? false : (document.getElementById('propertyIsManaged')?.checked || false)
         };
 
         // Auto-set owner_id for external owners
-        if (currentUser?.userType === 'owner' && currentUser?.is_external) {
+        if (isHost) {
             property.owner_id = currentUser.id;
         }
 
-        // Get all existing properties to determine next ID
-        const { data: existingProperties, error: fetchError } = await supabase
-            .from('properties')
-            .select('id')
-            .order('id', { ascending: false })
-            .limit(1);
+        // properties.id defaults to nextval('properties_id_seq'), so let the
+        // database assign it — two people adding a property at the same moment
+        // can't collide. This used to be computed here as max(id)+1, which
+        // raced, and which is also why the sequence fell behind the table:
+        // supplying an explicit id doesn't advance it.
+        //
+        // sql/properties-id-sequence.sql resyncs it. Until that has been run,
+        // the sequence hands out numbers that are already taken, so fall back
+        // to the old client-side allocation on a key conflict. That makes the
+        // deploy order not matter.
+        const isIdClash = (e) => !!e && (e.code === '23505' || /duplicate key/i.test(e.message || ''));
 
-        if (fetchError) throw fetchError;
+        let { data, error } = await supabase.from('properties').insert([property]).select();
 
-        // Calculate next available ID
-        const nextId = existingProperties?.length > 0 ?
-            (existingProperties[0].id + 1) : 1;
+        for (let attempt = 0; isIdClash(error) && attempt < 4; attempt++) {
+            const { data: highest, error: fetchError } = await supabase
+                .from('properties')
+                .select('id')
+                .order('id', { ascending: false })
+                .limit(1);
+            if (fetchError) throw fetchError;
 
-        // Add the ID to property object
-        property.id = nextId;
-
-        // Insert the new property
-        const { data, error } = await supabase
-            .from('properties')
-            .insert([property])
-            .select();
+            property.id = highest?.length > 0 ? (highest[0].id + 1) : 1;
+            ({ data, error } = await supabase.from('properties').insert([property]).select());
+        }
 
         if (error) throw error;
 

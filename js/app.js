@@ -99,7 +99,7 @@ window.addEventListener('load', async () => {
             currentUser = JSON.parse(storedUser);
 
             // Managed owners (not is_external) should use the owner portal
-            if (currentUser.userType === 'owner' && !currentUser.is_external) {
+            if (currentUser.userType === 'owner' && !isHostAccount(currentUser)) {
                 window.location.href = '/owner-portal';
                 return;
             }
@@ -110,7 +110,9 @@ window.addEventListener('load', async () => {
             showMainApp(currentUser);
 
             // Apply role-based UI visibility on session restore
-            if (currentUser.userType === 'owner') {
+            // owner_id on a staff record means a host's caretaker — scoped to
+            // that host, so they get the tenant sidebar, not the Hostizzy one.
+            if (currentUser.userType === 'owner' || currentUser.owner_id) {
                 hideSidebarForOwners();
             } else if (currentUser.userType === 'staff' && currentUser.role === 'admin') {
                 showAdminOnlyNav();

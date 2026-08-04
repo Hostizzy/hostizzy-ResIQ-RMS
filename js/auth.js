@@ -68,100 +68,9 @@
             if (stored) document.getElementById('forgotPasswordEmail').value = stored;
         }
 
-        async function signup() {
-            const name = document.getElementById('signupName').value.trim();
-            const email = document.getElementById('signupEmail').value.trim();
-            const phone = document.getElementById('signupPhone').value.trim();
-            const password = document.getElementById('signupPassword').value;
-            const confirmPassword = document.getElementById('signupConfirmPassword').value;
-            const msgEl = document.getElementById('signupMessage');
-            const btn = document.getElementById('signupButton');
-
-            msgEl.style.display = 'none';
-
-            if (!name || !email || !password) {
-                msgEl.style.display = 'block';
-                msgEl.style.background = '#fee2e2'; msgEl.style.color = '#dc2626';
-                msgEl.textContent = 'Please fill in all required fields.';
-                return;
-            }
-            if (password.length < 8) {
-                msgEl.style.display = 'block';
-                msgEl.style.background = '#fee2e2'; msgEl.style.color = '#dc2626';
-                msgEl.textContent = 'Password must be at least 8 characters.';
-                return;
-            }
-            if (password !== confirmPassword) {
-                msgEl.style.display = 'block';
-                msgEl.style.background = '#fee2e2'; msgEl.style.color = '#dc2626';
-                msgEl.textContent = 'Passwords do not match.';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Creating account...';
-
-            let firebaseCreated = false;
-            try {
-                // Step 1: Create Firebase Auth account via server proxy
-                const authResp = await fetch('/api/auth-proxy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'create-user', email, password, displayName: name })
-                });
-                const authResult = await authResp.json();
-                if (!authResp.ok) throw new Error(authResult.error || 'Failed to create account');
-                firebaseCreated = true;
-
-                // Step 2: Insert owner record with pending status
-                const ownerData = {
-                    name,
-                    email,
-                    phone: phone || null,
-                    is_active: false,
-                    is_external: true,
-                    status: 'pending'
-                };
-                const createdOwner = await db.createOwner(ownerData);
-
-                // Fire-and-forget — the account exists either way.
-                const newId = createdOwner?.id || createdOwner?.[0]?.id;
-                if (newId) {
-                    fetch('/api/owner-notify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'signup', ownerId: newId })
-                    }).catch(() => {});
-                }
-
-                // Step 3: Show pending approval screen
-                showPendingApprovalScreen();
-                showToast('Account Created', 'Your registration is pending admin approval.', '✅');
-
-            } catch (error) {
-                console.error('Signup error:', error);
-                // Rollback: delete Firebase user if DB insert failed
-                if (firebaseCreated) {
-                    try {
-                        await fetch('/api/auth-proxy', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'delete-user', email })
-                        });
-                    } catch (e) { /* best effort cleanup */ }
-                }
-                msgEl.style.display = 'block';
-                msgEl.style.background = '#fee2e2'; msgEl.style.color = '#dc2626';
-                if (error.message.includes('already exists') || error.message.includes('email-already-exists')) {
-                    msgEl.textContent = 'An account with this email already exists.';
-                } else {
-                    msgEl.textContent = error.message || 'Failed to create account. Please try again.';
-                }
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Create Account';
-            }
-        }
+        // Host self-signup lives on the landing page (index.html#signup) and
+        // posts to /api/owner-signup. There is deliberately no signup form in
+        // the app itself — the login card links to the landing page instead.
 
         async function login() {
             const email = document.getElementById('loginEmail').value.trim();
@@ -209,7 +118,11 @@
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
                         await db.initScope(currentUser);
                         showMainApp(currentUser);
-                        showAdminOnlyNav();
+                        // A team member with an owner_id is a host's caretaker,
+                        // not Hostizzy staff — they get the tenant sidebar even
+                        // though their role may say "admin" within that tenant.
+                        if (currentUser.owner_id) hideSidebarForOwners();
+                        else showAdminOnlyNav();
                         await loadDashboard();
                         showToast('Welcome!', `Logged in as ${profile.name}`, '👋');
                         const lastView = (typeof getInitialView === 'function') ? getInitialView() : (localStorage.getItem('lastView') || 'home');
@@ -225,7 +138,8 @@
                     if (ownerProfile) {
                         delete ownerProfile._kind;
                         // External owner: check approval status
-                        if (ownerProfile.is_external) {
+                        const isHost = (ownerProfile.account_type || (ownerProfile.is_external ? 'host' : 'managed')) === 'host';
+                        if (isHost) {
                             if (ownerProfile.status === 'pending') {
                                 await authService.signOut();
                                 showPendingApprovalScreen();
@@ -286,8 +200,11 @@
         }
 
         function hideSidebarForOwners() {
-            // Hosts (independent) and managed owners don't see admin-only views
-            const hiddenLabels = ['Team', 'Managed Owners', 'Hosts', 'OTA Import', 'Performance'];
+            // Hosts (independent) and managed owners don't see admin-only views.
+            // Team stays visible for hosts — that is how they give a caretaker
+            // access to their own properties, and the list is scoped to them.
+            const hiddenLabels = ['Managed Owners', 'Hosts', 'OTA Import', 'Performance'];
+            if (!isHostAccount(currentUser)) hiddenLabels.push('Team');
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 const label = item.querySelector('.sidebar-item-label')?.textContent?.trim();
                 if (hiddenLabels.includes(label)) {
@@ -316,7 +233,9 @@
             // before anyone opens the view.
             if (currentUser?.userType !== 'staff') return;
             db.getOwners().then(owners => {
-                const waiting = (owners || []).filter(o => o.is_external && o.status === 'pending').length;
+                const waiting = (owners || []).filter(o =>
+                    (o.account_type || (o.is_external ? 'host' : 'managed')) === 'host'
+                    && o.status === 'pending').length;
                 if (typeof updatePendingBadge === 'function') updatePendingBadge(waiting);
             }).catch(() => {});
         }
