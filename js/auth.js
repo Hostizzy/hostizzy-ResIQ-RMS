@@ -72,6 +72,37 @@
         // posts to /api/owner-signup. There is deliberately no signup form in
         // the app itself — the login card links to the landing page instead.
 
+        /**
+         * Wipe everything in localStorage that belongs to a specific user.
+         *
+         * Logging out only removed `currentUser`, so the next person to sign in
+         * on the same browser inherited the previous one's state: their
+         * notification list, their business name, currency and email signature.
+         * A host logging in after a Hostizzy session saw Hostizzy's
+         * notifications, and would have sent guest emails under Hostizzy's
+         * signature.
+         *
+         * Deliberately keeps `rememberedEmail` (that is the login form's own
+         * convenience) and the pwa_* dismissal flags (device preferences, not
+         * user data).
+         */
+        function clearUserScopedLocalState() {
+            [
+                'notifications', 'notificationPreferences', 'lastView',
+                'businessName', 'whatsappUpiId',
+                // Message log, custom templates and the Gmail connection all
+                // belong to whoever was signed in.
+                'communicationMessages', 'resiq_message_templates',
+                'gmail_connection_status', 'gmail_user_email',
+                'gmail_auto_scan', 'gmail_last_scan',
+            ].forEach(k => localStorage.removeItem(k));
+
+            // SettingsStore namespaces business settings under "bs:".
+            Object.keys(localStorage)
+                .filter(k => k.startsWith('bs:'))
+                .forEach(k => localStorage.removeItem(k));
+        }
+
         async function login() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -99,6 +130,17 @@
                     return;
                 }
                 console.log('[Auth] Firebase Auth login successful');
+
+                // A different person than last time on this browser — drop the
+                // previous user's cached state before anything reads it. Covers
+                // the case where the last session ended by closing the tab
+                // rather than logging out, so logout() never ran.
+                try {
+                    const previous = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                    if (previous?.email && previous.email !== email) {
+                        clearUserScopedLocalState();
+                    }
+                } catch (_) { clearUserScopedLocalState(); }
 
                 // ── Step 2: Find user profile in database ─────────────────
                 // Pre-auth lookup — scope hasn't been set yet, so use the
@@ -243,8 +285,17 @@
         async function logout() {
             try { await authService.signOut(); } catch (e) { /* ignore */ }
             localStorage.removeItem('currentUser');
+            clearUserScopedLocalState();
             currentUser = null;
             db.clearScope();
+
+            // In-memory notification list too — clearing localStorage alone
+            // leaves the array populated until the page reloads, and the PWA
+            // branch below does not reload.
+            if (typeof notifications !== 'undefined') {
+                notifications = [];
+                if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
+            }
 
             // Detect if running as PWA / installed app
             const isPWA = window.matchMedia('(display-mode: standalone)').matches

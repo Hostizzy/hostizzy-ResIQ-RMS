@@ -163,6 +163,24 @@
         // ============================================
 
         /**
+         * The id to stamp on rows that record who created them.
+         *
+         * payments.created_by is an INTEGER referencing team_members.id. A
+         * Hostizzy staff member's id is that integer, so it fits. A host's id
+         * is a property_owners UUID, and Postgres rejects it outright:
+         *   invalid input syntax for type integer: "6a6e7278-..."
+         *
+         * Returns the id only when it is genuinely numeric. A host's payment
+         * carries no creator id rather than failing to save. (Proper
+         * attribution for hosts needs a created_by_email text column — the
+         * meals table already does it that way.)
+         */
+        function creatorId(user) {
+            const id = user?.id;
+            return (id != null && /^\d+$/.test(String(id))) ? Number(id) : null;
+        }
+
+        /**
          * Calculate balance for a reservation.
          * New system (is_legacy = false): balance = total_amount - paid_amount
          * Legacy system (is_legacy = true, OTA): balance = (total_amount - ota_service_fee) - paid_amount
