@@ -130,36 +130,75 @@ SELECT 30, 'GRANTS', 'anon holds no table privileges', 'PASS', 'none'
 --
 -- A permission error counts as a pass: it means the grant was revoked.
 
+-- Sweeps EVERY table, view and materialised view in public rather than a
+-- hand-written list. A fixed list only finds what you already suspected — it
+-- was missing gmail_tokens, which holds OAuth refresh tokens.
+--
+-- Only exposed objects are reported, so a clean run is one PASS line.
+
 DO $$
 DECLARE
-    t    text;
-    n    bigint;
-    ord_ int := 40;
+    r        record;
+    n        bigint;
+    exposed  int := 0;
 BEGIN
-    FOREACH t IN ARRAY ARRAY['property_owners','reservations','payments',
-                             'properties','team_members','guest_documents']
+    FOR r IN
+        SELECT c.relname, c.relkind
+          FROM pg_class c
+          JOIN pg_namespace ns ON ns.oid = c.relnamespace
+         WHERE ns.nspname = 'public'
+           AND c.relkind IN ('r','p','v','m')     -- table, partitioned, view, matview
+         ORDER BY c.relname
     LOOP
-        IF to_regclass('public.' || t) IS NULL THEN
-            INSERT INTO resiq_checks VALUES (ord_, 'ANON', 'cannot read ' || t, 'SKIP', 'table does not exist');
-            CONTINUE;
-        END IF;
-
         BEGIN
             SET LOCAL ROLE anon;
-            EXECUTE format('SELECT count(*) FROM public.%I', t) INTO n;
+            EXECUTE format('SELECT count(*) FROM public.%I', r.relname) INTO n;
             RESET ROLE;
-            INSERT INTO resiq_checks VALUES (
-                ord_, 'ANON', 'cannot read ' || t,
-                CASE WHEN n = 0 THEN 'PASS' ELSE 'FAIL' END,
-                CASE WHEN n = 0 THEN 'no rows visible'
-                     ELSE n::text || ' rows readable by anyone on the internet' END);
-        EXCEPTION WHEN insufficient_privilege THEN
-            RESET ROLE;
-            INSERT INTO resiq_checks VALUES (ord_, 'ANON', 'cannot read ' || t, 'PASS', 'permission denied');
+            IF n > 0 THEN
+                exposed := exposed + 1;
+                INSERT INTO resiq_checks VALUES (40, 'ANON',
+                    'cannot read ' || r.relname,
+                    'FAIL',
+                    n::text || ' rows readable by anyone on the internet'
+                      || CASE WHEN r.relkind IN ('v','m') THEN '  (VIEW)' ELSE '' END);
+            END IF;
+        EXCEPTION WHEN OTHERS THEN
+            RESET ROLE;   -- permission denied, or a view over a missing relation
         END;
     END LOOP;
     RESET ROLE;
+
+    IF exposed = 0 THEN
+        INSERT INTO resiq_checks VALUES (40, 'ANON', 'nothing in public is readable by anon',
+            'PASS', 'swept every table and view');
+    END IF;
 END $$;
+
+
+-- ------------------------------------------------------------
+-- 4b. Views that sidestep RLS
+-- ------------------------------------------------------------
+-- A view runs with its OWNER's privileges unless it was created with
+-- security_invoker. So a view over reservations, owned by postgres, returns
+-- every row regardless of the policies on reservations — fixing RLS on the
+-- base table does not close it. Revoking the grant does.
+
+INSERT INTO resiq_checks
+SELECT 45, 'VIEWS',
+       'view ' || c.relname || ' does not bypass RLS',
+       'FAIL',
+       'owned by ' || pg_get_userbyid(c.relowner)
+         || ', no security_invoker, granted to ' || g.grantee
+         || ' — reads base tables with the owner''s rights'
+  FROM pg_class c
+  JOIN pg_namespace ns ON ns.oid = c.relnamespace
+  JOIN information_schema.role_table_grants g
+    ON g.table_schema = 'public' AND g.table_name = c.relname
+   AND g.privilege_type = 'SELECT' AND g.grantee IN ('anon','authenticated')
+ WHERE ns.nspname = 'public'
+   AND c.relkind = 'v'
+   AND NOT COALESCE(c.reloptions::text LIKE '%security_invoker=true%', false)
+ GROUP BY c.relname, c.relowner, g.grantee;
 
 
 -- ------------------------------------------------------------
