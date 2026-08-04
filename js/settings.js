@@ -336,6 +336,14 @@ function saveWhatsAppSettings() {
 
 // Toggle between wa.me links and Business API mode
 window.toggleWhatsAppMode = function(mode) {
+    // The Business API runs on Hostizzy's Meta account — one central number
+    // with per-property reply numbers we configure. A host has no way to
+    // connect their own, so the option isn't offered and the mode is pinned
+    // to wa.me links, which work from their own phone.
+    if (typeof isSelfServeHost === 'function' && isSelfServeHost()) {
+        mode = 'links';
+        applyHostFieldVisibility();
+    }
     _persistSettings({ whatsappMode: mode });
 
     const linksBtn = document.getElementById('waModeLinks');

@@ -162,6 +162,91 @@
         // FINANCIAL UTILITY FUNCTIONS
         // ============================================
 
+        // ==========================================
+        // ROOMS
+        // ==========================================
+
+        /**
+         * Group rooms by property so a render loop can look one up without a
+         * query per row. Pass the result of db.getRooms().
+         */
+        function indexRoomsByProperty(rooms) {
+            const byProperty = {};
+            (rooms || []).forEach(r => {
+                (byProperty[r.property_id] = byProperty[r.property_id] || []).push(r);
+            });
+            return byProperty;
+        }
+
+        /**
+         * What to show for a booking's room, or '' when there is nothing worth
+         * saying.
+         *
+         * The important case is the middle one. On a property sold by the room,
+         * room_id being NULL does not mean "unspecified" — it means the whole
+         * place was sold to one group, which blocks every room. That is a
+         * different booking from a single-room one and has to look different.
+         *
+         * On a property with no rooms configured, every booking is the whole
+         * place by definition, so saying so is noise. Returns ''.
+         */
+        function roomLabelFor(reservation, roomsByProperty) {
+            const rooms = roomsByProperty?.[reservation?.property_id];
+            if (!rooms || rooms.length === 0) return '';
+            if (reservation.room_id == null) return 'Entire place';
+            const room = rooms.find(r => String(r.id) === String(reservation.room_id));
+            return room ? room.name : 'Room removed';
+        }
+
+        /**
+         * How much of a property is sold on a given day.
+         *
+         * Mirrors resiq_availability() in sql/rooms-and-conflict-guard.sql. If
+         * these two ever disagree the calendar will offer a date the save
+         * trigger then rejects, so the parent/child rule is stated once here
+         * and must be changed in both places together:
+         *
+         *   - a booking with room_id NULL is the WHOLE property, and takes
+         *     every room with it
+         *   - a booking on any single room leaves the others sellable, but
+         *     makes the whole place unsellable
+         *   - cancelled bookings are already filtered out before this point
+         *
+         * `rooms` empty means a whole-place property: capacity of one.
+         */
+        function computeDayOccupancy(dayBookings, rooms) {
+            const bookings = dayBookings || [];
+            const total = (rooms && rooms.length) ? rooms.length : 1;
+            const wholeTaken = bookings.some(b => b.room_id == null);
+
+            if (!rooms || rooms.length === 0) {
+                return {
+                    sold: bookings.length > 0 ? 1 : 0,
+                    total: 1,
+                    wholeTaken: bookings.length > 0,
+                    wholeSellable: bookings.length === 0,
+                    freeRooms: [],
+                };
+            }
+
+            const soldRoomIds = new Set(
+                bookings.filter(b => b.room_id != null).map(b => String(b.room_id))
+            );
+            const sold = wholeTaken ? total : soldRoomIds.size;
+            const freeRooms = wholeTaken
+                ? []
+                : rooms.filter(r => !soldRoomIds.has(String(r.id)));
+
+            return {
+                sold,
+                total,
+                wholeTaken,
+                // The entire place can only be sold when nothing at all is booked.
+                wholeSellable: !wholeTaken && soldRoomIds.size === 0,
+                freeRooms,
+            };
+        }
+
         /**
          * True for someone who signed up themselves and runs their own
          * property, as opposed to a Hostizzy-managed owner or Hostizzy staff.

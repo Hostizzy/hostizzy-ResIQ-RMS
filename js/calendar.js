@@ -68,10 +68,22 @@ async function loadAvailabilityCalendar() {
         console.error('Error fetching synced dates:', error);
     }
 
-    renderCalendar(filteredReservations, syncedDates);
+    // Rooms are only meaningful for one property at a time — "3 of 4 sold"
+    // across a mixed portfolio means nothing. With All Properties selected the
+    // calendar keeps its original booking-count behaviour.
+    let rooms = [];
+    if (currentPropertyFilter) {
+        try {
+            rooms = await db.getRooms(Number(currentPropertyFilter));
+        } catch (_) {
+            rooms = [];
+        }
+    }
+
+    renderCalendar(filteredReservations, syncedDates, rooms);
 }
 
-function renderCalendar(reservations, syncedDates = []) {
+function renderCalendar(reservations, syncedDates = [], rooms = []) {
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
     
@@ -170,7 +182,45 @@ function renderCalendar(reservations, syncedDates = []) {
         let statusColor = '';
         let tooltip = '';
 
-        if (hasBooking) {
+        // A property sold by the room is not simply "booked" or "free" — one
+        // room taken out of four leaves three sellable, and showing the day as
+        // booked would turn away three bookings. Only applies when a single
+        // property with rooms is selected.
+        const byRoom = rooms.length > 0;
+        const occ = byRoom ? computeDayOccupancy(bookingsMap[day], rooms) : null;
+
+        if (byRoom) {
+            // An OTA block carries no room_id — the channel doesn't know this
+            // property has rooms — so it blocks the whole place. Treat it as
+            // fully sold rather than letting it disappear behind the fraction.
+            const full = occ.sold >= occ.total || hasSynced;
+            const partial = !full && occ.sold > 0;
+
+            // Not the status-* classes used above: those colour a day by
+            // booking status, where green means "has a confirmed booking". Here
+            // green has to mean "still sellable", which is the opposite.
+            statusClass = full ? 'status-rooms-full' : (partial ? 'status-rooms-partial' : '');
+            const colour = full ? '#ef4444' : (partial ? '#f59e0b' : '#10b981');
+
+            indicator = `
+                <div style="margin-top: 3px;">
+                    <div style="font-size: 10px; font-weight: 700; color: ${colour};">${hasSynced && occ.sold === 0 ? 'OTA' : `${occ.sold}/${occ.total}`}</div>
+                    <div style="height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; margin-top: 2px;">
+                        <div style="height: 100%; width: ${full ? 100 : Math.round((occ.sold / occ.total) * 100)}%; background: ${colour};"></div>
+                    </div>
+                </div>`;
+
+            if (hasSynced && occ.sold === 0) {
+                tooltip = `Blocked by an OTA (${syncedCount}) — no room detail from the channel`;
+            } else if (occ.wholeTaken) {
+                tooltip = 'Whole property booked';
+            } else if (full) {
+                tooltip = 'All rooms booked';
+            } else {
+                tooltip = `${occ.total - occ.sold} of ${occ.total} rooms free`
+                        + (occ.wholeSellable ? ' · whole place still sellable' : '');
+            }
+        } else if (hasBooking) {
             // Determine primary status for the day
             const statuses = bookingsMap[day].map(b => b.status || 'confirmed');
             const statusPriority = {
@@ -262,7 +312,56 @@ async function showDayBookings(day, month, year) {
         
         // Build HTML
         let html = `<div style="font-weight: 600; margin-bottom: 12px; font-size: 16px;">📅 ${dateStr}</div>`;
-        
+
+        // Room-by-room picture. The month cell can only show a fraction; this
+        // is where you find out WHICH rooms are gone and what is still sellable.
+        let rooms = [];
+        if (propertyFilter) {
+            try { rooms = await db.getRooms(Number(propertyFilter)); } catch (_) { rooms = []; }
+        }
+
+        if (rooms.length > 0) {
+            const occ = computeDayOccupancy(dayBookings, rooms);
+            const takenBy = {};
+            dayBookings.forEach(b => {
+                if (b.room_id != null) takenBy[String(b.room_id)] = b;
+            });
+
+            html += `<div style="margin-bottom: 16px;">
+                <div style="font-weight: 600; margin-bottom: 8px;">
+                    Rooms &mdash; ${occ.sold} of ${occ.total} sold
+                </div>`;
+
+            if (occ.wholeTaken) {
+                html += `<div style="padding: 10px 12px; background: rgba(14,165,233,0.1);
+                    border-left: 4px solid #0ea5e9; border-radius: 6px; font-size: 13px;">
+                    The whole property is booked as one unit, so every room is taken.
+                </div>`;
+            } else {
+                html += rooms.map(room => {
+                    const booking = takenBy[String(room.id)];
+                    return `<div style="display: flex; align-items: center; gap: 10px; padding: 8px 0;
+                        border-bottom: 1px solid var(--border);">
+                        <div style="width: 8px; height: 8px; border-radius: 50%;
+                            background: ${booking ? '#ef4444' : '#10b981'}; flex-shrink: 0;"></div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 600; font-size: 13px;">${escapeHtml(room.name)}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">
+                                ${booking ? escapeHtml(booking.guest_name || 'Booked') : 'Free'}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                html += `<div style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">
+                    ${occ.wholeSellable
+                        ? 'Nothing booked — the whole place can still be sold to one group.'
+                        : 'The whole place can no longer be sold for this date, but the free rooms above can.'}
+                </div>`;
+            }
+            html += `</div>`;
+        }
+
         // Show direct bookings
         if (dayBookings.length > 0) {
             html += `<div style="margin-bottom: 16px;">

@@ -4417,6 +4417,27 @@ background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
 border-left: 4px solid #ef4444;
 }
 
+/* Room occupancy — a property sold by the room is not simply booked or free.
+   Note these read the opposite way to the status-* classes above: there, green
+   means "has a confirmed booking"; here it means "still sellable". */
+.calendar-day.status-rooms-partial {
+background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+border-left: 4px solid #f59e0b;
+}
+
+.calendar-day.status-rooms-full {
+background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+border-left: 4px solid #ef4444;
+}
+
+[data-theme="dark"] .calendar-day.status-rooms-partial {
+background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+}
+
+[data-theme="dark"] .calendar-day.status-rooms-full {
+background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+}
+
 /* Dark mode calendar adjustments */
 [data-theme="dark"] .calendar-day.status-confirmed {
 background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
