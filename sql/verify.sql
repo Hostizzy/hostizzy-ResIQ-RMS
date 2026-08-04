@@ -194,7 +194,10 @@ SELECT 45, 'VIEWS',
   JOIN pg_namespace ns ON ns.oid = c.relnamespace
   JOIN information_schema.role_table_grants g
     ON g.table_schema = 'public' AND g.table_name = c.relname
-   AND g.privilege_type = 'SELECT' AND g.grantee IN ('anon','authenticated')
+   AND g.privilege_type = 'SELECT'
+   -- PUBLIC covers anon and authenticated without naming either, so a grant to
+   -- PUBLIC is the quiet way this reopens.
+   AND g.grantee IN ('anon','authenticated','PUBLIC')
  WHERE ns.nspname = 'public'
    AND c.relkind = 'v'
    AND NOT COALESCE(c.reloptions::text LIKE '%security_invoker=true%', false)
@@ -267,6 +270,35 @@ BEGIN
         visible::text || ' owner rows visible — should be exactly 1' ||
         CASE WHEN visible = 0 THEN ' (host cannot read their own profile)'
              WHEN visible > 1 THEN ' (other tenants exposed)' ELSE '' END);
+
+    -- Views are the blind spot the four checks above cannot see: they run with
+    -- their owner's rights, so no policy on the base table constrains them.
+    -- Anything a host can read here, they can read across every tenant.
+    DECLARE
+        v record;
+        vn bigint;
+    BEGIN
+        FOR v IN
+            SELECT c.relname FROM pg_class c
+              JOIN pg_namespace ns2 ON ns2.oid = c.relnamespace
+             WHERE ns2.nspname = 'public' AND c.relkind IN ('v','m')
+             ORDER BY c.relname
+        LOOP
+            BEGIN
+                SET LOCAL ROLE authenticated;
+                EXECUTE format('SELECT count(*) FROM public.%I', v.relname) INTO vn;
+                RESET ROLE;
+                IF vn > 0 THEN
+                    INSERT INTO resiq_checks VALUES (54, 'HOST JWT',
+                        'view ' || v.relname || ' is not readable by a host', 'FAIL',
+                        vn::text || ' rows visible to a logged-in host — views ignore RLS');
+                END IF;
+            EXCEPTION WHEN OTHERS THEN
+                RESET ROLE;
+            END;
+        END LOOP;
+        RESET ROLE;
+    END;
 
     SELECT count(*) INTO owned FROM team_members WHERE owner_id = host_id;
     SET LOCAL ROLE authenticated;
