@@ -512,7 +512,9 @@
                 const updates = {
                     status: status,
                     processed_at: new Date().toISOString(),
-                    processed_by: currentUser?.id,
+                    // Same integer-vs-UUID trap as payments.created_by:
+                    // processed_by is INT REFERENCES team_members(id).
+                    processed_by: (typeof creatorId === 'function') ? creatorId(currentUser) : (currentUser?.id ?? null),
                     admin_notes: notes
                 };
                 const { data, error } = await supabase

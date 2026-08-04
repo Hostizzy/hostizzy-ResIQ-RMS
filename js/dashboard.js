@@ -2832,7 +2832,7 @@ async function saveBulkPayments() {
                 payment_recipient: recipient,
                 reference_number: null,
                 notes: notes || `Bulk payment collection`,
-                created_by: currentUser?.id || null
+                created_by: creatorId(currentUser)
             };
 
             if (navigator.onLine) {

@@ -429,7 +429,7 @@ async function savePayment() {
             payment_recipient: document.getElementById('paymentRecipient').value || null,
             reference_number: document.getElementById('paymentReference').value || null,
             notes: document.getElementById('paymentNotes').value || null,
-            created_by: currentUser?.id || null
+            created_by: creatorId(currentUser)
         };
         
         if (navigator.onLine) {
