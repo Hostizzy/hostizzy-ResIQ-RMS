@@ -33,8 +33,9 @@ function fakeSupabase(captured) {
 import { readFileSync } from 'fs';
 const src = readFileSync(new URL('../js/db.js', import.meta.url), 'utf8');
 const captured = [];
-// Node 22 already provides crypto.getRandomValues.
-const db = new Function('supabase', `${src}; return db;`)(fakeSupabase(captured));
+// Node 22 already provides crypto.getRandomValues. db.js also hangs a few
+// helpers off `window` at load time, so give it a stub to attach them to.
+const db = new Function('supabase', 'window', `${src}; return db;`)(fakeSupabase(captured), {});
 
 const ok = (l, c) => console.log(`${c ? '✓' : '✗ FAIL'}  ${l}`);
 let fails = 0;
