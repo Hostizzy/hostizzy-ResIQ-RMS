@@ -316,9 +316,12 @@ async function saveOwner() {
             email,
             phone,
             is_active: status === 'active',
-            // account_type is derived from is_external by trg_sync_account_type.
-            // Writing it here too would fail with "column does not exist" until
-            // sql/account-type-and-host-profiles.sql has been applied.
+            // Both are written explicitly. Relying on the trigger to derive
+            // account_type from is_external does not work on INSERT — the
+            // column's DEFAULT is applied first, so account_type is never NULL
+            // and the trigger overwrites is_external instead. See
+            // sql/fix-account-type-default.sql.
+            account_type: ownerType === 'independent' ? 'host' : 'managed',
             is_external: ownerType === 'independent',
             property_ids: selectedProperties
         };

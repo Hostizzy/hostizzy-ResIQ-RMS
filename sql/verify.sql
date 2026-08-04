@@ -387,6 +387,28 @@ SELECT 80, 'MIGRATIONS', 'property_owners.account_type exists',
                             AND column_name='account_type') THEN 'PASS' ELSE 'FAIL' END,
        'sql/account-type-and-host-profiles.sql';
 
+-- account_type must NOT carry a column default. Postgres applies defaults
+-- before a BEFORE-INSERT trigger sees NEW, so a default makes account_type
+-- never NULL and the trigger's is_external -> account_type branch unreachable.
+-- Every signup then lands as a managed owner. See sql/fix-account-type-default.sql.
+INSERT INTO resiq_checks
+SELECT 80, 'MIGRATIONS', 'account_type has no column default',
+       CASE WHEN column_default IS NULL THEN 'PASS' ELSE 'FAIL' END,
+       COALESCE('default is ' || column_default || ' — signups will land as managed owners',
+                'none — the trigger can derive from is_external')
+  FROM information_schema.columns
+ WHERE table_schema='public' AND table_name='property_owners' AND column_name='account_type';
+
+-- The two columns must never disagree. If they do, one write path is bypassing
+-- the trigger and the Managed Owners / Hosts split is lying.
+INSERT INTO resiq_checks
+SELECT 80, 'MIGRATIONS', 'account_type and is_external agree', 'FAIL',
+       email || ': account_type=' || COALESCE(account_type,'null')
+             || ' but is_external=' || COALESCE(is_external::text,'null')
+  FROM property_owners
+ WHERE (account_type = 'host')     IS DISTINCT FROM COALESCE(is_external, false)
+   AND account_type IS NOT NULL;
+
 INSERT INTO resiq_checks
 SELECT 81, 'MIGRATIONS', 'host_profiles table exists',
        CASE WHEN to_regclass('public.host_profiles') IS NOT NULL THEN 'PASS' ELSE 'FAIL' END,
