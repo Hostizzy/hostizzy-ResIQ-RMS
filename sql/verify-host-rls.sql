@@ -15,6 +15,70 @@
 --
 -- Read-only except for section D, which inserts inside a transaction it
 -- rolls back. Safe to run against production.
+--
+-- NOTE: the Supabase SQL editor returns only the LAST statement's result when
+-- you run a whole script. Sections A, B, C and E below are separate statements,
+-- so running the file top-to-bottom shows you E and silently discards the rest.
+-- Section 0 rolls A/B/C/E into one query for that reason — run it on its own.
+
+
+-- ------------------------------------------------------------
+-- 0. Everything in one result set
+-- ------------------------------------------------------------
+-- Read the 'A. rls' rows first. properties = DISABLED means jwt_properties_write
+-- is inert and every authenticated user can write every row — a bigger problem
+-- than the one being investigated.
+--
+-- No 'B. policy' row for properties means round8-jwt-rls-policies.sql was never
+-- applied.
+
+SELECT 'A. rls'::text AS section,
+       c.relname::text AS item,
+       CASE WHEN c.relrowsecurity
+            THEN 'ENABLED'
+            ELSE 'DISABLED  <-- policies on this table do nothing'
+       END::text AS detail
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+ WHERE n.nspname = 'public'
+   AND c.relname IN ('properties','rooms','reservations','payments',
+                     'team_members','property_owners','guests')
+
+UNION ALL
+
+SELECT 'B. policy'::text,
+       (tablename || '.' || policyname)::text,
+       (cmd || CASE WHEN with_check IS NOT NULL
+                    THEN ' — explicit WITH CHECK'
+                    ELSE ' — USING reused as the insert check'
+               END)::text
+  FROM pg_policies
+ WHERE schemaname = 'public'
+   AND tablename IN ('properties','rooms')
+
+UNION ALL
+
+SELECT 'C. grant'::text,
+       table_name::text,
+       string_agg(privilege_type::text, ', ' ORDER BY privilege_type::text)
+  FROM information_schema.role_table_grants
+ WHERE table_schema = 'public'
+   AND grantee = 'authenticated'
+   AND table_name IN ('properties','rooms')
+ GROUP BY table_name
+
+UNION ALL
+
+SELECT 'E. id column'::text,
+       ('properties.' || column_name)::text,
+       COALESCE(column_default, 'no default')::text
+         || ' | identity=' || is_identity::text
+  FROM information_schema.columns
+ WHERE table_schema = 'public'
+   AND table_name = 'properties'
+   AND column_name IN ('id','owner_id')
+
+ ORDER BY 1, 2;
 
 
 -- ------------------------------------------------------------
