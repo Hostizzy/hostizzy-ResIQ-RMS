@@ -172,11 +172,15 @@ module.exports = async function handler(req, res) {
                 password: 'firebase-managed',
                 is_active: false,
                 status: 'pending',
-                // Only is_external is written. account_type is derived from it
-                // by trg_sync_account_type, so this insert works both before
-                // and after sql/account-type-and-host-profiles.sql is applied —
-                // writing account_type directly would fail with "column does
-                // not exist" until then.
+                // Write account_type directly rather than leaving the trigger
+                // to infer it from is_external. The column carries a DEFAULT,
+                // and Postgres applies defaults BEFORE a BEFORE-INSERT trigger
+                // runs — so an insert supplying only is_external arrived with
+                // account_type already 'managed', and the trigger then flipped
+                // is_external to false. Every signup landed as a managed owner.
+                // sql/fix-account-type-default.sql drops that default; being
+                // explicit here means this no longer depends on it either way.
+                account_type: 'host',
                 is_external: true,
             }]),
         });
