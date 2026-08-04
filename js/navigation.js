@@ -1273,6 +1273,18 @@ function createKanbanCard(reservation) {
         ? `<span title="KYC ${kyc}" style="${kycStyles[kyc]}padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:0.02em;white-space:nowrap;margin-left:auto;">${kycIcon[kyc]} KYC</span>`
         : '';
 
+    // Which room, on properties that have any. room_id NULL there means the
+    // whole place was sold as one unit, not "unspecified".
+    const roomName = (typeof roomLabelFor === 'function')
+        ? roomLabelFor(reservation, (typeof roomsByProperty !== 'undefined') ? roomsByProperty : {})
+        : '';
+    const roomLine = roomName
+        ? `<div class="kanban-card-property" style="display: flex; align-items: center; gap: 6px; opacity: 0.85;">
+               <i data-lucide="${reservation.room_id == null ? 'home' : 'bed-double'}" style="width: 12px; height: 12px; opacity: 0.6;"></i>
+               ${escapeHtml(roomName)}
+           </div>`
+        : '';
+
     card.innerHTML = `
         <div class="kanban-card-booking-id" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="hash" style="width: 12px; height: 12px; opacity: 0.6;"></i>
@@ -1287,6 +1299,7 @@ function createKanbanCard(reservation) {
             <i data-lucide="building-2" style="width: 12px; height: 12px; opacity: 0.6;"></i>
             ${propertyName}
         </div>
+        ${roomLine}
         <div class="kanban-card-meta">
             <span class="kanban-card-badge" style="background: var(--primary-light); color: var(--primary-dark); display: inline-flex; align-items: center; gap: 4px;">
                 <i data-lucide="calendar" style="width: 10px; height: 10px;"></i>${checkIn}

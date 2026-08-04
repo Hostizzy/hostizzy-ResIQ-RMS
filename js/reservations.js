@@ -1072,7 +1072,22 @@ function _attachKycStatus(reservations, kycMap) {
     }
 }
 
+// Rooms indexed by property, so every render path can label a booking's room
+// without a query per row. Refreshed whenever reservations are loaded, and
+// read by the table, the Kanban board and the booking detail modal.
+let roomsByProperty = {};
+
+async function refreshRoomsIndex() {
+    try {
+        roomsByProperty = indexRoomsByProperty(await db.getRooms());
+    } catch (_) {
+        // getRooms already swallows a missing table; this is belt and braces.
+        roomsByProperty = {};
+    }
+}
+
 async function loadReservations(forceRefresh = false) {
+    await refreshRoomsIndex();
     try {
         // Try to get from cache first
         const cachedReservations = dataCache.get('reservations', forceRefresh);
@@ -1233,6 +1248,19 @@ function displayReservations(reservations) {
                 </td>
                 <td>
                     <div style="font-weight: 600;">${r.property_name || '-'}</div>
+                    ${(() => {
+                        const room = roomLabelFor(r, roomsByProperty);
+                        if (!room) return '';
+                        // "Entire place" is the whole property sold as one unit,
+                        // which blocks every room — worth distinguishing at a glance.
+                        const whole = r.room_id == null;
+                        return `<div style="font-size: 11px; margin-top: 2px; display: inline-flex;
+                            align-items: center; gap: 3px; padding: 1px 6px; border-radius: 4px;
+                            background: ${whole ? 'rgba(14,165,233,0.12)' : 'var(--background)'};
+                            color: ${whole ? '#0369a1' : 'var(--text-secondary)'};">
+                            <i data-lucide="${whole ? 'home' : 'bed-double'}" style="width: 10px; height: 10px;"></i>
+                            ${escapeHtml(room)}</div>`;
+                    })()}
                 </td>
                 <td>
                     ${r.booking_source ? getBookingSourceBadge(r.booking_source) : '<span style="font-size: 11px; color: var(--text-tertiary);">Direct</span>'}
