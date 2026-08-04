@@ -412,13 +412,21 @@ async function saveProperty() {
             property.owner_id = currentUser.id;
         }
 
-        // IDs are allocated client-side as max(id)+1, so two people adding a
-        // property at the same moment pick the same number. That was safe when
-        // only Hostizzy staff created properties; with hosts self-serving it
-        // isn't. Retry on the resulting primary-key conflict rather than
-        // showing them a raw Postgres error.
-        let data, error;
-        for (let attempt = 0; attempt < 4; attempt++) {
+        // properties.id defaults to nextval('properties_id_seq'), so let the
+        // database assign it — two people adding a property at the same moment
+        // can't collide. This used to be computed here as max(id)+1, which
+        // raced, and which is also why the sequence fell behind the table:
+        // supplying an explicit id doesn't advance it.
+        //
+        // sql/properties-id-sequence.sql resyncs it. Until that has been run,
+        // the sequence hands out numbers that are already taken, so fall back
+        // to the old client-side allocation on a key conflict. That makes the
+        // deploy order not matter.
+        const isIdClash = (e) => !!e && (e.code === '23505' || /duplicate key/i.test(e.message || ''));
+
+        let { data, error } = await supabase.from('properties').insert([property]).select();
+
+        for (let attempt = 0; isIdClash(error) && attempt < 4; attempt++) {
             const { data: highest, error: fetchError } = await supabase
                 .from('properties')
                 .select('id')
@@ -427,12 +435,7 @@ async function saveProperty() {
             if (fetchError) throw fetchError;
 
             property.id = highest?.length > 0 ? (highest[0].id + 1) : 1;
-
             ({ data, error } = await supabase.from('properties').insert([property]).select());
-            if (!error) break;
-            // 23505 = unique_violation. Anything else is a real failure.
-            const isIdClash = error.code === '23505' || /duplicate key/i.test(error.message || '');
-            if (!isIdClash || attempt === 3) throw error;
         }
 
         if (error) throw error;
