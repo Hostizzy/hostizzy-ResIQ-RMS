@@ -53,16 +53,20 @@ function closeTeamModal() {
 async function saveTeamMember() {
     try {
         const phoneEl = document.getElementById('teamMemberPhone');
+        // The password goes to Firebase and nowhere else. It used to be stored
+        // on the row as well, in plaintext, where nothing ever read it —
+        // Firebase is the only thing that authenticates anyone.
+        const password = document.getElementById('teamMemberPassword').value;
         const member = {
             name: document.getElementById('teamMemberName').value,
             email: document.getElementById('teamMemberEmail').value,
-            password: document.getElementById('teamMemberPassword').value,
+            password: 'firebase-managed',
             phone: phoneEl ? (phoneEl.value.trim() || null) : null,
             role: document.getElementById('teamMemberRole').value,
             is_active: true
         };
 
-        if (!member.name || !member.email || !member.password) {
+        if (!member.name || !member.email || !password) {
             showToast('Validation Error', 'Please fill in all required fields', '❌');
             return;
         }
@@ -80,7 +84,7 @@ async function saveTeamMember() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${await getFirebaseIdToken()}`
                 },
-                body: JSON.stringify({ action: 'create-user', email: member.email, password: member.password, displayName: member.name })
+                body: JSON.stringify({ action: 'create-user', email: member.email, password, displayName: member.name })
             });
             const authResult = await authResp.json();
             if (!authResp.ok) throw new Error(authResult.error || 'Failed to create auth account');
@@ -319,9 +323,11 @@ async function saveOwner() {
             property_ids: selectedProperties
         };
 
-        // Add password only for new owners
+        // The column is NOT NULL, but the value is never read — Firebase holds
+        // the credential. Storing the real password here put it in plaintext in
+        // a table anyone could read.
         if (!ownerId) {
-            ownerData.password = password;
+            ownerData.password = 'firebase-managed';
         }
 
         const typeLabel = ownerType === 'independent' ? 'Host' : 'Managed owner';
