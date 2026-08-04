@@ -172,8 +172,12 @@ module.exports = async function handler(req, res) {
                 password: 'firebase-managed',
                 is_active: false,
                 status: 'pending',
-                account_type: 'host',
-                is_external: true,   // kept in sync by trigger; drop once nothing reads it
+                // Only is_external is written. account_type is derived from it
+                // by trg_sync_account_type, so this insert works both before
+                // and after sql/account-type-and-host-profiles.sql is applied —
+                // writing account_type directly would fail with "column does
+                // not exist" until then.
+                is_external: true,
             }]),
         });
         const ownerId = Array.isArray(rows) ? rows[0]?.id : rows?.id;

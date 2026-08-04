@@ -142,7 +142,7 @@ Before approving, check:
   signs up on the landing page would end up with two accounts and split data.
   Reject and point them at `/owner-portal`.
 
-Approving flips `status` to `active` and `is_active` to `true`, and sends the
+Approving flips `status` to `approved` and `is_active` to `true`, and sends the
 welcome email. Rejecting shows them the rejected screen on their next login
 attempt.
 
