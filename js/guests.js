@@ -276,11 +276,13 @@ async function loadGuests() {
         
         // Load additional guests from guest_documents for remarketing
         try {
-            const { data: guestDocs, error: gdError } = await supabase
-                .from('guest_documents')
-                .select('booking_id, guest_name, guest_type, guest_sequence, guest_address, status, submitted_at')
-                .eq('guest_type', 'additional')
-                .order('submitted_at', { ascending: false });
+            // Scoped read — this list feeds remarketing, so an unscoped one
+            // handed a host every other tenant's guests.
+            const guestDocs = await db.getGuestDocuments({
+                columns: 'booking_id, guest_name, guest_type, guest_sequence, guest_address, status, submitted_at',
+                guestType: 'additional'
+            });
+            const gdError = null;
 
             allAdditionalGuests = [];
             if (!gdError && guestDocs) {

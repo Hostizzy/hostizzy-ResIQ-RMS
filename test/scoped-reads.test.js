@@ -21,11 +21,16 @@ const TABLES = { reservations: RESERVATIONS, payments: PAYMENTS };
 
 function fakeSupabase(log) {
   const makeChain = (table) => {
-    const q = { _in: null };
+    const q = { _in: null, _eq: null };
     const chain = {
       select: () => chain,
       order: () => chain,
-      eq: () => chain,
+      eq: (col, val) => { q._eq = [col, val]; return chain; },
+      maybeSingle: async () => {
+        let rows = TABLES[table] || [];
+        if (q._eq) rows = rows.filter(r => String(r[q._eq[0]]) === String(q._eq[1]));
+        return { data: rows[0] || null, error: null };
+      },
       in: (col, vals) => {
         // The real column matters: asking payments for property_id is exactly
         // the bug, so the fake refuses it the way Postgres would.
@@ -89,5 +94,62 @@ t('staff still see every payment', rows.length === PAYMENTS.length);
 db.clearScope();
 t('denied scope reads no payments', (await db.getAllPayments()).length === 0);
 
+const rejects = async (fn) => { try { await fn(); return false; } catch { return true; } };
+
+// ── The same booking_id hop, for every table that uses it ──
+// guest_documents, communications and guest_meal_preferences all hang off a
+// reservation the same way. They were each being read unscoped from a
+// different module, so a host saw every tenant's KYC, message log and meals.
+
+const DOCS = [
+  { id: 1, booking_id: 'BK-A', guest_name: 'Own guest',   guest_type: 'additional' },
+  { id: 2, booking_id: 'BK-X', guest_name: 'Other guest', guest_type: 'additional' },
+];
+const COMMS = [
+  { id: 1, booking_id: 'BK-A', body: 'ours' },
+  { id: 2, booking_id: 'BK-X', body: 'theirs' },
+];
+const MEALS = [
+  { id: 1, booking_id: 'BK-B', meals: 'ours' },
+  { id: 2, booking_id: 'BK-X', meals: 'theirs' },
+];
+Object.assign(TABLES, {
+  guest_documents: DOCS,
+  communications: COMMS,
+  guest_meal_preferences: MEALS,
+  enquiries: [
+    { id: 1, property_id: 10, name: 'Own enquiry' },
+    { id: 2, property_id: 99, name: 'Other enquiry' },
+    { id: 3, property_id: null, name: 'Unassigned — Hostizzy inbox' },
+  ],
+  revenue_targets: [{ id: 1, tier_1: 4000000, tier_2: 5000000, tier_3: 6000000 }],
+});
+
+db._ownerId = 'host-a'; db._ownerPropertyIds = [10, 11];
+
+t('host sees only their own guest documents',
+  (await db.getGuestDocuments()).every(d => d.booking_id !== 'BK-X'));
+t('host sees only their own communications',
+  (await db.getCommunications()).every(c => c.booking_id !== 'BK-X'));
+t('host sees only their own meal preferences',
+  (await db.getMealPreferences()).every(m => m.booking_id !== 'BK-X'));
+
+const enq = await db.getEnquiries();
+t('host sees only enquiries for their own properties',
+  enq.length === 1 && enq[0].property_id === 10);
+t('host does not see unassigned enquiries', !enq.some(e => e.property_id === null));
+
+t('host cannot read Hostizzy revenue targets', (await db.getRevenueTargets()) === null);
+t('host cannot write Hostizzy revenue targets',
+  await rejects(() => db.updateRevenueTargets({ tier_1: 1, tier_2: 2, tier_3: 3 })));
+
+// ── Staff keep full visibility ──
+db._ownerId = null; db._ownerPropertyIds = null;
+t('staff see every guest document', (await db.getGuestDocuments()).length === DOCS.length);
+t('staff see every communication',  (await db.getCommunications()).length === COMMS.length);
+t('staff see every meal preference',(await db.getMealPreferences()).length === MEALS.length);
+t('staff see every enquiry',        (await db.getEnquiries()).length === 3);
+t('staff can read revenue targets', (await db.getRevenueTargets()) !== null);
+
 if (fails) { console.error(`\n${fails} check(s) failed`); process.exit(1); }
-console.log('\nAll payment scoping checks passed');
+console.log('\nAll booking-scoped table checks passed');

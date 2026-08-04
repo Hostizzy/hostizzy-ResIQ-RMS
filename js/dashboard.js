@@ -460,6 +460,15 @@ async function renderRevenueTargets() {
 
     try {
         const targets = await db.getRevenueTargets();
+        // Null means a scoped caller — a host or owner. revenue_targets is a
+        // single company-wide row belonging to Hostizzy; there is no per-owner
+        // version, so the card is removed rather than shown with someone
+        // else's numbers.
+        if (!targets) {
+            if (homeEl) homeEl.innerHTML = '';
+            if (dashEl) dashEl.innerHTML = '';
+            return;
+        }
         // Prefer state.reservations (already loaded by loadDashboard / home);
         // fall back to direct fetch if we got here before either ran.
         let reservations = (typeof state !== 'undefined' && state.reservations) ? state.reservations : null;
@@ -501,6 +510,10 @@ async function renderRevenueTargets() {
 async function openRevenueTargetsModal() {
     try {
         const t = await db.getRevenueTargets();
+        if (!t) {
+            showToast('Not available', 'Revenue targets are a Hostizzy-wide setting.', 'ℹ️');
+            return;
+        }
         document.getElementById('revenueTargetTier1').value = Number(t.tier_1);
         document.getElementById('revenueTargetTier2').value = Number(t.tier_2);
         document.getElementById('revenueTargetTier3').value = Number(t.tier_3);
