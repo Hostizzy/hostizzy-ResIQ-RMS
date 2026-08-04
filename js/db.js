@@ -197,14 +197,35 @@
                 if (error) throw error;
                 return data || [];
             },
+            // payments has no property_id — a payment hangs off a reservation by
+            // booking_id. Scoping it by property_id threw
+            // "column payments.property_id does not exist", but only ever for a
+            // scoped caller: staff have _ownerPropertyIds = null, so the filter
+            // was skipped and the bug stayed invisible until the first host
+            // opened Properties. jwt_payments_select gets this right in SQL;
+            // this is the same hop done client-side.
             async getAllPayments() {
+                if (this._isDenied()) return [];
+
+                let bookingIds = null;
+                if (this._ownerPropertyIds) {
+                    if (this._ownerPropertyIds.length === 0) return [];
+                    const { data: rows, error: resError } = await supabase
+                        .from('reservations')
+                        .select('booking_id')
+                        .in('property_id', this._ownerPropertyIds);
+                    if (resError) throw resError;
+                    bookingIds = (rows || []).map(r => r.booking_id).filter(Boolean);
+                    // No bookings means no payments — and an empty .in() list
+                    // would match everything, so return before building it.
+                    if (bookingIds.length === 0) return [];
+                }
+
                 let query = supabase
                     .from('payments')
                     .select('*')
                     .order('payment_date', { ascending: false });
-                if (this._ownerPropertyIds) {
-                    query = query.in('property_id', this._ownerPropertyIds.length > 0 ? this._ownerPropertyIds : [-1]);
-                }
+                if (bookingIds) query = query.in('booking_id', bookingIds);
                 const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
