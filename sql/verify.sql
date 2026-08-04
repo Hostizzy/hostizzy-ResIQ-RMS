@@ -23,7 +23,23 @@
 --
 -- See docs/VERIFICATION.md.
 
-DROP TABLE IF EXISTS resiq_checks;
+-- ------------------------------------------------------------
+-- About the two warnings the Supabase editor shows for this file
+-- ------------------------------------------------------------
+-- 1. "includes destructive operations" — the DROP below. It is explicitly
+--    qualified with pg_temp, so it can only ever target this session's own
+--    scratch table and cannot reach anything in public. With no temp schema
+--    yet it is a no-op with a notice.
+--
+-- 2. "creates a table without enabling Row Level Security" — resiq_checks is
+--    a TEMP table. It lives in this session's private pg_temp schema, is gone
+--    when the session ends, and PostgREST connects in different sessions, so
+--    anon and authenticated cannot see it under any policy. RLS on it would
+--    have nothing to do. The editor's linter does not distinguish TEMP tables.
+--
+-- "Run without RLS" is the correct choice.
+
+DROP TABLE IF EXISTS pg_temp.resiq_checks;
 CREATE TEMP TABLE resiq_checks (
     ord        int,
     area       text,
@@ -171,41 +187,58 @@ BEGIN
         RETURN;
     END IF;
 
+    -- Ground truth FIRST, as the privileged session user. Counting `owned`
+    -- while acting as the host would put it through the same RLS filter as
+    -- `visible`, so a policy that hides everything would make both zero and
+    -- the check would pass while the host could see nothing at all.
+    SELECT count(*) INTO owned FROM properties WHERE owner_id = host_id;
+
     PERFORM set_config('request.jwt.claims',
         json_build_object('role','authenticated','user_type','owner',
                           'owner_id', host_id::text)::text, true);
     SET LOCAL ROLE authenticated;
-
     SELECT count(*) INTO visible FROM properties;
-    SELECT count(*) INTO owned   FROM properties WHERE owner_id = host_id;
     RESET ROLE;
-    INSERT INTO resiq_checks VALUES (50, 'HOST JWT', 'sees only own properties',
-        CASE WHEN visible = owned THEN 'PASS' ELSE 'FAIL' END,
-        visible::text || ' visible / ' || owned::text || ' owned');
+    INSERT INTO resiq_checks VALUES (50, 'HOST JWT', 'sees exactly their own properties',
+        CASE WHEN visible = owned THEN 'PASS'
+             WHEN visible < owned THEN 'WARN' ELSE 'FAIL' END,
+        visible::text || ' visible / ' || owned::text || ' owned' ||
+        CASE WHEN visible > owned THEN ' — other tenants exposed'
+             WHEN visible < owned THEN ' — host cannot see their own data' ELSE '' END);
 
-    SET LOCAL ROLE authenticated;
-    SELECT count(*) INTO visible FROM reservations;
     SELECT count(*) INTO owned FROM reservations r
       JOIN properties p ON p.id = r.property_id WHERE p.owner_id = host_id;
+    SET LOCAL ROLE authenticated;
+    SELECT count(*) INTO visible FROM reservations;
     RESET ROLE;
-    INSERT INTO resiq_checks VALUES (51, 'HOST JWT', 'sees only own reservations',
-        CASE WHEN visible = owned THEN 'PASS' ELSE 'FAIL' END,
-        visible::text || ' visible / ' || owned::text || ' owned');
+    INSERT INTO resiq_checks VALUES (51, 'HOST JWT', 'sees exactly their own reservations',
+        CASE WHEN visible = owned THEN 'PASS'
+             WHEN visible < owned THEN 'WARN' ELSE 'FAIL' END,
+        visible::text || ' visible / ' || owned::text || ' owned' ||
+        CASE WHEN visible > owned THEN ' — other tenants exposed'
+             WHEN visible < owned THEN ' — host cannot see their own data' ELSE '' END);
 
     SET LOCAL ROLE authenticated;
     SELECT count(*) INTO visible FROM property_owners;
     RESET ROLE;
-    INSERT INTO resiq_checks VALUES (52, 'HOST JWT', 'sees only own owner record',
-        CASE WHEN visible <= 1 THEN 'PASS' ELSE 'FAIL' END,
-        visible::text || ' owner rows visible — should be 1');
+    -- Exactly one: more is a leak of the tenant directory, none means the host
+    -- cannot read their own profile and the app will show them as unconfigured.
+    INSERT INTO resiq_checks VALUES (52, 'HOST JWT', 'sees own owner record and no other',
+        CASE WHEN visible = 1 THEN 'PASS' WHEN visible = 0 THEN 'WARN' ELSE 'FAIL' END,
+        visible::text || ' owner rows visible — should be exactly 1' ||
+        CASE WHEN visible = 0 THEN ' (host cannot read their own profile)'
+             WHEN visible > 1 THEN ' (other tenants exposed)' ELSE '' END);
 
+    SELECT count(*) INTO owned FROM team_members WHERE owner_id = host_id;
     SET LOCAL ROLE authenticated;
     SELECT count(*) INTO visible FROM team_members;
-    SELECT count(*) INTO owned   FROM team_members WHERE owner_id = host_id;
     RESET ROLE;
-    INSERT INTO resiq_checks VALUES (53, 'HOST JWT', 'sees only own team members',
-        CASE WHEN visible = owned THEN 'PASS' ELSE 'FAIL' END,
-        visible::text || ' visible / ' || owned::text || ' owned');
+    INSERT INTO resiq_checks VALUES (53, 'HOST JWT', 'sees exactly their own team members',
+        CASE WHEN visible = owned THEN 'PASS'
+             WHEN visible < owned THEN 'WARN' ELSE 'FAIL' END,
+        visible::text || ' visible / ' || owned::text || ' owned' ||
+        CASE WHEN visible > owned THEN ' — other tenants exposed'
+             WHEN visible < owned THEN ' — host cannot see their own data' ELSE '' END);
 
     PERFORM set_config('request.jwt.claims', '', true);
     RESET ROLE;
