@@ -5143,7 +5143,7 @@
                                 <input type="number" id="qeDamages" min="0" step="0.01" value="0" oninput="qeCalculateTaxes()">
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group hostizzy-only">
                             <label>Hostizzy Revenue (&#8377;)</label>
                             <input type="number" id="qeHostizzyRevenue" min="0" step="0.01" value="0" readonly style="background: var(--background);">
                             <small style="font-size: 12px; color: var(--text-secondary); display: block; margin-top: 4px;">Auto-calculated based on property's revenue share %</small>
@@ -5405,7 +5405,7 @@
                         <input type="number" id="damages" min="0" step="0.01" value="0" oninput="calculateTaxes()">
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group hostizzy-only">
                     <label>Hostizzy Revenue (&#8377;)</label>
                     <input type="number" id="hostizzyRevenue" min="0" step="0.01" value="0" readonly style="background: var(--background);">
                     <small style="font-size: 12px; color: var(--text-secondary); display: block; margin-top: 4px;">
@@ -5498,7 +5498,7 @@
                 </select>
             </div>
 
-            <div class="form-group" id="paymentRecipientGroup" style="display: none;">
+            <div class="form-group hostizzy-only" id="paymentRecipientGroup" style="display: none;">
                 <label>Payment Received By *</label>
                 <select id="paymentRecipient" required>
                     <option value="">Select Recipient</option>
@@ -5649,7 +5649,7 @@
                         <option value="bank_transfer">Bank Transfer</option>
                     </select>
                 </div>
-                <div class="form-group" id="bulkPaymentRecipientGroup" style="display: none;">
+                <div class="form-group hostizzy-only" id="bulkPaymentRecipientGroup" style="display: none;">
                     <label>Payment Received By *</label>
                     <select id="bulkPaymentRecipient" required>
                         <option value="">Select Recipient</option>
@@ -6503,7 +6503,7 @@
             </div>
 
             <!-- Commission Rate -->
-            <div style="margin-bottom: 24px; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fbbf24;">
+            <div class="hostizzy-only" style="margin-bottom: 24px; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fbbf24;">
                 <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 14px;">
                     <i data-lucide="percent" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i>Hostizzy Commission Rate (%)
                 </label>
@@ -6515,7 +6515,7 @@
             </div>
 
             <!-- Managed by Hostizzy Toggle -->
-            <div style="margin-bottom: 24px; padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #93c5fd;">
+            <div class="hostizzy-only" style="margin-bottom: 24px; padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #93c5fd;">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <div>
                         <div style="font-weight: 600; font-size: 14px; color: #1e293b;">Managed by Hostizzy</div>

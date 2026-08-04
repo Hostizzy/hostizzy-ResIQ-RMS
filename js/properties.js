@@ -229,19 +229,11 @@ return d.toLocaleDateString('en-IN');
 }
 
 
-/** Hosts sign up on their own and have no commercial relationship with
- *  Hostizzy, so the commission-rate and managed-by-Hostizzy fields are
- *  meaningless to them — and the commission field is *required*, which
- *  would otherwise block them from adding a property at all. */
-function isSelfServeHost() {
-    return currentUser?.userType === 'owner' && isHostAccount(currentUser);
-}
+// isSelfServeHost() and applyHostFieldVisibility() live in js/utils.js —
+// several modules need them, and utils loads first.
 
 function openPropertyModal() {
-    const hostizzyOnly = !isSelfServeHost();
-    document.querySelectorAll('#propertyModal .hostizzy-only').forEach(el => {
-        el.style.display = hostizzyOnly ? '' : 'none';
-    });
+    applyHostFieldVisibility(document.getElementById('propertyModal'));
     document.getElementById('propertyModal').classList.add('active');
 }
 
@@ -558,6 +550,7 @@ async function openPropertySettings(propertyId) {
         }
 
         // Show modal
+        applyHostFieldVisibility(document.getElementById('propertySettingsModal'));
         document.getElementById('propertySettingsModal').style.display = 'flex';
 
         // Initialize Gmail connection status
@@ -598,7 +591,11 @@ function closePropertySettings() {
 async function savePropertySettings() {
     const propertyId = document.getElementById('settingsPropertyId').value;
     const icalUrl = document.getElementById('icalUrlInput').value.trim();
-    const commissionRate = parseFloat(document.getElementById('settingsCommissionRate').value);
+    // A host keeps 100% — the field is hidden for them, so don't read it and
+    // don't validate it. Same reasoning as saveProperty(): a required
+    // commission rate would otherwise block them from saving anything here.
+    const isHost = isSelfServeHost();
+    const commissionRate = isHost ? 0 : parseFloat(document.getElementById('settingsCommissionRate').value);
 
     // Validate commission rate
     if (isNaN(commissionRate) || commissionRate < 0 || commissionRate > 100) {
@@ -640,7 +637,7 @@ async function savePropertySettings() {
         const previousRate = existing ? parseFloat(existing.revenue_share_percent) : null;
 
         // Update property with new settings
-        const isManaged = document.getElementById('settingsIsManaged')?.checked || false;
+        const isManaged = isHost ? false : (document.getElementById('settingsIsManaged')?.checked || false);
         const updateData = {
             revenue_share_percent: commissionRate,
             is_managed: isManaged,

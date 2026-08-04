@@ -242,6 +242,12 @@
         }
 
         function hideSidebarForOwners() {
+            // Commission rate, the managed-by toggle, calculated Hostizzy
+            // revenue and "who received this payment" only mean something
+            // inside Hostizzy's managed arrangement. Hidden here in one pass;
+            // modals that are built or re-shown later call it again themselves.
+            applyHostFieldVisibility();
+
             // Hosts (independent) and managed owners don't see admin-only views.
             // Team stays visible for hosts — that is how they give a caretaker
             // access to their own properties, and the list is scoped to them.
