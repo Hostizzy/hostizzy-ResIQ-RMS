@@ -350,18 +350,33 @@
                 if (error) throw error;
                 return token;
             },
+            // Team members belong to an owner. Hosts manage their own caretakers,
+            // so every write is checked against the caller's scope rather than
+            // trusting that the UI only ever offered them their own rows.
+            // A null _ownerId means Hostizzy staff — unscoped by design.
+            async _ownsTeamMember(id) {
+                if (this._isDenied()) return false;
+                if (this._ownerId == null) return true;
+                const { data } = await supabase
+                    .from('team_members').select('owner_id').eq('id', id).maybeSingle();
+                return !!data && String(data.owner_id) === String(this._ownerId);
+            },
             async saveTeamMember(member) {
+                if (this._isDenied()) throw new Error('Not permitted');
                 if (member.id) {
+                    if (!(await this._ownsTeamMember(member.id))) throw new Error('Not permitted');
                     const { data, error } = await supabase.from('team_members').update(member).eq('id', member.id).select();
                     if (error) throw error;
                     return data?.[0];
-                } else {
-                    const { data, error } = await supabase.from('team_members').insert([member]).select();
-                    if (error) throw error;
-                    return data?.[0];
                 }
+                // Scoped callers can only ever create members under themselves.
+                const row = this._ownerId == null ? member : { ...member, owner_id: this._ownerId };
+                const { data, error } = await supabase.from('team_members').insert([row]).select();
+                if (error) throw error;
+                return data?.[0];
             },
             async deleteTeamMember(id) {
+                if (!(await this._ownsTeamMember(id))) throw new Error('Not permitted');
                 const { error} = await supabase.from('team_members').delete().eq('id', id);
                 if (error) throw error;
             },
@@ -531,11 +546,17 @@
                 if (error) throw error;
                 return data || [];
             },
+            // The owner/host directory is a Hostizzy-staff view. A scoped caller
+            // (a host, or a caretaker belonging to one) may only ever see their
+            // own record — never the rest of the tenant list.
             async getOwners() {
-                const { data, error } = await supabase
+                if (this._isDenied()) return [];
+                let query = supabase
                     .from('property_owners')
                     .select('*')
                     .order('created_at', { ascending: false });
+                if (this._ownerId) query = query.eq('id', this._ownerId);
+                const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
             },

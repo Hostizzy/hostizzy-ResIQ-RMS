@@ -210,7 +210,11 @@
                         localStorage.setItem('currentUser', JSON.stringify(currentUser));
                         await db.initScope(currentUser);
                         showMainApp(currentUser);
-                        showAdminOnlyNav();
+                        // A team member with an owner_id is a host's caretaker,
+                        // not Hostizzy staff — they get the tenant sidebar even
+                        // though their role may say "admin" within that tenant.
+                        if (currentUser.owner_id) hideSidebarForOwners();
+                        else showAdminOnlyNav();
                         await loadDashboard();
                         showToast('Welcome!', `Logged in as ${profile.name}`, '👋');
                         const lastView = (typeof getInitialView === 'function') ? getInitialView() : (localStorage.getItem('lastView') || 'home');
@@ -288,8 +292,11 @@
         }
 
         function hideSidebarForOwners() {
-            // Hosts (independent) and managed owners don't see admin-only views
-            const hiddenLabels = ['Team', 'Managed Owners', 'Hosts', 'OTA Import', 'Performance'];
+            // Hosts (independent) and managed owners don't see admin-only views.
+            // Team stays visible for hosts — that is how they give a caretaker
+            // access to their own properties, and the list is scoped to them.
+            const hiddenLabels = ['Managed Owners', 'Hosts', 'OTA Import', 'Performance'];
+            if (!isHostAccount(currentUser)) hiddenLabels.push('Team');
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 const label = item.querySelector('.sidebar-item-label')?.textContent?.trim();
                 if (hiddenLabels.includes(label)) {

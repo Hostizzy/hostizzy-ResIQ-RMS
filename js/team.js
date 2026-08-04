@@ -27,6 +27,17 @@ async function loadTeam() {
 }
 
 function openTeamModal() {
+    // A host adds caretakers, not administrators. "Admin" is a Hostizzy-side
+    // role, so it isn't offered to them and the wording matches what they mean.
+    const isHost = currentUser?.userType === 'owner' && isHostAccount(currentUser);
+    const roleEl = document.getElementById('teamMemberRole');
+    if (roleEl) {
+        const adminOpt = roleEl.querySelector('option[value="admin"]');
+        if (adminOpt) adminOpt.hidden = isHost;
+        const staffOpt = roleEl.querySelector('option[value="staff"]');
+        if (staffOpt) staffOpt.textContent = isHost ? 'Caretaker' : 'Staff';
+        if (isHost) roleEl.value = 'staff';
+    }
     document.getElementById('teamModal').classList.add('active');
 }
 

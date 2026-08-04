@@ -110,7 +110,9 @@ window.addEventListener('load', async () => {
             showMainApp(currentUser);
 
             // Apply role-based UI visibility on session restore
-            if (currentUser.userType === 'owner') {
+            // owner_id on a staff record means a host's caretaker — scoped to
+            // that host, so they get the tenant sidebar, not the Hostizzy one.
+            if (currentUser.userType === 'owner' || currentUser.owner_id) {
                 hideSidebarForOwners();
             } else if (currentUser.userType === 'staff' && currentUser.role === 'admin') {
                 showAdminOnlyNav();
