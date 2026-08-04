@@ -9,7 +9,16 @@
  *   POST { action: 'create-user', email, password, displayName }
  *   POST { action: 'delete-user', email }
  *
- * Env: FIREBASE_SERVICE_ACCOUNT (JSON string of service account key)
+ * Both actions require a valid Firebase ID token. They are only ever called
+ * from an admin adding or removing a team member, or approving/rejecting a
+ * host — all logged-in operations. Host self-signup does NOT come through
+ * here; it has its own endpoint (api/owner-signup.js) precisely because it
+ * is unauthenticated and therefore must not be able to name an arbitrary
+ * account to create or delete.
+ *
+ * Env:
+ *   FIREBASE_SERVICE_ACCOUNT (JSON string of service account key)
+ *   FIREBASE_API_KEY         (verifying the caller's ID token)
  */
 
 let admin;
@@ -33,14 +42,52 @@ function initFirebaseAdmin() {
     });
 }
 
+const ALLOWED_ORIGINS = [
+    'https://resiq.hostizzy.com',
+    'http://localhost:3000',
+    'http://localhost:8000'
+];
+
+async function verifyFirebaseToken(idToken) {
+    const firebaseApiKey = process.env.FIREBASE_API_KEY;
+    if (!firebaseApiKey) throw new Error('Firebase API key not configured');
+    const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseApiKey}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        }
+    );
+    if (!response.ok) throw new Error('Invalid Firebase token');
+    const data = await response.json();
+    if (!data.users || data.users.length === 0) throw new Error('No user found');
+    return data.users[0].email;
+}
+
 module.exports = async function handler(req, res) {
-    // CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // CORS — the app is the only caller, so don't advertise this to every origin.
+    const origin = req.headers.origin;
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+    // Without this, delete-user is an unauthenticated "remove any account by
+    // email address" endpoint.
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    try {
+        await verifyFirebaseToken(authHeader.split('Bearer ')[1]);
+    } catch (err) {
+        return res.status(401).json({ error: 'Invalid token: ' + err.message });
+    }
 
     if (!admin) {
         return res.status(500).json({ error: 'firebase-admin not installed on server' });

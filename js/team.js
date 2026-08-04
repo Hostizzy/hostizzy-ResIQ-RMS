@@ -76,7 +76,10 @@ async function saveTeamMember() {
         try {
             const authResp = await fetch('/api/auth-proxy', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                },
                 body: JSON.stringify({ action: 'create-user', email: member.email, password: member.password, displayName: member.name })
             });
             const authResult = await authResp.json();
@@ -113,7 +116,10 @@ async function deleteTeamMember(id) {
             try {
                 await fetch('/api/auth-proxy', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                    },
                     body: JSON.stringify({ action: 'delete-user', email: member.email })
                 });
             } catch (e) { /* best effort */ }
@@ -1187,7 +1193,10 @@ async function rejectOwnerSignup(ownerId, email) {
             try {
                 await fetch('/api/auth-proxy', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                    },
                     body: JSON.stringify({ action: 'delete-user', email })
                 });
             } catch (e) { /* best effort */ }
