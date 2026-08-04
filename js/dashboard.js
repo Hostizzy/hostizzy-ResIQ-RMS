@@ -2777,6 +2777,12 @@ function closeBulkPaymentModal() {
 }
 
 function toggleBulkRecipientField() {
+    // A host collects every payment themselves — there is no Hostizzy
+    // to have received it, so the field stays hidden whatever the method.
+    if (typeof isSelfServeHost === 'function' && isSelfServeHost()) {
+        applyHostFieldVisibility();
+        return;
+    }
     const method = document.getElementById('bulkPaymentMethod').value;
     const recipientGroup = document.getElementById('bulkPaymentRecipientGroup');
     const recipientSelect = document.getElementById('bulkPaymentRecipient');

@@ -163,6 +163,33 @@
         // ============================================
 
         /**
+         * True for someone who signed up themselves and runs their own
+         * property, as opposed to a Hostizzy-managed owner or Hostizzy staff.
+         */
+        function isSelfServeHost() {
+            return typeof currentUser !== 'undefined'
+                && currentUser?.userType === 'owner'
+                && typeof isHostAccount === 'function'
+                && isHostAccount(currentUser);
+        }
+
+        /**
+         * Hide the parts of the UI that only mean something inside Hostizzy's
+         * managed-property arrangement: commission rate, the managed-by toggle,
+         * the calculated Hostizzy revenue, and "who received this payment"
+         * (Hostizzy vs the owner). A host has no commission arrangement and
+         * collects every payment themselves, so these are at best noise and at
+         * worst imply we are taking a cut.
+         *
+         * Mark elements with class="hostizzy-only". Safe to call repeatedly.
+         */
+        function applyHostFieldVisibility(root) {
+            if (!isSelfServeHost()) return;
+            (root || document).querySelectorAll('.hostizzy-only')
+                .forEach(el => { el.style.display = 'none'; });
+        }
+
+        /**
          * The id to stamp on rows that record who created them.
          *
          * payments.created_by is an INTEGER referencing team_members.id. A
