@@ -78,6 +78,26 @@
                 return this._ownerId === '__deny__';
             },
 
+            // Several tables hang off a reservation by booking_id rather than
+            // carrying property_id — payments, guest_documents, communications,
+            // guest_meal_preferences. Scoping them means resolving the caller's
+            // booking ids first. Mirrors what the jwt_* RLS policies do in SQL.
+            //
+            // Returns null for Hostizzy staff (unscoped by design), or an array
+            // for everyone else. An empty array means "this caller owns nothing"
+            // — callers must return early rather than pass it to .in(), because
+            // an empty IN list in PostgREST matches every row.
+            async _scopedBookingIds() {
+                if (this._ownerPropertyIds == null) return null;
+                if (this._ownerPropertyIds.length === 0) return [];
+                const { data, error } = await supabase
+                    .from('reservations')
+                    .select('booking_id')
+                    .in('property_id', this._ownerPropertyIds);
+                if (error) throw error;
+                return (data || []).map(r => r.booking_id).filter(Boolean);
+            },
+
             // Pre-auth lookup: identify a user by their just-authenticated
             // email so the caller can build a session and call initScope().
             // Bypasses the multi-tenant scope on purpose — the user is not
@@ -207,19 +227,8 @@
             async getAllPayments() {
                 if (this._isDenied()) return [];
 
-                let bookingIds = null;
-                if (this._ownerPropertyIds) {
-                    if (this._ownerPropertyIds.length === 0) return [];
-                    const { data: rows, error: resError } = await supabase
-                        .from('reservations')
-                        .select('booking_id')
-                        .in('property_id', this._ownerPropertyIds);
-                    if (resError) throw resError;
-                    bookingIds = (rows || []).map(r => r.booking_id).filter(Boolean);
-                    // No bookings means no payments — and an empty .in() list
-                    // would match everything, so return before building it.
-                    if (bookingIds.length === 0) return [];
-                }
+                const bookingIds = await this._scopedBookingIds();
+                if (bookingIds && bookingIds.length === 0) return [];
 
                 let query = supabase
                     .from('payments')
@@ -402,7 +411,13 @@
                 if (error) throw error;
             },
             // Round 6 — monthly revenue targets (singleton row id=1)
+            // revenue_targets is a SINGLE row (id=1) holding Hostizzy's own
+            // company-wide targets. There is no per-owner version of it, so a
+            // host must neither see nor edit it — reading it would show them
+            // Hostizzy's revenue goals, and writing would change them for
+            // everyone. Returns null for a scoped caller so the UI can hide it.
             async getRevenueTargets() {
+                if (this._ownerId) return null;
                 const { data, error } = await supabase
                     .from('revenue_targets')
                     .select('tier_1, tier_2, tier_3, updated_at, updated_by_email')
@@ -413,6 +428,7 @@
                 return data || { tier_1: 4000000, tier_2: 5000000, tier_3: 6000000 };
             },
             async updateRevenueTargets({ tier_1, tier_2, tier_3, updated_by_email }) {
+                if (this._ownerId) throw new Error('Not permitted');
                 const payload = {
                     tier_1: Number(tier_1),
                     tier_2: Number(tier_2),
@@ -616,11 +632,56 @@
             },
 
             // ─── Enquiries / Leads ───────────────────────────
+            // Enquiries carry property_id, but it is nullable — an enquiry that
+            // hasn't been matched to a property yet belongs to whoever received
+            // it, which is Hostizzy. A scoped caller sees only enquiries for
+            // their own properties, never the unassigned pile.
             async getEnquiries() {
-                const { data, error } = await supabase
+                if (this._isDenied()) return [];
+                let query = supabase
                     .from('enquiries')
                     .select('*')
                     .order('created_at', { ascending: false });
+                if (this._ownerPropertyIds) {
+                    if (this._ownerPropertyIds.length === 0) return [];
+                    query = query.in('property_id', this._ownerPropertyIds);
+                }
+                const { data, error } = await query;
+                if (error) throw error;
+                return data || [];
+            },
+
+            // guest_documents and guest_meal_preferences both hang off a
+            // reservation by booking_id. Both were being read unscoped from
+            // documents.js, guests.js and meals.js, so a host saw every
+            // tenant's KYC and meal choices.
+            async getGuestDocuments({ columns = '*', guestType = null } = {}) {
+                if (this._isDenied()) return [];
+                const bookingIds = await this._scopedBookingIds();
+                if (bookingIds && bookingIds.length === 0) return [];
+
+                let query = supabase
+                    .from('guest_documents')
+                    .select(columns)
+                    .order('submitted_at', { ascending: false });
+                if (guestType) query = query.eq('guest_type', guestType);
+                if (bookingIds) query = query.in('booking_id', bookingIds);
+                const { data, error } = await query;
+                if (error) throw error;
+                return data || [];
+            },
+
+            async getMealPreferences(columns = '*') {
+                if (this._isDenied()) return [];
+                const bookingIds = await this._scopedBookingIds();
+                if (bookingIds && bookingIds.length === 0) return [];
+
+                let query = supabase
+                    .from('guest_meal_preferences')
+                    .select(columns)
+                    .order('submitted_at', { ascending: false });
+                if (bookingIds) query = query.in('booking_id', bookingIds);
+                const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
             },
@@ -675,10 +736,16 @@
             // message_type, template_used, message_content, sent_by, sent_at
             // New columns: recipient_email, subject, status, scheduled_for, created_at
             async getCommunications() {
-                const { data, error } = await supabase
+                if (this._isDenied()) return [];
+                const bookingIds = await this._scopedBookingIds();
+                if (bookingIds && bookingIds.length === 0) return [];
+
+                let query = supabase
                     .from('communications')
                     .select('*')
                     .order('sent_at', { ascending: false });
+                if (bookingIds) query = query.in('booking_id', bookingIds);
+                const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
             },

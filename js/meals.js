@@ -4,10 +4,8 @@
 
 async function loadMeals() {
     try {
-        // Fetch all meal preferences (now combined format)
-        const { data: mealData, error: mealError } = await supabase
-            .from('guest_meal_preferences')
-            .select(`
+        // Through db so the read is scoped to the caller's own bookings.
+        const mealData = await db.getMealPreferences(`
                 id,
                 booking_id,
                 meals,
@@ -18,10 +16,7 @@ async function loadMeals() {
                 approved_by,
                 approved_at,
                 rejected_reason
-            `)
-            .order('submitted_at', { ascending: false });
-
-        if (mealError) throw mealError;
+            `);
 
         // Fetch all reservations for mapping booking_id to guest info
         const { data: reservations, error: resError } = await supabase

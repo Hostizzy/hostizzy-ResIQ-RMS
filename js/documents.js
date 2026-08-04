@@ -18,10 +18,14 @@ async function loadGuestDocuments() {
 
         // Fetch guest documents and reservations separately, then join client-side
         // (PostgREST embedded resource joins require foreign key constraints which may not exist)
-        const { data: documents, error } = await supabase
-            .from('guest_documents')
-            .select('*')
-            .order('submitted_at', { ascending: false });
+        // Through db so the read is scoped — querying guest_documents directly
+        // showed a host every tenant's KYC.
+        let documents = null, error = null;
+        try {
+            documents = await db.getGuestDocuments();
+        } catch (e) {
+            error = e;
+        }
 
         if (error) {
             console.error('Error loading guest documents:', error);
