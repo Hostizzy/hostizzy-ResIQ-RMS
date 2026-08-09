@@ -469,6 +469,49 @@ section { padding-block: clamp(68px, 8.5vw, 120px); }
 /* ============================================
    THE BOARD — hero product surface
    ============================================ */
+/* ── Hero media ─────────────────────────────────────────────────
+   The board is an illustration of the product; the phone is the product.
+   The phone sits in front and slightly below, so the board still reads as
+   the page's organising idea while the actual app is what you look at. */
+.hero-media { position: relative; }
+
+.hero-phone {
+    position: absolute;
+    left: -6%;
+    bottom: -13%;
+    width: 30%;
+    max-width: 232px;
+    z-index: 2;
+    border-radius: 26px;
+    padding: 7px;
+    background: linear-gradient(160deg, #33465C 0%, #16222F 55%, #0A1826 100%);
+    box-shadow:
+        0 42px 70px -28px rgba(0,0,0,0.9),
+        0 0 0 1px rgba(255,255,255,0.07) inset;
+}
+
+.hero-phone video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 9 / 19.5;
+    object-fit: cover;
+    border-radius: 20px;
+    background: var(--navy-900);
+}
+
+/* Below the two-column breakpoint the board stacks under the copy and there
+   is no room to overlap. The phone becomes the whole visual — which is the
+   right emphasis on a phone anyway, since that is the device being sold. */
+@media (max-width: 1000px) {
+    .hero-media { display: flex; justify-content: center; }
+    .hero-phone {
+        position: static;
+        width: min(58vw, 250px);
+        max-width: none;
+    }
+    .hero-media .board { display: none; }
+}
+
 .board {
     background: var(--navy-850);
     border: 1px solid rgba(255,255,255,0.1);

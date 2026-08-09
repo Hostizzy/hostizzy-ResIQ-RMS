@@ -155,6 +155,20 @@
                 </p>
             </div>
 
+            <!-- A page about a visual app should have the app on it. The board
+                 below is an illustration of the idea; this is the product. The
+                 video sits in front of it, and if the file is missing the
+                 script at the foot of the page removes the frame rather than
+                 leaving a hole. -->
+            <div class="hero-media">
+            <div class="hero-phone" id="heroPhone" hidden>
+                <video id="heroVideo" autoplay muted loop playsinline preload="metadata"
+                       poster="assets/screenshots/hero-poster.png"
+                       aria-label="A walkthrough of ResIQ on Android: today's arrivals, taking a payment, and a guest completing their ID check.">
+                    <source src="assets/resiq-hero.mp4" type="video/mp4">
+                </video>
+            </div>
+
             <!-- The board: the most characteristic surface in this product -->
             <div class="board" role="img" aria-label="The ResIQ app showing one homestay at a glance: four check-ins, three check-outs, two guests with KYC still pending and ₹48,200 owed, followed by today's arrivals and departures with their booking source.">
                 <div class="board-top">
@@ -198,6 +212,7 @@
                     <span class="sync">Synced 2 min ago</span>
                 </div>
             </div>
+            </div><!-- /.hero-media -->
         </div>
     </header>
 
@@ -810,6 +825,27 @@
                 }
             });
         });
+
+        // ─── Hero video ───
+        // Shown only once the file is confirmed present, so a missing or
+        // still-uploading asset degrades to the board rather than to an empty
+        // frame. Also skipped when the visitor has asked for reduced motion —
+        // an autoplaying loop is exactly what that setting is about.
+        (function () {
+            const frame = document.getElementById('heroPhone');
+            const video = document.getElementById('heroVideo');
+            if (!frame || !video) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                video.removeAttribute('autoplay');
+                video.setAttribute('controls', '');
+            }
+            const reveal = () => { frame.hidden = false; };
+            // loadeddata fires for the video; poster alone is enough to show
+            // the frame if only the still is present.
+            video.addEventListener('loadeddata', reveal, { once: true });
+            video.addEventListener('error', () => { frame.hidden = true; }, true);
+            if (video.readyState >= 2) reveal();
+        })();
 
         // ─── Signup ───
         async function landingSignup() {
