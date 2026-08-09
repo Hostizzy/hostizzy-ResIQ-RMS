@@ -469,6 +469,69 @@ section { padding-block: clamp(68px, 8.5vw, 120px); }
 /* ============================================
    THE BOARD — hero product surface
    ============================================ */
+/* ── WhatsApp ───────────────────────────────────────────────────
+   This audience already runs its bookings through WhatsApp. An email and a
+   password before they have spoken to anyone is a bigger ask than it looks,
+   so WhatsApp leads and the form is the alternative. Both are hidden until
+   SALES_WHATSAPP_NUMBER is configured — no button beats a wrong number. */
+.btn-quiet {
+    background: transparent;
+    color: rgba(234, 242, 248, 0.72);
+    border-color: transparent;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: rgba(234, 242, 248, 0.3);
+}
+.btn-quiet:hover { color: #EAF2F8; text-decoration-color: currentColor; transform: none; }
+
+.wa-inline {
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 13px 15px; margin-bottom: 18px;
+    border: 1px solid rgba(37, 211, 102, 0.35);
+    background: rgba(37, 211, 102, 0.07);
+    border-radius: var(--r);
+    text-decoration: none;
+    color: var(--text);
+    font-size: var(--t-sm);
+    line-height: 1.45;
+    transition: background .18s ease, border-color .18s ease;
+}
+.wa-inline:hover { background: rgba(37, 211, 102, 0.12); border-color: rgba(37, 211, 102, 0.55); }
+.wa-inline svg { color: #25D366; flex-shrink: 0; margin-top: 1px; }
+.wa-inline strong { display: block; color: var(--text-strong); font-weight: 600; }
+
+.wa-or {
+    display: flex; align-items: center; gap: 12px;
+    margin: 0 0 16px;
+    font-family: var(--f-mono);
+    font-size: var(--t-micro);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+.wa-or::before, .wa-or::after {
+    content: ""; flex: 1; height: 1px; background: var(--line);
+}
+
+/* ── Founding-offer counter ─────────────────────────────────────
+   A scarcity claim nobody can check reads as decoration. This one is fed by
+   /api/early-access, which counts approved host accounts. Hidden entirely if
+   the count cannot be fetched, rather than falling back to a made-up number. */
+.early-access {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+    margin-top: 18px; padding: 11px 14px;
+    border-left: 2px solid var(--amber);
+    background: var(--amber-soft);
+    border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.early-access-count {
+    font-family: var(--f-mono);
+    font-weight: 600;
+    font-size: var(--t-sm);
+    color: var(--amber-deep);
+}
+.early-access-note { font-size: var(--t-xs); color: var(--text-mute); }
+
 /* ── Hero media ─────────────────────────────────────────────────
    The board is an illustration of the product; the phone is the product.
    The phone sits in front and slightly below, so the board still reads as
