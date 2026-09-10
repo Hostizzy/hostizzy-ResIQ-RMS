@@ -1654,8 +1654,8 @@
                                 <option value="">All Status</option>
                                 <option value="pending">Pending</option>
                                 <option value="confirmed">Confirmed</option>
-                                <option value="checked_in">Checked In</option>
-                                <option value="completed">Completed</option>
+                                <option value="checked-in">Checked In</option>
+                                <option value="checked-out">Checked Out</option>
                                 <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
@@ -2072,7 +2072,27 @@
         let currentUser = null;
 
         // Database functions for owner portal
+        // The statuses that represent money the owner has earned. Was
+        // OWNER_EARNING_STATUSES — an underscore and a word
+        // the app never writes. Bookings are 'checked-in'/'checked-out', so
+        // that filter matched only bookings that had not started yet.
+        const OWNER_EARNING_STATUSES = ['confirmed', 'checked-in', 'checked-out'];
+
         const db = {
+            // Which properties belong to this owner. properties.owner_id is the
+            // source of truth — it is what auth-exchange puts in the JWT and
+            // what every jwt_* RLS policy reads. property_owners.property_ids
+            // was a second, denormalised copy that only this portal maintained,
+            // and the two had drifted apart.
+            getOwnerPropertyIds: async (ownerId) => {
+                const { data, error } = await supabase
+                    .from('properties')
+                    .select('id')
+                    .eq('owner_id', ownerId);
+                if (error) throw error;
+                return (data || []).map(p => p.id);
+            },
+
             getOwner: async (ownerId) => {
                 const { data, error } = await supabase
                     .from('property_owners')
@@ -2116,8 +2136,7 @@
 
             getOwnerRevenue: async (ownerId, startDate = null, endDate = null) => {
                 // Get owner's property IDs
-                const owner = await db.getOwner(ownerId);
-                const propertyIds = owner.property_ids || [];
+                const propertyIds = await db.getOwnerPropertyIds(ownerId);
 
                 if (propertyIds.length === 0) {
                     return { totalRevenue: 0, hostizzyCommission: 0, netEarnings: 0, totalBookings: 0, bookings: [] };
@@ -2127,7 +2146,7 @@
                     .from('reservations')
                     .select('*')
                     .in('property_id', propertyIds)
-                    .in('status', ['confirmed', 'checked_in', 'completed']);
+                    .in('status', OWNER_EARNING_STATUSES);
                 if (startDate) query = query.gte('check_in', startDate);
                 if (endDate) query = query.lte('check_in', endDate);
                 const { data, error } = await query;
@@ -2145,8 +2164,7 @@
 
             getOwnerPendingPayout: async (ownerId) => {
                 // Get owner's property IDs
-                const owner = await db.getOwner(ownerId);
-                const propertyIds = owner.property_ids || [];
+                const propertyIds = await db.getOwnerPropertyIds(ownerId);
 
                 if (propertyIds.length === 0) {
                     return 0;
@@ -2157,7 +2175,7 @@
                     .select('total_amount, hostizzy_revenue')
                     .in('property_id', propertyIds)
                     .eq('payment_status', 'paid')
-                    .in('status', ['confirmed', 'checked_in', 'completed']);
+                    .in('status', OWNER_EARNING_STATUSES);
                 const totalEarned = (reservations || []).reduce((sum, r) =>
                     sum + ((parseFloat(r.total_amount) || 0) - (parseFloat(r.hostizzy_revenue) || 0)), 0
                 );
@@ -2172,8 +2190,7 @@
 
             getOwnerBookings: async (ownerId) => {
                 // Get owner's property IDs
-                const owner = await db.getOwner(ownerId);
-                const propertyIds = owner.property_ids || [];
+                const propertyIds = await db.getOwnerPropertyIds(ownerId);
 
                 if (propertyIds.length === 0) {
                     return [];
@@ -2332,8 +2349,7 @@
         async function loadOwnerHome() {
             try {
                 const ownerId = currentUser.id;
-                const owner = await db.getOwner(ownerId);
-                const propertyIds = owner.property_ids || [];
+                const propertyIds = await db.getOwnerPropertyIds(ownerId);
 
                 if (propertyIds.length === 0) {
                     document.getElementById('homeQuickTotalRevenue').textContent = '₹0';

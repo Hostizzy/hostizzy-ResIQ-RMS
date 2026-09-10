@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <meta name="description" content="Manage your homestay's bookings, payments and guest IDs in one app instead of a notebook and a spreadsheet. Pulls in your Airbnb and Booking.com calendars automatically. Free for your first property.">
+    <meta name="description" content="Manage your homestay's bookings, payments and guest IDs in one app instead of a notebook and a spreadsheet. Pulls in your Airbnb and Booking.com calendars automatically. First 10 owners keep their first property free permanently.">
     <meta name="keywords" content="homestay management software India, villa management app India, guest management app homestay, reservation management app for property owners, how to manage homestay bookings, app to track guest bookings and payments, guest register app India, avoid double booking airbnb booking.com, airbnb calendar sync India, guest KYC app homestay, farmstay management software, ResIQ Hostizzy">
     <meta name="author" content="Hostizzy - Hostsphere India Private Limited">
     <meta name="robots" content="index, follow">
@@ -13,14 +13,14 @@
 
     <meta property="og:type" content="website">
     <meta property="og:title" content="ResIQ — Run your homestay, not a spreadsheet">
-    <meta property="og:description" content="For people who own a homestay or villa, not a management company. Bookings, payments, guest KYC and WhatsApp in one app. Works offline. Free for your first property.">
+    <meta property="og:description" content="For people who own a homestay or villa, not a management company. Bookings, payments, guest KYC and WhatsApp in one app. Works offline. First 10 owners keep their first property free permanently.">
     <meta property="og:url" content="https://resiq.hostizzy.com/">
     <meta property="og:image" content="https://resiq.hostizzy.com/assets/Logo-512.png">
     <meta property="og:site_name" content="ResIQ by Hostizzy">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="ResIQ — Run your homestay, not a spreadsheet">
-    <meta name="twitter:description" content="For people who own a homestay or villa, not a management company. Bookings, payments, guest KYC and WhatsApp in one app. Free for your first property.">
+    <meta name="twitter:description" content="For people who own a homestay or villa, not a management company. Bookings, payments, guest KYC and WhatsApp in one app. First 10 owners keep their first property free permanently.">
     <meta name="twitter:image" content="https://resiq.hostizzy.com/assets/Logo-512.png">
 
     <meta name="theme-color" content="#0A1826">
@@ -33,7 +33,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/landing.css?v=4">
+    <link rel="stylesheet" href="css/landing.css?v=5">
 
     <script type="application/ld+json">
     {
@@ -45,13 +45,13 @@
         "url": "https://resiq.hostizzy.com",
         "downloadUrl": "https://play.google.com/store/apps/details?id=com.hostizzy.resiq",
         "installUrl": "https://play.google.com/store/apps/details?id=com.hostizzy.resiq",
-        "description": "Reservation and guest management app for people who own a homestay, villa or farmstay in India. It is not a listing site or booking engine — it manages the bookings you already receive from Airbnb, Booking.com, MakeMyTrip and direct enquiries, along with payments, guest KYC and WhatsApp messaging. Works offline. Free for your first property.",
+        "description": "Reservation and guest management app for people who own a homestay, villa or farmstay in India. It is not a listing site or booking engine — it manages the bookings you already receive from Airbnb, Booking.com, MakeMyTrip and direct enquiries, along with payments, guest KYC and WhatsApp messaging. Works offline. First 10 owners keep their first property free permanently.",
         "audience": { "@type": "Audience", "audienceType": "Homestay, villa and farmstay owners in India" },
         "offers": {
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "INR",
-            "description": "Free for your first property"
+            "description": "First property free permanently for the first 10 owners"
         },
         "author": {
             "@type": "Organization",
@@ -128,31 +128,56 @@
     <header class="hero">
         <div class="hero-inner">
             <div>
-                <span class="hero-eyebrow"><span class="dot"></span> Free for your first property</span>
+                <span class="hero-eyebrow" id="heroEyebrow"><span class="dot"></span> <span data-early-access-line>Founding offer &mdash; first 10 owners</span></span>
 
                 <h1>Run your homestay, not a <em>spreadsheet.</em></h1>
 
                 <p class="hero-sub">
                     One app for your bookings, payments, guest IDs and WhatsApp messages &mdash; instead of
                     a notebook, four chat threads and a spreadsheet you're scared to touch.
-                    Proven across <strong>45 Hostizzy properties</strong>, and free for your first one.
+                    Proven across <strong>45 Hostizzy properties</strong>.
+                    Our first 10 owners keep their first property free permanently.
                 </p>
 
+                <!-- WhatsApp first. This audience already runs their bookings
+                     through WhatsApp; asking for an email and a password before
+                     they have spoken to anyone is a bigger ask than it looks.
+                     Rendered only when SALES_WHATSAPP_NUMBER is configured. -->
                 <div class="hero-actions">
-                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn btn-accent">
+                    <a href="#" class="btn btn-accent" data-wa-cta hidden>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="btn-mark">
+                            <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35zM12.04 21.5h-.01a9.4 9.4 0 01-4.79-1.31l-.34-.2-3.56.93.95-3.47-.22-.36a9.38 9.38 0 01-1.44-5.01c0-5.18 4.22-9.4 9.41-9.4a9.35 9.35 0 016.65 2.76 9.32 9.32 0 012.75 6.65c0 5.18-4.22 9.41-9.4 9.41zM20.52 3.45A11.8 11.8 0 0012.04 0C5.47 0 .13 5.34.13 11.91c0 2.1.55 4.15 1.6 5.96L0 24l6.29-1.65a11.9 11.9 0 005.75 1.46h.01c6.57 0 11.91-5.34 11.91-11.91 0-3.18-1.24-6.17-3.44-8.45z"/>
+                        </svg>
+                        Chat with us on WhatsApp
+                    </a>
+                    <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn btn-onnavy" data-play-cta>
                         <img src="assets/google-play.svg" alt="" width="18" height="18" class="btn-mark">
                         Get it on Google Play
                     </a>
-                    <a href="#signup" class="btn btn-onnavy">Start free on web</a>
+                    <a href="#signup" class="btn btn-quiet">Or sign up on web</a>
                 </div>
 
                 <p class="hero-meta">
-                    <span>Free for one property</span>
+                    <span data-early-access-meta>First property free, permanently</span>
                     <span aria-hidden="true">&middot;</span>
                     <span>No card required</span>
                     <span aria-hidden="true">&middot;</span>
                     <span>Android &amp; web</span>
                 </p>
+            </div>
+
+            <!-- A page about a visual app should have the app on it. The board
+                 below is an illustration of the idea; this is the product. The
+                 video sits in front of it, and if the file is missing the
+                 script at the foot of the page removes the frame rather than
+                 leaving a hole. -->
+            <div class="hero-media">
+            <div class="hero-phone" id="heroPhone" hidden>
+                <video id="heroVideo" autoplay muted loop playsinline preload="metadata"
+                       poster="assets/screenshots/hero-poster.png"
+                       aria-label="A walkthrough of ResIQ on Android: today's arrivals, taking a payment, and a guest completing their ID check.">
+                    <source src="assets/resiq-hero.mp4" type="video/mp4">
+                </video>
             </div>
 
             <!-- The board: the most characteristic surface in this product -->
@@ -198,6 +223,7 @@
                     <span class="sync">Synced 2 min ago</span>
                 </div>
             </div>
+            </div><!-- /.hero-media -->
         </div>
     </header>
 
@@ -519,7 +545,7 @@
 
                 <details class="faq-item reveal">
                     <summary>What does it actually cost?</summary>
-                    <div class="faq-a"><p>Your first property is free, permanently &mdash; not a trial, and no card required. If you add more properties later there is a paid plan, and we will tell you the price before anything changes. Accounts are reviewed by our team before activation, usually the same day.</p></div>
+                    <div class="faq-a"><p>We are opening ResIQ to our first 10 owners, and those 10 keep their first property free permanently &mdash; not a trial, no card, and no expiry once you are in. If you add more properties later there is a paid plan, and we will tell you the price before anything changes. Accounts are reviewed by our team before activation, usually the same day.</p></div>
                 </details>
 
                 <details class="faq-item reveal">
@@ -550,7 +576,7 @@
             { "@type": "Question", "name": "Does ResIQ work without internet?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can create and edit bookings, record payments and check guests in with no network connection. Each action queues locally and syncs automatically once signal returns, so nothing is lost and nothing needs re-entering." } },
             { "@type": "Question", "name": "Which booking channels does ResIQ sync with?", "acceptedAnswer": { "@type": "Answer", "text": "ResIQ reads calendar feeds from Airbnb, Booking.com, Agoda, MakeMyTrip and Goibibo, so bookings on those channels block the dates in ResIQ automatically, and it imports booking confirmation emails from Gmail. This sync is currently one-way, into ResIQ; two-way sync that pushes availability back out to the channels is in testing." } },
             { "@type": "Question", "name": "How does guest KYC work in ResIQ?", "acceptedAnswer": { "@type": "Answer", "text": "Guests scan a QR code and complete verification on their own phone before arrival — uploading an Aadhaar or passport, taking a selfie and choosing meal preferences. The operator reviews and approves in-app. Uploaded documents are automatically deleted 60 days after checkout." } },
-            { "@type": "Question", "name": "What does ResIQ cost?", "acceptedAnswer": { "@type": "Answer", "text": "Your first property is free permanently — not a trial, and no card is required. Adding further properties moves you to a paid plan, priced before anything changes. Accounts are reviewed before activation, usually the same day." } },
+            { "@type": "Question", "name": "What does ResIQ cost?", "acceptedAnswer": { "@type": "Answer", "text": "ResIQ is opening to its first 10 owners, and those 10 keep their first property free permanently — not a trial, no card, and no expiry once you are in. Adding further properties moves you to a paid plan, priced before anything changes. Accounts are reviewed before activation, usually the same day." } },
             { "@type": "Question", "name": "Does ResIQ have a mobile app?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — a native Android app on Google Play with push notifications, offline mode and biometric login. ResIQ also runs in any browser and can be installed as a web app on iOS, Windows, Mac or Chrome OS." } },
             { "@type": "Question", "name": "Can my caretaker use ResIQ too?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. A caretaker login shows arrivals, departures and check-in, but not revenue, payouts or bank details. Access is invited by email and can be revoked in one tap. Guests use a separate QR-code portal and never see the app itself." } },
             { "@type": "Question", "name": "Will ResIQ get me more bookings?", "acceptedAnswer": { "@type": "Answer", "text": "No. ResIQ is not a listing site or a booking engine — guests cannot find or book a property through it. It manages the bookings an owner already receives from Airbnb, MakeMyTrip, their own website or direct enquiries, and prevents lost revenue from forgotten balances, double bookings and missing guest IDs." } },
@@ -568,7 +594,13 @@
                     <h2>Built for our 45.<br>Free for your first.</h2>
                     <p>
                         ResIQ ran Hostizzy's 45 properties for three years before we opened it up.
-                        Your first property is free permanently &mdash; not a trial, and no card.
+                        Our first 10 owners keep their first property free permanently &mdash;
+                        not a trial, no card, and no expiry once you're in.
+                    </p>
+
+                    <p class="early-access" data-early-access-block hidden>
+                        <span class="early-access-count" data-early-access-count></span>
+                        <span class="early-access-note" data-early-access-note></span>
                     </p>
 
                     <ol class="signup-steps">
@@ -601,8 +633,22 @@
 
                 <div class="reveal reveal-delay-1">
                     <div class="signup-card" id="signupFormCard">
+                        <!-- WhatsApp above the form here too. Someone who has
+                             scrolled this far and still hasn't filled it in is
+                             usually the person who'd rather just ask. -->
+                        <a href="#" class="wa-inline" data-wa-cta hidden>
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35zM12.04 21.5h-.01a9.4 9.4 0 01-4.79-1.31l-.34-.2-3.56.93.95-3.47-.22-.36a9.38 9.38 0 01-1.44-5.01c0-5.18 4.22-9.4 9.41-9.4a9.35 9.35 0 016.65 2.76 9.32 9.32 0 012.75 6.65c0 5.18-4.22 9.41-9.4 9.41zM20.52 3.45A11.8 11.8 0 0012.04 0C5.47 0 .13 5.34.13 11.91c0 2.1.55 4.15 1.6 5.96L0 24l6.29-1.65a11.9 11.9 0 005.75 1.46h.01c6.57 0 11.91-5.34 11.91-11.91 0-3.18-1.24-6.17-3.44-8.45z"/>
+                            </svg>
+                            <span>
+                                <strong>Rather just ask?</strong>
+                                Message us on WhatsApp &mdash; we'll set it up with you.
+                            </span>
+                        </a>
+                        <div class="wa-or" data-wa-cta hidden><span>or fill this in</span></div>
+
                         <h3>Create your account</h3>
-                        <p class="sub">Free for your first property</p>
+                        <p class="sub" data-early-access-meta>First property free, permanently</p>
 
                         <div class="field">
                             <label for="landingSignupName">Full name <span class="req">*</span></label>
@@ -657,7 +703,7 @@
             <div class="footer-lede">
                 <div>
                     <h2>Stop rebuilding last season<br>from memory.</h2>
-                    <p>ResIQ is built and maintained by Hostizzy, who manage vacation rentals end to end across 15 Indian cities. We built it to run our own properties, and made it free for owners running theirs.</p>
+                    <p>ResIQ is built and maintained by Hostizzy, who manage vacation rentals end to end across 15 Indian cities. We built it to run our own properties, and we are opening it to our first 10 owners running theirs.</p>
                 </div>
                 <div class="footer-lede-actions">
                     <a href="https://play.google.com/store/apps/details?id=com.hostizzy.resiq" target="_blank" rel="noopener" class="btn btn-accent">
@@ -810,6 +856,89 @@
                 }
             });
         });
+
+        // ─── WhatsApp CTA ───
+        // The number comes from SALES_WHATSAPP_NUMBER via /api/config rather
+        // than being hard-coded, so it can change without a deploy and is not
+        // sitting in the repository. Unset means the buttons never appear.
+        (async function () {
+            const nodes = document.querySelectorAll('[data-wa-cta]');
+            if (!nodes.length) return;
+            let number = '';
+            try {
+                const cfg = await (await fetch('/api/config')).json();
+                number = (cfg.salesWhatsappNumber || '').replace(/[^0-9]/g, '');
+            } catch (_) { /* leave the buttons hidden */ }
+            if (!number) return;
+
+            const text = encodeURIComponent(
+                "Hi! I saw ResIQ and I'd like to know more about managing my property."
+            );
+            nodes.forEach(el => {
+                if (el.tagName === 'A') el.href = `https://wa.me/${number}?text=${text}`;
+                el.hidden = false;
+            });
+        })();
+
+        // ─── Founding-offer counter ───
+        // Real count of approved owners, not a decoration. If the endpoint is
+        // unreachable the block stays hidden and the page falls back to the
+        // plain promise — better silence than an invented number.
+        (async function () {
+            const block = document.querySelector('[data-early-access-block]');
+            const countEl = document.querySelector('[data-early-access-count]');
+            const noteEl = document.querySelector('[data-early-access-note]');
+            const lines = document.querySelectorAll('[data-early-access-line]');
+            const metas = document.querySelectorAll('[data-early-access-meta]');
+
+            let data;
+            try {
+                data = await (await fetch('/api/early-access')).json();
+            } catch (_) { return; }
+            if (!data || data.remaining == null) return;
+
+            if (data.open) {
+                const n = data.remaining;
+                if (countEl) countEl.textContent =
+                    n === 1 ? 'One founding place left' : `${n} of ${data.limit} founding places left`;
+                if (noteEl) noteEl.textContent =
+                    'Claim one and your first property stays free permanently.';
+                lines.forEach(el => {
+                    el.textContent = n === 1
+                        ? 'Founding offer — one place left'
+                        : `Founding offer — ${n} of ${data.limit} places left`;
+                });
+            } else {
+                // Say so plainly rather than leaving a promise we cannot keep.
+                if (countEl) countEl.textContent = 'All 10 founding places are taken';
+                if (noteEl) noteEl.textContent =
+                    'You can still sign up — we will be in touch about pricing before anything is charged.';
+                lines.forEach(el => { el.textContent = 'Founding places are full'; });
+                metas.forEach(el => { el.textContent = 'No card required'; });
+            }
+            if (block) block.hidden = false;
+        })();
+
+        // ─── Hero video ───
+        // Shown only once the file is confirmed present, so a missing or
+        // still-uploading asset degrades to the board rather than to an empty
+        // frame. Also skipped when the visitor has asked for reduced motion —
+        // an autoplaying loop is exactly what that setting is about.
+        (function () {
+            const frame = document.getElementById('heroPhone');
+            const video = document.getElementById('heroVideo');
+            if (!frame || !video) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                video.removeAttribute('autoplay');
+                video.setAttribute('controls', '');
+            }
+            const reveal = () => { frame.hidden = false; };
+            // loadeddata fires for the video; poster alone is enough to show
+            // the frame if only the still is present.
+            video.addEventListener('loadeddata', reveal, { once: true });
+            video.addEventListener('error', () => { frame.hidden = true; }, true);
+            if (video.readyState >= 2) reveal();
+        })();
 
         // ─── Signup ───
         async function landingSignup() {

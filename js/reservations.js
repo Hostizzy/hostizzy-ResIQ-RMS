@@ -304,7 +304,7 @@ async function updateHomeScreenStats() {
         const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
 
         const stats = state.reservations.reduce((acc, r) => {
-            if (r.status === 'confirmed' || r.status === 'checked_in') acc.active++;
+            if (r.status === 'confirmed' || r.status === 'checked-in') acc.active++;
             if (r.payment_status === 'pending' || r.payment_status === 'partial') acc.pending++;
             if (r.status !== 'cancelled') {
                 if (r.check_in === todayKey) acc.arrivals++;

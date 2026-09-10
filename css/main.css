@@ -11,31 +11,63 @@ box-sizing: border-box;
 --sab: env(safe-area-inset-bottom, 0px);
 --sal: env(safe-area-inset-left, 0px);
 
-/* Color System - Brand Palette (from ResIQ logo) */
---primary: #0891b2;           /* Teal - primary accent */
---primary-dark: #0e7490;      /* Darker teal */
---primary-light: #06b6d4;     /* Lighter teal */
---brand-navy: #1B3A5C;        /* Navy blue - depth, headings */
---brand-navy-light: #2A5080;  /* Lighter navy */
---brand-orange: #E8943A;      /* Orange - CTAs, highlights */
---brand-orange-light: #F0A85C;/* Light orange - hover */
---brand-coral: #FE5858;       /* Hostizzy coral/red */
---secondary: #475569;         /* Slate gray - neutral */
---success: #059669;           /* Muted emerald green */
---success-light: #10b981;
---danger: #dc2626;            /* Slightly muted red */
---danger-light: #ef4444;
---warning: #d97706;           /* Amber */
---warning-light: #f59e0b;
---background: #f8fafc;        /* Very light slate */
---background-alt: #f1f5f9;    /* Slightly darker slate */
+/* ── Palette, shared with the landing page ──────────────────────────
+   The app and the marketing site were visibly different products: teal
+   primary against slate neutrals here, navy and amber against cool mist
+   there. Every variable NAME below is unchanged — thousands of inline
+   styles in app.html reference them — only the values move onto the
+   landing page's ramps. See css/landing.css for the source of truth.
+
+   Roles, kept deliberately separate:
+     navy   structure — primary buttons, active nav, headings
+     amber  the one accent — rationed to true CTAs and live figures
+     cyan   system/among-data, never decoration
+   Amber is NOT --primary: the app puts white text on --primary, and
+   white on amber fails contrast. The landing solves the same problem by
+   putting navy-900 text on amber, which .btn-accent below mirrors. */
+
+/* Navy ramp — the structural colour */
+--navy-900: #0A1826;
+--navy-850: #0E2134;
+--navy-800: #132B42;
+--navy-700: #1B3A5C;          /* Hostizzy brand navy */
+--navy-600: #2A5480;
+--navy-500: #3E6E9E;
+
+--primary: #1B3A5C;           /* Navy - structure, primary actions */
+--primary-dark: #132B42;
+--primary-light: #2A5480;
+--brand-navy: #1B3A5C;
+--brand-navy-light: #2A5480;
+--brand-orange: #F0932B;      /* Amber - the single accent */
+--brand-orange-light: #F5A54A;
+--brand-coral: #E05252;
+--accent: #F0932B;            /* Alias, matching landing's --amber */
+--accent-soft: #FDEBD6;
+--accent-deep: #B96A12;
+--cyan: #17A2C4;              /* Reserved for data/system, not decoration */
+--secondary: #2C4257;         /* Cool ink, not slate grey */
+/* Status. The base value is used BOTH as body text and as a fill with
+   white text on it, so each is set at the darkest usable point (≥4.5:1
+   against white either way) and the -light variant carries the landing's
+   own hue for dots, bars and tints. Straight --amber as --warning would
+   have been 2.4:1 as text. */
+--success: #157A54;
+--success-light: #1F9D6B;
+--danger: #C13F3F;
+--danger-light: #E05252;
+--warning: #A65E0E;
+--warning-light: #F0932B;
+--background: #F7F9FB;        /* Cool mist, deliberately never cream */
+--background-alt: #EDF2F6;
 --surface: #ffffff;
 --surface-elevated: #ffffff;
---text-primary: #0f172a;      /* Almost black slate */
---text-secondary: #475569;    /* Medium slate */
---text-tertiary: #94a3b8;     /* Light slate */
---border: #e2e8f0;            /* Very light border */
---border-light: #f1f5f9;
+--text-primary: #0A1826;
+--text-secondary: #2C4257;
+--text-tertiary: #5A7186;
+--text-faint: #8A9CAD;   /* decorative only, not for text that must be read */
+--border: #DFE7EE;
+--border-light: #EDF2F6;
 
 /* Shadow System - Softer, more subtle */
 --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -43,22 +75,31 @@ box-sizing: border-box;
 --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
 --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 
-/* Gradient System - Brand-aligned */
---gradient-primary: linear-gradient(135deg, #1B3A5C 0%, #0891b2 100%);
---gradient-brand: linear-gradient(135deg, #1B3A5C 0%, #0891b2 50%, #5BBAB5 100%);
---gradient-cta: linear-gradient(135deg, #E8943A 0%, #F0A85C 100%);
---gradient-success: linear-gradient(135deg, #059669 0%, #10b981 100%);
---gradient-warning: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
---gradient-danger: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
---gradient-ocean: linear-gradient(135deg, #1B3A5C 0%, #0891b2 100%);
---gradient-sunset: linear-gradient(135deg, #E8943A 0%, #FE5858 100%);
---gradient-purple: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+/* Gradients. Shallower than before — the landing page reads as flat,
+   confident grounds, and a 45-degree teal-to-navy sweep is the single
+   thing that most made the app look like a different era. */
+--gradient-primary: linear-gradient(135deg, #1B3A5C 0%, #2A5480 100%);
+--gradient-brand: linear-gradient(135deg, #0E2134 0%, #1B3A5C 55%, #2A5480 100%);
+--gradient-cta: linear-gradient(135deg, #F0932B 0%, #F5A54A 100%);
+--gradient-success: linear-gradient(135deg, #1F9D6B 0%, #35B37E 100%);
+--gradient-warning: linear-gradient(135deg, #B96A12 0%, #F0932B 100%);
+--gradient-danger: linear-gradient(135deg, #C13F3F 0%, #E05252 100%);
+--gradient-ocean: linear-gradient(135deg, #1B3A5C 0%, #17A2C4 100%);
+--gradient-sunset: linear-gradient(135deg, #F0932B 0%, #E05252 100%);
+--gradient-purple: linear-gradient(135deg, var(--primary) 0%, #2A5480 100%);
 
-/* Border Radius System */
---radius-sm: 8px;
---radius-md: 12px;
+/* Border Radius. Tightened to the landing's 6/10/16 — the old 12/16/20
+   read soft and consumer; the landing is deliberately more instrument. */
+--radius-sm: 6px;
+--radius-md: 10px;
 --radius-lg: 16px;
 --radius-xl: 20px;
+
+/* Type stacks, matching the landing page. Real fallbacks so a blocked
+   Google Fonts load still renders a coherent app rather than Times. */
+--f-display: 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+--f-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+--f-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 /* Spacing Scale (4px base unit) */
@@ -95,20 +136,22 @@ box-sizing: border-box;
 --leading-snug: 1.4;
 --leading-normal: 1.5;
 
-/* Status Palette - Professional, muted tones */
---success-pale: #d1fae5;
---success-text: #065f46;
---warning-pale: #fef3c7;
---warning-alt-pale: #fed7aa;
---warning-text: #92400e;
---danger-pale: #fee2e2;
---danger-text: #991b1b;
---primary-pale: #cffafe;      /* Teal pale */
---primary-text: #0e7490;      /* Teal dark */
---info-pale: #dbeafe;
---info-text: #1e40af;
---neutral-pale: #f1f5f9;
---neutral-text: #475569;
+/* Status pales — tints of the same green/amber/red/cyan the landing uses,
+   rather than Tailwind's emerald/amber/rose, which sat a step warmer than
+   everything around them. */
+--success-pale: #E1F4EC;
+--success-text: #106142;
+--warning-pale: #FDEBD6;
+--warning-alt-pale: #FBDCB8;
+--warning-text: #B96A12;
+--danger-pale: #FBE6E6;
+--danger-text: #9E2F2F;
+--primary-pale: #E4ECF3;      /* Navy pale */
+--primary-text: #1B3A5C;
+--info-pale: #DDF1F6;         /* Cyan pale — data, not decoration */
+--info-text: #0F6E86;
+--neutral-pale: #EDF2F6;
+--neutral-text: #2C4257;
 
 /* Component-specific shadows - Softer */
 --shadow-input-focus: 0 0 0 3px rgba(8, 145, 178, 0.1);
@@ -118,47 +161,59 @@ box-sizing: border-box;
 }
 
 /* Dark Mode Theme */
+/* Dark. The landing resolves its mist grounds to the navy ramp rather
+   than to slate, and re-tunes amber and cyan so they hold the same
+   perceived weight against a dark ground. Same treatment here.
+   --primary lifts to navy-500: navy-700 on a navy ground is invisible. */
 [data-theme="dark"] {
---primary: #22d3ee;           /* Bright teal for dark mode */
---primary-dark: #0891b2;
---primary-light: #67e8f9;
---secondary: #94a3b8;
---success: #34d399;
---success-light: #6ee7b7;
---danger: #f87171;
---danger-light: #fca5a5;
---warning: #fbbf24;
---warning-light: #fcd34d;
---background: #0f172a;
---background-alt: #1e293b;
---surface: #1e293b;
---surface-elevated: #334155;
---text-primary: #f1f5f9;
---text-secondary: #cbd5e1;
---text-tertiary: #94a3b8;
---border: #334155;
---border-light: #1e293b;
+--primary: #3E6E9E;
+--primary-dark: #2A5480;
+--primary-light: #5A88B8;
+--brand-orange: #F5A54A;
+--brand-orange-light: #FFB765;
+--accent: #F5A54A;
+--accent-soft: #2A1D0D;
+--accent-deep: #F5A54A;
+--cyan: #35BADB;
+--secondary: #8AA2B8;
+--success: #35B37E;
+--success-light: #5BC79A;
+--danger: #EC6A6A;
+--danger-light: #F58A8A;
+--warning: #F5A54A;
+--warning-light: #FFB765;
+--background: #0A1826;
+--background-alt: #132B42;
+--surface: #0E2134;
+--surface-elevated: #132B42;
+--text-primary: #F2F7FB;
+--text-secondary: #BDCEDD;
+--text-tertiary: #7C93A9;
+--text-faint: #63798E;
+--border: #1E3348;
+--border-light: #172A3C;
 --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
 --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
 --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
-/* Dark mode status palette */
---success-pale: #064e3b;
---success-text: #6ee7b7;
---warning-pale: #451a03;
---warning-alt-pale: #431407;
---warning-text: #fcd34d;
---danger-pale: #450a0a;
---danger-text: #fca5a5;
---primary-pale: #164e63;      /* Dark teal */
---primary-text: #67e8f9;      /* Light teal */
---info-pale: #1e3a5f;
---info-text: #93c5fd;
---neutral-pale: #1e293b;
---neutral-text: #cbd5e1;
---shadow-input-focus: 0 0 0 3px rgba(34, 211, 238, 0.15);
+/* Dark status palette — tinted toward the navy ground rather than pure
+   black-reds and black-greens, so badges sit in the page instead of on it. */
+--success-pale: #0C3A2A;
+--success-text: #5BC79A;
+--warning-pale: #3A2610;
+--warning-alt-pale: #452D13;
+--warning-text: #F5A54A;
+--danger-pale: #3D1B1B;
+--danger-text: #F58A8A;
+--primary-pale: #1B3A5C;
+--primary-text: #9FC0DC;
+--info-pale: #123A47;
+--info-text: #35BADB;
+--neutral-pale: #132B42;
+--neutral-text: #BDCEDD;
+--shadow-input-focus: 0 0 0 3px rgba(245, 165, 74, 0.18);
 --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.6);
---shadow-fab: 0 6px 16px rgba(34, 211, 238, 0.3);
+--shadow-fab: 0 6px 16px rgba(245, 165, 74, 0.28);
 --shadow-card-hover: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -175,10 +230,74 @@ transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+font-family: var(--f-body);
 background-color: var(--background);
 color: var(--text-primary);
 line-height: 1.6;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Type roles, matching the landing page ──────────────────────────
+   Archivo is the signage voice: headings, view titles, the numbers on a
+   stat tile. Slightly widened and tightened, the way the landing sets it.
+   Everything else is IBM Plex Sans. */
+h1, h2, h3, h4,
+.view-header h2,
+.modal-title,
+.stat-value,
+.prop-stat-value,
+.login-brand h1 {
+font-family: var(--f-display);
+font-variation-settings: 'wdth' 108;
+letter-spacing: -0.015em;
+}
+
+/* Figures read as data, not prose: tabular so columns of money and dates
+   line up, and mono so a changing number doesn't reflow the row. */
+.stat-value,
+.prop-stat-value,
+.kanban-card-badge,
+.res-amount,
+td .amount,
+.money,
+.figure {
+font-family: var(--f-mono);
+font-variant-numeric: tabular-nums;
+letter-spacing: -0.01em;
+}
+
+/* Small caps-ish labels — the landing uses widely-tracked micro type for
+   column heads and status labels, which is most of what stops a dense
+   table looking like a spreadsheet. */
+th,
+.stat-label,
+.prop-stat-label,
+.eyebrow {
+font-family: var(--f-mono);
+font-size: 0.6875rem;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+color: var(--text-tertiary);
+}
+
+/* Amber is the one accent and it carries dark text, never white — white
+   on #F0932B is 2.4:1 and fails. This mirrors .btn-accent on the landing. */
+.btn-accent,
+.btn-cta {
+background: var(--accent);
+color: var(--navy-900);
+border: none;
+box-shadow: 0 10px 26px -14px rgba(240, 147, 43, 0.9);
+}
+.btn-accent:hover,
+.btn-cta:hover { background: #FFA644; transform: translateY(-1px); }
+
+::selection { background: var(--accent); color: #0A1826; }
+
+:where(a, button, input, select, [tabindex]):focus-visible {
+outline: 2px solid var(--accent);
+outline-offset: 3px;
 }
 
 /* Comprehensive Dark Mode Overrides */
@@ -500,7 +619,7 @@ padding-top: 0;
 
 .login-brand {
 flex: 1;
-background: linear-gradient(135deg, #1B3A5C 0%, #0e7490 40%, #0891b2 80%, #5BBAB5 100%);
+background: linear-gradient(135deg, #1B3A5C 0%, #132B42 40%, #1B3A5C 80%, #2A5480 100%);
 display: flex;
 align-items: center;
 justify-content: center;
@@ -3629,15 +3748,22 @@ user-select: none;
 background: var(--background-alt);
 }
 
+/* The sidebar is a navy surface, so it needs on-dark text rather than the
+   page's ink tokens — --text-secondary is #2C4257, which on #1B3A5C is
+   about 1.4:1 and effectively invisible. Set as widely-tracked mono
+   micro-type, the way the landing page handles section labels. */
 .sidebar-category-title {
-font-size: 13px;
-font-weight: 600;
-color: var(--text-secondary);
+font-family: var(--f-mono);
+font-size: 11px;
+font-weight: 500;
+letter-spacing: 0.09em;
+text-transform: uppercase;
+color: rgba(233, 241, 247, 0.52);
 }
 
 .sidebar-category-arrow {
 font-size: 10px;
-color: var(--text-tertiary);
+color: rgba(233, 241, 247, 0.42);
 transition: transform 0.3s ease;
 }
 
@@ -4298,7 +4424,7 @@ animation: slideDown 0.3s ease-out;
 
 #icalUrlInput:focus {
 outline: none;
-border-color: #0891b2;
+border-color: #1B3A5C;
 box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
 }
 

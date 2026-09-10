@@ -137,9 +137,7 @@ async function deleteTeamMember(id) {
     }
 }
 
-// ========== PROPERTY OWNERS MANAGEMENT ==========
-
-// ========== PROPERTY OWNERS MANAGEMENT ==========
+// ========== MANAGED OWNERS ==========
 
 let loadedOwners = [];
 let loadedOwnerProperties = [];
@@ -169,10 +167,12 @@ function renderOwnersTable() {
     }
 
     tbody.innerHTML = loadedOwners.map(owner => {
-        const assigned = owner.property_ids || [];
-        const propNames = assigned
-            .map(id => loadedOwnerProperties.find(p => p.id === id)?.name || `Property ${id}`)
-            .join(', ') || 'None';
+        // Read the link from properties.owner_id, not the property_ids mirror.
+        // The mirror was the only thing ever written, so it showed properties
+        // assigned here while the portal and the app showed the owner nothing.
+        const assignedProps = loadedOwnerProperties.filter(p => String(p.owner_id) === String(owner.id));
+        const assigned = assignedProps.map(p => p.id);
+        const propNames = assignedProps.map(p => p.name).join(', ') || 'None';
         const statusBadge = owner.is_active ? 'badge-success' : 'badge-warning';
         const commission = owner.commission_rate != null ? `${owner.commission_rate}%` : '—';
 
@@ -217,12 +217,13 @@ async function openOwnerModal(ownerId = null) {
             document.getElementById('ownerPhone').value = owner.phone || '';
             document.getElementById('ownerStatus').value = owner.is_active ? 'active' : 'inactive';
             const isHost = isHostAccount(owner);
-            if (ownerTypeSelect) ownerTypeSelect.value = isHost ? 'independent' : 'managed';
+            if (ownerTypeSelect) ownerTypeSelect.value = isHost ? 'host' : 'managed';
             if (titleEl) titleEl.textContent = isHost ? 'Edit Host' : 'Edit Managed Owner';
             toggleOwnerTypeHint();
 
             // Check assigned properties
-            const assignedProps = owner.property_ids || [];
+            // Same source as the table — properties.owner_id.
+            const assignedProps = (await db.getOwnerPropertyIds(owner.id)) || [];
             assignedProps.forEach(propId => {
                 const checkbox = document.querySelector(`.property-checkbox[value="${propId}"]`);
                 if (checkbox) checkbox.checked = true;
@@ -268,12 +269,12 @@ function toggleOwnerTypeHint() {
     const hint = document.getElementById('ownerTypeHint');
     const emailHint = document.getElementById('ownerEmailHint');
     if (hint) {
-        hint.textContent = ownerType === 'independent'
+        hint.textContent = ownerType === 'host'
             ? 'Hosts get the full ResIQ app scoped to their properties.'
             : 'Managed owners access the Managed Owner Portal with limited views.';
     }
     if (emailHint) {
-        emailHint.textContent = ownerType === 'independent'
+        emailHint.textContent = ownerType === 'host'
             ? 'Host will use this email to login to ResIQ'
             : 'Owner will use this email to login to the Managed Owner Portal';
     }
@@ -301,8 +302,8 @@ async function saveOwner() {
             return;
         }
 
-        if (!ownerId && (!password || password.length < 6)) {
-            showToast('Validation Error', 'Password must be at least 6 characters', '❌');
+        if (!ownerId && (!password || password.length < 8)) {
+            showToast('Validation Error', 'Password must be at least 8 characters', '❌');
             return;
         }
 
@@ -321,8 +322,13 @@ async function saveOwner() {
             // column's DEFAULT is applied first, so account_type is never NULL
             // and the trigger overwrites is_external instead. See
             // sql/fix-account-type-default.sql.
-            account_type: ownerType === 'independent' ? 'host' : 'managed',
-            is_external: ownerType === 'independent',
+            account_type: ownerType,   // the dropdown now speaks the database's vocabulary
+            is_external: ownerType === 'host',
+            // DEPRECATED mirror. properties.owner_id is the source of truth —
+            // it is what auth-exchange puts in the JWT and what all 37 jwt_*
+            // RLS policies read. This array is still written so anything not
+            // yet migrated keeps working, and sql/verify.sql fails if the two
+            // ever disagree. Drop the column once nothing reads it.
             property_ids: selectedProperties
         };
 
@@ -333,16 +339,71 @@ async function saveOwner() {
             ownerData.password = 'firebase-managed';
         }
 
-        const typeLabel = ownerType === 'independent' ? 'Host' : 'Managed owner';
+        const typeLabel = ownerType === 'host' ? 'Host' : 'Managed owner';
 
         if (ownerId) {
             // Update existing owner
             await db.updateOwner(ownerId, ownerData);
+            // The link that actually matters. Without this the owner shows
+            // assigned properties in this table and sees nothing in the portal
+            // or the app, because both read properties.owner_id.
+            await db.setOwnerProperties(ownerId, selectedProperties);
             showToast('Success', `${typeLabel} updated successfully!`, '✅');
         } else {
-            // Create new owner
-            await db.createOwner(ownerData);
-            showToast('Success', `${typeLabel} created successfully!`, '✅');
+            // Create the Firebase identity FIRST. Login is Firebase-only — the
+            // password column is never compared to anything — so without this
+            // the owner is created, appears in the list, and simply cannot sign
+            // in. The form collected a password and threw it away.
+            //
+            // Same order and rollback as api/owner-signup.js: identity first,
+            // row second, and undo the identity if the row fails, so a retry
+            // with the same address is not blocked by an orphaned account.
+            let firebaseCreated = false;
+            try {
+                const resp = await fetch('/api/auth-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                    },
+                    body: JSON.stringify({
+                        action: 'create-user', email, password, displayName: name
+                    })
+                });
+                const result = await resp.json();
+                if (!resp.ok) throw new Error(result.error || 'Failed to create login');
+                firebaseCreated = true;
+            } catch (authErr) {
+                const msg = authErr.message || '';
+                // An existing Firebase account is fine — someone may have been
+                // added by hand before, or previously removed from ResIQ only.
+                if (!msg.includes('already exists') && !msg.includes('email-already-exists')) {
+                    throw authErr;
+                }
+            }
+
+            try {
+                const created = await db.createOwner(ownerData);
+                const newOwnerId = created?.id || created?.[0]?.id;
+                if (newOwnerId) {
+                    await db.setOwnerProperties(newOwnerId, selectedProperties);
+                }
+            } catch (dbErr) {
+                if (firebaseCreated) {
+                    try {
+                        await fetch('/api/auth-proxy', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                            },
+                            body: JSON.stringify({ action: 'delete-user', email })
+                        });
+                    } catch (e) { /* best effort */ }
+                }
+                throw dbErr;
+            }
+            showToast('Success', `${typeLabel} created — they can sign in with this email`, '✅');
         }
 
         closeOwnerModal();
@@ -363,7 +424,31 @@ async function deleteOwner(ownerId) {
     }
 
     try {
+        // Grab the email before the row goes, so the Firebase account can be
+        // cleaned up too. Leaving it behind blocks ever re-adding that address:
+        // creating the owner would then hit "email already exists" against an
+        // account nobody can see from inside ResIQ.
+        let email = null;
+        try {
+            const owner = await db.getOwner(ownerId);
+            email = owner?.email || null;
+        } catch (e) { /* proceed with the delete regardless */ }
+
         await db.deleteOwner(ownerId);
+
+        if (email) {
+            try {
+                await fetch('/api/auth-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                    },
+                    body: JSON.stringify({ action: 'delete-user', email })
+                });
+            } catch (e) { /* best effort — the ResIQ record is already gone */ }
+        }
+
         await loadOwners();
         showToast('Success', 'Owner deleted successfully', '✅');
     } catch (error) {

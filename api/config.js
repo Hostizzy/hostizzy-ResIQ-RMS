@@ -38,7 +38,13 @@ export default function handler(req, res) {
     firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '',
     firebaseAppId: process.env.FIREBASE_APP_ID || '',
     // Gmail OAuth (Client ID is public by design — secret stays server-side)
-    gmailClientId: process.env.GMAIL_CLIENT_ID || ''
+    gmailClientId: process.env.GMAIL_CLIENT_ID || '',
+    // Sales WhatsApp for the landing page CTA. Read from env rather than
+    // hard-coded so it can be changed without a deploy, and so the number
+    // is not sitting in the repository. Digits with country code and no
+    // punctuation, e.g. 919812345678. Empty hides the CTA entirely — better
+    // no button than a button that messages the wrong person.
+    salesWhatsappNumber: (process.env.SALES_WHATSAPP_NUMBER || '').replace(/[^0-9]/g, '')
   };
 
   res.status(200).json(config);

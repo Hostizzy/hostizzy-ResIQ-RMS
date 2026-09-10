@@ -18,6 +18,13 @@
             return Array.from(bytes, b => b.toString(36).padStart(2, '0')).join('');
         }
 
+        // The statuses that represent money an owner has earned. The old list
+        // was ['confirmed', 'checked_in', 'completed'] — underscore and a word
+        // the app never writes. Bookings are 'checked-in' and 'checked-out'
+        // (app.html bookingStatus), so that filter matched only bookings that
+        // had not started yet, and pending payout read zero for everyone.
+        const OWNER_EARNING_STATUSES = ['confirmed', 'checked-in', 'checked-out'];
+
         const db = {
             // ─── Multi-Tenant Scoping ─────────────────────────────
             // Default-deny: queries return [] until initScope() explicitly
@@ -525,12 +532,56 @@
                 if (error) throw error;
                 return data?.[0];
             },
+            // An owner's properties come from properties.owner_id — the same
+            // source auth-exchange mints into the JWT and every jwt_* RLS
+            // policy reads. property_owners.property_ids is a denormalised
+            // copy that only the owner portal ever maintained, and the two had
+            // drifted. Single source of truth, resolved here once.
+            async getOwnerPropertyIds(ownerId) {
+                const { data, error } = await supabase
+                    .from('properties')
+                    .select('id')
+                    .eq('owner_id', ownerId);
+                if (error) throw error;
+                return (data || []).map(p => p.id);
+            },
+            // Assign this owner exactly these properties, by writing
+            // properties.owner_id — the source of truth. Order matters: claim
+            // first, release second, so a failure between the two leaves the
+            // owner with a superset rather than with nothing. Losing a property
+            // silently is far worse than briefly holding one too many.
+            async setOwnerProperties(ownerId, propertyIds) {
+                const ids = (propertyIds || []).map(Number).filter(Number.isFinite);
+
+                if (ids.length > 0) {
+                    const { error } = await supabase
+                        .from('properties')
+                        .update({ owner_id: ownerId })
+                        .in('id', ids);
+                    if (error) throw error;
+                }
+
+                // Release anything this owner holds that is no longer selected.
+                let release = supabase
+                    .from('properties')
+                    .update({ owner_id: null })
+                    .eq('owner_id', ownerId);
+                if (ids.length > 0) {
+                    release = release.not('id', 'in', `(${ids.join(',')})`);
+                }
+                const { error: releaseErr } = await release;
+                if (releaseErr) throw releaseErr;
+            },
             async getOwnerRevenue(ownerId, startDate = null, endDate = null) {
+                const propertyIds = await this.getOwnerPropertyIds(ownerId);
+                if (propertyIds.length === 0) {
+                    return { totalRevenue: 0, hostizzyCommission: 0, netEarnings: 0, totalBookings: 0, bookings: [] };
+                }
                 let query = supabase
                     .from('reservations')
                     .select('*')
-                    .eq('owner_id', ownerId)
-                    .in('status', ['confirmed', 'checked_in', 'completed']);
+                    .in('property_id', propertyIds)
+                    .in('status', OWNER_EARNING_STATUSES);
                 if (startDate) query = query.gte('check_in', startDate);
                 if (endDate) query = query.lte('check_in', endDate);
                 const { data, error } = await query;
@@ -546,12 +597,14 @@
                 };
             },
             async getOwnerPendingPayout(ownerId) {
+                const propertyIds = await this.getOwnerPropertyIds(ownerId);
+                if (propertyIds.length === 0) return 0;
                 const { data: reservations } = await supabase
                     .from('reservations')
                     .select('total_amount, taxes, hostizzy_revenue, ota_service_fee, payout_eligible, host_payout')
-                    .eq('owner_id', ownerId)
+                    .in('property_id', propertyIds)
                     .eq('payment_status', 'paid')
-                    .in('status', ['confirmed', 'checked_in', 'completed']);
+                    .in('status', OWNER_EARNING_STATUSES);
                 // totalEarned = SUM(host_payout) — post-Round-4 canonical "net to owner".
                 // Legacy rows (host_payout still null) fall back to
                 // payout_eligible − hostizzy_revenue, then to derived-from-total.
@@ -577,10 +630,12 @@
                 return Math.max(totalEarned - totalPaidOut, 0);
             },
             async getOwnerBookings(ownerId) {
+                const propertyIds = await this.getOwnerPropertyIds(ownerId);
+                if (propertyIds.length === 0) return [];
                 const { data, error } = await supabase
                     .from('reservations')
                     .select('*')
-                    .eq('owner_id', ownerId)
+                    .in('property_id', propertyIds)
                     .order('check_in', { ascending: false});
                 if (error) throw error;
                 return data || [];
