@@ -137,9 +137,7 @@ async function deleteTeamMember(id) {
     }
 }
 
-// ========== PROPERTY OWNERS MANAGEMENT ==========
-
-// ========== PROPERTY OWNERS MANAGEMENT ==========
+// ========== MANAGED OWNERS ==========
 
 let loadedOwners = [];
 let loadedOwnerProperties = [];
@@ -217,7 +215,7 @@ async function openOwnerModal(ownerId = null) {
             document.getElementById('ownerPhone').value = owner.phone || '';
             document.getElementById('ownerStatus').value = owner.is_active ? 'active' : 'inactive';
             const isHost = isHostAccount(owner);
-            if (ownerTypeSelect) ownerTypeSelect.value = isHost ? 'independent' : 'managed';
+            if (ownerTypeSelect) ownerTypeSelect.value = isHost ? 'host' : 'managed';
             if (titleEl) titleEl.textContent = isHost ? 'Edit Host' : 'Edit Managed Owner';
             toggleOwnerTypeHint();
 
@@ -268,12 +266,12 @@ function toggleOwnerTypeHint() {
     const hint = document.getElementById('ownerTypeHint');
     const emailHint = document.getElementById('ownerEmailHint');
     if (hint) {
-        hint.textContent = ownerType === 'independent'
+        hint.textContent = ownerType === 'host'
             ? 'Hosts get the full ResIQ app scoped to their properties.'
             : 'Managed owners access the Managed Owner Portal with limited views.';
     }
     if (emailHint) {
-        emailHint.textContent = ownerType === 'independent'
+        emailHint.textContent = ownerType === 'host'
             ? 'Host will use this email to login to ResIQ'
             : 'Owner will use this email to login to the Managed Owner Portal';
     }
@@ -321,8 +319,8 @@ async function saveOwner() {
             // column's DEFAULT is applied first, so account_type is never NULL
             // and the trigger overwrites is_external instead. See
             // sql/fix-account-type-default.sql.
-            account_type: ownerType === 'independent' ? 'host' : 'managed',
-            is_external: ownerType === 'independent',
+            account_type: ownerType,   // the dropdown now speaks the database's vocabulary
+            is_external: ownerType === 'host',
             property_ids: selectedProperties
         };
 
@@ -333,7 +331,7 @@ async function saveOwner() {
             ownerData.password = 'firebase-managed';
         }
 
-        const typeLabel = ownerType === 'independent' ? 'Host' : 'Managed owner';
+        const typeLabel = ownerType === 'host' ? 'Host' : 'Managed owner';
 
         if (ownerId) {
             // Update existing owner

@@ -874,11 +874,15 @@ function updateMobileViewTitle(viewName) {
         expenses: 'Expenses',
         properties: 'Properties',
         team: 'Team',
-        owners: 'Owners',
+        // Must match the sidebar labels. "Owners" here while the sidebar said
+        // "Managed Owners" made one view look like two on mobile, and `hosts`
+        // was missing entirely — it only read correctly because the fallback
+        // capitalises the view name.
+        owners: 'Managed Owners',
+        hosts: 'Hosts',
         availability: 'Availability',
         communication: 'Communication',
         settings: 'Settings',
-        pendingSignups: 'Pending Signups',
         pnl: 'Profit & Loss',
         enquiries: 'Enquiries',
         importReview: 'OTA Import'

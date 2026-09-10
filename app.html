@@ -3842,7 +3842,9 @@
             </div>
         </div>
 
-        <!-- Property Owners View -->
+        <!-- Managed Owners View — Hostizzy-run properties. Self-signup hosts
+             live in hostsView below; both are rows in property_owners,
+             separated by account_type. -->
         <div id="ownersView" class="container hidden">
             <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <div>
@@ -5875,7 +5877,7 @@
                 <label>Owner Type *</label>
                 <select id="ownerType" onchange="toggleOwnerTypeHint()">
                     <option value="managed">Managed Owner — Hostizzy manages operations</option>
-                    <option value="independent">Host — Uses ResIQ independently</option>
+                    <option value="host">Host — Uses ResIQ independently</option>
                 </select>
                 <small id="ownerTypeHint" style="color: var(--text-secondary);">Managed owners access the Owner Portal. Hosts get the full app scoped to their properties.</small>
             </div>
