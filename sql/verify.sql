@@ -446,6 +446,67 @@ SELECT 84, 'MIGRATIONS', 'owner notification flags exist',
                             AND column_name='signup_notified_at') THEN 'PASS' ELSE 'FAIL' END,
        'sql/owner-notification-flags.sql';
 
+-- ------------------------------------------------------------
+-- Super admin and the staff/host boundary
+-- ------------------------------------------------------------
+INSERT INTO resiq_checks
+SELECT 85, 'MIGRATIONS', 'team_members.is_super_admin exists',
+       CASE WHEN EXISTS (SELECT 1 FROM information_schema.columns
+                          WHERE table_schema='public' AND table_name='team_members'
+                            AND column_name='is_super_admin') THEN 'PASS' ELSE 'FAIL' END,
+       'sql/super-admin-flag.sql';
+
+-- Zero super admins locks the Hosts view and host approvals out of the product
+-- with no way back through the UI, and the flag can only be granted by someone
+-- who already has it. This is the check that catches it.
+INSERT INTO resiq_checks
+SELECT 86, 'ACCESS', 'at least one active super admin',
+       CASE WHEN n = 0 THEN 'FAIL' ELSE 'PASS' END,
+       CASE WHEN n = 0
+            THEN 'nobody can approve hosts or open the Hosts view'
+            ELSE n::text || ' active: ' || COALESCE(emails, '') END
+  FROM (
+    SELECT count(*) AS n, string_agg(email, ', ' ORDER BY email) AS emails
+      FROM team_members
+     WHERE is_super_admin AND is_active
+  ) x;
+
+-- Anyone holding it who should not.
+INSERT INTO resiq_checks
+SELECT 87, 'ACCESS', 'super admin is deliberate', 'WARN',
+       email || ' (' || COALESCE(role,'?') || ') can see every host''s data'
+  FROM team_members
+ WHERE is_super_admin AND is_active
+   AND lower(email) <> 'admin@hostizzy.com';
+
+INSERT INTO resiq_checks
+SELECT 88, 'MIGRATIONS', 'staff scope excludes hosts (RLS)',
+       CASE WHEN EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+                          WHERE n.nspname='public' AND p.proname='resiq_is_hostizzy_property')
+            THEN 'PASS' ELSE 'FAIL' END,
+       'sql/staff-scope-excludes-hosts.sql';
+
+-- The helper must be SECURITY DEFINER or the policy on properties recurses into
+-- it and every query dies with "stack depth limit exceeded".
+INSERT INTO resiq_checks
+SELECT 89, 'RLS', 'the host-scope helper is SECURITY DEFINER',
+       CASE WHEN p.prosecdef THEN 'PASS' ELSE 'FAIL' END,
+       CASE WHEN p.prosecdef THEN 'yes'
+            ELSE 'no — the policy on properties will recurse into it' END
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+ WHERE n.nspname='public' AND p.proname='resiq_is_hostizzy_property';
+
+-- And the reservations policy must actually call it, or staff still see
+-- everything however good the function is.
+INSERT INTO resiq_checks
+SELECT 90, 'RLS', 'reservations policy applies the host boundary',
+       CASE WHEN qual LIKE '%resiq_is_hostizzy_property%' THEN 'PASS' ELSE 'FAIL' END,
+       CASE WHEN qual LIKE '%resiq_is_hostizzy_property%'
+            THEN 'staff are scoped to Hostizzy''s book'
+            ELSE 'staff still see every host''s bookings' END
+  FROM pg_policies
+ WHERE schemaname='public' AND tablename='reservations' AND policyname='jwt_reservations_select';
+
 
 -- ============================================================
 -- RESULTS — failures first
