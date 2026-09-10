@@ -32,6 +32,10 @@
             // before login completes.
             _ownerId: '__deny__',
             _ownerPropertyIds: [],
+            // Set for Hostizzy staff whose role is 'admin'. Only they see
+            // self-signup hosts' data; everyone else on the team is scoped to
+            // Hostizzy's own book.
+            _isSuperAdmin: false,
 
             async initScope(user) {
                 if (user.userType === 'owner') {
@@ -55,9 +59,19 @@
                     const { data } = await supabase.from('properties').select('id').eq('owner_id', user.owner_id);
                     this._ownerPropertyIds = (data || []).map(p => p.id);
                 } else if (user.userType === 'staff' || user.userType === 'admin') {
-                    // Hostizzy internal staff — no scope, sees everything
+                    // Hostizzy internal staff. Not "sees everything" any more:
+                    // a self-signup host's bookings are that host's own
+                    // business, and their guests never agreed to appear in
+                    // Hostizzy's operational views. Ordinary staff see
+                    // Hostizzy's book — properties with no owner, plus managed
+                    // owners' properties — and nothing belonging to a host.
+                    //
+                    // A super admin still sees everything, for support.
                     this._ownerId = null;
-                    this._ownerPropertyIds = null;
+                    this._isSuperAdmin = (user.role === 'admin');
+                    this._ownerPropertyIds = this._isSuperAdmin
+                        ? null
+                        : await this._hostizzyPropertyIds();
                 } else {
                     // Unknown user type — deny by default rather than leak data
                     this._ownerId = '__deny__';
@@ -66,10 +80,42 @@
                 }
             },
 
+            // Every property that is Hostizzy's own business: unowned, or
+            // belonging to a managed owner. Deliberately NOT expressed as
+            // "not in (host ids)" — a NULL owner_id does not satisfy a NOT IN,
+            // so Hostizzy's own unassigned stock would vanish from its own app.
+            async _hostizzyPropertyIds() {
+                const { data: owners, error: ownerErr } = await supabase
+                    .from('property_owners')
+                    .select('id, account_type, is_external');
+                if (ownerErr) throw ownerErr;
+
+                const hostIds = new Set(
+                    (owners || [])
+                        .filter(o => (typeof accountTypeOf === 'function'
+                            ? accountTypeOf(o)
+                            : (o.account_type || (o.is_external ? 'host' : 'managed'))) === 'host')
+                        .map(o => String(o.id))
+                );
+
+                const { data: props, error: propErr } = await supabase
+                    .from('properties')
+                    .select('id, owner_id');
+                if (propErr) throw propErr;
+
+                return (props || [])
+                    .filter(p => p.owner_id == null || !hostIds.has(String(p.owner_id)))
+                    .map(p => p.id);
+            },
+
             async refreshPropertyScope() {
                 if (this._ownerId) {
                     const { data } = await supabase.from('properties').select('id').eq('owner_id', this._ownerId);
                     this._ownerPropertyIds = (data || []).map(p => p.id);
+                } else if (this._ownerId === null && !this._isSuperAdmin) {
+                    // Staff scope goes stale when a property changes hands, so
+                    // recompute it here too rather than only at login.
+                    this._ownerPropertyIds = await this._hostizzyPropertyIds();
                 }
             },
 
@@ -78,6 +124,7 @@
                 // accidentally see data from a previous session.
                 this._ownerId = '__deny__';
                 this._ownerPropertyIds = [];
+                this._isSuperAdmin = false;
             },
 
             // Returns true when the current scope is the deny sentinel set by initScope
@@ -139,7 +186,13 @@
             async getProperties() {
                 if (this._isDenied()) return [];
                 let query = supabase.from('properties').select('*').order('name');
-                if (this._ownerId) query = query.eq('owner_id', this._ownerId);
+                if (this._ownerId) {
+                    query = query.eq('owner_id', this._ownerId);
+                } else if (this._ownerPropertyIds) {
+                    // Staff below super admin: Hostizzy's own book only.
+                    if (this._ownerPropertyIds.length === 0) return [];
+                    query = query.in('id', this._ownerPropertyIds);
+                }
                 const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
@@ -652,6 +705,14 @@
                 if (this._ownerId) query = query.eq('id', this._ownerId);
                 const { data, error } = await query;
                 if (error) throw error;
+                // Staff below super admin do not see self-signup hosts in the
+                // directory either — the Hosts view is theirs to approve and
+                // support, not the whole team's to browse.
+                if (this._ownerId == null && !this._isSuperAdmin) {
+                    return (data || []).filter(o => (typeof accountTypeOf === 'function'
+                        ? accountTypeOf(o)
+                        : (o.account_type || (o.is_external ? 'host' : 'managed'))) !== 'host');
+                }
                 return data || [];
             },
             async getOwner(ownerId) {

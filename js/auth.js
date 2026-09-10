@@ -276,10 +276,25 @@
         }
 
         function showAdminOnlyNav() {
-            // Hosts is visible to all staff; the badge tells admins there's
-            // something waiting. Loading it here means the count is right
-            // before anyone opens the view.
             if (currentUser?.userType !== 'staff') return;
+
+            // Hosts run their own businesses through ResIQ. Their bookings and
+            // their guests are not Hostizzy's operational data, so the Hosts
+            // view — and the approval queue behind it — belongs to a super
+            // admin, not to everyone on the team. db.initScope() enforces the
+            // same boundary on the data; this stops the door being visible.
+            if (currentUser?.role !== 'admin') {
+                document.querySelectorAll('.sidebar-item').forEach(item => {
+                    const label = item.querySelector('.sidebar-item-label')?.textContent?.trim();
+                    if (label === 'Hosts') item.style.display = 'none';
+                });
+                const hostsNav = document.getElementById('sidebarHosts');
+                if (hostsNav) hostsNav.style.display = 'none';
+                return;
+            }
+
+            // The badge tells a super admin there is something waiting.
+            // Loading it here means the count is right before they open it.
             db.getOwners().then(owners => {
                 const waiting = (owners || []).filter(o =>
                     (o.account_type || (o.is_external ? 'host' : 'managed')) === 'host'
