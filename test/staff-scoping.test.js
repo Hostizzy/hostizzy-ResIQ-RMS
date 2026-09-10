@@ -100,17 +100,24 @@ t('a Hostizzy admin without the flag is not a super admin', db._isSuperAdmin ===
 await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostsphereindia.com' });
 
 t('super admin is flagged', db._isSuperAdmin === true);
-t('super admin stays unscoped', db._ownerPropertyIds === null);
+
+// Deliberately NOT unscoped. Permission to see a host's book is not permission
+// for it to arrive uninvited in Hostizzy's daily views.
+t('super admin still starts scoped to Hostizzy', db._ownerPropertyIds !== null);
+t('super admin starts on Hostizzy\'s book', db._viewScope.kind === 'hostizzy');
 
 res = await db.getReservations();
-t('super admin sees host bookings', res.some(r => r.booking_id === 'HOST-1'));
-t('super admin sees everything', res.length === RESERVATIONS.length);
+t('super admin does not see host bookings until they switch',
+  !res.some(r => r.booking_id.startsWith('HOST')));
+t('super admin sees Hostizzy bookings', res.some(r => r.booking_id === 'HZ-1'));
 
+// The directory is not property-scoped: approving and supporting hosts is the
+// super admin's job, so they see all of them regardless of which book is open.
 owners = await db.getOwners();
 t('super admin sees hosts in the directory', owners.length === OWNERS.length);
 
 props = await db.getProperties();
-t('super admin sees every property', props.length === PROPERTIES.length);
+t('super admin property list follows the open book', props.length === 2);
 
 // ── The flag must not survive a logout ──
 db.clearScope();
@@ -141,6 +148,50 @@ await db.initScope({ userType: 'staff', role: 'admin', email: 'legacy@hostizzy.c
 t('pre-migration, role admin still works as the fallback', db._isSuperAdmin === true);
 await db.initScope({ userType: 'staff', role: 'manager', email: 'legacy2@hostizzy.com' });
 t('pre-migration, a non-admin is still scoped', db._isSuperAdmin === false);
+
+// ── Switching books ──
+// Being ALLOWED to see a host's data is not the same as having it mixed in.
+// A super admin starts on Hostizzy's book like everyone else and switches
+// deliberately, one book at a time — never both at once, because a mixed list
+// is how someone else's guest ends up in a Hostizzy report.
+await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostsphereindia.com' });
+
+t('a super admin starts on Hostizzy\'s book, not everything',
+  db._viewScope.kind === 'hostizzy' && db._ownerPropertyIds !== null);
+t('by default a super admin does not see host bookings',
+  !(await db.getReservations()).some(r => r.booking_id.startsWith('HOST')));
+
+await db.setViewScope({ kind: 'host', ownerId: 'host-1', label: 'Self-signup Host' });
+t('switching to a host scopes to that host', db._ownerPropertyIds.join() === '3');
+let scoped = await db.getReservations();
+t('viewing a host shows their bookings', scoped.some(r => r.booking_id === 'HOST-1'));
+t('viewing a host hides Hostizzy\'s own', !scoped.some(r => r.booking_id.startsWith('HZ')));
+t('viewing one host hides the other host', !scoped.some(r => r.booking_id === 'HOST-2'));
+t('the banner has a label to show', db._viewScope.label === 'Self-signup Host');
+
+// A refresh mid-session must not snap the viewer back underneath them.
+await db.refreshPropertyScope();
+t('refreshing keeps the selected book', db._viewScope.kind === 'host' && db._ownerPropertyIds.join() === '3');
+
+await db.setViewScope({ kind: 'hostizzy' });
+t('switching back restores Hostizzy\'s book',
+  db._viewScope.kind === 'hostizzy' && db._ownerPropertyIds.includes(1));
+t('back on Hostizzy, host bookings are gone again',
+  !(await db.getReservations()).some(r => r.booking_id.startsWith('HOST')));
+
+t('a host scope without an ownerId is refused',
+  await rejects(() => db.setViewScope({ kind: 'host' })));
+
+// The Hosts directory needs every property to count them, and says so.
+t('a super admin can read all properties for the Hosts view',
+  (await db.getAllProperties()).length === PROPERTIES.length);
+
+await db.initScope({ userType: 'staff', role: 'admin', is_super_admin: false, email: 's4@hostizzy.com' });
+t('ordinary staff cannot switch books', await rejects(() => db.setViewScope({ kind: 'host', ownerId: 'host-1' })));
+t('ordinary staff cannot read all properties', await rejects(() => db.getAllProperties()));
+
+db.clearScope();
+t('logout resets the book to Hostizzy', db._viewScope.kind === 'hostizzy');
 
 // ── An owner is unaffected by any of this ──
 await db.initScope({ userType: 'owner', id: 'host-1' });

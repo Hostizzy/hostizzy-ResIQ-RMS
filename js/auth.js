@@ -296,6 +296,8 @@
                 return;
             }
 
+            initViewScopeSwitcher();
+
             // The badge tells a super admin there is something waiting.
             // Loading it here means the count is right before they open it.
             db.getOwners().then(owners => {
@@ -304,6 +306,81 @@
                     && o.status === 'pending').length;
                 if (typeof updatePendingBadge === 'function') updatePendingBadge(waiting);
             }).catch(() => {});
+        }
+
+        /**
+         * The book-switcher, for a super admin only.
+         *
+         * Being allowed to see a host's data is not a reason to have it mixed
+         * into Hostizzy's daily views — that is how someone else's guest ends
+         * up in a Hostizzy report. One book at a time, chosen deliberately,
+         * with a banner so it is impossible to forget whose it is.
+         */
+        async function initViewScopeSwitcher() {
+            const mount = document.getElementById('viewScopeSwitcher');
+            if (!mount || !db._isSuperAdmin) return;
+
+            let hosts = [];
+            try {
+                hosts = (await db.getOwners() || [])
+                    .filter(o => isHostAccount(o) && o.status !== 'rejected')
+                    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            } catch (_) { /* fall through — the switcher still offers Hostizzy */ }
+
+            mount.innerHTML = `
+                <select id="viewScopeSelect" onchange="changeViewScope(this.value)"
+                    title="Whose bookings are you looking at?"
+                    style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);
+                    background:var(--surface);color:var(--text-primary);font-size:13px;font-weight:600;max-width:220px;">
+                    <option value="hostizzy">Hostizzy</option>
+                    ${hosts.map(h => `<option value="host:${h.id}">${escapeHtml(h.name || h.email || 'Host')}</option>`).join('')}
+                </select>`;
+            mount.hidden = false;
+            renderViewScopeBanner();
+        }
+
+        async function changeViewScope(value) {
+            try {
+                if (value && value.startsWith('host:')) {
+                    const ownerId = value.slice(5);
+                    const sel = document.getElementById('viewScopeSelect');
+                    const label = sel?.options[sel.selectedIndex]?.text || 'Host';
+                    await db.setViewScope({ kind: 'host', ownerId, label });
+                } else {
+                    await db.setViewScope({ kind: 'hostizzy' });
+                }
+                renderViewScopeBanner();
+                // Everything on screen was loaded under the previous scope.
+                await loadInitialData();
+                showView(getInitialView());
+            } catch (error) {
+                console.error('Change view scope error:', error);
+                showToast('Error', 'Could not switch view', '❌');
+            }
+        }
+
+        function renderViewScopeBanner() {
+            const banner = document.getElementById('viewScopeBanner');
+            if (!banner) return;
+            const scope = db._viewScope;
+            if (!scope || scope.kind !== 'host') {
+                banner.hidden = true;
+                banner.innerHTML = '';
+                return;
+            }
+            banner.innerHTML = `
+                <div style="position:sticky;top:60px;z-index:60;
+                    background:var(--accent-soft,#FDEBD6);color:var(--accent-deep,#B96A12);
+                    border-bottom:1px solid var(--warning-light,#F0932B);padding:7px 16px;font-size:13px;
+                    display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;">
+                    <i data-lucide="eye" style="width:14px;height:14px;"></i>
+                    <span>Viewing <strong>${escapeHtml(scope.label)}</strong>&rsquo;s data &mdash; this is a host&rsquo;s own business, not Hostizzy&rsquo;s.</span>
+                    <button onclick="changeViewScope('hostizzy')"
+                        style="margin-left:6px;background:none;border:none;text-decoration:underline;cursor:pointer;
+                        color:inherit;font-size:13px;font-weight:600;">Back to Hostizzy</button>
+                </div>`;
+            banner.hidden = false;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         async function logout() {

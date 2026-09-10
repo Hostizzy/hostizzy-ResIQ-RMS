@@ -1196,7 +1196,10 @@ async function loadHosts() {
     try {
         const all = await db.getOwners();
         loadedHosts = (all || []).filter(o => accountTypeOf(o) === 'host');
-        loadedHostProperties = await db.getProperties();
+        // Unscoped on purpose: this view counts properties per host, and
+        // getProperties() is scoped to whichever book is currently on screen.
+        // Super-admin only, and getAllProperties() enforces that.
+        loadedHostProperties = await db.getAllProperties();
         renderHostsTable();
         updatePendingBadge(loadedHosts.filter(h => h.status === 'pending').length);
     } catch (error) {

@@ -671,6 +671,10 @@
         </div>
 
         <!-- Desktop/Tablet Top Navigation Bar -->
+        <!-- Impossible to forget whose data is on screen. Only ever shown while
+             a super admin is looking at a host's book. -->
+        <div id="viewScopeBanner" hidden></div>
+
         <nav class="navbar">
             <div class="navbar-content">
                 <!-- Logo + Home (clickable) -->
@@ -690,6 +694,11 @@
 
                 <!-- Spacer -->
                 <div style="flex: 1;"></div>
+
+                <!-- Which book is on screen. Super admin only — created by
+                     js/auth.js after login, because whether it exists at all
+                     depends on who signed in. -->
+                <div id="viewScopeSwitcher" hidden style="margin-right: 12px;"></div>
 
                 <!-- Quick Actions (Header) -->
                 <button class="theme-toggle-btn" onclick="openQuickActions()" title="Quick Actions (Ctrl+K)" style="margin-right: 8px;">

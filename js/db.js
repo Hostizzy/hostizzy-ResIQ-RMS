@@ -36,6 +36,9 @@
             // self-signup hosts' data; everyone else on the team is scoped to
             // Hostizzy's own book.
             _isSuperAdmin: false,
+            // Which book is on screen. Only ever anything but 'hostizzy' for a
+            // super admin who has explicitly switched.
+            _viewScope: { kind: 'hostizzy', ownerId: null, label: 'Hostizzy' },
 
             async initScope(user) {
                 if (user.userType === 'owner') {
@@ -76,9 +79,12 @@
                     this._isSuperAdmin = (typeof user.is_super_admin === 'boolean')
                         ? user.is_super_admin
                         : (user.role === 'admin');
-                    this._ownerPropertyIds = this._isSuperAdmin
-                        ? null
-                        : await this._hostizzyPropertyIds();
+                    // Even a super admin starts on Hostizzy's own book. Being
+                    // ALLOWED to see a host's data is not a reason to have it
+                    // mixed into the daily operational views — that is exactly
+                    // the muddle this separates. They switch deliberately.
+                    this._viewScope = { kind: 'hostizzy', ownerId: null, label: 'Hostizzy' };
+                    this._ownerPropertyIds = await this._hostizzyPropertyIds();
                 } else {
                     // Unknown user type — deny by default rather than leak data
                     this._ownerId = '__deny__';
@@ -115,14 +121,47 @@
                     .map(p => p.id);
             },
 
+            // Point every property-scoped query at one host's book, or back at
+            // Hostizzy's. Deliberately never "both": a super admin looking at
+            // someone else's business should know that is what they are doing,
+            // and a mixed list is how a host's guest ends up in a Hostizzy
+            // report. _ownerId stays null — they are staff viewing, not the
+            // owner — so the Hosts directory and the team list are unaffected.
+            async setViewScope(scope) {
+                if (!this._isSuperAdmin) throw new Error('Not permitted');
+                if (scope?.kind === 'host') {
+                    if (!scope.ownerId) throw new Error('A host scope needs an ownerId');
+                    this._ownerPropertyIds = await this.getOwnerPropertyIds(scope.ownerId);
+                    this._viewScope = { kind: 'host', ownerId: scope.ownerId, label: scope.label || 'Host' };
+                } else {
+                    this._ownerPropertyIds = await this._hostizzyPropertyIds();
+                    this._viewScope = { kind: 'hostizzy', ownerId: null, label: 'Hostizzy' };
+                }
+                return this._viewScope;
+            },
+
+            // The Hosts directory needs every property to count them per host,
+            // and that view is super-admin only anyway. Everything else goes
+            // through getProperties(), which stays scoped.
+            async getAllProperties() {
+                if (!this._isSuperAdmin) throw new Error('Not permitted');
+                const { data, error } = await supabase.from('properties').select('*').order('name');
+                if (error) throw error;
+                return data || [];
+            },
+
             async refreshPropertyScope() {
                 if (this._ownerId) {
                     const { data } = await supabase.from('properties').select('id').eq('owner_id', this._ownerId);
                     this._ownerPropertyIds = (data || []).map(p => p.id);
-                } else if (this._ownerId === null && !this._isSuperAdmin) {
+                } else if (this._ownerId === null) {
                     // Staff scope goes stale when a property changes hands, so
-                    // recompute it here too rather than only at login.
-                    this._ownerPropertyIds = await this._hostizzyPropertyIds();
+                    // recompute it here rather than only at login — and keep
+                    // whichever book the viewer selected rather than snapping
+                    // back to Hostizzy's underneath them.
+                    this._ownerPropertyIds = this._viewScope?.kind === 'host'
+                        ? await this.getOwnerPropertyIds(this._viewScope.ownerId)
+                        : await this._hostizzyPropertyIds();
                 }
             },
 
@@ -132,6 +171,7 @@
                 this._ownerId = '__deny__';
                 this._ownerPropertyIds = [];
                 this._isSuperAdmin = false;
+                this._viewScope = { kind: 'hostizzy', ownerId: null, label: 'Hostizzy' };
             },
 
             // Returns true when the current scope is the deny sentinel set by initScope

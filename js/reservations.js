@@ -1077,25 +1077,6 @@ function _attachKycStatus(reservations, kycMap) {
 // read by the table, the Kanban board and the booking detail modal.
 let roomsByProperty = {};
 
-// Properties belonging to a self-signup host. Only ever non-empty for a super
-// admin — ordinary staff cannot see those rows at all, so there is nothing to
-// mark. Lets the one person who does see them tell whose business is whose.
-let hostPropertyIds = new Set();
-
-async function refreshHostPropertyIds() {
-    hostPropertyIds = new Set();
-    if (!db._isSuperAdmin) return;
-    try {
-        const owners = await db.getOwners();
-        const hostIds = new Set((owners || []).filter(o => isHostAccount(o)).map(o => String(o.id)));
-        if (hostIds.size === 0) return;
-        const props = await db.getProperties();
-        hostPropertyIds = new Set(
-            (props || []).filter(p => hostIds.has(String(p.owner_id))).map(p => p.id)
-        );
-    } catch (_) { /* leave empty — an unmarked row is better than a broken table */ }
-}
-
 async function refreshRoomsIndex() {
     try {
         roomsByProperty = indexRoomsByProperty(await db.getRooms());
@@ -1107,7 +1088,6 @@ async function refreshRoomsIndex() {
 
 async function loadReservations(forceRefresh = false) {
     await refreshRoomsIndex();
-    await refreshHostPropertyIds();
     try {
         // Try to get from cache first
         const cachedReservations = dataCache.get('reservations', forceRefresh);
@@ -1267,13 +1247,7 @@ function displayReservations(reservations) {
                     ${r.check_out ? `<div style="font-size: 10px; color: var(--text-tertiary); margin-top: 2px;">→ ${formatDate(r.check_out)}</div>` : ''}
                 </td>
                 <td>
-                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        <span>${r.property_name || '-'}</span>
-                        ${hostPropertyIds.has(r.property_id) ? `<span title="Belongs to a self-signup host, not Hostizzy"
-                            style="font-family: var(--f-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
-                            padding: 1px 5px; border-radius: 3px; background: var(--info-pale); color: var(--info-text);
-                            white-space: nowrap;">Host</span>` : ''}
-                    </div>
+                    <div style="font-weight: 600;">${r.property_name || '-'}</div>
                     ${(() => {
                         const room = roomLabelFor(r, roomsByProperty);
                         if (!room) return '';
