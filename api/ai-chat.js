@@ -4,7 +4,7 @@
  * The Flutter app sends a natural-language question + short history. This
  * endpoint:
  *   1. Verifies the caller's Firebase ID token.
- *   2. Resolves their scope (staff = all; owner = their property_ids).
+ *   2. Resolves their scope (staff = all; owner = properties.owner_id).
  *   3. RETRIEVES the user's REAL data from Supabase (service role, scoped):
  *      properties, reservations, payments, expenses, host/owner profile,
  *      and upcoming availability.
@@ -80,11 +80,18 @@ async function resolveScope(email) {
     `property_owners?email=eq.${encodeURIComponent(email)}&select=*&limit=1`
   );
   if (owner.length) {
+    // Scope comes from properties.owner_id, the same source auth-exchange puts
+    // in the JWT and every jwt_* RLS policy reads. property_owners.property_ids
+    // was a denormalised copy that had drifted — reading it here meant the
+    // assistant answered from a different set of properties than the app showed.
+    const props = await sb(
+      `properties?owner_id=eq.${encodeURIComponent(owner[0].id)}&select=id`
+    );
     return {
       type: 'owner',
       name: owner[0].name,
       profile: owner[0],
-      propertyIds: Array.isArray(owner[0].property_ids) ? owner[0].property_ids : [],
+      propertyIds: props.map((p) => p.id),
     };
   }
   return { type: 'unknown', propertyIds: [] };

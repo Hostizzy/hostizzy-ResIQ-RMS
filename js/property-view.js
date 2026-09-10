@@ -479,8 +479,8 @@ function getPaymentStatusBadge(status) {
 function getBookingStatusBadge(status) {
     const badges = {
         'confirmed': '<span class="badge" style="background: var(--success);">Confirmed</span>',
-        'checked_in': '<span class="badge" style="background: var(--primary);">Checked In</span>',
-        'completed': '<span class="badge" style="background: var(--secondary);">Completed</span>',
+        'checked-in': '<span class="badge" style="background: var(--primary);">Checked In</span>',
+        'checked-out': '<span class="badge" style="background: var(--secondary);">Checked Out</span>',
         'cancelled': '<span class="badge" style="background: var(--danger);">Cancelled</span>',
         'pending': '<span class="badge" style="background: var(--warning);">Pending</span>'
     };

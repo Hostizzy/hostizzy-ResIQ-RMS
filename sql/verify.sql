@@ -409,6 +409,19 @@ SELECT 80, 'MIGRATIONS', 'account_type and is_external agree', 'FAIL',
  WHERE (account_type = 'host')     IS DISTINCT FROM COALESCE(is_external, false)
    AND account_type IS NOT NULL;
 
+-- The two records of an owner's properties must agree. properties.owner_id is
+-- the source of truth; property_owners.property_ids is a deprecated mirror.
+-- Drift here means an owner sees one set in the staff table and another in the
+-- portal and the app. See sql/backfill-property-owner-id.sql.
+INSERT INTO resiq_checks
+SELECT 80, 'DATA', 'owner property links agree', 'FAIL',
+       o.email || ': owner_id says ' ||
+       (SELECT count(*) FROM properties p WHERE p.owner_id = o.id)::text ||
+       ', property_ids says ' || COALESCE(array_length(o.property_ids, 1), 0)::text
+  FROM property_owners o
+ WHERE (SELECT count(*) FROM properties p WHERE p.owner_id = o.id)
+       IS DISTINCT FROM COALESCE(array_length(o.property_ids, 1), 0)::bigint;
+
 INSERT INTO resiq_checks
 SELECT 81, 'MIGRATIONS', 'host_profiles table exists',
        CASE WHEN to_regclass('public.host_profiles') IS NOT NULL THEN 'PASS' ELSE 'FAIL' END,

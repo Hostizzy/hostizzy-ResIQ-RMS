@@ -167,10 +167,12 @@ function renderOwnersTable() {
     }
 
     tbody.innerHTML = loadedOwners.map(owner => {
-        const assigned = owner.property_ids || [];
-        const propNames = assigned
-            .map(id => loadedOwnerProperties.find(p => p.id === id)?.name || `Property ${id}`)
-            .join(', ') || 'None';
+        // Read the link from properties.owner_id, not the property_ids mirror.
+        // The mirror was the only thing ever written, so it showed properties
+        // assigned here while the portal and the app showed the owner nothing.
+        const assignedProps = loadedOwnerProperties.filter(p => String(p.owner_id) === String(owner.id));
+        const assigned = assignedProps.map(p => p.id);
+        const propNames = assignedProps.map(p => p.name).join(', ') || 'None';
         const statusBadge = owner.is_active ? 'badge-success' : 'badge-warning';
         const commission = owner.commission_rate != null ? `${owner.commission_rate}%` : '—';
 
@@ -220,7 +222,8 @@ async function openOwnerModal(ownerId = null) {
             toggleOwnerTypeHint();
 
             // Check assigned properties
-            const assignedProps = owner.property_ids || [];
+            // Same source as the table — properties.owner_id.
+            const assignedProps = (await db.getOwnerPropertyIds(owner.id)) || [];
             assignedProps.forEach(propId => {
                 const checkbox = document.querySelector(`.property-checkbox[value="${propId}"]`);
                 if (checkbox) checkbox.checked = true;
@@ -321,6 +324,11 @@ async function saveOwner() {
             // sql/fix-account-type-default.sql.
             account_type: ownerType,   // the dropdown now speaks the database's vocabulary
             is_external: ownerType === 'host',
+            // DEPRECATED mirror. properties.owner_id is the source of truth —
+            // it is what auth-exchange puts in the JWT and what all 37 jwt_*
+            // RLS policies read. This array is still written so anything not
+            // yet migrated keeps working, and sql/verify.sql fails if the two
+            // ever disagree. Drop the column once nothing reads it.
             property_ids: selectedProperties
         };
 
@@ -336,6 +344,10 @@ async function saveOwner() {
         if (ownerId) {
             // Update existing owner
             await db.updateOwner(ownerId, ownerData);
+            // The link that actually matters. Without this the owner shows
+            // assigned properties in this table and sees nothing in the portal
+            // or the app, because both read properties.owner_id.
+            await db.setOwnerProperties(ownerId, selectedProperties);
             showToast('Success', `${typeLabel} updated successfully!`, '✅');
         } else {
             // Create the Firebase identity FIRST. Login is Firebase-only — the
@@ -371,7 +383,11 @@ async function saveOwner() {
             }
 
             try {
-                await db.createOwner(ownerData);
+                const created = await db.createOwner(ownerData);
+                const newOwnerId = created?.id || created?.[0]?.id;
+                if (newOwnerId) {
+                    await db.setOwnerProperties(newOwnerId, selectedProperties);
+                }
             } catch (dbErr) {
                 if (firebaseCreated) {
                     try {
