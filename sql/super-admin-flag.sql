@@ -32,9 +32,36 @@ CREATE INDEX IF NOT EXISTS idx_team_members_super_admin
 -- ------------------------------------------------------------
 -- Seed: exactly one, to start
 -- ------------------------------------------------------------
+-- This must match a real, active row in team_members. A seed that matches
+-- nothing leaves ZERO super admins, and there is no way back through the UI:
+-- the Hosts view disappears for everyone, host approvals stop, and the toggle
+-- that grants the flag is itself only visible to someone who already has it.
+--
+-- So the guard below is not decoration. It aborts the whole migration rather
+-- than committing a state nobody can recover from.
 UPDATE team_members
    SET is_super_admin = true
- WHERE lower(email) = 'admin@hostsphereindia.com';
+ WHERE lower(email) = 'admin@hostizzy.com';
+
+DO $$
+DECLARE
+    seeded INT;
+BEGIN
+    SELECT count(*) INTO seeded
+      FROM team_members
+     WHERE is_super_admin AND is_active;
+
+    IF seeded = 0 THEN
+        RAISE EXCEPTION
+            'Refusing to finish: no active team member was made super admin. '
+            'Check the email on the UPDATE above matches a real row in '
+            'team_members — SELECT email, is_active FROM team_members; — and '
+            'run this again. Committing now would lock the Hosts view and host '
+            'approvals out of the product with no way back through the UI.';
+    END IF;
+
+    RAISE NOTICE 'Super admins after seeding: %', seeded;
+END $$;
 
 -- ------------------------------------------------------------
 -- There must always be at least one
@@ -103,8 +130,8 @@ SELECT name, email, role, is_active, is_super_admin
   FROM team_members
  ORDER BY is_super_admin DESC, name;
 
--- Exactly one row should have is_super_admin = true. To grant it to someone
--- else, use the Team view in the app, or:
+-- Exactly one row should have is_super_admin = true: admin@hostizzy.com.
+-- To grant it to someone else, use the Team view in the app, or:
 --
 --   UPDATE team_members SET is_super_admin = true WHERE email = '...';
 --

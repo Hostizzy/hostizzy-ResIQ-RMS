@@ -97,7 +97,7 @@ t('a Hostizzy admin without the flag is not a super admin', db._isSuperAdmin ===
 
 // ── Super admin ──
 // role 'staff' with the flag true: the flag alone decides, not the role.
-await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostsphereindia.com' });
+await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostizzy.com' });
 
 t('super admin is flagged', db._isSuperAdmin === true);
 
@@ -137,7 +137,7 @@ await db.initScope({ userType: 'staff', role: 'admin', is_super_admin: false, em
 t('ordinary staff cannot grant themselves super admin',
   await rejects(() => db.saveTeamMember({ id: 1, is_super_admin: true })));
 
-await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostsphereindia.com' });
+await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostizzy.com' });
 t('a super admin can grant it',
   !(await rejects(() => db.saveTeamMember({ id: 1, is_super_admin: true }))));
 
@@ -154,7 +154,7 @@ t('pre-migration, a non-admin is still scoped', db._isSuperAdmin === false);
 // A super admin starts on Hostizzy's book like everyone else and switches
 // deliberately, one book at a time — never both at once, because a mixed list
 // is how someone else's guest ends up in a Hostizzy report.
-await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostsphereindia.com' });
+await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostizzy.com' });
 
 t('a super admin starts on Hostizzy\'s book, not everything',
   db._viewScope.kind === 'hostizzy' && db._ownerPropertyIds !== null);
