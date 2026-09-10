@@ -3,6 +3,27 @@
 // Enhanced with Analytics, Charts, Payments, and Calendar
 // =====================================================
 
+/**
+ * Delay a call until the caller stops firing it.
+ *
+ * Defined here rather than imported: line ~1067 calls debounce() at module
+ * top level, and owner-portal.html does NOT load js/utils.js where the
+ * original lives. That threw a ReferenceError while this file was being
+ * evaluated, so every function BELOW that line — the bookings list and its
+ * filters, payouts, properties, expenses, bank details, payout requests,
+ * settlements: seventeen of them — was never defined at all.
+ *
+ * Half the owner portal was dead on load, silently, because the only symptom
+ * was one error in a console nobody had open.
+ */
+function debounce(fn, wait = 300) {
+    let timer;
+    return function debounced(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), wait);
+    };
+}
+
 // Global owner data
 let ownerData = {
     revenue: null,

@@ -32,6 +32,13 @@
             // before login completes.
             _ownerId: '__deny__',
             _ownerPropertyIds: [],
+            // Set for Hostizzy staff whose role is 'admin'. Only they see
+            // self-signup hosts' data; everyone else on the team is scoped to
+            // Hostizzy's own book.
+            _isSuperAdmin: false,
+            // Which book is on screen. Only ever anything but 'hostizzy' for a
+            // super admin who has explicitly switched.
+            _viewScope: { kind: 'hostizzy', ownerId: null, label: 'Hostizzy' },
 
             async initScope(user) {
                 if (user.userType === 'owner') {
@@ -55,9 +62,29 @@
                     const { data } = await supabase.from('properties').select('id').eq('owner_id', user.owner_id);
                     this._ownerPropertyIds = (data || []).map(p => p.id);
                 } else if (user.userType === 'staff' || user.userType === 'admin') {
-                    // Hostizzy internal staff — no scope, sees everything
+                    // Hostizzy internal staff. Not "sees everything" any more:
+                    // a self-signup host's bookings are that host's own
+                    // business, and their guests never agreed to appear in
+                    // Hostizzy's operational views. Ordinary staff see
+                    // Hostizzy's book — properties with no owner, plus managed
+                    // owners' properties — and nothing belonging to a host.
+                    //
+                    // A super admin still sees everything, for support.
                     this._ownerId = null;
-                    this._ownerPropertyIds = null;
+                    // An explicit flag, not the role. role governs what someone
+                    // may DO in Hostizzy's book; this governs whether they see
+                    // other people's businesses. Falls back to role === 'admin'
+                    // only while sql/super-admin-flag.sql is unapplied, so the
+                    // deploy and the migration need not be simultaneous.
+                    this._isSuperAdmin = (typeof user.is_super_admin === 'boolean')
+                        ? user.is_super_admin
+                        : (user.role === 'admin');
+                    // Even a super admin starts on Hostizzy's own book. Being
+                    // ALLOWED to see a host's data is not a reason to have it
+                    // mixed into the daily operational views — that is exactly
+                    // the muddle this separates. They switch deliberately.
+                    this._viewScope = { kind: 'hostizzy', ownerId: null, label: 'Hostizzy' };
+                    this._ownerPropertyIds = await this._hostizzyPropertyIds();
                 } else {
                     // Unknown user type — deny by default rather than leak data
                     this._ownerId = '__deny__';
@@ -66,10 +93,75 @@
                 }
             },
 
+            // Every property that is Hostizzy's own business: unowned, or
+            // belonging to a managed owner. Deliberately NOT expressed as
+            // "not in (host ids)" — a NULL owner_id does not satisfy a NOT IN,
+            // so Hostizzy's own unassigned stock would vanish from its own app.
+            async _hostizzyPropertyIds() {
+                const { data: owners, error: ownerErr } = await supabase
+                    .from('property_owners')
+                    .select('id, account_type, is_external');
+                if (ownerErr) throw ownerErr;
+
+                const hostIds = new Set(
+                    (owners || [])
+                        .filter(o => (typeof accountTypeOf === 'function'
+                            ? accountTypeOf(o)
+                            : (o.account_type || (o.is_external ? 'host' : 'managed'))) === 'host')
+                        .map(o => String(o.id))
+                );
+
+                const { data: props, error: propErr } = await supabase
+                    .from('properties')
+                    .select('id, owner_id');
+                if (propErr) throw propErr;
+
+                return (props || [])
+                    .filter(p => p.owner_id == null || !hostIds.has(String(p.owner_id)))
+                    .map(p => p.id);
+            },
+
+            // Point every property-scoped query at one host's book, or back at
+            // Hostizzy's. Deliberately never "both": a super admin looking at
+            // someone else's business should know that is what they are doing,
+            // and a mixed list is how a host's guest ends up in a Hostizzy
+            // report. _ownerId stays null — they are staff viewing, not the
+            // owner — so the Hosts directory and the team list are unaffected.
+            async setViewScope(scope) {
+                if (!this._isSuperAdmin) throw new Error('Not permitted');
+                if (scope?.kind === 'host') {
+                    if (!scope.ownerId) throw new Error('A host scope needs an ownerId');
+                    this._ownerPropertyIds = await this.getOwnerPropertyIds(scope.ownerId);
+                    this._viewScope = { kind: 'host', ownerId: scope.ownerId, label: scope.label || 'Host' };
+                } else {
+                    this._ownerPropertyIds = await this._hostizzyPropertyIds();
+                    this._viewScope = { kind: 'hostizzy', ownerId: null, label: 'Hostizzy' };
+                }
+                return this._viewScope;
+            },
+
+            // The Hosts directory needs every property to count them per host,
+            // and that view is super-admin only anyway. Everything else goes
+            // through getProperties(), which stays scoped.
+            async getAllProperties() {
+                if (!this._isSuperAdmin) throw new Error('Not permitted');
+                const { data, error } = await supabase.from('properties').select('*').order('name');
+                if (error) throw error;
+                return data || [];
+            },
+
             async refreshPropertyScope() {
                 if (this._ownerId) {
                     const { data } = await supabase.from('properties').select('id').eq('owner_id', this._ownerId);
                     this._ownerPropertyIds = (data || []).map(p => p.id);
+                } else if (this._ownerId === null) {
+                    // Staff scope goes stale when a property changes hands, so
+                    // recompute it here rather than only at login — and keep
+                    // whichever book the viewer selected rather than snapping
+                    // back to Hostizzy's underneath them.
+                    this._ownerPropertyIds = this._viewScope?.kind === 'host'
+                        ? await this.getOwnerPropertyIds(this._viewScope.ownerId)
+                        : await this._hostizzyPropertyIds();
                 }
             },
 
@@ -78,6 +170,8 @@
                 // accidentally see data from a previous session.
                 this._ownerId = '__deny__';
                 this._ownerPropertyIds = [];
+                this._isSuperAdmin = false;
+                this._viewScope = { kind: 'hostizzy', ownerId: null, label: 'Hostizzy' };
             },
 
             // Returns true when the current scope is the deny sentinel set by initScope
@@ -139,7 +233,13 @@
             async getProperties() {
                 if (this._isDenied()) return [];
                 let query = supabase.from('properties').select('*').order('name');
-                if (this._ownerId) query = query.eq('owner_id', this._ownerId);
+                if (this._ownerId) {
+                    query = query.eq('owner_id', this._ownerId);
+                } else if (this._ownerPropertyIds) {
+                    // Staff below super admin: Hostizzy's own book only.
+                    if (this._ownerPropertyIds.length === 0) return [];
+                    query = query.in('id', this._ownerPropertyIds);
+                }
                 const { data, error } = await query;
                 if (error) throw error;
                 return data || [];
@@ -400,14 +500,28 @@
             },
             async saveTeamMember(member) {
                 if (this._isDenied()) throw new Error('Not permitted');
+
+                // Only a super admin may grant or revoke super admin. The web
+                // app reaches Postgres as the SERVICE ROLE, so RLS is not in
+                // the way here — without this check any staff member could
+                // hand it to themselves from the browser console.
+                if ('is_super_admin' in member && !this._isSuperAdmin) {
+                    throw new Error('Only a super admin can change super admin access');
+                }
+
                 if (member.id) {
                     if (!(await this._ownsTeamMember(member.id))) throw new Error('Not permitted');
-                    const { data, error } = await supabase.from('team_members').update(member).eq('id', member.id).select();
+                    // Never write the primary key back.
+                    const { id, ...changes } = member;
+                    const { data, error } = await supabase.from('team_members').update(changes).eq('id', id).select();
                     if (error) throw error;
                     return data?.[0];
                 }
                 // Scoped callers can only ever create members under themselves.
-                const row = this._ownerId == null ? member : { ...member, owner_id: this._ownerId };
+                // is_super_admin is never set on creation — it is granted
+                // deliberately afterwards, by someone who already has it.
+                const { is_super_admin, ...safe } = member;
+                const row = this._ownerId == null ? safe : { ...safe, owner_id: this._ownerId };
                 const { data, error } = await supabase.from('team_members').insert([row]).select();
                 if (error) throw error;
                 return data?.[0];
@@ -652,6 +766,14 @@
                 if (this._ownerId) query = query.eq('id', this._ownerId);
                 const { data, error } = await query;
                 if (error) throw error;
+                // Staff below super admin do not see self-signup hosts in the
+                // directory either — the Hosts view is theirs to approve and
+                // support, not the whole team's to browse.
+                if (this._ownerId == null && !this._isSuperAdmin) {
+                    return (data || []).filter(o => (typeof accountTypeOf === 'function'
+                        ? accountTypeOf(o)
+                        : (o.account_type || (o.is_external ? 'host' : 'managed'))) !== 'host');
+                }
                 return data || [];
             },
             async getOwner(ownerId) {
