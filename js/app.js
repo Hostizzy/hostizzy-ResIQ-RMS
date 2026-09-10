@@ -98,6 +98,37 @@ window.addEventListener('load', async () => {
         try {
             currentUser = JSON.parse(storedUser);
 
+            // The cached object was written at login and never refreshed, so a
+            // session that predates a column knows nothing about it. That is
+            // not academic: a session cached before is_super_admin existed has
+            // no such key, and db.initScope() then falls back to
+            // role === 'admin' — handing every Hostizzy admin the whole host
+            // book, which is precisely what that flag exists to prevent. Same
+            // staleness would keep a deactivated or demoted colleague working
+            // until they happened to log out.
+            //
+            // So re-read the record before anything is scoped from it. Offline
+            // (or a failed read) keeps the cached session, because an operator
+            // in a valley with no signal still has a day to run.
+            try {
+                const fresh = await db.findUserByEmail(currentUser.email);
+                if (fresh) {
+                    const kind = fresh._kind;
+                    delete fresh._kind;
+                    if (fresh.is_active === false) {
+                        localStorage.removeItem('currentUser');
+                        await authService.signOut?.().catch(() => {});
+                        window.location.reload();
+                        return;
+                    }
+                    // userType is ours, not the table's — carry it across.
+                    currentUser = { ...fresh, userType: kind === 'staff' ? 'staff' : 'owner' };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+            } catch (e) {
+                console.warn('[Auth] Could not refresh profile on restore, using cached session:', e.message);
+            }
+
             // Managed owners (not is_external) should use the owner portal
             if (currentUser.userType === 'owner' && !isHostAccount(currentUser)) {
                 window.location.href = '/owner-portal';
@@ -114,7 +145,14 @@ window.addEventListener('load', async () => {
             // that host, so they get the tenant sidebar, not the Hostizzy one.
             if (currentUser.userType === 'owner' || currentUser.owner_id) {
                 hideSidebarForOwners();
-            } else if (currentUser.userType === 'staff' && currentUser.role === 'admin') {
+            } else if (currentUser.userType === 'staff') {
+                // Every staff member, as on the login path — not just
+                // role === 'admin', which this used to check. Two reasons it
+                // was wrong: super admin is a flag now, so a super admin whose
+                // role is plain 'staff' never got the book switcher after a
+                // refresh; and showAdminOnlyNav() is also what HIDES the Hosts
+                // door from ordinary staff, so skipping it left that door
+                // standing open on every restored session.
                 showAdminOnlyNav();
             }
 

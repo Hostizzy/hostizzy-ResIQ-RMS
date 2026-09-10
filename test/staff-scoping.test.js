@@ -32,7 +32,15 @@ const RESERVATIONS = [
   { id: 4, property_id: 4, booking_id: 'HOST-2', status: 'checked-out' },
 ];
 
-const TABLES = { property_owners: OWNERS, properties: PROPERTIES, reservations: RESERVATIONS };
+const TEAM = [
+  { id: 1, email: 'admin@hostizzy.com', name: 'Super Admin', role: 'staff', is_super_admin: true,  is_active: true },
+  { id: 2, email: 'ops@hostizzy.com',   name: 'Ops',         role: 'admin', is_super_admin: false, is_active: true },
+];
+
+const TABLES = {
+  property_owners: OWNERS, properties: PROPERTIES,
+  reservations: RESERVATIONS, team_members: TEAM,
+};
 
 function fakeSupabase() {
   const makeChain = (table) => {
@@ -41,11 +49,12 @@ function fakeSupabase() {
       let out = TABLES[table] || [];
       for (const [c, v] of q._eq) out = out.filter(r => String(r[c]) === String(v));
       for (const [c, vals] of q._in) out = out.filter(r => vals.map(String).includes(String(r[c])));
-      return out;
+      return q._limit ? out.slice(0, q._limit) : out;
     };
     const chain = {
       select: () => chain, order: () => chain, update: () => chain,
       gte: () => chain, lte: () => chain, not: () => chain,
+      limit: (n) => { q._limit = n; return chain; },
       eq: (c, v) => { q._eq.push([c, v]); return chain; },
       in: (c, v) => { q._in.push([c, v]); return chain; },
       then: (res) => res({ data: rows(), error: null }),
@@ -197,6 +206,45 @@ t('logout resets the book to Hostizzy', db._viewScope.kind === 'hostizzy');
 await db.initScope({ userType: 'owner', id: 'host-1' });
 t('a host still sees only their own property', db._ownerPropertyIds.join() === '3');
 t('a host is never super admin', db._isSuperAdmin === false);
+
+// ── A restored session must not scope from a stale cached profile ──
+// js/app.js used to JSON.parse localStorage.currentUser and scope straight
+// from it. That object is written once at login and never refreshed, so a
+// session cached before is_super_admin existed carries no such key — and the
+// pre-migration fallback below then reads role === 'admin' and hands an
+// ordinary Hostizzy admin every host's guests and payments. The flag was
+// applied in production while those sessions were still open, so this was
+// live, not theoretical.
+const cached = { userType: 'staff', role: 'admin', email: 'ops@hostizzy.com' }; // no flag
+await db.initScope(cached);
+t('a stale cached profile would wrongly read as super admin', db._isSuperAdmin === true);
+
+// Re-reading the record before scoping is what closes it.
+const fresh = await db.findUserByEmail('ops@hostizzy.com');
+t('the refreshed record carries the flag', fresh && fresh.is_super_admin === false);
+await db.initScope({ ...fresh, userType: 'staff' });
+t('scoping from the refreshed record denies super admin', db._isSuperAdmin === false);
+t('scoping from the refreshed record hides host bookings',
+  !(await db.getReservations()).some(r => r.booking_id.startsWith('HOST')));
+
+// And the real super admin still resolves correctly through the same path.
+const su = await db.findUserByEmail('admin@hostizzy.com');
+await db.initScope({ ...su, userType: 'staff' });
+t('the refreshed super admin record still grants the flag', db._isSuperAdmin === true);
+
+// The guard above only works if app.js actually refreshes BEFORE it scopes.
+// Assert the order, because getting it backwards restores the original bug
+// while looking correct.
+const appSrc = readFileSync(new URL('../js/app.js', import.meta.url), 'utf8');
+const restore = appSrc.slice(appSrc.indexOf("const storedUser = localStorage.getItem('currentUser')"));
+// Match the calls, not the prose — this block is heavily commented and both
+// names appear in the comments explaining why the order matters.
+const refreshAt = restore.indexOf('await db.findUserByEmail(');
+const scopeAt = restore.indexOf('await db.initScope(');
+t('session restore refreshes the profile from the database',
+  refreshAt !== -1);
+t('session restore refreshes BEFORE it scopes',
+  refreshAt !== -1 && scopeAt !== -1 && refreshAt < scopeAt);
 
 if (fails) { console.error(`\n${fails} check(s) failed`); process.exit(1); }
 console.log('\nAll staff scoping checks passed');
