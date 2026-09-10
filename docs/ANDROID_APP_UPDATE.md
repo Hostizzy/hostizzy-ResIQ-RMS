@@ -322,3 +322,105 @@ Push:
 Questions: whoever picks this up should read the header comment in
 `sql/rooms-and-conflict-guard.sql` first. The reasoning behind the model and the
 two trigger exemptions is written out there.
+
+
+---
+
+# Round 2 — changes since the above
+
+Everything above still stands. These are additional, and several are things
+that will silently show a user the wrong number rather than throw.
+
+## Already live in production — check these first
+
+**1. `anon` can no longer read anything.** Every table carried a legacy
+`USING (true)` policy for `{anon}`/`{public}`; those are dropped and
+`REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon` has been run.
+
+You are unaffected **if and only if** every Supabase call happens after
+`/api/auth-exchange` has returned a JWT. `supabase_flutter` sends
+`apikey: <anon key>` plus `Authorization: Bearer <jwt>`, and PostgREST takes
+the session role from the JWT — so an authenticated call still acts as
+`authenticated`. Any call made *before* the exchange, or after the token
+expires, now returns `permission denied` instead of data.
+
+Do one login-to-first-screen pass and confirm nothing queries early. This is
+the most likely thing to break.
+
+**2. Token expiry now fails loudly.** The JWT is 1 hour. An expired token
+used to fall back to anon and still return rows. It doesn't any more.
+
+## Booking status values
+
+The app writes exactly these:
+
+    confirmed · pending · checked-in · checked-out · cancelled
+
+Hyphens. There is no `checked_in` and no `completed`. If the Flutter app has
+`['confirmed', 'checked_in', 'completed']` anywhere — that was the web app's
+owner-earnings filter — it matches only bookings that have not started, and
+any payout figure derived from it reads zero.
+
+One exception: `payout_requests.status` genuinely does include `completed`.
+Different table, different lifecycle, leave it alone.
+
+## Owner → property linkage
+
+`properties.owner_id` is the single source of truth. It is what
+`auth-exchange` puts in the JWT and what all 37 `jwt_*` RLS policies read.
+
+`property_owners.property_ids` is a deprecated mirror that had drifted badly
+— for a long time it was the *only* thing written, so owners appeared to
+have properties in the staff table and saw nothing anywhere else. Do not
+read it.
+
+`reservations.owner_id` exists as a column and is **never populated**. Do not
+filter on it; resolve through `property_id`.
+
+## account_type
+
+Values are `'managed'` and `'host'`. If anything sends `'independent'`, that
+was an old web-form vocabulary and no longer matches.
+
+Read `account_type` with a fallback to `is_external` for older rows.
+`is_external` is deprecated and trigger-synced.
+
+## Adding an owner creates a Firebase login
+
+Team → Add Owner now creates the Firebase account as well as the row.
+Authentication is Firebase-only — `property_owners.password` is never
+compared to anything and now stores a placeholder. If the app has an
+add-owner or add-caretaker flow, it must create the Firebase identity too or
+the person cannot sign in.
+
+## Design system
+
+The web app moved onto the marketing site's palette and type:
+
+| | |
+|---|---|
+| Structure | navy `#1B3A5C` |
+| Accent | amber `#F0932B` — dark text on it, never white (2.4:1) |
+| Data/system | cyan `#17A2C4` |
+| Grounds | cool mist `#F7F9FB` / `#EDF2F6`, never cream |
+| Type | Archivo (display) · IBM Plex Sans (body) · IBM Plex Mono (figures, tabular) |
+
+Teal `#0891b2` is gone entirely. Worth matching before the next Play Store
+screenshots, or the app and the site will look like different products.
+
+## Known bug, not yet fixed
+
+Property occupancy is computed as `nights / 365` with no room awareness. On a
+four-room homestay that reports ~99% when the real figure is ~25%. If the app
+shows occupancy anywhere, it almost certainly has the same bug. The correct
+denominator is `365 × room_count`, and a whole-property booking counts as
+`nights × room_count`.
+
+## Unsettled — do not build against these yet
+
+- **The money model** for online reservations. Guest-paid and owner payout
+  differ by GST registration, and the web app currently has three conflicting
+  payout formulas. Being resolved.
+- **Inbound per-room iCal.** `rooms.ical_url` exists as a stub; nothing reads
+  or writes it and `synced_availability` has no `room_id`. Outbound per-room
+  feeds *are* built and working.
