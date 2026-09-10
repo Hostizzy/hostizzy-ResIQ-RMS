@@ -169,6 +169,7 @@ export default async function handler(req, res) {
         let profile = null;
         let userType = null;
         let ownerId = null;
+        let isSuperAdmin = false;
         let propertyIds = [];
 
         // Check team_members
@@ -178,6 +179,11 @@ export default async function handler(req, res) {
             profile = teamRows[0];
             userType = profile.role === 'admin' ? 'admin' : 'staff';
             ownerId = profile.owner_id || null;
+            // Separate from role. role says what someone may DO inside
+            // Hostizzy's own book; this says whether they may see OTHER
+            // people's businesses — a self-signup host's bookings, guests and
+            // payments. Promoting someone to admin must not silently grant it.
+            isSuperAdmin = profile.is_super_admin === true;
         }
 
         // Check property_owners if no team member found
@@ -208,13 +214,15 @@ export default async function handler(req, res) {
             email,
             role: 'authenticated',
             user_type: userType,
+            is_super_admin: isSuperAdmin,
             owner_id: ownerId?.toString() || null,
             property_ids: propertyIds,
             // app_metadata for Supabase RLS compatibility
             app_metadata: {
                 provider: 'firebase',
                 owner_id: ownerId?.toString() || null,
-                user_type: userType
+                user_type: userType,
+                is_super_admin: isSuperAdmin
             },
             user_metadata: {
                 name: profile.name || '',

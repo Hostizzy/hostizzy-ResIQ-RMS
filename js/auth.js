@@ -283,7 +283,10 @@
             // view — and the approval queue behind it — belongs to a super
             // admin, not to everyone on the team. db.initScope() enforces the
             // same boundary on the data; this stops the door being visible.
-            if (currentUser?.role !== 'admin') {
+            const isSuperAdmin = (typeof currentUser?.is_super_admin === 'boolean')
+                ? currentUser.is_super_admin
+                : (currentUser?.role === 'admin');   // pre-migration fallback
+            if (!isSuperAdmin) {
                 document.querySelectorAll('.sidebar-item').forEach(item => {
                     const label = item.querySelector('.sidebar-item-label')?.textContent?.trim();
                     if (label === 'Hosts') item.style.display = 'none';

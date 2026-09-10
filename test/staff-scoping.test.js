@@ -4,8 +4,13 @@
 //
 // A host runs their own business through ResIQ. Their guests never agreed to
 // appear in Hostizzy's book. Ordinary staff now see Hostizzy's own properties —
-// unowned, or belonging to a managed owner — and a super admin (role 'admin')
-// still sees everything, for support.
+// unowned, or belonging to a managed owner — and a super admin still sees
+// everything, for support.
+//
+// Super admin is team_members.is_super_admin, deliberately NOT role = 'admin'.
+// role says what someone may DO inside Hostizzy's book; the flag says whether
+// they may see other people's businesses. Promoting a colleague to admin must
+// not silently hand them every host's guests and payments.
 
 const OWNERS = [
   { id: 'managed-1', name: 'Managed Owner', account_type: 'managed', is_external: false },
@@ -63,7 +68,10 @@ let fails = 0;
 const t = (l, c) => { if (!c) fails++; ok(l, c); };
 
 // ── Ordinary staff ──
-await db.initScope({ userType: 'staff', role: 'manager', email: 's@hostizzy.com' });
+// role 'admin' with the flag false: being a Hostizzy admin must NOT by itself
+// grant sight of other people's businesses. That was the whole point of
+// splitting the two.
+await db.initScope({ userType: 'staff', role: 'admin', is_super_admin: false, email: 's@hostizzy.com' });
 
 t('ordinary staff are no longer unscoped', db._ownerPropertyIds !== null);
 t('ordinary staff are not super admin', db._isSuperAdmin === false);
@@ -85,8 +93,11 @@ let owners = await db.getOwners();
 t('staff owner directory excludes hosts',
   owners.length === 1 && owners[0].id === 'managed-1');
 
+t('a Hostizzy admin without the flag is not a super admin', db._isSuperAdmin === false);
+
 // ── Super admin ──
-await db.initScope({ userType: 'staff', role: 'admin', email: 'admin@hostizzy.com' });
+// role 'staff' with the flag true: the flag alone decides, not the role.
+await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostsphereindia.com' });
 
 t('super admin is flagged', db._isSuperAdmin === true);
 t('super admin stays unscoped', db._ownerPropertyIds === null);
@@ -107,9 +118,29 @@ t('logout clears the super admin flag', db._isSuperAdmin === false);
 t('logout denies by default', db._isDenied() === true);
 
 // A staff session started right after an admin one must not inherit the flag.
-await db.initScope({ userType: 'staff', role: 'staff', email: 's2@hostizzy.com' });
+await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: false, email: 's2@hostizzy.com' });
 t('a later staff session is not super admin', db._isSuperAdmin === false);
 t('a later staff session is scoped', !((await db.getReservations()).some(r => r.booking_id === 'HOST-1')));
+
+// ── The flag cannot be granted by whoever fancies it ──
+// The web app reaches Postgres as the service role, so this check in db.js is
+// the only thing standing between a staff member and self-promotion.
+const rejects = async (fn) => { try { await fn(); return false; } catch { return true; } };
+await db.initScope({ userType: 'staff', role: 'admin', is_super_admin: false, email: 's3@hostizzy.com' });
+t('ordinary staff cannot grant themselves super admin',
+  await rejects(() => db.saveTeamMember({ id: 1, is_super_admin: true })));
+
+await db.initScope({ userType: 'staff', role: 'staff', is_super_admin: true, email: 'admin@hostsphereindia.com' });
+t('a super admin can grant it',
+  !(await rejects(() => db.saveTeamMember({ id: 1, is_super_admin: true }))));
+
+// ── Before the migration lands ──
+// No is_super_admin field at all: fall back to role so a deploy that lands
+// before the SQL does not lock the Hosts view out of the product.
+await db.initScope({ userType: 'staff', role: 'admin', email: 'legacy@hostizzy.com' });
+t('pre-migration, role admin still works as the fallback', db._isSuperAdmin === true);
+await db.initScope({ userType: 'staff', role: 'manager', email: 'legacy2@hostizzy.com' });
+t('pre-migration, a non-admin is still scoped', db._isSuperAdmin === false);
 
 // ── An owner is unaffected by any of this ──
 await db.initScope({ userType: 'owner', id: 'host-1' });

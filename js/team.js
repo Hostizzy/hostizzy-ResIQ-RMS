@@ -8,14 +8,27 @@ async function loadTeam() {
         const members = await db.getTeamMembers();
         const tbody = document.getElementById('teamTableBody');
         
+        // Only a super admin can see or change who else is one. Everyone else
+        // does not need to know the distinction exists.
+        const viewerIsSuper = !!db._isSuperAdmin;
+
         tbody.innerHTML = members.map(m => `
             <tr>
-                <td>${m.name}</td>
-                <td>${m.email}</td>
-                <td>${m.phone || '<span style="color:var(--text-tertiary);">—</span>'}</td>
-                <td><span class="badge badge-confirmed">${m.role.toUpperCase()}</span></td>
+                <td>${escapeHtml(m.name || '')}</td>
+                <td>${escapeHtml(m.email || '')}</td>
+                <td>${m.phone ? escapeHtml(m.phone) : '<span style="color:var(--text-tertiary);">—</span>'}</td>
+                <td>
+                    <span class="badge badge-confirmed">${escapeHtml((m.role || '').toUpperCase())}</span>
+                    ${viewerIsSuper && m.is_super_admin ? `<br><span class="badge" title="Can see self-signup hosts' bookings, guests and payments"
+                        style="margin-top:4px;background:var(--accent-soft,#FDEBD6);color:var(--accent-deep,#B96A12);">SUPER ADMIN</span>` : ''}
+                </td>
                 <td><span class="badge ${m.is_active ? 'badge-confirmed' : 'badge-cancelled'}">${m.is_active ? 'ACTIVE' : 'INACTIVE'}</span></td>
                 <td>
+                    ${viewerIsSuper ? `<button class="btn btn-secondary btn-sm"
+                        onclick="toggleSuperAdmin(${m.id}, ${m.is_super_admin ? 'true' : 'false'})"
+                        title="${m.is_super_admin ? 'Stop this person seeing hosts\' data' : 'Let this person see hosts\' data'}">
+                        ${m.is_super_admin ? 'Revoke super admin' : 'Make super admin'}
+                    </button> ` : ''}
                     <button class="btn btn-danger btn-sm" onclick="deleteTeamMember(${m.id})">Remove</button>
                 </td>
             </tr>
@@ -102,6 +115,35 @@ async function saveTeamMember() {
     } catch (error) {
         console.error('Save team member error:', error);
         showToast('Error', 'Failed to save team member', '❌');
+    }
+}
+
+/**
+ * Grant or revoke super admin.
+ *
+ * Deliberately separate from role: role decides what someone may do inside
+ * Hostizzy's own book, this decides whether they may see other people's
+ * businesses. The database refuses to remove the last one — losing it would
+ * lock host approvals out of the product with no way back through the UI.
+ */
+async function toggleSuperAdmin(id, currentlySuper) {
+    if (!db._isSuperAdmin) return;
+
+    const granting = !currentlySuper;
+    const message = granting
+        ? 'Make this person a super admin?\n\nThey will be able to see every self-signup host\'s bookings, guests, payments and ID documents.'
+        : 'Revoke super admin from this person?\n\nThey will keep their current role, but will no longer see any host\'s data.';
+    if (!confirm(message)) return;
+
+    try {
+        await db.saveTeamMember({ id, is_super_admin: granting });
+        await loadTeam();
+        showToast('Updated', granting ? 'Super admin granted' : 'Super admin revoked', '✅');
+    } catch (error) {
+        console.error('Toggle super admin error:', error);
+        // The last-super-admin guard raises a readable message; surface it
+        // rather than a generic failure.
+        showToast('Error', error.message || 'Could not change super admin', '❌');
     }
 }
 

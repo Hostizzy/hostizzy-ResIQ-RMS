@@ -68,7 +68,14 @@
                     //
                     // A super admin still sees everything, for support.
                     this._ownerId = null;
-                    this._isSuperAdmin = (user.role === 'admin');
+                    // An explicit flag, not the role. role governs what someone
+                    // may DO in Hostizzy's book; this governs whether they see
+                    // other people's businesses. Falls back to role === 'admin'
+                    // only while sql/super-admin-flag.sql is unapplied, so the
+                    // deploy and the migration need not be simultaneous.
+                    this._isSuperAdmin = (typeof user.is_super_admin === 'boolean')
+                        ? user.is_super_admin
+                        : (user.role === 'admin');
                     this._ownerPropertyIds = this._isSuperAdmin
                         ? null
                         : await this._hostizzyPropertyIds();
@@ -453,14 +460,28 @@
             },
             async saveTeamMember(member) {
                 if (this._isDenied()) throw new Error('Not permitted');
+
+                // Only a super admin may grant or revoke super admin. The web
+                // app reaches Postgres as the SERVICE ROLE, so RLS is not in
+                // the way here — without this check any staff member could
+                // hand it to themselves from the browser console.
+                if ('is_super_admin' in member && !this._isSuperAdmin) {
+                    throw new Error('Only a super admin can change super admin access');
+                }
+
                 if (member.id) {
                     if (!(await this._ownsTeamMember(member.id))) throw new Error('Not permitted');
-                    const { data, error } = await supabase.from('team_members').update(member).eq('id', member.id).select();
+                    // Never write the primary key back.
+                    const { id, ...changes } = member;
+                    const { data, error } = await supabase.from('team_members').update(changes).eq('id', id).select();
                     if (error) throw error;
                     return data?.[0];
                 }
                 // Scoped callers can only ever create members under themselves.
-                const row = this._ownerId == null ? member : { ...member, owner_id: this._ownerId };
+                // is_super_admin is never set on creation — it is granted
+                // deliberately afterwards, by someone who already has it.
+                const { is_super_admin, ...safe } = member;
+                const row = this._ownerId == null ? safe : { ...safe, owner_id: this._ownerId };
                 const { data, error } = await supabase.from('team_members').insert([row]).select();
                 if (error) throw error;
                 return data?.[0];
