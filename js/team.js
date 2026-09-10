@@ -301,8 +301,8 @@ async function saveOwner() {
             return;
         }
 
-        if (!ownerId && (!password || password.length < 6)) {
-            showToast('Validation Error', 'Password must be at least 6 characters', '❌');
+        if (!ownerId && (!password || password.length < 8)) {
+            showToast('Validation Error', 'Password must be at least 8 characters', '❌');
             return;
         }
 
@@ -340,9 +340,56 @@ async function saveOwner() {
             await db.updateOwner(ownerId, ownerData);
             showToast('Success', `${typeLabel} updated successfully!`, '✅');
         } else {
-            // Create new owner
-            await db.createOwner(ownerData);
-            showToast('Success', `${typeLabel} created successfully!`, '✅');
+            // Create the Firebase identity FIRST. Login is Firebase-only — the
+            // password column is never compared to anything — so without this
+            // the owner is created, appears in the list, and simply cannot sign
+            // in. The form collected a password and threw it away.
+            //
+            // Same order and rollback as api/owner-signup.js: identity first,
+            // row second, and undo the identity if the row fails, so a retry
+            // with the same address is not blocked by an orphaned account.
+            let firebaseCreated = false;
+            try {
+                const resp = await fetch('/api/auth-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                    },
+                    body: JSON.stringify({
+                        action: 'create-user', email, password, displayName: name
+                    })
+                });
+                const result = await resp.json();
+                if (!resp.ok) throw new Error(result.error || 'Failed to create login');
+                firebaseCreated = true;
+            } catch (authErr) {
+                const msg = authErr.message || '';
+                // An existing Firebase account is fine — someone may have been
+                // added by hand before, or previously removed from ResIQ only.
+                if (!msg.includes('already exists') && !msg.includes('email-already-exists')) {
+                    throw authErr;
+                }
+            }
+
+            try {
+                await db.createOwner(ownerData);
+            } catch (dbErr) {
+                if (firebaseCreated) {
+                    try {
+                        await fetch('/api/auth-proxy', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                            },
+                            body: JSON.stringify({ action: 'delete-user', email })
+                        });
+                    } catch (e) { /* best effort */ }
+                }
+                throw dbErr;
+            }
+            showToast('Success', `${typeLabel} created — they can sign in with this email`, '✅');
         }
 
         closeOwnerModal();
@@ -363,7 +410,31 @@ async function deleteOwner(ownerId) {
     }
 
     try {
+        // Grab the email before the row goes, so the Firebase account can be
+        // cleaned up too. Leaving it behind blocks ever re-adding that address:
+        // creating the owner would then hit "email already exists" against an
+        // account nobody can see from inside ResIQ.
+        let email = null;
+        try {
+            const owner = await db.getOwner(ownerId);
+            email = owner?.email || null;
+        } catch (e) { /* proceed with the delete regardless */ }
+
         await db.deleteOwner(ownerId);
+
+        if (email) {
+            try {
+                await fetch('/api/auth-proxy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await getFirebaseIdToken()}`
+                    },
+                    body: JSON.stringify({ action: 'delete-user', email })
+                });
+            } catch (e) { /* best effort — the ResIQ record is already gone */ }
+        }
+
         await loadOwners();
         showToast('Success', 'Owner deleted successfully', '✅');
     } catch (error) {
