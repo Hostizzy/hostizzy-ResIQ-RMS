@@ -313,6 +313,15 @@ BEGIN
 
     PERFORM set_config('request.jwt.claims', '', true);
     RESET ROLE;
+
+EXCEPTION WHEN OTHERS THEN
+    -- One permission error used to abort this whole block, taking every check
+    -- below it with it and leaving a short report that looked like a pass.
+    -- Report it as a SKIP and carry on.
+    RESET ROLE;
+    PERFORM set_config('request.jwt.claims', '', true);
+    INSERT INTO resiq_checks VALUES (50, 'HOST JWT', 'tenant boundary holds', 'SKIP',
+        'could not simulate a host: ' || SQLERRM);
 END $$;
 
 
