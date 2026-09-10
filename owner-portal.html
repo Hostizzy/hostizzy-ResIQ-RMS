@@ -1479,7 +1479,7 @@
                                 <div style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;" id="homeQuickTotalGuests">0</div>
                                 <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Across all properties</div>
                             </div>
-                            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 24px; border-radius: 16px; color: white; position: relative; overflow: hidden;">
+                            <div data-commission-figure style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 24px; border-radius: 16px; color: white; position: relative; overflow: hidden;">
                                 <div style="position: absolute; top: -10px; right: -10px; font-size: 64px; opacity: 0.15;">✨</div>
                                 <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px; font-weight: 600;">Your Earnings</div>
                                 <div style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;" id="homeQuickNetEarnings">₹0</div>
@@ -1571,12 +1571,12 @@
                         <div class="stat-label">Total Guests</div>
                         <small style="color: var(--text-secondary); margin-top: 4px; display: block;">Across all properties</small>
                     </div>
-                    <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+                    <div class="stat-card" data-commission-figure style="border-left: 4px solid #f59e0b;">
                         <div class="stat-value" style="color: #f59e0b; font-size: 28px;" id="ownerHostizzyShare">₹0</div>
                         <div class="stat-label">Hostizzy Share</div>
                         <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerHostizzyPercent">Average commission</small>
                     </div>
-                    <div class="stat-card" style="border-left: 4px solid #8b5cf6;">
+                    <div class="stat-card" data-commission-figure style="border-left: 4px solid #8b5cf6;">
                         <div class="stat-value" style="color: #8b5cf6; font-size: 28px;" id="ownerNetEarnings">₹0</div>
                         <div class="stat-label">Your Earnings</div>
                         <small style="color: var(--text-secondary); margin-top: 4px; display: block;" id="ownerEarningsPercent">After commission</small>
@@ -1744,11 +1744,11 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="paymentsToOwner">₹0</div>
-                        <div class="stat-label">Owner Earnings</div>
+                        <div class="stat-label">Collected by you</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="paymentsToHostizzy">₹0</div>
-                        <div class="stat-label">Hostizzy Commission</div>
+                        <div class="stat-label">Collected by Hostizzy</div>
                     </div>
                 </div>
 
@@ -2072,6 +2072,26 @@
         let currentUser = null;
 
         // Database functions for owner portal
+        // ── Commission figures are hidden from owners ────────────────────
+        // The commission split shown here disagreed with the value stored on
+        // the reservation: this portal computed (total - ota_fee) - commission
+        // while the app stored total - taxes - ota_fee - commission, and
+        // utils.getHostPayout() returned a third number again. Until the money
+        // model is settled we show an owner nothing rather than one of three
+        // possible answers about their own earnings.
+        //
+        // Flip to true once computeBookingMoney() lands and all three agree.
+        const SHOW_COMMISSION_FIGURES = false;
+
+        // Removed outright, not hidden: a display:none tile is one devtools
+        // toggle from showing an owner a number we know is wrong. Runs
+        // synchronously rather than from DOMContentLoaded — that handler
+        // awaits Firebase config first, so a slow or blocked load would leave
+        // the figures on screen in the meantime.
+        if (!SHOW_COMMISSION_FIGURES) {
+            document.querySelectorAll('[data-commission-figure]').forEach(el => el.remove());
+        }
+
         // The statuses that represent money the owner has earned. Was
         // OWNER_EARNING_STATUSES — an underscore and a word
         // the app never writes. Bookings are 'checked-in'/'checked-out', so
@@ -2354,7 +2374,7 @@
                 if (propertyIds.length === 0) {
                     document.getElementById('homeQuickTotalRevenue').textContent = '₹0';
                     document.getElementById('homeQuickTotalGuests').textContent = '0';
-                    document.getElementById('homeQuickNetEarnings').textContent = '₹0';
+                    document.getElementById('homeQuickNetEarnings')?.replaceChildren('₹0');
                     document.getElementById('homeQuickPendingPayout').textContent = '₹0';
                     return;
                 }
@@ -2398,7 +2418,10 @@
 
                 document.getElementById('homeQuickTotalRevenue').textContent = '₹' + totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 });
                 document.getElementById('homeQuickTotalGuests').textContent = totalGuests.toLocaleString('en-IN');
-                document.getElementById('homeQuickNetEarnings').textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                // Optional chaining: the tile is removed outright when
+                // SHOW_COMMISSION_FIGURES is false.
+                const netEl = document.getElementById('homeQuickNetEarnings');
+                if (netEl) netEl.textContent = '₹' + netEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 });
                 document.getElementById('homeQuickPendingPayout').textContent = '₹' + pendingPayout.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
             } catch (error) {
@@ -2635,6 +2658,7 @@
         window.addEventListener('DOMContentLoaded', async () => {
             // Wait for config (Firebase init) before auth operations
             if (typeof _configReady !== 'undefined') await _configReady;
+
 
             // Load saved theme preference
             const savedTheme = localStorage.getItem('ownerPortalTheme') || 'light';
