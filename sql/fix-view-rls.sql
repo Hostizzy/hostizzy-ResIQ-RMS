@@ -104,8 +104,14 @@ END $$;
 -- owning property. The readers are fixed in the same change as this file; this
 -- brings the data back into agreement so anything still reading the mirror —
 -- and the verify check — is correct.
+-- On types: properties.id is integer here but the mirror column is not
+-- necessarily integer[], and array comparison in Postgres has no implicit
+-- cast between element types — bigint[] = integer[] is a hard error. So
+-- compare through an explicit ::bigint[] on both sides, and let the
+-- assignment take whatever the column actually is via a bare '{}' rather
+-- than naming a type that might not match.
 UPDATE property_owners o
-   SET property_ids = COALESCE(p.ids, ARRAY[]::bigint[])
+   SET property_ids = COALESCE(p.ids, '{}')
   FROM (
         SELECT owner_id, array_agg(id ORDER BY id) AS ids
           FROM properties
@@ -113,7 +119,8 @@ UPDATE property_owners o
          GROUP BY owner_id
        ) p
  WHERE p.owner_id = o.id
-   AND COALESCE(o.property_ids, ARRAY[]::bigint[]) IS DISTINCT FROM p.ids;
+   AND COALESCE(o.property_ids::bigint[], '{}'::bigint[])
+       IS DISTINCT FROM COALESCE(p.ids::bigint[], '{}'::bigint[]);
 
 -- Report what moved, so a silent zero-row run is distinguishable from a fix.
 DO $$
@@ -125,8 +132,8 @@ BEGIN
             SELECT owner_id, array_agg(id ORDER BY id) AS ids
               FROM properties WHERE owner_id IS NOT NULL GROUP BY owner_id
            ) p ON p.owner_id = o.id
-     WHERE COALESCE(o.property_ids, ARRAY[]::bigint[])
-           IS DISTINCT FROM COALESCE(p.ids, ARRAY[]::bigint[]);
+     WHERE COALESCE(o.property_ids::bigint[], '{}'::bigint[])
+           IS DISTINCT FROM COALESCE(p.ids::bigint[], '{}'::bigint[]);
 
     IF drift = 0 THEN
         RAISE NOTICE 'owner property links agree';
