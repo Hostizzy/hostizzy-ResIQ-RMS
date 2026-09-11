@@ -424,3 +424,122 @@ denominator is `365 × room_count`, and a whole-property booking counts as
 - **Inbound per-room iCal.** `rooms.ical_url` exists as a stub; nothing reads
   or writes it and `synced_availability` has no `room_id`. Outbound per-room
   feeds *are* built and working.
+
+---
+
+# Round 3 — tenant boundary, now enforced in the database
+
+Rounds 1 and 2 still stand. Everything below is **already applied to the
+production database**, so it is live for the app right now, whether or not the
+app has shipped anything.
+
+The theme: Hostizzy staff and self-signup hosts used to see each other's data.
+That is closed — on tables, on views, and on the three policies that were still
+`USING (true)`. The app is the path where RLS is the only defence, so these
+changes land on you directly.
+
+## 1. Re-login is required — read this first
+
+`resiq_is_super_admin()` used to read `user_type = 'admin'`, and
+`/api/auth-exchange` derives `user_type` from the team member's **role**:
+
+    userType = profile.role === 'admin' ? 'admin' : 'staff'
+
+So every `role='admin'` team member was treated as a super admin and could read
+every host's data. Super admin is now a separate flag —
+`team_members.is_super_admin` — and the helper reads a new JWT claim instead.
+
+**A JWT minted before this has no `is_super_admin` claim and now resolves to
+`false`.** That is deliberate fail-closed behaviour, but it means:
+
+- Anyone signed in on an old token silently loses super-admin reach.
+- The fix is to sign out and back in; `auth-exchange` mints the claim now.
+- If a support screen suddenly looks empty, this is why. It is not a bug.
+
+New claims, top level and inside `app_metadata`:
+
+    { "user_type": "staff", "is_super_admin": true, "owner_id": null, ... }
+
+If the app caches the decoded JWT anywhere, invalidate that cache on this
+release.
+
+## 2. Row counts will legitimately drop
+
+These policies now call `resiq_is_super_admin()` and scope by tenant:
+
+    reservations · properties · payments · property_owners
+    enquiries · communications · revenue_targets
+
+For ordinary staff, "everything" now means **Hostizzy's own book** — properties
+that are unowned or belong to a managed owner. A self-signup host's bookings,
+guests and payments are gone from those queries.
+
+If the app has a staff or admin screen that showed all reservations, it now
+shows fewer, and that is correct. Do not "fix" it by widening a query.
+
+`enquiries`, `communications` and `revenue_targets` were `USING (true)` until
+now — any logged-in user read every tenant's rows. If the app reads them,
+expect counts to fall.
+
+**`revenue_targets` is Hostizzy-internal.** A host or owner now gets **zero
+rows, not an error**. If the app renders a target with no null-guard, it will
+show 0 or divide by zero rather than throw.
+
+## 3. Unassigned records belong to Hostizzy
+
+Two cases that are deliberately *not* orphaned into invisibility:
+
+- an `enquiries` row with `property_id IS NULL` — an unassigned lead off the
+  marketing site
+- a `communications` row whose `booking_id` matches no reservation
+
+Both stay visible to Hostizzy staff and are hidden from hosts. If the app has
+an inbox, this is the rule it should mirror.
+
+## 4. Views no longer bypass RLS
+
+`payment_summary`, `daily_collections`, `revenue_report` and
+`reservation_document_status` ran with their **owner's** rights, so RLS on the
+base tables did nothing. A logged-in host could read the whole database through
+them — 1134 rows of `payment_summary`, 1098 of `reservation_document_status`.
+
+All four now have `security_invoker = on` and return only the caller's tenant.
+
+Two consequences if the app touches them:
+
+- Any total built from these views changes. It was wrong before, not now.
+- A `security_invoker` view needs the **caller** to hold `SELECT` on the base
+  tables. If a future grant is tightened, these fail closed with a permission
+  error rather than returning rows — so handle the error path.
+
+## 5. `property_ids` is now consistent — still do not read it
+
+The deprecated `property_owners.property_ids` mirror has been backfilled, so it
+currently agrees with `properties.owner_id`.
+
+This is a trap, not a green light. It agrees *today*; nothing guarantees it
+tomorrow, and three owners were silently broken by exactly this drift. Resolve
+through `properties.owner_id`, as Round 2 said.
+
+## 6. Verifying your side
+
+`sql/verify.sql` is the standing harness — run it after any schema change. The
+relevant lines for the app:
+
+    RLS  · super admin helper reads the flag, not the role
+    RLS  · the booking-existence helper is SECURITY DEFINER
+    RLS  · reservations policy applies the host boundary
+    RLS  · no unscoped authenticated policies
+    HOST JWT · sees exactly their own properties / reservations / team members
+    VIEWS · view <name> does not bypass RLS
+
+The `HOST JWT` block simulates exactly what `auth-exchange` mints for a host,
+so it tests your path, not the web app's.
+
+## Still unsettled — unchanged from Round 2
+
+- **The money model** for online reservations. Still three conflicting payout
+  formulas. Do not build against it.
+- **Inbound per-room iCal.** Still a stub.
+- **Occupancy is still `nights / 365`**, room-blind. The calendar and
+  reservation list are room-aware; the occupancy metric is not.
