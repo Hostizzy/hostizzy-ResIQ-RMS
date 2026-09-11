@@ -200,7 +200,19 @@ SELECT 45, 'VIEWS',
    AND g.grantee IN ('anon','authenticated','PUBLIC')
  WHERE ns.nspname = 'public'
    AND c.relkind = 'v'
-   AND NOT COALESCE(c.reloptions::text LIKE '%security_invoker=true%', false)
+   -- Test the OPTION'S VALUE, not the spelling. Postgres stores reloptions
+   -- verbatim, so `SET (security_invoker = on)` lands as security_invoker=on
+   -- and `= true` lands as security_invoker=true. A LIKE against one spelling
+   -- reported correctly-configured views as failing — which is exactly what
+   -- this check did after sql/fix-view-rls.sql wrote `on`, while the
+   -- behavioural host-JWT check below (silent = nothing readable) passed.
+   -- A structural check that contradicts the behavioural one is the check's
+   -- bug, not the database's.
+   AND NOT COALESCE(
+         (SELECT o.option_value
+            FROM pg_options_to_table(c.reloptions) o
+           WHERE o.option_name = 'security_invoker') IN ('on','true','yes','1'),
+         false)
  GROUP BY c.relname, c.relowner, g.grantee;
 
 
