@@ -119,8 +119,11 @@ function getMonthLabel(year, month) {
 async function loadOwnerDashboard() {
     try {
         const ownerId = currentUser.id;
-        const owner = await db.getOwner(ownerId);
-        const propertyIds = owner.property_ids || [];
+        // properties.owner_id is the source of truth. This used to read
+        // owner.property_ids — a deprecated mirror that had drifted empty for
+        // three real owners, who were then told "No properties linked to your
+        // account" while owning property.
+        const propertyIds = await db.getOwnerPropertyIds(ownerId);
 
         if (propertyIds.length === 0) {
             const elements = {
@@ -581,8 +584,11 @@ function loadRevenueCharts() {
 async function loadOwnerPayments() {
     try {
         const ownerId = currentUser.id;
-        const owner = await db.getOwner(ownerId);
-        const propertyIds = owner.property_ids || [];
+        // properties.owner_id is the source of truth. This used to read
+        // owner.property_ids — a deprecated mirror that had drifted empty for
+        // three real owners, who were then told "No properties linked to your
+        // account" while owning property.
+        const propertyIds = await db.getOwnerPropertyIds(ownerId);
 
         if (propertyIds.length === 0) {
             document.getElementById('ownerPaymentsList').innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No properties linked to your account</p>';
@@ -787,8 +793,11 @@ function renderOwnerPaymentsList(payments) {
 async function loadOwnerCalendar() {
     try {
         const ownerId = currentUser.id;
-        const owner = await db.getOwner(ownerId);
-        const propertyIds = owner.property_ids || [];
+        // properties.owner_id is the source of truth. This used to read
+        // owner.property_ids — a deprecated mirror that had drifted empty for
+        // three real owners, who were then told "No properties linked to your
+        // account" while owning property.
+        const propertyIds = await db.getOwnerPropertyIds(ownerId);
 
         if (propertyIds.length === 0) {
             document.getElementById('ownerCalendarGrid').innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No properties linked to your account</p>';
@@ -1300,8 +1309,11 @@ function renderOwnerBookingsList(bookings) {
 async function loadOwnerPayouts() {
     try {
         const ownerId = currentUser.id;
-        const owner = await db.getOwner(ownerId);
-        const propertyIds = owner.property_ids || [];
+        // properties.owner_id is the source of truth. This used to read
+        // owner.property_ids — a deprecated mirror that had drifted empty for
+        // three real owners, who were then told "No properties linked to your
+        // account" while owning property.
+        const propertyIds = await db.getOwnerPropertyIds(ownerId);
 
         if (propertyIds.length === 0) {
             document.getElementById('ownerPayoutsList').innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">No properties linked to your account</p>';
@@ -1729,8 +1741,10 @@ async function saveOwnerBankDetails() {
 async function loadOwnerProperties() {
     try {
         const properties = await db.getProperties();
-        // Filter by property_ids array
-        const ownerPropertyIds = currentUser.property_ids || [];
+        // Same drift as the four views above, with a second hazard: this read
+        // came from the cached login object, so it was stale even when the
+        // column was right.
+        const ownerPropertyIds = await db.getOwnerPropertyIds(currentUser.id);
         ownerData.properties = properties.filter(p => ownerPropertyIds.includes(p.id));
 
         const container = document.getElementById('ownerPropertiesList');

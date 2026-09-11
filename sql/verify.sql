@@ -516,6 +516,32 @@ SELECT 90, 'RLS', 'reservations policy applies the host boundary',
   FROM pg_policies
  WHERE schemaname='public' AND tablename='reservations' AND policyname='jwt_reservations_select';
 
+-- Calling the right helper is not the same as the helper meaning the right
+-- thing. resiq_is_super_admin() read user_type = 'admin', and auth-exchange
+-- derives user_type from the ROLE — so on the app every role='admin' team
+-- member was a super admin, which is exactly what splitting the flag off the
+-- role was meant to stop. Every check above passed throughout. So assert the
+-- definition, not just the call site.
+INSERT INTO resiq_checks
+SELECT 91, 'RLS', 'super admin helper reads the flag, not the role',
+       CASE WHEN p.prosrc LIKE '%is_super_admin%' THEN 'PASS' ELSE 'FAIL' END,
+       CASE WHEN p.prosrc LIKE '%is_super_admin%'
+            THEN 'reads the is_super_admin claim'
+            ELSE 'reads user_type — every role=admin staff member is a super admin on the app; see sql/scope-remaining-policies.sql' END
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+ WHERE n.nspname='public' AND p.proname='resiq_is_super_admin';
+
+-- Telling a genuinely unassigned record from one whose booking the caller
+-- merely cannot see has to happen outside RLS, or staff read every host
+-- message as an orphan and are handed it.
+INSERT INTO resiq_checks
+SELECT 92, 'RLS', 'the booking-existence helper is SECURITY DEFINER',
+       CASE WHEN p.prosecdef THEN 'PASS' ELSE 'FAIL' END,
+       CASE WHEN p.prosecdef THEN 'yes'
+            ELSE 'no — host messages will leak to staff as unassigned' END
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+ WHERE n.nspname='public' AND p.proname='resiq_booking_exists';
+
 
 -- ============================================================
 -- RESULTS — failures first

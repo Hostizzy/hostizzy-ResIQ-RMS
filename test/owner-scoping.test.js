@@ -138,5 +138,25 @@ const clearWrites = log.filter(e => e.table === 'properties');
 t('assigning no properties releases them all',
   clearWrites.length === 1 && clearWrites[0].not === null);
 
+// ── The portal must not read the deprecated mirror ──
+// property_owners.property_ids is a denormalised copy of properties.owner_id.
+// It drifts: verify.sql found three real owners whose mirror was empty while
+// owner_id linked a property. Five owner-portal views gated on the mirror, so
+// those owners logged in and were told "No properties linked to your account"
+// while owning property. One of them read it off the CACHED login object, so
+// it was stale even when the column was right.
+import { readFileSync as read } from 'fs';
+const portal = read(new URL('../owner-portal-functions.js', import.meta.url), 'utf8');
+
+// Strip comments first — the fix is explained in prose that names the column.
+const code = portal
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/^\s*\/\/.*$/gm, '');
+
+const mirrorReads = (code.match(/\.property_ids/g) || []).length;
+t('the owner portal never reads the property_ids mirror', mirrorReads === 0);
+t('the owner portal resolves properties from the source of truth',
+  code.includes('getOwnerPropertyIds'));
+
 if (fails) { console.error(`\n${fails} check(s) failed`); process.exit(1); }
 console.log('\nAll owner scoping checks passed');
